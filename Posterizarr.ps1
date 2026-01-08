@@ -6733,6 +6733,166 @@ function MassDownloadPlexArtwork {
         Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
     }
 }
+function MassDownloadJellyEmbyArtwork {
+    $Mode = "backup"
+    Write-Entry -Message "Backup Mode Started..." -Path $global:configLogging -Color White -log Info
+    Write-Entry -Message "Querying Jelly/Emby libraries..." -Path $global:configLogging -Color White -log Info
+
+    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+
+    $posterCount = 0
+    $BackgroundCount = 0
+    $SeasonCount = 0
+    $EpisodeCount = 0
+
+    foreach ($lib in $libsResponse) {
+        if ($lib.Name -in $LibsToExclude) { continue }
+
+        $collectionType = $lib.CollectionType.ToLower()
+        if ($collectionType -notin @("movies", "tvshows")) { continue }
+
+        Write-Entry -Message "--- Processing Library: $($lib.Name) ---" -Path $global:configLogging -Color Cyan -log Info
+
+        $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle?api_key=$OtherMediaServerApiKey"
+        $items = (Invoke-RestMethod -Uri $itemsUrl).Items
+
+        foreach ($item in $items) {
+            # Extract Folder/File names
+            $rootFolderName = Split-Path $item.Path -Leaf
+            if ($item.Type -eq "Movie") {
+                $rootFolderName = [System.IO.Path]::GetFileNameWithoutExtension($item.Path)
+            }
+
+            if ($LibraryFolders) {
+                $entryDir = Join-Path $BackupPath "$($lib.Name)\$rootFolderName"
+                $posterDest = Join-Path $entryDir "poster.jpg"
+                $backdropDest = Join-Path $entryDir "background.jpg"
+            } else {
+                $entryDir = $BackupPath
+                $posterDest = Join-Path $entryDir "$($rootFolderName).jpg"
+                $backdropDest = Join-Path $entryDir "$($rootFolderName)_background.jpg"
+            }
+
+            if (!(Test-Path -LiteralPath $entryDir)) {
+                New-Item -ItemType Directory -Path $entryDir -Force | Out-Null
+            }
+
+            # 1. Download Primary Poster
+            $posterUrl = "$OtherMediaServerUrl/Items/$($item.Id)/Images/Primary?api_key=$OtherMediaServerApiKey"
+            if (!(Test-Path -LiteralPath $posterDest)) {
+                try {
+                    Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue
+                    $posterCount++
+                } catch {}
+            }
+
+            # 2. Download Backdrop
+            if (!(Test-Path -LiteralPath $backdropDest)) {
+                try {
+                    Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop?api_key=$OtherMediaServerApiKey" -OutFile $backdropDest -ErrorAction SilentlyContinue
+                    $BackgroundCount++
+                    $posterCount++
+                } catch {}
+            }
+
+            if ($item.Type -eq "Series") {
+                $seasons = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Seasons?api_key=$OtherMediaServerApiKey").Items
+                foreach ($season in $seasons) {
+                    $sNum = if ($null -ne $season.IndexNumber) { $season.IndexNumber.ToString("D2") } else { "00" }
+                    $sDest = if ($LibraryFolders) { Join-Path $entryDir "Season$sNum.jpg" } else { Join-Path $entryDir "$($rootFolderName)_season$sNum.jpg" }
+
+                    if (!(Test-Path -LiteralPath $sDest)) {
+                        try {
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $sDest -ErrorAction SilentlyContinue
+                        } catch {}
+                    }
+                }
+
+                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber?api_key=$OtherMediaServerApiKey").Items
+                foreach ($ep in $episodes) {
+                    $sNum = if ($null -ne $ep.ParentIndexNumber) { $ep.ParentIndexNumber.ToString("D2") } else { "00" }
+                    $eNum = if ($null -ne $ep.IndexNumber) { $ep.IndexNumber.ToString("D2") } else { "00" }
+                    $naming = "S$($sNum)E$($eNum)"
+                    $epDest = if ($LibraryFolders) { Join-Path $entryDir "$naming.jpg" } else { Join-Path $entryDir "$($rootFolderName)_$naming.jpg" }
+
+                    if (!(Test-Path -LiteralPath $epDest)) {
+                        try {
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $epDest -ErrorAction SilentlyContinue
+                            $EpisodeCount++
+                            $posterCount++
+                        } catch {}
+                    }
+                }
+            }
+        }
+    }
+
+    $endTime = Get-Date
+    $executionTime = New-TimeSpan -Start $startTime -End $endTime
+    # Format the execution time
+    $hours = [math]::Floor($executionTime.TotalHours)
+    $minutes = $executionTime.Minutes
+    $seconds = $executionTime.Seconds
+    $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
+    Write-Entry -Message "Finished, Total images downloaded: $posterCount" -Path $global:configLogging -Color Green -log Info
+    if ($posterCount -ge '1') {
+        Write-Entry -Message "Show/Movie Posters downloaded: $($posterCount-$SeasonCount-$BackgroundCount-$EpisodeCount)| Season images downloaded: $SeasonCount | Background images downloaded: $BackgroundCount | TitleCards downloaded: $EpisodeCount" -Path $global:configLogging -Color Green -log Info
+    }
+    if ($errorCount -ge '1') {
+        Write-Entry -Message "During execution '$errorCount' Errors occurred, please check the log for a detailed description where you see [ERROR-HERE]." -Path $global:configLogging -Color White -log Info
+    }
+    Write-TextSizeCacheSummary
+    Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
+
+    # Send Notification
+    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -FallbackCount $FallbackCount.count -TextlessCount $TextlessCount.count -TruncatedCount $TextTruncatedCount.count -PosterUnknownCount $PosterUnknownCount -PosterCount $posterCount -BackgroundCount $BackgroundCount -SeasonCount $SeasonCount -EpisodeCount $EpisodeCount
+
+    # Export json
+    $jsonObject = [PSCustomObject]@{
+        Posters              = if ($posterCount) { $posterCount } Else { 0 }
+        Backgrounds          = if ($BackgroundCount) { $BackgroundCount } Else { 0 }
+        Titlecards           = if ($EpisodeCount) { $EpisodeCount } Else { 0 }
+        Seasons              = if ($SeasonCount) { $SeasonCount } Else { 0 }
+        Collections          = if ($collectionCount) { $collectionCount } Else { 0 }
+        Mode                 = $Mode
+        Runtime              = $($hours.ToString() + ":" + $minutes.ToString() + ":" + $seconds.ToString())
+        Errors               = if ($errorCount) { $errorCount } Else { 0 }
+        Fallbacks            = if ($FallbackCount) { $FallbackCount } Else { 0 }
+        Textless             = if ($TextlessCount) { $TextlessCount } Else { 0 }
+        Truncated            = if ($TextTruncatedCount) { $TextTruncatedCount } Else { 0 }
+        Text                 = if ($TextCount) { $TextCount } Else { 0 }
+        "TBA Skipped"        = if ($SkipTBACount) { $SkipTBACount } Else { 0 }
+        "Jap/Chines Skipped" = if ($SkipJapTitleCount) { $SkipJapTitleCount } Else { 0 }
+        "Notification Sent"  = if ($global:SendNotification -eq 'true') { $global:SendNotification } Else { "false" }
+        "Uptime Kuma"        = if ($global:UptimeKumaUrl) { "true" } Else { "false" }
+        "Images cleared"     = if ($ImagesCleared) { $ImagesCleared } Else { 0 }
+        "Folders Cleared"    = if ($PathsCleared) { $PathsCleared } Else { 0 }
+        "Space saved"        = if ($savedsizestring) { $savedsizestring } Else { 0 }
+        "Script Version"     = $CurrentScriptVersion
+        "IM Version"         = $global:CurrentImagemagickversion
+        "Start time"         = $startTime.ToString('dd.MM.yyyy HH:mm:ss')
+        "End Time"           = $endTime.ToString('dd.MM.yyyy HH:mm:ss')
+    }
+
+    $jsonOutput = $jsonObject | ConvertTo-Json
+    $jsonOutput | Out-File -FilePath "$global:ScriptRoot\Logs\$Mode.json" -Encoding utf8
+
+    # Clear Running File
+    if (Test-Path $CurrentlyRunning) {
+        try {
+            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+        }
+    }
+    if ($global:UptimeKumaUrl) {
+        Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
+    }
+}
+
 function SyncPlexArtwork {
     param(
         [string]$ArtUrl,
@@ -25071,22 +25231,18 @@ Elseif ($Backup) {
         MassDownloadPlexArtwork
     }
     Else {
-        Write-Entry -Message "Backup mode currently works only for Plex..." -Path $global:configLogging -Color White -log Warning
-        # Clear Running File
-        if (Test-Path $CurrentlyRunning) {
-            try {
-                Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
-            }
-            catch {
-                Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
-                Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-            }
+        if ($UseJelly -eq 'true'){
+            CheckJellyfinAccess -JellyfinUrl $JellyfinUrl -JellyfinApi $JellyfinAPIKey
+            $OtherMediaServerUrl = $JellyfinUrl
+            $OtherMediaServerApiKey = $JellyfinAPIKey
+            MassDownloadJellyEmbyArtwork
         }
-        if ($global:UptimeKumaUrl) {
-            Send-UptimeKumaWebhook -status "down" -msg "No libs found"
+        if ($UseEmby -eq 'true'){
+            CheckEmbyAccess -EmbyUrl $EmbyUrl -EmbyAPI $EmbyAPIKey
+            $OtherMediaServerUrl = $EmbyUrl
+            $OtherMediaServerApiKey = $EmbyAPIKey
+            MassDownloadJellyEmbyArtwork
         }
-        Exit
     }
 }
 #region Sync Mode
