@@ -92,7 +92,7 @@
       },
       "backup": {
         "title": "Backup Mode",
-        "description": "Backup existing Plex posters"
+        "description": "Backup existing posters"
       },
       "syncJellyfin": {
         "title": "Sync Jellyfin",
