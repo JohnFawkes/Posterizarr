@@ -893,7 +893,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
         if (settingKey === "FanartTvAPIKey") return renderValidate("fanart", "Enter Fanart API Key");
         if (settingKey === "NewLineWords") {
             const dictValue = value && typeof value === 'object' ? value : {};
-            
+
             const handleUpdatePair = (oldKey, newKey, newVal) => {
                 const newDict = { ...dictValue };
                 if (oldKey !== newKey) {
@@ -918,7 +918,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                 <div className="space-y-2">
                     {Object.entries(dictValue).map(([k, v], idx) => (
                         <div key={idx} className="flex gap-2 items-start">
-                            <input 
+                            <input
                                 className={`${commonInputClass} font-mono text-xs`}
                                 value={k}
                                 placeholder="Word"
@@ -926,14 +926,14 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                                 disabled={disabled}
                             />
                             <ArrowRight className="w-8 h-8 text-theme-muted mt-1 flex-shrink-0" />
-                            <textarea 
+                            <textarea
                                 className={`${commonInputClass} font-mono text-xs h-[42px] min-h-[42px] resize-none`}
                                 value={v}
                                 placeholder="Replacement"
                                 onChange={(e) => handleUpdatePair(k, k, e.target.value)}
                                 disabled={disabled}
                             />
-                            <button 
+                            <button
                                 onClick={() => handleRemovePair(k)}
                                 className="p-2.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20"
                                 disabled={disabled}
@@ -942,7 +942,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                             </button>
                         </div>
                     ))}
-                    <button 
+                    <button
                         onClick={handleAddPair}
                         className="w-full py-2 border-2 border-dashed border-theme rounded-lg text-theme-muted hover:text-theme-primary hover:border-theme-primary transition-all flex items-center justify-center gap-2 text-sm"
                         disabled={disabled}
@@ -952,7 +952,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                 </div>
             );
         }
-        
+
         // Passwords & Other Secrets (No validate button, just PasswordInput)
         if (settingKey.toLowerCase().includes("password") || settingKey.toLowerCase().includes("secret")) {
              return <PasswordInput value={stringValue} onChange={(e) => updateValue(fieldKey, e.target.value)} disabled={disabled} placeholder="Enter value" />;
@@ -1024,7 +1024,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
         if (settingKey.toLowerCase().includes("gravity")) return (<div className="relative"><select value={stringValue} onChange={(e) => updateValue(fieldKey, e.target.value)} disabled={disabled} className={`${commonInputClass} appearance-none`}>{["NorthWest", "North", "NorthEast", "West", "Center", "East", "SouthWest", "South", "SouthEast"].map(opt => (<option key={opt} value={opt}>{opt}</option>))}</select><ChevronDown className="absolute right-3 top-3 w-4 h-4 text-theme-muted pointer-events-none" /></div>);
 
         // Color
-        if (settingKey.toLowerCase().includes("color")) return (<div className="flex gap-2"><div className="relative w-12 h-10 flex-shrink-0"><input type="color" value={stringValue.startsWith("#") ? stringValue : "#FFFFFF"} disabled={disabled} onChange={(e) => updateValue(fieldKey, e.target.value.toUpperCase())} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" /><div className={`w-full h-full rounded-lg border border-theme ${disabled ? 'opacity-50' : ''}`} style={{ backgroundColor: stringValue.startsWith("#") ? stringValue : "#FFFFFF" }} /></div><input type="text" value={stringValue} disabled={disabled} onChange={(e) => updateValue(fieldKey, e.target.value)} className={`${commonInputClass} font-mono uppercase`} placeholder="#FFFFFF" /></div>);
+        if (settingKey.toLowerCase().includes("color") && settingKey !== "ConvertLogoColor") return (<div className="flex gap-2"><div className="relative w-12 h-10 flex-shrink-0"><input type="color" value={stringValue.startsWith("#") ? stringValue : "#FFFFFF"} disabled={disabled} onChange={(e) => updateValue(fieldKey, e.target.value.toUpperCase())} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" /><div className={`w-full h-full rounded-lg border border-theme ${disabled ? 'opacity-50' : ''}`} style={{ backgroundColor: stringValue.startsWith("#") ? stringValue : "#FFFFFF" }} /></div><input type="text" value={stringValue} disabled={disabled} onChange={(e) => updateValue(fieldKey, e.target.value)} className={`${commonInputClass} font-mono uppercase`} placeholder="#FFFFFF" /></div>);
 
         // Booleans
         if (typeof value === "boolean" || ["true", "false", "True", "False"].includes(stringValue)) {
