@@ -186,7 +186,7 @@ docker exec -it posterizarr pwsh /app/Posterizarr.ps1 -Manual -TitleCard -Pictur
 
 ### Backup Mode
 
-Run the script with the `-Backup` flag. In this mode, the script will download every artwork you have in plex, using the values specified in the `config.json` file.
+Run the script with the `-Backup` flag. In this mode, the script will download every artwork you have in your mediaserver, using the values specified in the `config.json` file.
 
 !!! tip
     This is handy for creating a backup or if you want an second assetfolder with kometa/tcm EXIF data for jellyfin/emby.

@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.15"
+$CurrentScriptVersion = "2.2.18"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -6733,6 +6733,192 @@ function MassDownloadPlexArtwork {
         Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
     }
 }
+function MassDownloadJellyEmbyArtwork {
+    if ($UseJellyfin -eq 'true'){
+        CheckJellyfinAccess -JellyfinUrl $JellyfinUrl -JellyfinApi $JellyfinAPIKey
+        $OtherMediaServerUrl = $JellyfinUrl
+        $OtherMediaServerApiKey = $JellyfinAPIKey
+    }
+    if ($UseEmby -eq 'true'){
+        CheckEmbyAccess -EmbyUrl $EmbyUrl -EmbyAPI $EmbyAPIKey
+        $OtherMediaServerUrl = $EmbyUrl
+        $OtherMediaServerApiKey = $EmbyAPIKey
+    }
+
+    $Mode = "backup"
+    Write-Entry -Message "Backup Mode Started..." -Path $global:configLogging -Color White -log Info
+    Write-Entry -Message "Querying Jelly/Emby libraries..." -Path $global:configLogging -Color White -log Info
+
+    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+
+    $posterCount = 0
+    $BackgroundCount = 0
+    $SeasonCount = 0
+    $EpisodeCount = 0
+
+    foreach ($lib in $libsResponse) {
+        if ($lib.Name -in $LibsToExclude) { continue }
+
+        $collectionType = $lib.CollectionType.ToLower()
+        if ($collectionType -notin @("movies", "tvshows")) { continue }
+
+        Write-Entry -Message "--- Processing Library: $($lib.Name) ---" -Path $global:configLogging -Color Cyan -log Info
+
+        $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle&api_key=$OtherMediaServerApiKey"
+        $items = (Invoke-RestMethod -Uri $itemsUrl).Items
+
+        foreach ($item in $items) {
+            # Extract Folder/File names
+            $rootFolderName = Split-Path $item.Path -Leaf
+            if ($item.Type -eq "Movie") {
+                $rootFolderName = [System.IO.Path]::GetFileNameWithoutExtension($item.Path)
+            }
+
+            if ($LibraryFolders) {
+                $entryDir = Join-Path $BackupPath "$($lib.Name)\$rootFolderName"
+                $posterDest = Join-Path $entryDir "poster.jpg"
+                $backdropDest = Join-Path $entryDir "background.jpg"
+            } else {
+                $entryDir = $BackupPath
+                $posterDest = Join-Path $entryDir "$($rootFolderName).jpg"
+                $backdropDest = Join-Path $entryDir "$($rootFolderName)_background.jpg"
+            }
+
+            if (!(Test-Path -LiteralPath $entryDir)) {
+                New-Item -ItemType Directory -Path $entryDir -Force | Out-Null
+            }
+
+            # 1. Download Primary Poster
+            $posterUrl = "$OtherMediaServerUrl/Items/$($item.Id)/Images/Primary?api_key=$OtherMediaServerApiKey"
+            if (!(Test-Path -LiteralPath $posterDest)) {
+                try {
+                    Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue
+                    $posterCount++
+                    Write-Entry -Subtext "Added: $posterDest" -Path $global:configLogging -Color Green -Log Info
+                } catch {
+                    Write-Entry -Subtext "[ERROR-HERE] Failed to download poster for $($item.Name)" -Path $global:configLogging -Color Red -Log Error
+                    $global:errorCount++
+                }
+            }
+
+            # 2. Download Backdrop
+            if (!(Test-Path -LiteralPath $backdropDest)) {
+                try {
+                    Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop?api_key=$OtherMediaServerApiKey" -OutFile $backdropDest -ErrorAction SilentlyContinue
+                    $BackgroundCount++
+                    $posterCount++
+                    Write-Entry -Subtext "Added: $backdropDest" -Path $global:configLogging -Color Green -Log Info
+                } catch {
+                    Write-Entry -Subtext "No backdrop found for $($item.Name)" -Path $global:configLogging -Color Yellow -Log Debug
+                    $global:errorCount++
+                }
+            }
+
+            if ($item.Type -eq "Series") {
+                $seasons = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Seasons?api_key=$OtherMediaServerApiKey").Items
+                foreach ($season in $seasons) {
+                    $sNum = if ($null -ne $season.IndexNumber) { $season.IndexNumber.ToString("D2") } else { "00" }
+                    $sDest = if ($LibraryFolders) { Join-Path $entryDir "Season$sNum.jpg" } else { Join-Path $entryDir "$($rootFolderName)_season$sNum.jpg" }
+
+                    if (!(Test-Path -LiteralPath $sDest)) {
+                        try {
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $sDest -ErrorAction SilentlyContinue
+                            Write-Entry -Subtext "Added: $sDest" -Path $global:configLogging -Color Green -Log Info
+                        } catch {
+                            Write-Entry -Subtext "No season found for $($item.Name) | Season$sNum" -Path $global:configLogging -Color Yellow -Log Info
+                            $global:errorCount++
+                        }
+                    }
+                }
+
+                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber&api_key=$OtherMediaServerApiKey").Items
+                foreach ($ep in $episodes) {
+                    $sNum = if ($null -ne $ep.ParentIndexNumber) { $ep.ParentIndexNumber.ToString("D2") } else { "00" }
+                    $eNum = if ($null -ne $ep.IndexNumber) { $ep.IndexNumber.ToString("D2") } else { "00" }
+                    $naming = "S$($sNum)E$($eNum)"
+                    $epDest = if ($LibraryFolders) { Join-Path $entryDir "$naming.jpg" } else { Join-Path $entryDir "$($rootFolderName)_$naming.jpg" }
+
+                    if (!(Test-Path -LiteralPath $epDest)) {
+                        try {
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $epDest -ErrorAction SilentlyContinue
+                            $EpisodeCount++
+                            $posterCount++
+                            Write-Entry -Subtext "Added: $epDest" -Path $global:configLogging -Color Green -Log Info
+                        } catch {
+                            Write-Entry -Subtext "No episode found for $($item.Name) | $naming" -Path $global:configLogging -Color Yellow -Log Error
+                            $global:errorCount++
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    $endTime = Get-Date
+    $executionTime = New-TimeSpan -Start $startTime -End $endTime
+    # Format the execution time
+    $hours = [math]::Floor($executionTime.TotalHours)
+    $minutes = $executionTime.Minutes
+    $seconds = $executionTime.Seconds
+    $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
+    Write-Entry -Message "Finished, Total images downloaded: $posterCount" -Path $global:configLogging -Color Green -log Info
+    if ($posterCount -ge '1') {
+        Write-Entry -Message "Show/Movie Posters downloaded: $($posterCount-$SeasonCount-$BackgroundCount-$EpisodeCount)| Season images downloaded: $SeasonCount | Background images downloaded: $BackgroundCount | TitleCards downloaded: $EpisodeCount" -Path $global:configLogging -Color Green -log Info
+    }
+    if ($errorCount -ge '1') {
+        Write-Entry -Message "During execution '$errorCount' Errors occurred, please check the log for a detailed description where you see [ERROR-HERE]." -Path $global:configLogging -Color White -log Info
+    }
+    Write-TextSizeCacheSummary
+    Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
+
+    # Send Notification
+    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -FallbackCount $FallbackCount.count -TextlessCount $TextlessCount.count -TruncatedCount $TextTruncatedCount.count -PosterUnknownCount $PosterUnknownCount -PosterCount $posterCount -BackgroundCount $BackgroundCount -SeasonCount $SeasonCount -EpisodeCount $EpisodeCount
+
+    # Export json
+    $jsonObject = [PSCustomObject]@{
+        Posters              = if ($posterCount) { $posterCount } Else { 0 }
+        Backgrounds          = if ($BackgroundCount) { $BackgroundCount } Else { 0 }
+        Titlecards           = if ($EpisodeCount) { $EpisodeCount } Else { 0 }
+        Seasons              = if ($SeasonCount) { $SeasonCount } Else { 0 }
+        Collections          = if ($collectionCount) { $collectionCount } Else { 0 }
+        Mode                 = $Mode
+        Runtime              = $($hours.ToString() + ":" + $minutes.ToString() + ":" + $seconds.ToString())
+        Errors               = if ($errorCount) { $errorCount } Else { 0 }
+        Fallbacks            = if ($FallbackCount) { $FallbackCount } Else { 0 }
+        Textless             = if ($TextlessCount) { $TextlessCount } Else { 0 }
+        Truncated            = if ($TextTruncatedCount) { $TextTruncatedCount } Else { 0 }
+        Text                 = if ($TextCount) { $TextCount } Else { 0 }
+        "TBA Skipped"        = if ($SkipTBACount) { $SkipTBACount } Else { 0 }
+        "Jap/Chines Skipped" = if ($SkipJapTitleCount) { $SkipJapTitleCount } Else { 0 }
+        "Notification Sent"  = if ($global:SendNotification -eq 'true') { $global:SendNotification } Else { "false" }
+        "Uptime Kuma"        = if ($global:UptimeKumaUrl) { "true" } Else { "false" }
+        "Images cleared"     = if ($ImagesCleared) { $ImagesCleared } Else { 0 }
+        "Folders Cleared"    = if ($PathsCleared) { $PathsCleared } Else { 0 }
+        "Space saved"        = if ($savedsizestring) { $savedsizestring } Else { 0 }
+        "Script Version"     = $CurrentScriptVersion
+        "IM Version"         = $global:CurrentImagemagickversion
+        "Start time"         = $startTime.ToString('dd.MM.yyyy HH:mm:ss')
+        "End Time"           = $endTime.ToString('dd.MM.yyyy HH:mm:ss')
+    }
+
+    $jsonOutput = $jsonObject | ConvertTo-Json
+    $jsonOutput | Out-File -FilePath "$global:ScriptRoot\Logs\$Mode.json" -Encoding utf8
+
+    # Clear Running File
+    if (Test-Path $CurrentlyRunning) {
+        try {
+            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+        }
+    }
+    if ($global:UptimeKumaUrl) {
+        Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
+    }
+}
 function SyncPlexArtwork {
     param(
         [string]$ArtUrl,
@@ -7557,7 +7743,7 @@ $SkipTBA = $config.PrerequisitePart.SkipTBA.tolower()
 $SkipJapTitle = $config.PrerequisitePart.SkipJapTitle.tolower()
 $AssetCleanup = $config.PrerequisitePart.AssetCleanup.tolower()
 $NewLineOnSpecificSymbols = $config.PrerequisitePart.NewLineOnSpecificSymbols.tolower()
-$SymbolsToKeepOnNewLine = $config.PrerequisitePart.SymbolsToKeepOnNewLine.tolower()
+$SymbolsToKeepOnNewLine = $config.PrerequisitePart.SymbolsToKeepOnNewLine
 $NewLineSymbols = $config.PrerequisitePart.NewLineSymbols
 $NewLineOnSpecificWords = $config.PrerequisitePart.NewLineOnSpecificWords.toLower()
 $NewLineWords = $config.PrerequisitePart.NewLineWords
@@ -8813,7 +8999,7 @@ if ($Manual) {
             $TempLogoPath = Join-Path -Path $global:ScriptRoot -ChildPath "temp\manual_logo.png"
 
             # Check if Titletext looks like a URL (http) or a local file (png/jpg/webp)
-            if ($Titletext -match '^(http|https)://' -or $Titletext -match '\.(png|jpg|jpeg|webp)$') {
+            if ($Titletext -match '^(http|https)://' -or $Titletext -match '\.(png|jpg|jpeg|webp|svg)$') {
 
                 Write-Entry -Subtext "Input detected as Image/URL. Switching to Logo Mode." -Path $global:configLogging -Color Cyan -log Info
                 $isLogo = $true
@@ -9078,7 +9264,18 @@ if ($Manual) {
                 }
                 Elseif ($BackgroundCard -and $AddBackgroundText -eq 'true') {
                     if ($isLogo){
-                        $Arguments = "`"$PosterImage`" `( `"$LogoSource`" -resize `"$Backgroundboxsize`" -background none `) -gravity `"$Backgroundtextgravity`" -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        $colorEffect = ""
+                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                        }
+                        if ($Titletext -match "(?i)\.svg") {
+                            Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
+                            $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        } else {
+                            $Arguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        }
+
                         Write-Entry -Subtext "    Applying logo..." -Path $global:configLogging -Color White -log Info
                     }
                     Else {
@@ -9099,7 +9296,17 @@ if ($Manual) {
                 }
                 Elseif ($AddText -eq 'true' -or $isLogo) {
                     if ($isLogo){
-                        $Arguments = "`"$PosterImage`" `( `"$LogoSource`" -resize `"$boxsize`" -background none `) -gravity `"$textgravity`" -geometry +0`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        $colorEffect = ""
+                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                        }
+                        if ($Titletext -match "(?i)\.svg") {
+                            Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
+                            $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        } else {
+                            $Arguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        }
                         Write-Entry -Subtext "    Applying logo..." -Path $global:configLogging -Color White -log Info
                     }
                     Else {
@@ -25071,22 +25278,7 @@ Elseif ($Backup) {
         MassDownloadPlexArtwork
     }
     Else {
-        Write-Entry -Message "Backup mode currently works only for Plex..." -Path $global:configLogging -Color White -log Warning
-        # Clear Running File
-        if (Test-Path $CurrentlyRunning) {
-            try {
-                Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
-            }
-            catch {
-                Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
-                Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-            }
-        }
-        if ($global:UptimeKumaUrl) {
-            Send-UptimeKumaWebhook -status "down" -msg "No libs found"
-        }
-        Exit
+        MassDownloadJellyEmbyArtwork
     }
 }
 #region Sync Mode
