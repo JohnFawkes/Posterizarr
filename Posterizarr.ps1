@@ -6734,6 +6734,17 @@ function MassDownloadPlexArtwork {
     }
 }
 function MassDownloadJellyEmbyArtwork {
+    if ($UseJellyfin -eq 'true'){
+        CheckJellyfinAccess -JellyfinUrl $JellyfinUrl -JellyfinApi $JellyfinAPIKey
+        $OtherMediaServerUrl = $JellyfinUrl
+        $OtherMediaServerApiKey = $JellyfinAPIKey
+    }
+    if ($UseEmby -eq 'true'){
+        CheckEmbyAccess -EmbyUrl $EmbyUrl -EmbyAPI $EmbyAPIKey
+        $OtherMediaServerUrl = $EmbyUrl
+        $OtherMediaServerApiKey = $EmbyAPIKey
+    }
+
     $Mode = "backup"
     Write-Entry -Message "Backup Mode Started..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Querying Jelly/Emby libraries..." -Path $global:configLogging -Color White -log Info
@@ -6753,7 +6764,7 @@ function MassDownloadJellyEmbyArtwork {
 
         Write-Entry -Message "--- Processing Library: $($lib.Name) ---" -Path $global:configLogging -Color Cyan -log Info
 
-        $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle?api_key=$OtherMediaServerApiKey"
+        $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle&api_key=$OtherMediaServerApiKey"
         $items = (Invoke-RestMethod -Uri $itemsUrl).Items
 
         foreach ($item in $items) {
@@ -6783,7 +6794,11 @@ function MassDownloadJellyEmbyArtwork {
                 try {
                     Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue
                     $posterCount++
-                } catch {}
+                    Write-Entry -Subtext "Added: $posterDest" -Path $global:configLogging -Color Green -Log Info
+                } catch {
+                    Write-Entry -Subtext "[ERROR-HERE] Failed to download poster for $($item.Name)" -Path $global:configLogging -Color Red -Log Error
+                    $global:errorCount++
+                }
             }
 
             # 2. Download Backdrop
@@ -6792,7 +6807,11 @@ function MassDownloadJellyEmbyArtwork {
                     Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop?api_key=$OtherMediaServerApiKey" -OutFile $backdropDest -ErrorAction SilentlyContinue
                     $BackgroundCount++
                     $posterCount++
-                } catch {}
+                    Write-Entry -Subtext "Added: $backdropDest" -Path $global:configLogging -Color Green -Log Info
+                } catch {
+                    Write-Entry -Subtext "No backdrop found for $($item.Name)" -Path $global:configLogging -Color Yellow -Log Debug
+                    $global:errorCount++
+                }
             }
 
             if ($item.Type -eq "Series") {
@@ -6804,11 +6823,15 @@ function MassDownloadJellyEmbyArtwork {
                     if (!(Test-Path -LiteralPath $sDest)) {
                         try {
                             Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $sDest -ErrorAction SilentlyContinue
-                        } catch {}
+                            Write-Entry -Subtext "Added: $sDest" -Path $global:configLogging -Color Green -Log Info
+                        } catch {
+                            Write-Entry -Subtext "No season found for $($item.Name) | Season$sNum" -Path $global:configLogging -Color Yellow -Log Info
+                            $global:errorCount++
+                        }
                     }
                 }
 
-                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber?api_key=$OtherMediaServerApiKey").Items
+                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber&api_key=$OtherMediaServerApiKey").Items
                 foreach ($ep in $episodes) {
                     $sNum = if ($null -ne $ep.ParentIndexNumber) { $ep.ParentIndexNumber.ToString("D2") } else { "00" }
                     $eNum = if ($null -ne $ep.IndexNumber) { $ep.IndexNumber.ToString("D2") } else { "00" }
@@ -6820,7 +6843,11 @@ function MassDownloadJellyEmbyArtwork {
                             Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $epDest -ErrorAction SilentlyContinue
                             $EpisodeCount++
                             $posterCount++
-                        } catch {}
+                            Write-Entry -Subtext "Added: $epDest" -Path $global:configLogging -Color Green -Log Info
+                        } catch {
+                            Write-Entry -Subtext "No episode found for $($item.Name) | $naming" -Path $global:configLogging -Color Yellow -Log Error
+                            $global:errorCount++
+                        }
                     }
                 }
             }
@@ -6892,7 +6919,6 @@ function MassDownloadJellyEmbyArtwork {
         Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
     }
 }
-
 function SyncPlexArtwork {
     param(
         [string]$ArtUrl,
@@ -7717,7 +7743,7 @@ $SkipTBA = $config.PrerequisitePart.SkipTBA.tolower()
 $SkipJapTitle = $config.PrerequisitePart.SkipJapTitle.tolower()
 $AssetCleanup = $config.PrerequisitePart.AssetCleanup.tolower()
 $NewLineOnSpecificSymbols = $config.PrerequisitePart.NewLineOnSpecificSymbols.tolower()
-$SymbolsToKeepOnNewLine = $config.PrerequisitePart.SymbolsToKeepOnNewLine.tolower()
+$SymbolsToKeepOnNewLine = $config.PrerequisitePart.SymbolsToKeepOnNewLine
 $NewLineSymbols = $config.PrerequisitePart.NewLineSymbols
 $NewLineOnSpecificWords = $config.PrerequisitePart.NewLineOnSpecificWords.toLower()
 $NewLineWords = $config.PrerequisitePart.NewLineWords
@@ -25231,18 +25257,7 @@ Elseif ($Backup) {
         MassDownloadPlexArtwork
     }
     Else {
-        if ($UseJelly -eq 'true'){
-            CheckJellyfinAccess -JellyfinUrl $JellyfinUrl -JellyfinApi $JellyfinAPIKey
-            $OtherMediaServerUrl = $JellyfinUrl
-            $OtherMediaServerApiKey = $JellyfinAPIKey
-            MassDownloadJellyEmbyArtwork
-        }
-        if ($UseEmby -eq 'true'){
-            CheckEmbyAccess -EmbyUrl $EmbyUrl -EmbyAPI $EmbyAPIKey
-            $OtherMediaServerUrl = $EmbyUrl
-            $OtherMediaServerApiKey = $EmbyAPIKey
-            MassDownloadJellyEmbyArtwork
-        }
+        MassDownloadJellyEmbyArtwork
     }
 }
 #region Sync Mode

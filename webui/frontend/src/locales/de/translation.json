@@ -211,11 +211,11 @@
     },
     "backup": {
       "title": "Backup-Modus",
-      "info": "In diesem Modus lädt das Skript jedes Artwork herunter, das Sie in Plex haben.",
+      "info": "In diesem Modus lädt das Skript jedes Artwork herunter, das Sie in Plex/Jelly/Emby haben.",
       "description": "Es verwendet die in Ihrer config.json angegebenen Werte, um die Artworks zu finden und zu speichern.",
       "benefitsTitle": "Vorteile des Backup-Modus",
       "step1Title": "Vollständiges Backup erstellen",
-      "step1Text": "Sichern Sie einfach alle Ihre vorhandenen Plex-Artworks in einem lokalen Ordner, der in Ihrer Konfiguration angegeben ist.",
+      "step1Text": "Sichern Sie einfach alle Ihre vorhandenen Artworks in einem lokalen Ordner, der in Ihrer Konfiguration angegeben ist.",
       "step2Title": "Vorbereitung für Jellyfin/Emby",
       "step2Text": "Dies ist nützlich, um einen zweiten Asset-Ordner mit Kometa/TCM EXIF-Daten zu erstellen, der dann von Jellyfin oder Emby verwendet werden kann.",
       "cancel": "Abbrechen",
@@ -1103,7 +1103,7 @@
       "normal": "Standard-Durchlauf",
       "syncjelly": "Jellyfin synchronisieren",
       "syncemby": "Emby synchronisieren",
-      "backup": "Plex Backup"
+      "backup": "Backup"
     },
     "updating": "Aktualisiere...",
     "enabled": "Aktiviert",

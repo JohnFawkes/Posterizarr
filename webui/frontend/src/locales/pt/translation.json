@@ -211,11 +211,11 @@
     },
     "backup": {
       "title": "Modo de Backup",
-      "info": "Neste modo, o script irá baixar todas as artes que você tem no Plex.",
+      "info": "Neste modo, o script irá baixar todas as artes que você tem no Plex/Jelly/Emby.",
       "description": "Ele usa os valores especificados no seu config.json para encontrar e salvar as artes.",
       "benefitsTitle": "Benefícios do Modo de Backup",
       "step1Title": "Criar um Backup Completo",
-      "step1Text": "Faça backup facilmente de todas as suas artes existentes no Plex para uma pasta local especificada em sua configuração.",
+      "step1Text": "Faça backup facilmente de todas as suas artes existentes no para uma pasta local especificada em sua configuração.",
       "step2Title": "Preparar para Jellyfin/Emby",
       "step2Text": "Isso é útil para criar uma segunda pasta de ativos com dados EXIF Kometa/TCM, que pode então ser usada pelo Jellyfin ou Emby.",
       "cancel": "Cancelar",
@@ -1102,7 +1102,7 @@
       "normal": "Execução padrão",
       "syncjelly": "Sincronizar Jellyfin",
       "syncemby": "Sincronizar Emby",
-      "backup": "Backup do Plex"
+      "backup": "Backup"
     },
     "updating": "Atualizando...",
     "enabled": "Ativado",
