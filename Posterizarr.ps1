@@ -8999,7 +8999,7 @@ if ($Manual) {
             $TempLogoPath = Join-Path -Path $global:ScriptRoot -ChildPath "temp\manual_logo.png"
 
             # Check if Titletext looks like a URL (http) or a local file (png/jpg/webp)
-            if ($Titletext -match '^(http|https)://' -or $Titletext -match '\.(png|jpg|jpeg|webp)$') {
+            if ($Titletext -match '^(http|https)://' -or $Titletext -match '\.(png|jpg|jpeg|webp|svg)$') {
 
                 Write-Entry -Subtext "Input detected as Image/URL. Switching to Logo Mode." -Path $global:configLogging -Color Cyan -log Info
                 $isLogo = $true
@@ -9264,7 +9264,18 @@ if ($Manual) {
                 }
                 Elseif ($BackgroundCard -and $AddBackgroundText -eq 'true') {
                     if ($isLogo){
-                        $Arguments = "`"$PosterImage`" `( `"$LogoSource`" -resize `"$Backgroundboxsize`" -background none `) -gravity `"$Backgroundtextgravity`" -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        $colorEffect = ""
+                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                        }
+                        if ($Titletext -match "(?i)\.svg") {
+                            Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
+                            $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        } else {
+                            $Arguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        }
+
                         Write-Entry -Subtext "    Applying logo..." -Path $global:configLogging -Color White -log Info
                     }
                     Else {
@@ -9285,7 +9296,17 @@ if ($Manual) {
                 }
                 Elseif ($AddText -eq 'true' -or $isLogo) {
                     if ($isLogo){
-                        $Arguments = "`"$PosterImage`" `( `"$LogoSource`" -resize `"$boxsize`" -background none `) -gravity `"$textgravity`" -geometry +0`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        $colorEffect = ""
+                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                        }
+                        if ($Titletext -match "(?i)\.svg") {
+                            Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
+                            $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        } else {
+                            $Arguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        }
                         Write-Entry -Subtext "    Applying logo..." -Path $global:configLogging -Color White -log Info
                     }
                     Else {
