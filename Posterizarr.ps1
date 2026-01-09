@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.18"
+$CurrentScriptVersion = "2.2.19"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -5540,14 +5540,10 @@ function MassDownloadPlexArtwork {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
@@ -5575,7 +5571,7 @@ function MassDownloadPlexArtwork {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
                 $Episodedata += $tempseasondata
-                Write-Entry -Subtext "Found [$($tempseasondata.{Show Name})] of type $($tempseasondata.Type) for season $($tempseasondata.{Season Number})" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
         $Episodedata | Select-Object * | Export-Csv -Path "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force
@@ -10153,14 +10149,10 @@ Elseif ($Tautulli) {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
@@ -10188,7 +10180,7 @@ Elseif ($Tautulli) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
                 $Episodedata += $tempseasondata
-                Write-Entry -Subtext "Found [$($tempseasondata.{Show Name})] of type $($tempseasondata.Type) for season $($tempseasondata.{Season Number})" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
         if ($Episodedata) {
@@ -20299,14 +20291,10 @@ Elseif ($ArrTrigger) {
                 $splittedkeys = $showentry.SeasonRatingKeys.split(',')
                 foreach ($key in $splittedkeys) {
                     if ($PlexToken) {
-                        if ($contentquery -eq 'Directory') {
-                            [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                        }
+                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                     }
                     Else {
-                        if ($contentquery -eq 'Directory') {
-                            [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                        }
+                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                     }
                     $FileMetadata = $Seasondata.MediaContainer.video.media
                     $Resolution = $null
@@ -20334,7 +20322,7 @@ Elseif ($ArrTrigger) {
                         $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                     }
                     $Episodedata += $tempseasondata
-                    Write-Entry -Subtext "Found [$($tempseasondata.{Show Name})] of type $($tempseasondata.Type) for season $($tempseasondata.{Season Number})" -Path $global:configLogging -Color Cyan -log Debug
+                    Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 }
             }
             if ($Episodedata) {
@@ -25657,14 +25645,10 @@ Elseif ($SyncJelly -or $SyncEmby) {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
@@ -25692,7 +25676,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
                 $Episodedata += $tempseasondata
-                Write-Entry -Subtext "Found [$($tempseasondata.{Show Name})] of type $($tempseasondata.Type) for season $($tempseasondata.{Season Number})" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
         if ($Episodedata) {
@@ -31633,6 +31617,8 @@ else {
                 $PlexHeaders['X-Plex-Container-Start'] = $searchsize
                 $PlexHeaders['X-Plex-Container-Size'] = '1000'
 
+                Write-Entry -Subtext "Fetching Library ID: $($Library.ID) | Start: $searchsize | Total: $totalContentSize" -Path $global:configLogging -Color Cyan -log Debug
+
                 # Fetch content from Plex server
                 $response = Invoke-WebRequest -Uri "$PlexUrl/library/sections/$($Library.ID)/all" -Headers $PlexHeaders
 
@@ -31664,6 +31650,11 @@ else {
             }
             Else {
                 $contentquery = 'Directory'
+            }
+            if ($global:logLevel -eq '3') {
+                $MasterXml = New-Object System.Xml.XmlDocument
+                $RootNode = $MasterXml.CreateElement("PlexExport")
+                $MasterXml.AppendChild($RootNode) | Out-Null
             }
             foreach ($item in $Libcontent.MediaContainer.$contentquery) {
                 $extractedFolder = $null
@@ -31719,6 +31710,25 @@ else {
 
                         }
                     }
+                }
+                if ($global:logLevel -eq '3') {
+                    $ItemWrapper = $MasterXml.CreateElement("Item")
+                    $ItemWrapper.SetAttribute("ratingKey", $item.ratingKey)
+                    $ItemWrapper.SetAttribute("title", $item.title)
+
+                    $ImportedMetadata = $MasterXml.ImportNode($Metadata.MediaContainer, $true)
+                    $MetadataWrapper = $MasterXml.CreateElement("RawMetadata")
+                    $MetadataWrapper.AppendChild($ImportedMetadata) | Out-Null
+                    $ItemWrapper.AppendChild($MetadataWrapper) | Out-Null
+
+                    if ($contentquery -eq 'Directory') {
+                        $ImportedSeasons = $MasterXml.ImportNode($Seasondata.MediaContainer, $true)
+                        $SeasonsWrapper = $MasterXml.CreateElement("RawChildren")
+                        $SeasonsWrapper.AppendChild($ImportedSeasons) | Out-Null
+                        $ItemWrapper.AppendChild($SeasonsWrapper) | Out-Null
+                    }
+
+                    $RootNode.AppendChild($ItemWrapper) | Out-Null
                 }
                 $metadatatemp = $Metadata.MediaContainer.$contentquery.guid.id
                 $tmdbpattern = 'tmdb://(\d+)'
@@ -31878,6 +31888,25 @@ else {
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
+            if ($global:logLevel -eq '3') {
+                if ($RootNode.HasChildNodes) {
+                    $XmlPath = Join-Path $global:ScriptRoot "Logs/Raw_Plex_Metadata_$($Library.Name).xml"
+                    try {
+                        $MasterXml.Save($XmlPath)
+
+                        # Verification: Force PowerShell to check the disk
+                        if (Test-Path $XmlPath) {
+                            Write-Entry -Subtext "Raw XML saved and verified: $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
+                        } else {
+                            throw "XML.Save() returned no error, but the file does not exist on disk."
+                        }
+                    }
+                    catch {
+                        Write-Entry -Message "CRITICAL: Failed to save XML for $($Library.Name)" -Path $global:configLogging -Color Red -log Error
+                        Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                    }
+                }
+            }
         }
     }
     Write-Entry -Subtext "Found '$($Libraries.count)' Items..." -Path $global:configLogging -Color Cyan -log Info
@@ -31900,21 +31929,43 @@ else {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
         $Episodedata = @()
+        # Debug Export
+        if ($global:logLevel -eq '3') {
+            $MasterXml = New-Object System.Xml.XmlDocument
+            $RootNode = $MasterXml.CreateElement("PlexEpisodeExport")
+            $MasterXml.AppendChild($RootNode) | Out-Null
+        }
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
-                if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
+                if ([string]::IsNullOrWhiteSpace($key)) { continue }
+                $requestUrl = if ($PlexToken) { "$PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken" } else { "$PlexUrl/library/metadata/$key/children?" }
+                Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "Requesting metadata for Key: $key | URL: $(RedactMediaServerUrl -url $requestUrl)" -Path $global:configLogging -Color Cyan -log Debug
+                try {
+                    $response = Invoke-WebRequest $requestUrl -Headers $extraPlexHeaders -ErrorAction Stop
+                    [xml]$Seasondata = $response.Content
+
+                    if (-not $Seasondata.MediaContainer) {
+                        Write-Entry -Subtext "  WARNING: No MediaContainer found for Key: $key" -Path $global:configLogging -Color Yellow -log Debug
+                        Write-Entry -Subtext "  Raw Response Start: $($response.Content.Substring(0, [Math]::Min(100, $response.Content.Length)))" -Path $global:configLogging -Color Yellow -log Debug
                     }
                 }
-                Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                catch {
+                    Write-Entry -Subtext "  Failed to query Key: $key" -Path $global:configLogging -Color Red -log Error
+                    Write-Entry -Subtext "  Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                    continue
+                }
+                if ($global:logLevel -eq '3') {
+                    $ImportedNode = $MasterXml.ImportNode($Seasondata.MediaContainer, $true)
+                    $ImportedNode.SetAttribute("sourceKey", $key)
+                    $RootNode.AppendChild($ImportedNode) | Out-Null
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
+                $ExtractedEpisodes = $Seasondata.MediaContainer.video
+                Write-Entry -Subtext "  Key $($key): Found $($ExtractedEpisodes.Count) episode nodes. ParentTitle: [$($Seasondata.MediaContainer.grandparentTitle)]" -Path $global:configLogging -Color Cyan -log Debug
+
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
@@ -31940,12 +31991,31 @@ else {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
                 $Episodedata += $tempseasondata
-                Write-Entry -Subtext "Found [$($tempseasondata.{Show Name})] of type $($tempseasondata.Type) for season $($tempseasondata.{Season Number})" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "  Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
+            }
+        }
+        if ($global:logLevel -eq '3') {
+            if ($RootNode.HasChildNodes) {
+                $XmlPath = Join-Path $global:ScriptRoot "Logs/Raw_Plex_Episode_Metadata.xml"
+                try {
+                    $MasterXml.Save($XmlPath)
+                    if (Test-Path $XmlPath) {
+                        Write-Entry -Subtext "  Raw Episode XML saved to $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
+                    } else {
+                        Write-Entry -Subtext "  Episode file missing after save." -Path $global:configLogging -Color Cyan -log Debug
+                    }
+                }
+                catch {
+                    Write-Entry -Subtext "  Failed to save Episode XML" -Path $global:configLogging -Color Red -log Error
+                    Write-Entry -Subtext "  Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                }
             }
         }
         $Episodedata | Select-Object * | Export-Csv -Path "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force
         if ($Episodedata) {
-            Write-Entry -Subtext "Found '$($Episodedata.Episodes.split(',').count)' Episodes..." -Path $global:configLogging -Color Cyan -log Info
+            $totalEps = ($Episodedata.Episodes -join ',').Split(',').Count
+            Write-Entry -Subtext "Found '$totalEps' Episodes across $($Episodedata.Count) seasons..." -Path $global:configLogging -Color Cyan -log Info
         }
     }
 
