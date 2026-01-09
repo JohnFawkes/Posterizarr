@@ -5540,14 +5540,10 @@ function MassDownloadPlexArtwork {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
@@ -10153,14 +10149,10 @@ Elseif ($Tautulli) {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
@@ -20299,14 +20291,10 @@ Elseif ($ArrTrigger) {
                 $splittedkeys = $showentry.SeasonRatingKeys.split(',')
                 foreach ($key in $splittedkeys) {
                     if ($PlexToken) {
-                        if ($contentquery -eq 'Directory') {
-                            [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                        }
+                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                     }
                     Else {
-                        if ($contentquery -eq 'Directory') {
-                            [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                        }
+                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                     }
                     $FileMetadata = $Seasondata.MediaContainer.video.media
                     $Resolution = $null
@@ -25657,14 +25645,10 @@ Elseif ($SyncJelly -or $SyncEmby) {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 }
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
