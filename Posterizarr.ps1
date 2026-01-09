@@ -31906,9 +31906,21 @@ else {
             }
             if ($global:logLevel -eq '3') {
                 if ($RootNode.HasChildNodes) {
-                    $XmlPath = "$global:ScriptRoot\Logs\Raw_Plex_Metadata.xml"
-                    $MasterXml.Save($XmlPath)
-                    Write-Entry -Subtext "Raw XML saved to $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
+                    $XmlPath = Join-Path $global:ScriptRoot "Logs/Raw_Plex_Metadata_$($Library.Name).xml"
+                    try {
+                        $MasterXml.Save($XmlPath)
+
+                        # Verification: Force PowerShell to check the disk
+                        if (Test-Path $XmlPath) {
+                            Write-Entry -Subtext "Raw XML saved and verified: $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
+                        } else {
+                            throw "XML.Save() returned no error, but the file does not exist on disk."
+                        }
+                    }
+                    catch {
+                        Write-Entry -Message "CRITICAL: Failed to save XML for $($Library.Name)" -Path $global:configLogging -Color Red -log Error
+                        Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                    }
                 }
             }
         }
@@ -31989,9 +32001,19 @@ else {
         }
         if ($global:logLevel -eq '3') {
             if ($RootNode.HasChildNodes) {
-                $XmlPath = "$global:ScriptRoot\Logs\Raw_Plex_Episode_Metadata.xml"
-                $MasterXml.Save($XmlPath)
-                Write-Entry -Subtext "Raw XML saved to $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
+                $XmlPath = Join-Path $global:ScriptRoot "Logs/Raw_Plex_Episode_Metadata.xml"
+                try {
+                    $MasterXml.Save($XmlPath)
+                    if (Test-Path $XmlPath) {
+                        Write-Entry -Subtext "Raw Episode XML saved to $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
+                    } else {
+                        throw "Episode file missing after save."
+                    }
+                }
+                catch {
+                    Write-Entry -Message "Failed to save Episode XML" -Path $global:configLogging -Color Red -log Error
+                    Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                }
             }
         }
         $Episodedata | Select-Object * | Export-Csv -Path "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force
