@@ -31956,24 +31956,22 @@ else {
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
                 if ([string]::IsNullOrWhiteSpace($key)) { continue }
-                if ($contentquery -eq 'Directory') {
-                    $requestUrl = if ($PlexToken) { "$PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken" } else { "$PlexUrl/library/metadata/$key/children?" }
-                    Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
-                    Write-Entry -Subtext "Requesting metadata for Key: $key | URL: $(RedactMediaServerUrl -url $requestUrl)" -Path $global:configLogging -Color Cyan -log Debug
-                    try {
-                        $response = Invoke-WebRequest $requestUrl -Headers $extraPlexHeaders -ErrorAction Stop
-                        [xml]$Seasondata = $response.Content
+                $requestUrl = if ($PlexToken) { "$PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken" } else { "$PlexUrl/library/metadata/$key/children?" }
+                Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
+                Write-Entry -Subtext "Requesting metadata for Key: $key | URL: $(RedactMediaServerUrl -url $requestUrl)" -Path $global:configLogging -Color Cyan -log Debug
+                try {
+                    $response = Invoke-WebRequest $requestUrl -Headers $extraPlexHeaders -ErrorAction Stop
+                    [xml]$Seasondata = $response.Content
 
-                        if (-not $Seasondata.MediaContainer) {
-                            Write-Entry -Subtext "  WARNING: No MediaContainer found for Key: $key" -Path $global:configLogging -Color Yellow -log Debug
-                            Write-Entry -Subtext "  Raw Response Start: $($response.Content.Substring(0, [Math]::Min(100, $response.Content.Length)))" -Path $global:configLogging -Color Yellow -log Debug
-                        }
+                    if (-not $Seasondata.MediaContainer) {
+                        Write-Entry -Subtext "  WARNING: No MediaContainer found for Key: $key" -Path $global:configLogging -Color Yellow -log Debug
+                        Write-Entry -Subtext "  Raw Response Start: $($response.Content.Substring(0, [Math]::Min(100, $response.Content.Length)))" -Path $global:configLogging -Color Yellow -log Debug
                     }
-                    catch {
-                        Write-Entry -Subtext "  Failed to query Key: $key" -Path $global:configLogging -Color Red -log Error
-                        Write-Entry -Subtext "  Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                        continue
-                    }
+                }
+                catch {
+                    Write-Entry -Subtext "  Failed to query Key: $key" -Path $global:configLogging -Color Red -log Error
+                    Write-Entry -Subtext "  Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                    continue
                 }
                 if ($global:logLevel -eq '3') {
                     $ImportedNode = $MasterXml.ImportNode($Seasondata.MediaContainer, $true)
