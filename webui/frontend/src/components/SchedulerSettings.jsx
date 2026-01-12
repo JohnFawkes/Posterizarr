@@ -17,6 +17,8 @@ import {
   Database,
   Share2,
   HardDrive,
+  Grid,
+  Activity
 } from "lucide-react";
 import Notification from "./Notification";
 import { useToast } from "../context/ToastContext";
@@ -72,8 +74,8 @@ const SchedulerSettings = () => {
   // --- NEW CRON-LIKE STATE ---
   const [frequency, setFrequency] = useState("daily");
   const [dayOfWeek, setDayOfWeek] = useState("mon");
-  const [dayOfMonth, setDayOfMonth] = useState("1"); // Changed to string for complex patterns like "1,15"
-  const [newMonth, setNewMonth] = useState("*"); // New state for month selection
+  const [dayOfMonth, setDayOfMonth] = useState("1"); // Preserved as string for "1,15" logic
+  const [newMonth, setNewMonth] = useState("*");
   const [freqDropdownOpen, setFreqDropdownOpen] = useState(false);
   const [freqDropdownUp, setFreqDropdownUp] = useState(false);
   const freqDropdownRef = useRef(null);
@@ -82,10 +84,15 @@ const SchedulerSettings = () => {
   const [monthDropdownUp, setMonthDropdownUp] = useState(false);
   const monthDropdownRef = useRef(null);
 
+  // --- NEW INTERVAL STATE ---
+  const [intervalValue, setIntervalValue] = useState(1);
+  const [intervalUnit, setIntervalUnit] = useState("hours");
+
   const frequencies = [
     { id: "daily", label: t("schedulerSettings.frequencies.daily") || "Daily" },
     { id: "weekly", label: t("schedulerSettings.frequencies.weekly") || "Weekly" },
     { id: "monthly", label: t("schedulerSettings.frequencies.monthly") || "Monthly" },
+    { id: "interval", label: t("schedulerSettings.frequencies.interval") || "Interval" },
   ];
 
   const months = [
@@ -113,7 +120,27 @@ const SchedulerSettings = () => {
     { id: "sat", label: t("schedulerSettings.days.sat") || "Saturday" },
     { id: "sun", label: t("schedulerSettings.days.sun") || "Sunday" },
   ];
-  // ---------------------------
+
+  const intervalUnits = [
+    { id: "hours", label: "Hours" },
+    { id: "days", label: "Days" },
+    { id: "weeks", label: "Weeks" },
+  ];
+
+  // Helper for calendar selection
+  const toggleCalendarDay = (day) => {
+    let selectedDays = dayOfMonth.split(",").filter(d => d !== "");
+    const dayStr = day.toString();
+
+    if (selectedDays.includes(dayStr)) {
+      selectedDays = selectedDays.filter(d => d !== dayStr);
+    } else {
+      selectedDays.push(dayStr);
+    }
+
+    // Fallback to "1" if everything is deselected
+    setDayOfMonth(selectedDays.length > 0 ? selectedDays.sort((a,b) => parseInt(a)-parseInt(b)).join(",") : "1");
+  };
 
   // Time picker state
   const [timePickerOpen, setTimePickerOpen] = useState(false);
@@ -122,90 +149,31 @@ const SchedulerSettings = () => {
   const [selectedMinute, setSelectedMinute] = useState("00");
   const timePickerRef = useRef(null);
 
-  // Dropdown state and ref
   const [timezoneDropdownOpen, setTimezoneDropdownOpen] = useState(false);
   const [timezoneDropdownUp, setTimezoneDropdownUp] = useState(false);
   const timezoneDropdownRef = useRef(null);
 
-  // Common timezones - comprehensive list
   const timezones = [
-    // UTC
-    "UTC",
-    // North America - US
-    "America/New_York", // Eastern Time
-    "America/Chicago", // Central Time
-    "America/Denver", // Mountain Time
-    "America/Phoenix", // Arizona (no DST)
-    "America/Los_Angeles", // Pacific Time
-    "America/Anchorage", // Alaska Time
-    "America/Honolulu", // Hawaii Time
-    "America/Boise", // Mountain Time (Idaho)
-    // North America - Canada
-    "America/Toronto", // Eastern Time (Canada)
-    "America/Vancouver", // Pacific Time (Canada)
-    "America/Edmonton", // Mountain Time (Canada)
-    "America/Winnipeg", // Central Time (Canada)
-    "America/Halifax", // Atlantic Time (Canada)
-    "America/St_Johns", // Newfoundland Time
-    // Central & South America
-    "America/Mexico_City", // Mexico
-    "America/Sao_Paulo", // Brazil
-    "America/Buenos_Aires", // Argentina
-    "America/Bogota", // Colombia
-    "America/Lima", // Peru
-    "America/Santiago", // Chile
-    // Europe
-    "Europe/London", // UK
-    "Europe/Dublin", // Ireland
-    "Europe/Paris", // France
-    "Europe/Berlin", // Germany
-    "Europe/Amsterdam", // Netherlands
-    "Europe/Brussels", // Belgium
-    "Europe/Madrid", // Spain
-    "Europe/Rome", // Italy
-    "Europe/Vienna", // Austria
-    "Europe/Zurich", // Switzerland
-    "Europe/Stockholm", // Sweden
-    "Europe/Oslo", // Norway
-    "Europe/Copenhagen", // Denmark
-    "Europe/Helsinki", // Finland
-    "Europe/Warsaw", // Poland
-    "Europe/Prague", // Czech Republic
-    "Europe/Budapest", // Hungary
-    "Europe/Athens", // Greece
-    "Europe/Istanbul", // Turkey
-    "Europe/Moscow", // Russia (Moscow)
-    // Asia
-    "Asia/Dubai", // UAE
-    "Asia/Kolkata", // India
-    "Asia/Bangkok", // Thailand
-    "Asia/Singapore", // Singapore
-    "Asia/Hong_Kong", // Hong Kong
-    "Asia/Shanghai", // China
-    "Asia/Tokyo", // Japan
-    "Asia/Seoul", // South Korea
-    "Asia/Jakarta", // Indonesia
-    "Asia/Manila", // Philippines
-    "Asia/Taipei", // Taiwan
-    // Australia & Pacific
-    "Australia/Sydney", // Australia (NSW)
-    "Australia/Melbourne", // Australia (VIC)
-    "Australia/Brisbane", // Australia (QLD)
-    "Australia/Perth", // Australia (WA)
-    "Australia/Adelaide", // Australia (SA)
-    "Pacific/Auckland", // New Zealand
-    // Africa
-    "Africa/Cairo", // Egypt
-    "Africa/Johannesburg", // South Africa
-    "Africa/Lagos", // Nigeria
-    "Africa/Nairobi", // Kenya
+    "UTC", "America/New_York", "America/Chicago", "America/Denver", "America/Phoenix",
+    "America/Los_Angeles", "America/Anchorage", "America/Honolulu", "America/Boise",
+    "America/Toronto", "America/Vancouver", "America/Edmonton", "America/Winnipeg",
+    "America/Halifax", "America/St_Johns", "America/Mexico_City", "America/Sao_Paulo",
+    "America/Buenos_Aires", "America/Bogota", "America/Lima", "America/Santiago",
+    "Europe/London", "Europe/Dublin", "Europe/Paris", "Europe/Berlin", "Europe/Amsterdam",
+    "Europe/Brussels", "Europe/Madrid", "Europe/Rome", "Europe/Vienna", "Europe/Zurich",
+    "Europe/Stockholm", "Europe/Oslo", "Europe/Copenhagen", "Europe/Helsinki", "Europe/Warsaw",
+    "Europe/Prague", "Europe/Budapest", "Europe/Athens", "Europe/Istanbul", "Europe/Moscow",
+    "Asia/Dubai", "Asia/Kolkata", "Asia/Bangkok", "Asia/Singapore", "Asia/Hong_Kong",
+    "Asia/Shanghai", "Asia/Tokyo", "Asia/Seoul", "Asia/Jakarta", "Asia/Manila", "Asia/Taipei",
+    "Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane", "Australia/Perth",
+    "Australia/Adelaide", "Pacific/Auckland", "Africa/Cairo", "Africa/Johannesburg",
+    "Africa/Lagos", "Africa/Nairobi"
   ];
 
   const [modeDropdownOpen, setModeDropdownOpen] = useState(false);
   const [modeDropdownUp, setModeDropdownUp] = useState(false);
   const modeDropdownRef = useRef(null);
 
-  // Define the available modes for the dropdown
   const runModes = [
     { id: "normal", label: t("schedulerSettings.modes.normal") },
     { id: "syncjelly", label: t("schedulerSettings.modes.syncjelly") || "Sync Jellyfin" },
@@ -214,30 +182,10 @@ const SchedulerSettings = () => {
   ];
 
   const modeConfigs = {
-    normal: {
-      icon: Clock,
-      color: "text-theme-primary",
-      bgColor: "bg-theme-primary/10",
-      label: t("schedulerSettings.modes.normal")
-    },
-    syncjelly: {
-      icon: RefreshCw,
-      color: "text-blue-400",
-      bgColor: "bg-blue-400/10",
-      label: "Jellyfin Sync"
-    },
-    syncemby: {
-      icon: RefreshCw,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
-      label: "Emby Sync"
-    },
-    backup: {
-      icon: Database,
-      color: "text-amber-500",
-      bgColor: "bg-amber-500/10",
-      label: "Backup"
-    }
+    normal: { icon: Clock, color: "text-theme-primary", bgColor: "bg-theme-primary/10", label: t("schedulerSettings.modes.normal") },
+    syncjelly: { icon: RefreshCw, color: "text-blue-400", bgColor: "bg-blue-400/10", label: "Jellyfin Sync" },
+    syncemby: { icon: RefreshCw, color: "text-green-500", bgColor: "bg-green-500/10", label: "Emby Sync" },
+    backup: { icon: Database, color: "text-amber-500", bgColor: "bg-amber-500/10", label: "Backup" }
   };
 
   useEffect(() => {
@@ -246,42 +194,21 @@ const SchedulerSettings = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Function to calculate dropdown position
   const calculateDropdownPosition = (ref) => {
     if (!ref.current) return false;
-
     const rect = ref.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
-
-    // If more space above than below, open upward
     return spaceAbove > spaceBelow;
   };
 
-  // Click-outside detection for dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        timezoneDropdownRef.current &&
-        !timezoneDropdownRef.current.contains(event.target)
-      ) {
-        setTimezoneDropdownOpen(false);
-      }
-      if (
-        timePickerRef.current &&
-        !timePickerRef.current.contains(event.target)
-      ) {
-        setTimePickerOpen(false);
-      }
-      if (modeDropdownRef.current && !modeDropdownRef.current.contains(event.target)) {
-        setModeDropdownOpen(false);
-      }
-      if (freqDropdownRef.current && !freqDropdownRef.current.contains(event.target)) {
-        setFreqDropdownOpen(false);
-      }
-      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
-        setMonthDropdownOpen(false);
-      }
+      if (timezoneDropdownRef.current && !timezoneDropdownRef.current.contains(event.target)) setTimezoneDropdownOpen(false);
+      if (timePickerRef.current && !timePickerRef.current.contains(event.target)) setTimePickerOpen(false);
+      if (modeDropdownRef.current && !modeDropdownRef.current.contains(event.target)) setModeDropdownOpen(false);
+      if (freqDropdownRef.current && !freqDropdownRef.current.contains(event.target)) setFreqDropdownOpen(false);
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) setMonthDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -293,18 +220,13 @@ const SchedulerSettings = () => {
         fetch(`${API_URL}/scheduler/config`),
         fetch(`${API_URL}/scheduler/status`),
       ]);
-
       const configData = await configRes.json();
       const statusData = await statusRes.json();
-
       if (configData.success) {
         setConfig(configData.config);
         setTimezone(configData.config.timezone || "Europe/Berlin");
       }
-
-      if (statusData.success) {
-        setStatus(statusData);
-      }
+      if (statusData.success) setStatus(statusData);
     } catch (error) {
       console.error("Error fetching scheduler data:", error);
       showError(t("schedulerSettings.errors.loadData"));
@@ -313,17 +235,9 @@ const SchedulerSettings = () => {
     }
   };
 
-  // Generate hours array (00-23)
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
+  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0"));
 
-  // Generate minutes array (00-59)
-  const minutes = Array.from({ length: 60 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
-
-  // Handle time selection
   const handleTimeSelect = (hour, minute) => {
     const time = `${hour}:${minute}`;
     setNewTime(time);
@@ -332,7 +246,6 @@ const SchedulerSettings = () => {
     setTimePickerOpen(false);
   };
 
-  // Open time picker and set position
   const openTimePicker = () => {
     if (isUpdating) return;
     const shouldOpenUp = calculateDropdownPosition(timePickerRef);
@@ -342,24 +255,13 @@ const SchedulerSettings = () => {
 
   const toggleScheduler = async () => {
     if (isUpdating) return;
-
     setIsUpdating(true);
     try {
       const endpoint = config.enabled ? "disable" : "enable";
-      const response = await fetch(`${API_URL}/scheduler/${endpoint}`, {
-        method: "POST",
-      });
-
+      const response = await fetch(`${API_URL}/scheduler/${endpoint}`, { method: "POST" });
       const data = await response.json();
-
       if (data.success) {
-        showSuccess(
-          t(
-            `schedulerSettings.success.scheduler${
-              config.enabled ? "Disabled" : "Enabled"
-            }`
-          )
-        );
+        showSuccess(t(`schedulerSettings.success.scheduler${config.enabled ? "Disabled" : "Enabled"}`));
         await fetchSchedulerData();
       } else {
         showError(data.detail || t("schedulerSettings.errors.updateScheduler"));
@@ -374,30 +276,26 @@ const SchedulerSettings = () => {
 
   const addSchedule = async (e) => {
     e.preventDefault();
-
-    if (!newTime) {
+    if (frequency !== "interval" && !newTime) {
       showError(t("schedulerSettings.errors.enterTime"));
       return;
     }
-
-    // Validate time format (HH:MM, 00:00-23:59)
-    const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-    if (!timePattern.test(newTime)) {
-      showError("Invalid time format. Please use HH:MM (00:00-23:59)");
-      return;
+    if (frequency !== "interval") {
+      const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+      if (!timePattern.test(newTime)) {
+        showError("Invalid time format. Please use HH:MM (00:00-23:59)");
+        return;
+      }
     }
-
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
-      // Build the payload with new cron parameters
       const payload = {
         time: newTime,
         description: newDescription,
         mode: newMode,
         frequency: frequency,
-        month: newMonth, // Included month in payload
+        month: newMonth,
       };
 
       if (frequency === "weekly") {
@@ -406,6 +304,12 @@ const SchedulerSettings = () => {
       } else if (frequency === "monthly") {
         payload.day = dayOfMonth;
         payload.day_of_week = "*";
+      } else if (frequency === "interval") {
+        payload.interval_value = intervalValue;
+        payload.interval_unit = intervalUnit;
+        payload.day = "*";
+        payload.day_of_week = "*";
+        payload.time = "00:00"; // Default baseline for interval
       } else {
         payload.day = "*";
         payload.day_of_week = "*";
@@ -416,18 +320,17 @@ const SchedulerSettings = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = await response.json();
-
       if (data.success) {
         showSuccess(t("schedulerSettings.success.scheduleAdded"));
         setNewTime("");
         setNewDescription("");
-        // Reset to defaults
         setFrequency("daily");
         setDayOfWeek("mon");
         setDayOfMonth("1");
         setNewMonth("*");
+        setIntervalValue(1);
+        setIntervalUnit("hours");
         await new Promise((resolve) => setTimeout(resolve, 500));
         await fetchSchedulerData();
       } else {
@@ -444,20 +347,11 @@ const SchedulerSettings = () => {
   const removeSchedule = async (time) => {
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
-      const response = await fetch(
-        `${API_URL}/scheduler/schedule/${encodeURIComponent(time)}`,
-        {
-          method: "DELETE",
-        }
-      );
-
+      const response = await fetch(`${API_URL}/scheduler/schedule/${encodeURIComponent(time)}`, { method: "DELETE" });
       const data = await response.json();
-
       if (data.success) {
         showSuccess(t("schedulerSettings.success.scheduleRemoved"));
-        // Wait a moment for scheduler to update, then refresh all data
         await new Promise((resolve) => setTimeout(resolve, 200));
         await fetchSchedulerData();
       } else {
@@ -471,32 +365,20 @@ const SchedulerSettings = () => {
     }
   };
 
-  const clearAllSchedules = async () => {
-    setClearAllConfirm(true);
-  };
+  const clearAllSchedules = async () => setClearAllConfirm(true);
 
   const handleClearAllConfirm = async () => {
     setClearAllConfirm(false);
-
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
-      const response = await fetch(`${API_URL}/scheduler/schedules`, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(`${API_URL}/scheduler/schedules`, { method: "DELETE" });
       const data = await response.json();
-
       if (data.success) {
-        // Update status directly from response to avoid stale data
         setStatus(data);
-        // Also refresh config
         const configRes = await fetch(`${API_URL}/scheduler/config`);
         const configData = await configRes.json();
-        if (configData.success) {
-          setConfig(configData.config);
-        }
+        if (configData.success) setConfig(configData.config);
         showSuccess(t("schedulerSettings.success.allCleared"));
       } else {
         showError(data.detail || t("schedulerSettings.errors.clearSchedules"));
@@ -512,16 +394,13 @@ const SchedulerSettings = () => {
   const updateTimezone = async (newTimezone) => {
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
       const response = await fetch(`${API_URL}/scheduler/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ timezone: newTimezone }),
       });
-
       const data = await response.json();
-
       if (data.success) {
         showSuccess(t("schedulerSettings.success.timezoneUpdated"));
         setTimezone(newTimezone);
@@ -541,22 +420,15 @@ const SchedulerSettings = () => {
   const updateSkipIfRunning = async (value) => {
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
       const response = await fetch(`${API_URL}/scheduler/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skip_if_running: value }),
       });
-
       const data = await response.json();
-
       if (data.success) {
-        showSuccess(
-          value
-            ? t("schedulerSettings.success.willSkip")
-            : t("schedulerSettings.success.willAllow")
-        );
+        showSuccess(value ? t("schedulerSettings.success.willSkip") : t("schedulerSettings.success.willAllow"));
         await fetchSchedulerData();
       } else {
         showError(data.detail || t("schedulerSettings.errors.updateConfig"));
@@ -570,57 +442,27 @@ const SchedulerSettings = () => {
   };
 
   const triggerNow = async () => {
-    console.log(
-      "🏃 triggerNow called - isUpdating:",
-      isUpdating,
-      "status?.is_executing:",
-      status?.is_executing,
-      "config?.enabled:",
-      config?.enabled
-    );
-
+    console.log("🏃 triggerNow called - isUpdating:", isUpdating, "status?.is_executing:", status?.is_executing, "config?.enabled:", config?.enabled);
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
       console.log("🚀 Sending API request to:", `${API_URL}/scheduler/run-now`);
-      const response = await fetch(`${API_URL}/scheduler/run-now`, {
-        method: "POST",
-      });
-
-      console.log("Response received, status:", response.status);
+      const response = await fetch(`${API_URL}/scheduler/run-now`, { method: "POST" });
       const data = await response.json();
       console.log("🏃 Response data:", data);
-
       if (data.success) {
-        console.log("Success! Showing toast and navigating...");
         showSuccess(t("schedulerSettings.success.manualRunTriggered"));
-
-        // Update status
         fetchSchedulerData();
-
-        const logFile = "Scriptlog.log"; // Scheduler runs use the normal script log
-        console.log(`Waiting for log file: ${logFile}`);
-
-        // Wait for log file to be created before navigating
+        const logFile = "Scriptlog.log";
         const logExists = await waitForLogFile(logFile);
-
-        if (logExists) {
-          console.log(`Redirecting to LogViewer with log: ${logFile}`);
-          navigate("/logs", { state: { logFile: logFile } });
-        } else {
-          console.warn(`Log file ${logFile} not found, redirecting anyway`);
-          navigate("/logs", { state: { logFile: logFile } });
-        }
+        navigate("/logs", { state: { logFile: logFile } });
       } else {
-        console.log("Request failed:", data.detail);
         showError(data.detail || t("schedulerSettings.errors.triggerRun"));
       }
     } catch (error) {
       console.error("🏃 Error in triggerNow:", error);
       showError(t("schedulerSettings.errors.triggerRun"));
     } finally {
-      console.log("🏃 Finally block - setting isUpdating to false");
       setIsUpdating(false);
     }
   };
@@ -628,22 +470,14 @@ const SchedulerSettings = () => {
   const restartScheduler = async () => {
     if (isUpdating) return;
     setIsUpdating(true);
-
     try {
-      const response = await fetch(`${API_URL}/scheduler/restart`, {
-        method: "POST",
-      });
-
+      const response = await fetch(`${API_URL}/scheduler/restart`, { method: "POST" });
       const data = await response.json();
-
       if (data.success) {
         showSuccess(t("schedulerSettings.success.schedulerRestarted"));
-        await new Promise((resolve) => setTimeout(resolve, 500));
         await fetchSchedulerData();
       } else {
-        showError(
-          data.detail || t("schedulerSettings.errors.restartScheduler")
-        );
+        showError(data.detail || t("schedulerSettings.errors.restartScheduler"));
       }
     } catch (error) {
       console.error("Error restarting scheduler:", error);
@@ -653,13 +487,7 @@ const SchedulerSettings = () => {
     }
   };
 
-  const formatDateTime = (isoString) => {
-    return formatDateTimeInTimezone(
-      isoString,
-      timezone,
-      t("schedulerSettings.never")
-    );
-  };
+  const formatDateTime = (isoString) => formatDateTimeInTimezone(isoString, timezone, t("schedulerSettings.never"));
 
   if (loading) {
     return (
@@ -674,7 +502,6 @@ const SchedulerSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Confirm Dialog */}
       <ConfirmDialog
         isOpen={clearAllConfirm}
         onClose={() => setClearAllConfirm(false)}
@@ -684,393 +511,163 @@ const SchedulerSettings = () => {
         type="danger"
       />
 
-      {/* Container Users Info */}
       <div className="bg-blue-900/20 border-l-4 border-blue-500 rounded-lg p-4 shadow-sm">
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-blue-300 mb-2">
-              {t("schedulerSettings.containerUsersOnly")}
-            </h3>
-            <p
-              className="text-sm text-blue-200 leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: t("schedulerSettings.containerUsersInfo"),
-              }}
-            />
+            <h3 className="text-sm font-semibold text-blue-300 mb-2">{t("schedulerSettings.containerUsersOnly")}</h3>
+            <p className="text-sm text-blue-200 leading-relaxed" dangerouslySetInnerHTML={{ __html: t("schedulerSettings.containerUsersInfo") }} />
           </div>
         </div>
       </div>
 
-      {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Last Run Card */}
         <div className="bg-theme-card rounded-xl shadow-sm border border-theme p-5 hover:border-theme-primary/50 transition-all">
-          <div className="flex items-center gap-2 text-sm text-theme-muted mb-2">
-            <Calendar className="w-4 h-4" />
-            {t("schedulerSettings.lastRun")}
-          </div>
-          <div className="text-xl font-semibold text-theme-text">
-            {formatDateTime(status?.last_run)}
-          </div>
+          <div className="flex items-center gap-2 text-sm text-theme-muted mb-2"><Calendar className="w-4 h-4" />{t("schedulerSettings.lastRun")}</div>
+          <div className="text-xl font-semibold text-theme-text">{formatDateTime(status?.last_run)}</div>
         </div>
-
-        {/* Next Run Card */}
         <div className="bg-theme-card rounded-xl shadow-sm border border-theme p-5 hover:border-theme-primary/50 transition-all">
-          <div className="flex items-center gap-2 text-sm text-theme-muted mb-2">
-            <Clock className="w-4 h-4" />
-            {t("schedulerSettings.nextRun")}
-          </div>
-          <div className="text-xl font-semibold text-theme-text">
-            {formatDateTime(status?.next_run)}
-          </div>
+          <div className="flex items-center gap-2 text-sm text-theme-muted mb-2"><Clock className="w-4 h-4" />{t("schedulerSettings.nextRun")}</div>
+          <div className="text-xl font-semibold text-theme-text">{formatDateTime(status?.next_run)}</div>
         </div>
-
-        {/* Status Card */}
         <div className="bg-theme-card rounded-xl shadow-sm border border-theme p-5 hover:border-theme-primary/50 transition-all">
-          <div className="flex items-center gap-2 text-sm text-theme-muted mb-2">
-            <Zap className="w-4 h-4" />
-            Status
-          </div>
+          <div className="flex items-center gap-2 text-sm text-theme-muted mb-2"><Zap className="w-4 h-4" />Status</div>
           <div className="flex items-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full ${
-                status?.is_executing
-                  ? "bg-yellow-500 animate-pulse"
-                  : status?.running
-                  ? "bg-green-500"
-                  : "bg-theme-muted"
-              }`}
-            />
+            <div className={`w-3 h-3 rounded-full ${status?.is_executing ? "bg-yellow-500 animate-pulse" : status?.running ? "bg-green-500" : "bg-theme-muted"}`} />
             <span className="text-xl font-semibold text-theme-text">
-              {status?.is_executing
-                ? t("schedulerSettings.status.running")
-                : status?.running
-                ? t("schedulerSettings.status.active")
-                : t("schedulerSettings.status.inactive")}
+              {status?.is_executing ? t("schedulerSettings.status.running") : status?.running ? t("schedulerSettings.status.active") : t("schedulerSettings.status.inactive")}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Configuration */}
       <div className="bg-theme-card rounded-xl shadow-sm border border-theme p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-theme-primary/10">
-              <Settings className="w-6 h-6 text-theme-primary" />
-            </div>
-            <h2 className="text-xl font-semibold text-theme-primary">
-              {t("schedulerSettings.configuration")}
-            </h2>
+            <div className="p-2 rounded-lg bg-theme-primary/10"><Settings className="w-6 h-6 text-theme-primary" /></div>
+            <h2 className="text-xl font-semibold text-theme-primary">{t("schedulerSettings.configuration")}</h2>
           </div>
-          {/* Master Toggle */}
           <button
             onClick={toggleScheduler}
             disabled={isUpdating}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all shadow-sm hover:scale-105 ${
-              config?.enabled
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-theme-card hover:bg-theme-hover border border-theme hover:border-theme-primary/50 text-theme-text"
-            } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all shadow-sm hover:scale-105 ${config?.enabled ? "bg-green-600 hover:bg-green-700 text-white" : "bg-theme-card hover:bg-theme-hover border border-theme hover:border-theme-primary/50 text-theme-text"} ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {isUpdating ? (
-              <Loader2 className="w-5 h-5 text-theme-primary animate-spin" />
-            ) : (
-              <Power className="w-5 h-5" />
-            )}
-            {isUpdating
-              ? t("schedulerSettings.updating")
-              : config?.enabled
-              ? t("schedulerSettings.enabled")
-              : t("schedulerSettings.disabled")}
+            {isUpdating ? <Loader2 className="w-5 h-5 text-theme-primary animate-spin" /> : <Power className="w-5 h-5" />}
+            {isUpdating ? t("schedulerSettings.updating") : config?.enabled ? t("schedulerSettings.enabled") : t("schedulerSettings.disabled")}
           </button>
         </div>
 
-        {/* Timezone */}
         <div>
-          <label className="block text-sm font-medium text-theme-text mb-2">
-            {t("schedulerSettings.timezone")}
-          </label>
-          <p className="text-xs text-theme-muted mb-2">
-            {t("schedulerSettings.timezoneDescription")}
-          </p>
+          <label className="block text-sm font-medium text-theme-text mb-2">{t("schedulerSettings.timezone")}</label>
+          <p className="text-xs text-theme-muted mb-2">{t("schedulerSettings.timezoneDescription")}</p>
           <div className="relative" ref={timezoneDropdownRef}>
             <button
-              onClick={() => {
-                if (!isUpdating) {
-                  const shouldOpenUp =
-                    calculateDropdownPosition(timezoneDropdownRef);
-                  setTimezoneDropdownUp(shouldOpenUp);
-                  setTimezoneDropdownOpen(!timezoneDropdownOpen);
-                }
-              }}
+              onClick={() => { if (!isUpdating) { setTimezoneDropdownUp(calculateDropdownPosition(timezoneDropdownRef)); setTimezoneDropdownOpen(!timezoneDropdownOpen); } }}
               disabled={isUpdating}
               className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
             >
               <span>{timezone}</span>
-              <ChevronDown
-                className={`w-5 h-5 text-theme-muted transition-transform ${
-                  timezoneDropdownOpen ? "rotate-180" : ""
-                }`}
-              />
+              <ChevronDown className={`w-5 h-5 text-theme-muted transition-transform ${timezoneDropdownOpen ? "rotate-180" : ""}`} />
             </button>
-
             {timezoneDropdownOpen && !isUpdating && (
-              <div
-                className={`absolute z-50 left-0 right-0 ${
-                  timezoneDropdownUp ? "bottom-full mb-2" : "top-full mt-2"
-                } bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-80 overflow-y-auto`}
-              >
+              <div className={`absolute z-50 left-0 right-0 ${timezoneDropdownUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-80 overflow-y-auto`}>
                 {timezones.map((tz) => (
-                  <button
-                    key={tz}
-                    onClick={() => {
-                      updateTimezone(tz);
-                      setTimezoneDropdownOpen(false);
-                    }}
-                    className={`w-full px-4 py-2 text-sm transition-all text-left ${
-                      timezone === tz
-                        ? "bg-theme-primary text-white"
-                        : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                    }`}
-                  >
-                    {tz}
-                  </button>
+                  <button key={tz} onClick={() => { updateTimezone(tz); setTimezoneDropdownOpen(false); }} className={`w-full px-4 py-2 text-sm transition-all text-left ${timezone === tz ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"}`}>{tz}</button>
                 ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Skip if running */}
         <div className="flex items-center justify-between p-4 bg-theme-bg rounded-lg border border-theme">
           <div>
-            <label className="block text-sm font-medium text-theme-text">
-              {t("schedulerSettings.skipIfRunning")}
-            </label>
-            <p className="text-sm text-theme-muted mt-1">
-              {t("schedulerSettings.skipIfRunningDesc")}
-            </p>
+            <label className="block text-sm font-medium text-theme-text">{t("schedulerSettings.skipIfRunning")}</label>
+            <p className="text-sm text-theme-muted mt-1">{t("schedulerSettings.skipIfRunningDesc")}</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={config?.skip_if_running || false}
-              onChange={(e) => updateSkipIfRunning(e.target.checked)}
-              disabled={isUpdating}
-              className="sr-only peer"
-            />
+            <input type="checkbox" checked={config?.skip_if_running || false} onChange={(e) => updateSkipIfRunning(e.target.checked)} disabled={isUpdating} className="sr-only peer" />
             <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-theme-primary peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-primary peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
           </label>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
-          <button
-            onClick={restartScheduler}
-            disabled={isUpdating || !config?.enabled}
-            className="flex items-center gap-2 px-5 py-2.5 bg-theme-primary hover:bg-theme-primary/90 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            {isUpdating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <RefreshCw className="w-5 h-5" />
-            )}
+          <button onClick={restartScheduler} disabled={isUpdating || !config?.enabled} className="flex items-center gap-2 px-5 py-2.5 bg-theme-primary hover:bg-theme-primary/90 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+            {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
             {t("schedulerSettings.restartScheduler")}
           </button>
-          <button
-            onClick={triggerNow}
-            disabled={isUpdating || status?.is_executing || !config?.enabled}
-            className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            {isUpdating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Play className="w-5 h-5" />
-            )}
+          <button onClick={triggerNow} disabled={isUpdating || status?.is_executing || !config?.enabled} className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+            {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
             {t("schedulerSettings.runNow")}
           </button>
         </div>
       </div>
 
-      {/* Schedules */}
       <div className="bg-theme-card rounded-xl shadow-sm border border-theme p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-theme-primary/10">
-              <Clock className="w-6 h-6 text-theme-primary" />
-            </div>
-            <h2 className="text-xl font-semibold text-theme-primary">
-              {t("schedulerSettings.schedules")}
-            </h2>
+            <div className="p-2 rounded-lg bg-theme-primary/10"><Clock className="w-6 h-6 text-theme-primary" /></div>
+            <h2 className="text-xl font-semibold text-theme-primary">{t("schedulerSettings.schedules")}</h2>
           </div>
-          {config?.schedules?.length > 0 && (
-            <button
-              onClick={clearAllSchedules}
-              disabled={isUpdating}
-              className="text-sm text-red-400 hover:text-red-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {t("schedulerSettings.clearAll")}
-            </button>
-          )}
+          {config?.schedules?.length > 0 && <button onClick={clearAllSchedules} disabled={isUpdating} className="text-sm text-red-400 hover:text-red-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{t("schedulerSettings.clearAll")}</button>}
         </div>
 
-        {/* Add Schedule Form */}
-        <form
-          onSubmit={addSchedule}
-          className="space-y-4"
-        >
+        <form onSubmit={addSchedule} className="space-y-4">
           <div className="flex flex-col md:flex-row gap-3">
-            {/* Custom Time Picker */}
-            <div className="flex-1 relative" ref={timePickerRef}>
-              <button
-                type="button"
-                onClick={openTimePicker}
-                disabled={isUpdating}
-                className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
-              >
-                <span className={newTime ? "" : "text-theme-muted"}>
-                  {newTime || t("schedulerSettings.timePlaceholder")}
-                </span>
-                <Clock className="w-5 h-5 text-theme-muted" />
-              </button>
-
-              {timePickerOpen && !isUpdating && (
-                <div
-                  className={`absolute z-50 left-0 right-0 ${
-                    timePickerUp ? "bottom-full mb-2" : "top-full mt-2"
-                  } bg-theme-card border border-theme-primary rounded-lg shadow-xl`}
-                >
-                  <div className="flex divide-x divide-theme">
-                    {/* Hours Column */}
-                    <div className="flex-1 max-h-64 overflow-y-auto">
-                      <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">
-                        {t("schedulerSettings.hour") || "Hour"}
+            {frequency !== "interval" && (
+              <div className="flex-1 relative" ref={timePickerRef}>
+                <button type="button" onClick={openTimePicker} disabled={isUpdating} className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between">
+                  <span className={newTime ? "" : "text-theme-muted"}>{newTime || t("schedulerSettings.timePlaceholder")}</span>
+                  <Clock className="w-5 h-5 text-theme-muted" />
+                </button>
+                {timePickerOpen && !isUpdating && (
+                  <div className={`absolute z-50 left-0 right-0 ${timePickerUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl`}>
+                    <div className="flex divide-x divide-theme">
+                      <div className="flex-1 max-h-64 overflow-y-auto">
+                        <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">{t("schedulerSettings.hour") || "Hour"}</div>
+                        {hours.map((hour) => (
+                          <button key={hour} type="button" onClick={() => handleTimeSelect(hour, selectedMinute)} className={`w-full px-4 py-2 text-sm transition-all text-center ${selectedHour === hour ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"}`}>{hour}</button>
+                        ))}
                       </div>
-                      {hours.map((hour) => (
-                        <button
-                          key={hour}
-                          type="button"
-                          onClick={() => handleTimeSelect(hour, selectedMinute)}
-                          className={`w-full px-4 py-2 text-sm transition-all text-center ${
-                            selectedHour === hour
-                              ? "bg-theme-primary text-white"
-                              : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                          }`}
-                        >
-                          {hour}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Minutes Column */}
-                    <div className="flex-1 max-h-64 overflow-y-auto">
-                      <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">
-                        {t("schedulerSettings.minute") || "Minute"}
+                      <div className="flex-1 max-h-64 overflow-y-auto">
+                        <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">{t("schedulerSettings.minute") || "Minute"}</div>
+                        {minutes.map((minute) => (
+                          <button key={minute} type="button" onClick={() => handleTimeSelect(selectedHour, minute)} className={`w-full px-4 py-2 text-sm transition-all text-center ${selectedMinute === minute ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"}`}>{minute}</button>
+                        ))}
                       </div>
-                      {minutes.map((minute) => (
-                        <button
-                          key={minute}
-                          type="button"
-                          onClick={() => handleTimeSelect(selectedHour, minute)}
-                          className={`w-full px-4 py-2 text-sm transition-all text-center ${
-                            selectedMinute === minute
-                              ? "bg-theme-primary text-white"
-                              : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                          }`}
-                        >
-                          {minute}
-                        </button>
-                      ))}
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
-            {/* Run Mode Dropdown */}
             <div className="flex-1 relative" ref={modeDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isUpdating) {
-                    const shouldOpenUp = calculateDropdownPosition(modeDropdownRef);
-                    setModeDropdownUp(shouldOpenUp);
-                    setModeDropdownOpen(!modeDropdownOpen);
-                  }
-                }}
-                disabled={isUpdating}
-                className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
-              >
+              <button type="button" onClick={() => { if (!isUpdating) { setModeDropdownUp(calculateDropdownPosition(modeDropdownRef)); setModeDropdownOpen(!modeDropdownOpen); } }} disabled={isUpdating} className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {React.createElement(modeConfigs[newMode]?.icon || Clock, {
-                    className: `w-4 h-4 ${modeConfigs[newMode]?.color || 'text-theme-primary'}`
-                  })}
+                  {React.createElement(modeConfigs[newMode]?.icon || Clock, { className: `w-4 h-4 ${modeConfigs[newMode]?.color || 'text-theme-primary'}` })}
                   <span>{runModes.find((m) => m.id === newMode)?.label}</span>
                 </div>
                 <ChevronDown className={`w-5 h-5 text-theme-muted transition-transform ${modeDropdownOpen ? "rotate-180" : ""}`} />
               </button>
-
               {modeDropdownOpen && !isUpdating && (
                 <div className={`absolute z-50 left-0 right-0 ${modeDropdownUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-60 overflow-y-auto`}>
                   {runModes.map((mode) => (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => {
-                        setNewMode(mode.id);
-                        setModeDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-3 text-sm transition-all text-left flex items-center gap-3 ${
-                        newMode === mode.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                      }`}
-                    >
-                      {React.createElement(modeConfigs[mode.id].icon, { className: "w-4 h-4" })}
-                      {mode.label}
+                    <button key={mode.id} type="button" onClick={() => { setNewMode(mode.id); setModeDropdownOpen(false); }} className={`w-full px-4 py-3 text-sm transition-all text-left flex items-center gap-3 ${newMode === mode.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"}`}>
+                      {React.createElement(modeConfigs[mode.id].icon, { className: "w-4 h-4" })}{mode.label}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Frequency Dropdown */}
             <div className="flex-1 relative" ref={freqDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isUpdating) {
-                    const shouldOpenUp = calculateDropdownPosition(freqDropdownRef);
-                    setFreqDropdownUp(shouldOpenUp);
-                    setFreqDropdownOpen(!freqDropdownOpen);
-                  }
-                }}
-                disabled={isUpdating}
-                className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-theme-primary" />
-                  <span>{frequencies.find((f) => f.id === frequency)?.label}</span>
-                </div>
+              <button type="button" onClick={() => { if (!isUpdating) { setFreqDropdownUp(calculateDropdownPosition(freqDropdownRef)); setFreqDropdownOpen(!freqDropdownOpen); } }} disabled={isUpdating} className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-theme-primary" /><span>{frequencies.find((f) => f.id === frequency)?.label}</span></div>
                 <ChevronDown className={`w-5 h-5 text-theme-muted transition-transform ${freqDropdownOpen ? "rotate-180" : ""}`} />
               </button>
-
               {freqDropdownOpen && !isUpdating && (
                 <div className={`absolute z-50 left-0 right-0 ${freqDropdownUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-60 overflow-y-auto`}>
                   {frequencies.map((freq) => (
-                    <button
-                      key={freq.id}
-                      type="button"
-                      onClick={() => {
-                        setFrequency(freq.id);
-                        setFreqDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-3 text-sm transition-all text-left ${
-                        frequency === freq.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                      }`}
-                    >
-                      {freq.label}
-                    </button>
+                    <button key={freq.id} type="button" onClick={() => { setFrequency(freq.id); setFreqDropdownOpen(false); }} className={`w-full px-4 py-3 text-sm transition-all text-left ${frequency === freq.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"}`}>{freq.label}</button>
                   ))}
                 </div>
               )}
@@ -1078,155 +675,124 @@ const SchedulerSettings = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-3">
-            {/* NEW Month Dropdown for Monthly selection */}
+            {frequency === "interval" && (
+              <div className="flex-1 flex gap-2">
+                 <div className="flex items-center gap-2 bg-theme-bg border border-theme rounded-lg px-3 flex-1">
+                    <span className="text-theme-muted text-sm whitespace-nowrap">Every</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={intervalValue}
+                      onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full bg-transparent text-theme-text focus:outline-none"
+                    />
+                 </div>
+                 <select
+                  value={intervalUnit}
+                  onChange={(e) => setIntervalUnit(e.target.value)}
+                  className="px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary transition-all"
+                >
+                  {intervalUnits.map(unit => (
+                    <option key={unit.id} value={unit.id}>{unit.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {frequency === "monthly" && (
               <div className="flex-1 relative" ref={monthDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!isUpdating) {
-                      const shouldOpenUp = calculateDropdownPosition(monthDropdownRef);
-                      setMonthDropdownUp(shouldOpenUp);
-                      setMonthDropdownOpen(!monthDropdownOpen);
-                    }
-                  }}
-                  disabled={isUpdating}
-                  className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-theme-primary" />
-                    <span>{months.find((m) => m.id === newMonth)?.label}</span>
-                  </div>
+                <button type="button" onClick={() => { if (!isUpdating) { setMonthDropdownUp(calculateDropdownPosition(monthDropdownRef)); setMonthDropdownOpen(!monthDropdownOpen); } }} disabled={isUpdating} className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between">
+                  <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-theme-primary" /><span>{months.find((m) => m.id === newMonth)?.label}</span></div>
                   <ChevronDown className={`w-5 h-5 text-theme-muted transition-transform ${monthDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
-
                 {monthDropdownOpen && !isUpdating && (
                   <div className={`absolute z-50 left-0 right-0 ${monthDropdownUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-60 overflow-y-auto`}>
                     {months.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => {
-                          setNewMonth(m.id);
-                          setMonthDropdownOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 text-sm transition-all text-left ${
-                          newMonth === m.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                        }`}
-                      >
-                        {m.label}
-                      </button>
+                      <button key={m.id} type="button" onClick={() => { setNewMonth(m.id); setMonthDropdownOpen(false); }} className={`w-full px-4 py-3 text-sm transition-all text-left ${newMonth === m.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"}`}>{m.label}</button>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Conditional Extra Inputs */}
             {frequency === "weekly" && (
-              <select
-                value={dayOfWeek}
-                onChange={(e) => setDayOfWeek(e.target.value)}
-                className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 transition-all"
-              >
-                {daysOfWeek.map((day) => (
-                  <option key={day.id} value={day.id}>{day.label}</option>
-                ))}
+              <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 transition-all">
+                {daysOfWeek.map((day) => (<option key={day.id} value={day.id}>{day.label}</option>))}
               </select>
             )}
 
-            {frequency === "monthly" && (
-              <input
-                type="text"
-                value={dayOfMonth}
-                onChange={(e) => setDayOfMonth(e.target.value)}
-                placeholder={t("schedulerSettings.dayPlaceholder") || "Day (e.g. 1 or 1,15)"}
-                className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 transition-all"
-              />
-            )}
+            <input type="text" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder={t("schedulerSettings.descriptionPlaceholder")} disabled={isUpdating} className="flex-[2] px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
 
-            <input
-              type="text"
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              placeholder={t("schedulerSettings.descriptionPlaceholder")}
-              disabled={isUpdating}
-              className="flex-[2] px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            />
-
-            <button
-              type="submit"
-              disabled={isUpdating}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-theme-primary hover:bg-theme-primary/90 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              {isUpdating ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Plus className="w-5 h-5" />
-              )}
-              {t("schedulerSettings.add")}
+            <button type="submit" disabled={isUpdating} className="flex items-center justify-center gap-2 px-6 py-3 bg-theme-primary hover:bg-theme-primary/90 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+              {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}{t("schedulerSettings.add")}
             </button>
           </div>
+
+          {/* Calendar Day Picker for Monthly selection */}
+          {frequency === "monthly" && (
+            <div className="p-4 bg-theme-bg border border-theme rounded-lg">
+              <div className="flex items-center gap-2 mb-3 text-sm font-medium text-theme-text">
+                <Grid className="w-4 h-4 text-theme-primary" />
+                Select Days
+              </div>
+              <div className="grid grid-cols-7 sm:grid-cols-10 gap-1.5">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleCalendarDay(day)}
+                    className={`h-9 rounded-md text-xs font-medium transition-all border ${
+                      dayOfMonth.split(",").includes(day.toString())
+                        ? "bg-theme-primary text-white border-theme-primary"
+                        : "bg-theme-card text-theme-muted border-theme hover:border-theme-primary/50"
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] text-theme-muted">You can select multiple specific days of the month.</p>
+            </div>
+          )}
         </form>
 
-        {/* Schedule List */}
         {config?.schedules?.length > 0 ? (
           <div className="space-y-3">
             {config.schedules.map((schedule, index) => {
               const mode = schedule.mode || "normal";
               const mConfig = modeConfigs[mode] || modeConfigs.normal;
               const Icon = mConfig.icon;
-
-              // Frequency metadata display
               const freqVal = schedule.frequency || "daily";
               const freqLabel = frequencies.find(f => f.id === freqVal)?.label || freqVal;
               let detailText = "";
-
               const monthVal = schedule.month || "*";
               const monthLabel = months.find(m => m.id === monthVal)?.label || monthVal;
-              if (monthVal !== "*") {
-                  detailText = `${monthLabel} `;
-              }
 
-              if (freqVal === "weekly") {
-                detailText += daysOfWeek.find(d => d.id === schedule.day_of_week)?.label || schedule.day_of_week;
-              } else if (freqVal === "monthly") {
-                detailText += `Day ${schedule.day}`;
+              if (freqVal === "interval") {
+                detailText = `Every ${schedule.interval_value} ${schedule.interval_unit}`;
+              } else {
+                if (monthVal !== "*") detailText = `${monthLabel} `;
+                if (freqVal === "weekly") {
+                  detailText += daysOfWeek.find(d => d.id === schedule.day_of_week)?.label || schedule.day_of_week;
+                } else if (freqVal === "monthly") {
+                  detailText += `Day ${schedule.day}`;
+                }
               }
 
               return (
                 <div key={index} className="flex items-center justify-between p-4 bg-theme-bg rounded-lg hover:bg-theme-hover transition-all border border-theme hover:border-theme-primary/50 group">
                   <div className="flex items-center gap-4">
-                    {/* Visual Indicator Container */}
-                    <div className={`p-2.5 rounded-lg ${mConfig.bgColor} transition-all`}>
-                      <Icon className={`w-5 h-5 ${mConfig.color}`} />
-                    </div>
-
+                    <div className={`p-2.5 rounded-lg ${mConfig.bgColor} transition-all`}><Icon className={`w-5 h-5 ${mConfig.color}`} /></div>
                     <div>
                       <div className="flex items-center gap-3">
-                        <span className="font-semibold text-theme-text text-lg">{schedule.time}</span>
-                        {/* Specialized Mode Badge */}
-                        <span className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border ${mConfig.color} ${mConfig.bgColor} border-current opacity-80`}>
-                          {mConfig.label}
-                        </span>
-                        {/* Frequency Badge */}
-                        <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border border-theme-muted/30 text-theme-muted">
-                          {freqLabel}{detailText ? `, ${detailText}` : ""}
-                        </span>
+                        <span className="font-semibold text-theme-text text-lg">{freqVal === "interval" ? <Activity className="w-5 h-5 text-theme-muted" /> : schedule.time}</span>
+                        <span className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border ${mConfig.color} ${mConfig.bgColor} border-current opacity-80`}>{mConfig.label}</span>
+                        <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border border-theme-muted/30 text-theme-muted">{freqLabel}{detailText ? `, ${detailText}` : ""}</span>
                       </div>
-                      {schedule.description && (
-                        <div className="text-sm text-theme-muted mt-0.5">{schedule.description}</div>
-                      )}
+                      {schedule.description && <div className="text-sm text-theme-muted mt-0.5">{schedule.description}</div>}
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => removeSchedule(schedule.time)}
-                    disabled={isUpdating}
-                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  <button onClick={() => removeSchedule(schedule.time)} disabled={isUpdating} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-all"><Trash2 className="w-5 h-5" /></button>
                 </div>
               );
             })}
@@ -1234,39 +800,21 @@ const SchedulerSettings = () => {
         ) : (
           <div className="text-center py-12 bg-theme-bg rounded-lg border border-theme">
             <Clock className="w-16 h-16 mx-auto mb-3 text-theme-muted opacity-30" />
-            <p className="font-semibold text-theme-text mb-1">
-              {t("schedulerSettings.noSchedulesConfigured")}
-            </p>
-            <p className="text-sm text-theme-muted">
-              {t("schedulerSettings.addScheduleHint")}
-            </p>
+            <p className="font-semibold text-theme-text mb-1">{t("schedulerSettings.noSchedulesConfigured")}</p>
+            <p className="text-sm text-theme-muted">{t("schedulerSettings.addScheduleHint")}</p>
           </div>
         )}
       </div>
 
-      {/* Active Jobs (Debug Info) */}
       {status?.active_jobs?.length > 0 && (
         <div className="bg-theme-primary/10 rounded-xl border border-theme-primary/30 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-5 h-5 text-theme-primary" />
-            <h3 className="text-sm font-semibold text-theme-primary">
-              {t("schedulerSettings.activeJobs")}
-            </h3>
-          </div>
+          <div className="flex items-center gap-2 mb-3"><Zap className="w-5 h-5 text-theme-primary" /><h3 className="text-sm font-semibold text-theme-primary">{t("schedulerSettings.activeJobs")}</h3></div>
           <div className="space-y-2">
             {status.active_jobs.map((job, index) => (
-              <div
-                key={index}
-                className="text-sm text-theme-text bg-theme-card px-3 py-2 rounded-lg border border-theme"
-              >
+              <div key={index} className="text-sm text-theme-text bg-theme-card px-3 py-2 rounded-lg border border-theme">
                 <span className="font-medium">{job.name}</span>
-                <span className="text-theme-muted">
-                  {" "}
-                  - {t("schedulerSettings.next")}:{" "}
-                </span>
-                <span className="text-theme-primary font-medium">
-                  {formatDateTime(job.next_run)}
-                </span>
+                <span className="text-theme-muted"> - {t("schedulerSettings.next")}: </span>
+                <span className="text-theme-primary font-medium">{formatDateTime(job.next_run)}</span>
               </div>
             ))}
           </div>

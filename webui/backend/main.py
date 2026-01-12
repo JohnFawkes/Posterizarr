@@ -9292,21 +9292,29 @@ async def update_scheduler_config(data: ScheduleUpdate):
 
 @app.post("/api/scheduler/schedule")
 async def add_schedule(request: Request):
-    """Add a new execution schedule"""
+    """Add a new execution schedule with enhanced cron and interval support"""
     try:
         data = await request.json()
+
+        # Core fields
         time_str = data.get("time")
         description = data.get("description", "")
         mode = data.get("mode", "normal")
+
+        # Cron-like parameters
         frequency = data.get("frequency", "daily")
-        day_of_week = data.get("day_of_week")
-        day = data.get("day")
+        day_of_week = data.get("day_of_week", "*")
+        day = data.get("day", "*")
         month = data.get("month", "*")
 
-        if not time_str:
-            raise HTTPException(status_code=400, detail="Time is required")
+        # Interval parameters
+        interval_value = data.get("interval_value", 1)
+        interval_unit = data.get("interval_unit", "hours")
 
-        # Pass the new arguments to the scheduler
+        if frequency != "interval" and not time_str:
+            raise HTTPException(status_code=400, detail="Time is required for non-interval schedules")
+
+        # Pass all arguments to the updated scheduler logic
         success = scheduler.add_schedule(
             time_str=time_str,
             description=description,
@@ -9314,13 +9322,16 @@ async def add_schedule(request: Request):
             frequency=frequency,
             day_of_week=day_of_week,
             day=day,
-            month=month
+            month=month,
+            interval_value=interval_value,
+            interval_unit=interval_unit
         )
 
         if success:
-            return {"success": True, "message": "Schedule added"}
+            return {"success": True, "message": "Schedule added successfully"}
         else:
-            raise HTTPException(status_code=400, detail="Schedule already exists")
+            raise HTTPException(status_code=400, detail="Schedule already exists or is invalid")
+
     except Exception as e:
         logger.error(f"Error adding schedule: {e}")
         raise HTTPException(status_code=500, detail=str(e))
