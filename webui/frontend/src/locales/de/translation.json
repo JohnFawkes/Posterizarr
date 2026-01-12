@@ -1103,6 +1103,15 @@
       "monthly": "Monatlich",
       "interval": "Intervall"
     },
+    "days": {
+      "mon": "Montag",
+      "tue": "Dienstag",
+      "wed": "Mittwoch",
+      "thu": "Donnerstag",
+      "fri": "Freitag",
+      "sat": "Samstag",
+      "sun": "Sonntag"
+    },
     "months": {
       "every": "Jeden Monat",
       "january": "Januar",

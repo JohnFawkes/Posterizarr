@@ -1102,6 +1102,15 @@
       "monthly": "Mensile",
       "interval": "Intervallo"
     },
+    "days": {
+      "mon": "Lunedì",
+      "tue": "Martedì",
+      "wed": "Mercoledì",
+      "thu": "Giovedì",
+      "fri": "Venerdì",
+      "sat": "Sabato",
+      "sun": "Domenica"
+    },
     "months": {
       "every": "Ogni mese",
       "january": "Gennaio",
