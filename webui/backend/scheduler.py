@@ -295,16 +295,21 @@ class PosterizarrScheduler:
                 frequency = schedule.get("frequency", "daily")
                 job_id = f"posterizarr_{mode}_{idx}"
 
-                # --- NEW INTERVAL LOGIC ---
                 if frequency == "interval":
                     ival = int(schedule.get("interval_value", 1))
                     iunit = schedule.get("interval_unit", "hours")
+                    time_str = schedule.get("time", "00:00")
+                    hour, minute = self.parse_schedule_time(time_str)
 
-                    trigger_args = {iunit: ival, "timezone": timezone}
-                    trigger = IntervalTrigger(**trigger_args)
-                    job_name = f"Posterizarr {mode.title()} (Every {ival} {iunit})"
+                    # Create a start_date for today at the chosen hour/minute
+                    tz = pytz.timezone(timezone)
+                    start_time = datetime.now(tz).replace(hour=hour, minute=minute, second=0, microsecond=0)
 
-                # --- EXISTING CRON LOGIC ---
+                    # If the start time has already passed today, start from that time anyway
+                    # (APScheduler will calculate the next interval from that baseline)
+                    trigger = IntervalTrigger(**{iunit: ival}, start_date=start_time, timezone=timezone)
+                    job_name = f"Posterizarr {mode.title()} (Every {ival} {iunit} starting @ {time_str})"
+
                 else:
                     time_str = schedule.get("time", "00:00")
                     hour, minute = self.parse_schedule_time(time_str)

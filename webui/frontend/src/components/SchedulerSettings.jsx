@@ -276,6 +276,12 @@ const SchedulerSettings = () => {
 
   const addSchedule = async (e) => {
     e.preventDefault();
+
+    if (!newTime) {
+      showError(t("schedulerSettings.errors.enterTime"));
+      return;
+    }
+
     if (frequency !== "interval" && !newTime) {
       showError(t("schedulerSettings.errors.enterTime"));
       return;
@@ -309,7 +315,6 @@ const SchedulerSettings = () => {
         payload.interval_unit = intervalUnit;
         payload.day = "*";
         payload.day_of_week = "*";
-        payload.time = "00:00"; // Default baseline for interval
       } else {
         payload.day = "*";
         payload.day_of_week = "*";
@@ -613,7 +618,7 @@ const SchedulerSettings = () => {
 
         <form onSubmit={addSchedule} className="space-y-4">
           <div className="flex flex-col md:flex-row gap-3">
-            {frequency !== "interval" && (
+            {(frequency !== "interval" || frequency === "interval") && (
               <div className="flex-1 relative" ref={timePickerRef}>
                 <button type="button" onClick={openTimePicker} disabled={isUpdating} className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between">
                   <span className={newTime ? "" : "text-theme-muted"}>{newTime || t("schedulerSettings.timePlaceholder")}</span>
