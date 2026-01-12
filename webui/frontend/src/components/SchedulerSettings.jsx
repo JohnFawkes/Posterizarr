@@ -69,14 +69,22 @@ const SchedulerSettings = () => {
   const [clearAllConfirm, setClearAllConfirm] = useState(false);
   const [newMode, setNewMode] = useState("normal");
 
-  // --- NEW CRON-LIKE STATE ---
   const [frequency, setFrequency] = useState("daily");
   const [dayOfWeek, setDayOfWeek] = useState("mon");
   const [dayOfMonth, setDayOfMonth] = useState(1);
   const [freqDropdownOpen, setFreqDropdownOpen] = useState(false);
   const [freqDropdownUp, setFreqDropdownUp] = useState(false);
   const freqDropdownRef = useRef(null);
+  const months = [
+    { id: "1", label: "January" }, { id: "2", label: "February" },
+    { id: "3", label: "March" }, { id: "4", label: "April" },
+    { id: "5", label: "May" }, { id: "6", label: "June" },
+    { id: "7", label: "July" }, { id: "8", label: "August" },
+    { id: "9", label: "September" }, { id: "10", label: "October" },
+    { id: "11", label: "November" }, { id: "12", label: "December" }
+  ];
 
+  const [month, setMonth] = useState("*");
   const frequencies = [
     { id: "daily", label: t("schedulerSettings.frequencies.daily") || "Daily" },
     { id: "weekly", label: t("schedulerSettings.frequencies.weekly") || "Weekly" },
@@ -373,6 +381,9 @@ const SchedulerSettings = () => {
         description: newDescription,
         mode: newMode,
         frequency: frequency,
+        day_of_week: frequency === "weekly" ? dayOfWeek : "*",
+        day: frequency === "monthly" ? dayOfMonth : "*",
+        month: month
       };
 
       if (frequency === "weekly") payload.day_of_week = dayOfWeek;

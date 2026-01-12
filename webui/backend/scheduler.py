@@ -453,10 +453,11 @@ class PosterizarrScheduler:
                 time_str = schedule.get("time", "")
                 mode = schedule.get("mode", "normal")
 
-                # New cron-like parameters
-                frequency = schedule.get("frequency", "daily") # Default for backward compatibility
-                day_of_week = schedule.get("day_of_week")
-                day = schedule.get("day")
+                # Enhanced cron parameters with defaults
+                frequency = schedule.get("frequency", "daily")
+                day_of_week = schedule.get("day_of_week", "*")
+                day = schedule.get("day", "*")
+                month = schedule.get("month", "*")  # Added month support
 
                 hour, minute = self.parse_schedule_time(time_str)
 
@@ -466,26 +467,37 @@ class PosterizarrScheduler:
 
                 job_id = f"posterizarr_{mode}_{idx}"
 
-                # Build CronTrigger parameters based on frequency
+                # Build CronTrigger parameters
+                # APScheduler's CronTrigger naturally handles "*" as "every"
                 cron_kwargs = {
                     "hour": hour,
                     "minute": minute,
                     "timezone": timezone,
+                    "month": month,
+                    "day": day if frequency != "weekly" else "*",
+                    "day_of_week": day_of_week if frequency != "daily" else "*"
                 }
 
-                if frequency == "weekly" and day_of_week:
-                    cron_kwargs["day_of_week"] = day_of_week
-                elif frequency == "monthly" and day:
-                    cron_kwargs["day"] = day
+                # Refine logic based on frequency selection for cleaner triggers
+                if frequency == "daily":
+                    cron_kwargs["day"] = "*"
+                    cron_kwargs["month"] = "*"
+                    cron_kwargs["day_of_week"] = "*"
+                elif frequency == "weekly":
+                    cron_kwargs["day"] = "*"
+                    cron_kwargs["month"] = "*"
 
                 trigger = CronTrigger(**cron_kwargs)
 
-                # Format the display name for the job
-                freq_label = f" ({frequency.title()})" if frequency != "daily" else ""
-                day_label = f" {day_of_week or day}" if frequency != "daily" else ""
-                job_name = f"Posterizarr {mode.replace('sync', 'Sync ').title()}{freq_label}{day_label} @ {time_str}"
+                # Format a detailed display name for the job
+                detail_parts = []
+                if month != "*": detail_parts.append(f"Month: {month}")
+                if frequency == "weekly": detail_parts.append(f"Day: {day_of_week}")
+                if frequency == "monthly": detail_parts.append(f"Date: {day}")
 
-                # Add the job and pass the mode as an argument to run_script
+                detail_str = f" ({', '.join(detail_parts)})" if detail_parts else " (Daily)"
+                job_name = f"Posterizarr {mode.replace('sync', 'Sync ').title()}{detail_str} @ {time_str}"
+
                 self.scheduler.add_job(
                     self.run_script,
                     trigger=trigger,
@@ -495,7 +507,7 @@ class PosterizarrScheduler:
                     replace_existing=True,
                 )
 
-                logger.info(f"Added schedule: {time_str} (Mode: {mode}, Freq: {frequency}, Job ID: {job_id})")
+                logger.info(f"Added Cron Job: {job_name} (ID: {job_id})")
 
             self.update_next_run()
 
@@ -697,7 +709,8 @@ class PosterizarrScheduler:
                 logger.warning("No valid next runs calculated")
 
     def add_schedule(self, time_str: str, description: str = "", mode: str = "normal",
-                     frequency: str = "daily", day_of_week: str = None, day: Union[int, str] = None) -> bool:
+                 frequency: str = "daily", day_of_week: str = "*",
+                 day: Union[int, str] = "*", month: str = "*") -> bool:
         """Add a new schedule with optional cron-like frequency (Thread-safe)"""
         with self._lock:
             config = self.load_config()
@@ -718,7 +731,8 @@ class PosterizarrScheduler:
                 "mode": mode,
                 "frequency": frequency,
                 "day_of_week": day_of_week,
-                "day": day
+                "day": day,
+                "month": month
             }
 
             schedules.append(new_entry)
