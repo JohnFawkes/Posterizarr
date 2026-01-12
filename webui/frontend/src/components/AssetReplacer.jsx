@@ -51,7 +51,12 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
   const [showFetchConfirm, setShowFetchConfirm] = useState(false);
   const [pendingPreview, setPendingPreview] = useState(null);
   const [pendingFetchParams, setPendingFetchParams] = useState(null);
-
+  const handleConfirmFetch = (dontShowAgain) => {
+    if (dontShowAgain) {
+      localStorage.setItem("skipFetchConfirm", "true"); // Persist preference
+    }
+    fetchPreviews(); // Execute the fetch
+  };
   // Manual form for editable parameters (overlay processing)
   const [manualForm, setManualForm] = useState({
     titletext: "",
@@ -260,6 +265,24 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     if (dbData?.year) {
       year = parseInt(dbData.year);
       console.log(`Using Year from database: ${year}`);
+    }
+
+    if (title && typeof title === 'string') {
+      const originalTitle = title;
+
+      if (!year) {
+        const yearCapture = title.match(/\((\d{4})\)/);
+        if (yearCapture) {
+          year = parseInt(yearCapture[1]);
+        }
+      }
+
+      // Remove trailing (YYYY) pattern
+      title = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
+
+      if (originalTitle !== title) {
+        console.log(`Cleaned title: "${originalTitle}" -> "${title}"`);
+      }
     }
 
     // Determine mediaType
@@ -970,19 +993,27 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       };
     }
 
-    setPendingFetchParams({ metadata, manualSearch });
-    setShowFetchConfirm(true);
+    const skipConfirm = localStorage.getItem("skipFetchConfirm") === "true";
+
+    if (skipConfirm) {
+      // Pass metadata directly to avoid waiting for state updates
+      fetchPreviews(currentMetadata);
+    } else {
+      setPendingFetchParams({ metadata: currentMetadata, manualSearch });
+      setShowFetchConfirm(true);
+    }
   };
 
-  const fetchPreviews = async () => {
+  const fetchPreviews = async (directMetadata = null) => {
     console.log("=== AssetReplacer: Fetching Previews ===");
     setShowFetchConfirm(false);
 
-    if (!pendingFetchParams) {
-      console.error("No pending fetch params found!");
+    const params = directMetadata ? { metadata: directMetadata } : pendingFetchParams;
+
+    if (!params) {
+      console.error("No fetch params found!");
       return;
     }
-
     const { metadata, manualSearch: isManualSearch } = pendingFetchParams;
     console.log("Fetch params:", { metadata, isManualSearch });
 
@@ -2084,7 +2115,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           setShowFetchConfirm(false);
           setPendingFetchParams(null);
         }}
-        onConfirm={fetchPreviews}
+        onConfirm={handleConfirmFetch}
         title={t("assetReplacer.confirmFetchTitle")}
         message={t("assetReplacer.confirmFetchMessage")}
         confirmText={t("assetReplacer.confirmFetchButton")}

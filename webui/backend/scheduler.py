@@ -9,14 +9,15 @@ import asyncio
 import threading
 import os
 from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, List
+from datetime import datetime, timedelta
+from typing import Optional, Dict, List, Union
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.asyncio import AsyncIOExecutor
 import subprocess
 import platform
+import pytz
 
 # Try to import psutil for process checking
 try:
@@ -57,7 +58,7 @@ class PosterizarrScheduler:
         self._scheduler_initialized = False
         # Use a threading.RLock for all methods (sync and async)
         self._lock = threading.RLock()
-        
+
         # Initialize timezone cache
         self._cached_timezone = None
 
@@ -316,10 +317,10 @@ class PosterizarrScheduler:
                 "syncemby": ["-UISchedule", "-SyncEmby"],
                 "backup": ["-UISchedule", "-Backup"]
             }
-            
+
             switches = mode_switches.get(mode.lower(), ["-UISchedule"])
             command = [ps_command, "-File", str(self.script_path)] + switches
-            
+
             logger.info(f"Executing scheduled run ({mode}): {' '.join(command)}")
 
             def run_in_thread():
@@ -450,36 +451,51 @@ class PosterizarrScheduler:
             # Add jobs for each schedule
             for idx, schedule in enumerate(schedules):
                 time_str = schedule.get("time", "")
-                # Get the execution mode (normal, syncjelly, syncemby, backup), default to normal
-                mode = schedule.get("mode", "normal") 
+                mode = schedule.get("mode", "normal")
+
+                # New cron-like parameters
+                frequency = schedule.get("frequency", "daily") # Default for backward compatibility
+                day_of_week = schedule.get("day_of_week")
+                day = schedule.get("day")
+
                 hour, minute = self.parse_schedule_time(time_str)
 
                 if hour is None or minute is None:
                     logger.error(f"Invalid schedule time: {time_str}")
                     continue
 
-                # Include mode in job_id to distinguish between different task types at the same time
                 job_id = f"posterizarr_{mode}_{idx}"
 
-                # Create cron trigger for daily execution
-                trigger = CronTrigger(
-                    hour=hour,
-                    minute=minute,
-                    timezone=timezone,
-                )
+                # Build CronTrigger parameters based on frequency
+                cron_kwargs = {
+                    "hour": hour,
+                    "minute": minute,
+                    "timezone": timezone,
+                }
+
+                if frequency == "weekly" and day_of_week:
+                    cron_kwargs["day_of_week"] = day_of_week
+                elif frequency == "monthly" and day:
+                    cron_kwargs["day"] = day
+
+                trigger = CronTrigger(**cron_kwargs)
+
+                # Format the display name for the job
+                freq_label = f" ({frequency.title()})" if frequency != "daily" else ""
+                day_label = f" {day_of_week or day}" if frequency != "daily" else ""
+                job_name = f"Posterizarr {mode.replace('sync', 'Sync ').title()}{freq_label}{day_label} @ {time_str}"
 
                 # Add the job and pass the mode as an argument to run_script
                 self.scheduler.add_job(
                     self.run_script,
                     trigger=trigger,
                     id=job_id,
-                    # This creates the clean "Posterizarr Normal @ 22:30" string
-                    name=f"Posterizarr {mode.replace('sync', 'Sync ').title()} @ {time_str}",
+                    name=job_name,
                     args=[mode],
                     replace_existing=True,
                 )
 
-                logger.info(f"Added schedule: {time_str} (Mode: {mode}, Job ID: {job_id})")
+                logger.info(f"Added schedule: {time_str} (Mode: {mode}, Freq: {frequency}, Job ID: {job_id})")
 
             self.update_next_run()
 
@@ -602,33 +618,45 @@ class PosterizarrScheduler:
                 "active_jobs": job_info,
             }
 
-    def calculate_next_run_time(self, time_str: str) -> Optional[str]:
-        """Calculate the next run time for a given schedule time (HH:MM) (Thread-safe)"""
+    def calculate_next_run_time(self, time_str: str, frequency: str = "daily", day_of_week: str = None, day: Union[int, str] = None) -> Optional[str]:
+        """Calculate the next run time for a given schedule configuration (Thread-safe)"""
         with self._lock:
-            from datetime import datetime, timedelta
-            import pytz
-
             hour, minute = self.parse_schedule_time(time_str)
             if hour is None or minute is None:
                 return None
 
-            # Use _get_timezone() instead of config only
             timezone_str = self._get_timezone()
 
             try:
                 tz = pytz.timezone(timezone_str)
                 now = datetime.now(tz)
 
-                # Create today's scheduled time
+                # Use CronTrigger to calculate the next fire time reliably
+                cron_kwargs = {
+                    "hour": hour,
+                    "minute": minute,
+                    "timezone": timezone_str,
+                }
+
+                if frequency == "weekly" and day_of_week:
+                    cron_kwargs["day_of_week"] = day_of_week
+                elif frequency == "monthly" and day:
+                    cron_kwargs["day"] = day
+
+                trigger = CronTrigger(**cron_kwargs)
+                next_fire = trigger.get_next_fire_time(None, now)
+
+                if next_fire:
+                    return next_fire.isoformat()
+
+                # Fallback to manual daily calculation for absolute legacy parity if CronTrigger fails
                 scheduled_time = now.replace(
                     hour=hour, minute=minute, second=0, microsecond=0
                 )
-
-                # If scheduled time has passed today, use tomorrow
                 if scheduled_time <= now:
                     scheduled_time += timedelta(days=1)
-
                 return scheduled_time.isoformat()
+
             except Exception as e:
                 logger.error(f"Error calculating next run time: {e}")
                 return None
@@ -648,8 +676,12 @@ class PosterizarrScheduler:
             # Calculate next run for all schedules
             next_runs = []
             for schedule in schedules:
-                time_str = schedule.get("time", "")
-                next_run = self.calculate_next_run_time(time_str)
+                next_run = self.calculate_next_run_time(
+                    time_str=schedule.get("time", ""),
+                    frequency=schedule.get("frequency", "daily"),
+                    day_of_week=schedule.get("day_of_week"),
+                    day=schedule.get("day")
+                )
                 if next_run:
                     next_runs.append(next_run)
 
@@ -664,24 +696,36 @@ class PosterizarrScheduler:
                 self.save_config(config)
                 logger.warning("No valid next runs calculated")
 
-    def add_schedule(self, time_str: str, description: str = "", mode: str = "normal") -> bool:
+    def add_schedule(self, time_str: str, description: str = "", mode: str = "normal",
+                     frequency: str = "daily", day_of_week: str = None, day: Union[int, str] = None) -> bool:
+        """Add a new schedule with optional cron-like frequency (Thread-safe)"""
         with self._lock:
             config = self.load_config()
             schedules = config.get("schedules", [])
 
-            if any(s.get("time") == time_str for s in schedules):
+            # Check for exact duplicate including frequency settings
+            if any(s.get("time") == time_str and
+                   s.get("frequency", "daily") == frequency and
+                   s.get("day_of_week") == day_of_week and
+                   s.get("day") == day
+                   for s in schedules):
                 return False
 
-            # Store the mode in the schedule object
-            schedules.append({
-                "time": time_str, 
-                "description": description, 
-                "mode": mode 
-            })
+            # Store the mode and frequency data in the schedule object
+            new_entry = {
+                "time": time_str,
+                "description": description,
+                "mode": mode,
+                "frequency": frequency,
+                "day_of_week": day_of_week,
+                "day": day
+            }
+
+            schedules.append(new_entry)
             config["schedules"] = schedules
             self.save_config(config)
 
-            logger.info(f"Added new schedule: {time_str}")
+            logger.info(f"Added new schedule: {time_str} ({frequency})")
 
             if config.get("enabled", False) and self.scheduler.running:
                 logger.info("Scheduler is running, reapplying schedules...")
