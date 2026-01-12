@@ -69,26 +69,39 @@ const SchedulerSettings = () => {
   const [clearAllConfirm, setClearAllConfirm] = useState(false);
   const [newMode, setNewMode] = useState("normal");
 
+  // --- NEW CRON-LIKE STATE ---
   const [frequency, setFrequency] = useState("daily");
   const [dayOfWeek, setDayOfWeek] = useState("mon");
-  const [dayOfMonth, setDayOfMonth] = useState(1);
+  const [dayOfMonth, setDayOfMonth] = useState("1"); // Changed to string for complex patterns like "1,15"
+  const [newMonth, setNewMonth] = useState("*"); // New state for month selection
   const [freqDropdownOpen, setFreqDropdownOpen] = useState(false);
   const [freqDropdownUp, setFreqDropdownUp] = useState(false);
   const freqDropdownRef = useRef(null);
-  const months = [
-    { id: "1", label: "January" }, { id: "2", label: "February" },
-    { id: "3", label: "March" }, { id: "4", label: "April" },
-    { id: "5", label: "May" }, { id: "6", label: "June" },
-    { id: "7", label: "July" }, { id: "8", label: "August" },
-    { id: "9", label: "September" }, { id: "10", label: "October" },
-    { id: "11", label: "November" }, { id: "12", label: "December" }
-  ];
 
-  const [month, setMonth] = useState("*");
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+  const [monthDropdownUp, setMonthDropdownUp] = useState(false);
+  const monthDropdownRef = useRef(null);
+
   const frequencies = [
     { id: "daily", label: t("schedulerSettings.frequencies.daily") || "Daily" },
     { id: "weekly", label: t("schedulerSettings.frequencies.weekly") || "Weekly" },
     { id: "monthly", label: t("schedulerSettings.frequencies.monthly") || "Monthly" },
+  ];
+
+  const months = [
+    { id: "*", label: "Every Month" },
+    { id: "1", label: "January" },
+    { id: "2", label: "February" },
+    { id: "3", label: "March" },
+    { id: "4", label: "April" },
+    { id: "5", label: "May" },
+    { id: "6", label: "June" },
+    { id: "7", label: "July" },
+    { id: "8", label: "August" },
+    { id: "9", label: "September" },
+    { id: "10", label: "October" },
+    { id: "11", label: "November" },
+    { id: "12", label: "December" },
   ];
 
   const daysOfWeek = [
@@ -266,6 +279,9 @@ const SchedulerSettings = () => {
       if (freqDropdownRef.current && !freqDropdownRef.current.contains(event.target)) {
         setFreqDropdownOpen(false);
       }
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
+        setMonthDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -381,13 +397,19 @@ const SchedulerSettings = () => {
         description: newDescription,
         mode: newMode,
         frequency: frequency,
-        day_of_week: frequency === "weekly" ? dayOfWeek : "*",
-        day: frequency === "monthly" ? dayOfMonth : "*",
-        month: month
+        month: newMonth, // Included month in payload
       };
 
-      if (frequency === "weekly") payload.day_of_week = dayOfWeek;
-      if (frequency === "monthly") payload.day = dayOfMonth;
+      if (frequency === "weekly") {
+        payload.day_of_week = dayOfWeek;
+        payload.day = "*";
+      } else if (frequency === "monthly") {
+        payload.day = dayOfMonth;
+        payload.day_of_week = "*";
+      } else {
+        payload.day = "*";
+        payload.day_of_week = "*";
+      }
 
       const response = await fetch(`${API_URL}/scheduler/schedule`, {
         method: "POST",
@@ -404,7 +426,8 @@ const SchedulerSettings = () => {
         // Reset to defaults
         setFrequency("daily");
         setDayOfWeek("mon");
-        setDayOfMonth(1);
+        setDayOfMonth("1");
+        setNewMonth("*");
         await new Promise((resolve) => setTimeout(resolve, 500));
         await fetchSchedulerData();
       } else {
@@ -548,7 +571,7 @@ const SchedulerSettings = () => {
 
   const triggerNow = async () => {
     console.log(
-      "🔥 triggerNow called - isUpdating:",
+      "🏃 triggerNow called - isUpdating:",
       isUpdating,
       "status?.is_executing:",
       status?.is_executing,
@@ -560,14 +583,14 @@ const SchedulerSettings = () => {
     setIsUpdating(true);
 
     try {
-      console.log("📡 Sending API request to:", `${API_URL}/scheduler/run-now`);
+      console.log("🚀 Sending API request to:", `${API_URL}/scheduler/run-now`);
       const response = await fetch(`${API_URL}/scheduler/run-now`, {
         method: "POST",
       });
 
       console.log("Response received, status:", response.status);
       const data = await response.json();
-      console.log("📦 Response data:", data);
+      console.log("🏃 Response data:", data);
 
       if (data.success) {
         console.log("Success! Showing toast and navigating...");
@@ -594,10 +617,10 @@ const SchedulerSettings = () => {
         showError(data.detail || t("schedulerSettings.errors.triggerRun"));
       }
     } catch (error) {
-      console.error("💥 Error in triggerNow:", error);
+      console.error("🏃 Error in triggerNow:", error);
       showError(t("schedulerSettings.errors.triggerRun"));
     } finally {
-      console.log("🏁 Finally block - setting isUpdating to false");
+      console.log("🏃 Finally block - setting isUpdating to false");
       setIsUpdating(false);
     }
   };
@@ -1055,6 +1078,50 @@ const SchedulerSettings = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-3">
+            {/* NEW Month Dropdown for Monthly selection */}
+            {frequency === "monthly" && (
+              <div className="flex-1 relative" ref={monthDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isUpdating) {
+                      const shouldOpenUp = calculateDropdownPosition(monthDropdownRef);
+                      setMonthDropdownUp(shouldOpenUp);
+                      setMonthDropdownOpen(!monthDropdownOpen);
+                    }
+                  }}
+                  disabled={isUpdating}
+                  className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-theme-primary" />
+                    <span>{months.find((m) => m.id === newMonth)?.label}</span>
+                  </div>
+                  <ChevronDown className={`w-5 h-5 text-theme-muted transition-transform ${monthDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {monthDropdownOpen && !isUpdating && (
+                  <div className={`absolute z-50 left-0 right-0 ${monthDropdownUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-60 overflow-y-auto`}>
+                    {months.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setNewMonth(m.id);
+                          setMonthDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 text-sm transition-all text-left ${
+                          newMonth === m.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Conditional Extra Inputs */}
             {frequency === "weekly" && (
               <select
@@ -1070,12 +1137,10 @@ const SchedulerSettings = () => {
 
             {frequency === "monthly" && (
               <input
-                type="number"
-                min="1"
-                max="31"
+                type="text"
                 value={dayOfMonth}
-                onChange={(e) => setDayOfMonth(parseInt(e.target.value))}
-                placeholder={t("schedulerSettings.dayPlaceholder") || "Day (1-31)"}
+                onChange={(e) => setDayOfMonth(e.target.value)}
+                placeholder={t("schedulerSettings.dayPlaceholder") || "Day (e.g. 1 or 1,15)"}
                 className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 transition-all"
               />
             )}
@@ -1116,10 +1181,17 @@ const SchedulerSettings = () => {
               const freqVal = schedule.frequency || "daily";
               const freqLabel = frequencies.find(f => f.id === freqVal)?.label || freqVal;
               let detailText = "";
+
+              const monthVal = schedule.month || "*";
+              const monthLabel = months.find(m => m.id === monthVal)?.label || monthVal;
+              if (monthVal !== "*") {
+                  detailText = `${monthLabel} `;
+              }
+
               if (freqVal === "weekly") {
-                detailText = `, ${daysOfWeek.find(d => d.id === schedule.day_of_week)?.label || schedule.day_of_week}`;
+                detailText += daysOfWeek.find(d => d.id === schedule.day_of_week)?.label || schedule.day_of_week;
               } else if (freqVal === "monthly") {
-                detailText = `, Day ${schedule.day}`;
+                detailText += `Day ${schedule.day}`;
               }
 
               return (
@@ -1139,7 +1211,7 @@ const SchedulerSettings = () => {
                         </span>
                         {/* Frequency Badge */}
                         <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border border-theme-muted/30 text-theme-muted">
-                          {freqLabel}{detailText}
+                          {freqLabel}{detailText ? `, ${detailText}` : ""}
                         </span>
                       </div>
                       {schedule.description && (
