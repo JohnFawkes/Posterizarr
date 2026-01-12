@@ -1097,21 +1097,39 @@
     "next": "Weiter"
   },
   "schedulerSettings": {
-    "dayPlaceholder": "Tag (1-31)",
     "frequencies": {
       "daily": "Täglich",
       "weekly": "Wöchentlich",
-      "monthly": "Monatlich"
+      "monthly": "Monatlich",
+      "interval": "Intervall"
     },
-    "days": {
-      "mon": "Montag",
-      "tue": "Dienstag",
-      "wed": "Mittwoch",
-      "thu": "Donnerstag",
-      "fri": "Freitag",
-      "sat": "Samstag",
-      "sun": "Sonntag"
+    "months": {
+      "every": "Jeden Monat",
+      "january": "Januar",
+      "february": "Februar",
+      "march": "März",
+      "april": "April",
+      "may": "Mai",
+      "june": "Juni",
+      "july": "Juli",
+      "august": "August",
+      "september": "September",
+      "october": "Oktober",
+      "november": "November",
+      "december": "Dezember"
     },
+    "interval": {
+      "every": "Alle",
+      "hours": "Stunden",
+      "days": "Tage",
+      "weeks": "Wochen",
+      "placeholder": "Intervallwert"
+    },
+    "calendar": {
+      "selectDays": "Tage auswählen",
+      "hint": "Sie können mehrere bestimmte Tage im Monat auswählen."
+    },
+    "dayPlaceholder": "Tag (z. B. 1 oder 1,15)",
     "loading": "Lade Zeitplaner-Einstellungen...",
     "runMode": "Ausführungsmodus",
     "modes": {

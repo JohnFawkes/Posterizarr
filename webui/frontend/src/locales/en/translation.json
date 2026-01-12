@@ -1105,21 +1105,39 @@
   },
   "schedulerSettings": {
     "loading": "Loading scheduler settings...",
-    "dayPlaceholder": "Day (1-31)",
     "frequencies": {
       "daily": "Daily",
       "weekly": "Weekly",
-      "monthly": "Monthly"
+      "monthly": "Monthly",
+      "interval": "Interval"
     },
-    "days": {
-      "mon": "Monday",
-      "tue": "Tuesday",
-      "wed": "Wednesday",
-      "thu": "Thursday",
-      "fri": "Friday",
-      "sat": "Saturday",
-      "sun": "Sunday"
+    "months": {
+      "every": "Every Month",
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
     },
+    "interval": {
+      "every": "Every",
+      "hours": "Hours",
+      "days": "Days",
+      "weeks": "Weeks",
+      "placeholder": "Interval value"
+    },
+    "calendar": {
+      "selectDays": "Select Days",
+      "hint": "You can select multiple specific days of the month."
+    },
+    "dayPlaceholder": "Day (e.g. 1 or 1,15)",
     "runMode": "Run Mode",
     "modes": {
       "normal": "Standard Run",

@@ -1096,21 +1096,39 @@
     "next": "Successivo"
   },
   "schedulerSettings": {
-    "dayPlaceholder": "Giorno (1-31)",
     "frequencies": {
       "daily": "Giornaliero",
       "weekly": "Settimanale",
-      "monthly": "Mensile"
+      "monthly": "Mensile",
+      "interval": "Intervallo"
     },
-    "days": {
-      "mon": "Lunedì",
-      "tue": "Martedì",
-      "wed": "Mercoledì",
-      "thu": "Giovedì",
-      "fri": "Venerdì",
-      "sat": "Sabato",
-      "sun": "Domenica"
+    "months": {
+      "every": "Ogni mese",
+      "january": "Gennaio",
+      "february": "Febbraio",
+      "march": "Marzo",
+      "april": "Aprile",
+      "may": "Maggio",
+      "june": "Giugno",
+      "july": "Luglio",
+      "august": "Agosto",
+      "september": "Settembre",
+      "october": "Ottobre",
+      "november": "Novembre",
+      "december": "Dicembre"
     },
+    "interval": {
+      "every": "Ogni",
+      "hours": "Ore",
+      "days": "Giorni",
+      "weeks": "Settimane",
+      "placeholder": "Valore intervallo"
+    },
+    "calendar": {
+      "selectDays": "Seleziona giorni",
+      "hint": "Puoi selezionare più giorni specifici del mese."
+    },
+    "dayPlaceholder": "Giorno (es. 1 o 1,15)",
     "loading": "Caricamento impostazioni pianificatore...",
     "runMode": "Modalità di esecuzione",
     "modes": {
