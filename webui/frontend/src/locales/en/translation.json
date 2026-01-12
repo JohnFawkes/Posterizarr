@@ -1105,6 +1105,21 @@
   },
   "schedulerSettings": {
     "loading": "Loading scheduler settings...",
+    "dayPlaceholder": "Day (1-31)",
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "days": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
     "runMode": "Run Mode",
     "modes": {
       "normal": "Standard Run",

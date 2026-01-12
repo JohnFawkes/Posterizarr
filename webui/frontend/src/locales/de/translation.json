@@ -1097,6 +1097,21 @@
     "next": "Weiter"
   },
   "schedulerSettings": {
+    "dayPlaceholder": "Tag (1-31)",
+    "frequencies": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "monthly": "Monatlich"
+    },
+    "days": {
+      "mon": "Montag",
+      "tue": "Dienstag",
+      "wed": "Mittwoch",
+      "thu": "Donnerstag",
+      "fri": "Freitag",
+      "sat": "Samstag",
+      "sun": "Sonntag"
+    },
     "loading": "Lade Zeitplaner-Einstellungen...",
     "runMode": "Ausführungsmodus",
     "modes": {

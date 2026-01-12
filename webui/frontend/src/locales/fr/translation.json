@@ -1096,6 +1096,21 @@
     "next": "Suivant"
   },
   "schedulerSettings": {
+    "dayPlaceholder": "Jour (1-31)",
+    "frequencies": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel"
+    },
+    "days": {
+      "mon": "Lundi",
+      "tue": "Mardi",
+      "wed": "Mercredi",
+      "thu": "Jeudi",
+      "fri": "Vendredi",
+      "sat": "Samedi",
+      "sun": "Dimanche"
+    },
     "loading": "Chargement des paramètres du planificateur...",
     "runMode": "Mode d'exécution",
     "modes": {

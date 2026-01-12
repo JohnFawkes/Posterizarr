@@ -1096,6 +1096,21 @@
     "next": "Próximo"
   },
   "schedulerSettings": {
+    "dayPlaceholder": "Dia (1-31)",
+    "frequencies": {
+      "daily": "Diário",
+      "weekly": "Semanal",
+      "monthly": "Mensal"
+    },
+    "days": {
+      "mon": "Segunda-feira",
+      "tue": "Terça-feira",
+      "wed": "Quarta-feira",
+      "thu": "Quinta-feira",
+      "fri": "Sexta-feira",
+      "sat": "Sábado",
+      "sun": "Domingo"
+    },
     "loading": "Carregando configurações do agendador...",
     "runMode": "Modo de execução",
     "modes": {
