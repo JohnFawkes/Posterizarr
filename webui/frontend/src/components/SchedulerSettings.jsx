@@ -69,6 +69,31 @@ const SchedulerSettings = () => {
   const [clearAllConfirm, setClearAllConfirm] = useState(false);
   const [newMode, setNewMode] = useState("normal");
 
+  // --- NEW CRON-LIKE STATE ---
+  const [frequency, setFrequency] = useState("daily");
+  const [dayOfWeek, setDayOfWeek] = useState("mon");
+  const [dayOfMonth, setDayOfMonth] = useState(1);
+  const [freqDropdownOpen, setFreqDropdownOpen] = useState(false);
+  const [freqDropdownUp, setFreqDropdownUp] = useState(false);
+  const freqDropdownRef = useRef(null);
+
+  const frequencies = [
+    { id: "daily", label: t("schedulerSettings.frequencies.daily") || "Daily" },
+    { id: "weekly", label: t("schedulerSettings.frequencies.weekly") || "Weekly" },
+    { id: "monthly", label: t("schedulerSettings.frequencies.monthly") || "Monthly" },
+  ];
+
+  const daysOfWeek = [
+    { id: "mon", label: t("schedulerSettings.days.mon") || "Monday" },
+    { id: "tue", label: t("schedulerSettings.days.tue") || "Tuesday" },
+    { id: "wed", label: t("schedulerSettings.days.wed") || "Wednesday" },
+    { id: "thu", label: t("schedulerSettings.days.thu") || "Thursday" },
+    { id: "fri", label: t("schedulerSettings.days.fri") || "Friday" },
+    { id: "sat", label: t("schedulerSettings.days.sat") || "Saturday" },
+    { id: "sun", label: t("schedulerSettings.days.sun") || "Sunday" },
+  ];
+  // ---------------------------
+
   // Time picker state
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [timePickerUp, setTimePickerUp] = useState(false);
@@ -230,6 +255,9 @@ const SchedulerSettings = () => {
       if (modeDropdownRef.current && !modeDropdownRef.current.contains(event.target)) {
         setModeDropdownOpen(false);
       }
+      if (freqDropdownRef.current && !freqDropdownRef.current.contains(event.target)) {
+        setFreqDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -339,14 +367,21 @@ const SchedulerSettings = () => {
     setIsUpdating(true);
 
     try {
+      // Build the payload with new cron parameters
+      const payload = {
+        time: newTime,
+        description: newDescription,
+        mode: newMode,
+        frequency: frequency,
+      };
+
+      if (frequency === "weekly") payload.day_of_week = dayOfWeek;
+      if (frequency === "monthly") payload.day = dayOfMonth;
+
       const response = await fetch(`${API_URL}/scheduler/schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          time: newTime,
-          description: newDescription,
-          mode: newMode,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -355,6 +390,10 @@ const SchedulerSettings = () => {
         showSuccess(t("schedulerSettings.success.scheduleAdded"));
         setNewTime("");
         setNewDescription("");
+        // Reset to defaults
+        setFrequency("daily");
+        setDayOfWeek("mon");
+        setDayOfMonth(1);
         await new Promise((resolve) => setTimeout(resolve, 500));
         await fetchSchedulerData();
       } else {
@@ -846,76 +885,78 @@ const SchedulerSettings = () => {
         {/* Add Schedule Form */}
         <form
           onSubmit={addSchedule}
-          className="flex flex-col md:flex-row gap-3"
+          className="space-y-4"
         >
-          {/* Custom Time Picker */}
-          <div className="flex-1 relative" ref={timePickerRef}>
-            <button
-              type="button"
-              onClick={openTimePicker}
-              disabled={isUpdating}
-              className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
-            >
-              <span className={newTime ? "" : "text-theme-muted"}>
-                {newTime || t("schedulerSettings.timePlaceholder")}
-              </span>
-              <Clock className="w-5 h-5 text-theme-muted" />
-            </button>
-
-            {timePickerOpen && !isUpdating && (
-              <div
-                className={`absolute z-50 left-0 right-0 ${
-                  timePickerUp ? "bottom-full mb-2" : "top-full mt-2"
-                } bg-theme-card border border-theme-primary rounded-lg shadow-xl`}
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Custom Time Picker */}
+            <div className="flex-1 relative" ref={timePickerRef}>
+              <button
+                type="button"
+                onClick={openTimePicker}
+                disabled={isUpdating}
+                className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
               >
-                <div className="flex divide-x divide-theme">
-                  {/* Hours Column */}
-                  <div className="flex-1 max-h-64 overflow-y-auto">
-                    <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">
-                      {t("schedulerSettings.hour") || "Hour"}
-                    </div>
-                    {hours.map((hour) => (
-                      <button
-                        key={hour}
-                        type="button"
-                        onClick={() => handleTimeSelect(hour, selectedMinute)}
-                        className={`w-full px-4 py-2 text-sm transition-all text-center ${
-                          selectedHour === hour
-                            ? "bg-theme-primary text-white"
-                            : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                        }`}
-                      >
-                        {hour}
-                      </button>
-                    ))}
-                  </div>
+                <span className={newTime ? "" : "text-theme-muted"}>
+                  {newTime || t("schedulerSettings.timePlaceholder")}
+                </span>
+                <Clock className="w-5 h-5 text-theme-muted" />
+              </button>
 
-                  {/* Minutes Column */}
-                  <div className="flex-1 max-h-64 overflow-y-auto">
-                    <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">
-                      {t("schedulerSettings.minute") || "Minute"}
+              {timePickerOpen && !isUpdating && (
+                <div
+                  className={`absolute z-50 left-0 right-0 ${
+                    timePickerUp ? "bottom-full mb-2" : "top-full mt-2"
+                  } bg-theme-card border border-theme-primary rounded-lg shadow-xl`}
+                >
+                  <div className="flex divide-x divide-theme">
+                    {/* Hours Column */}
+                    <div className="flex-1 max-h-64 overflow-y-auto">
+                      <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">
+                        {t("schedulerSettings.hour") || "Hour"}
+                      </div>
+                      {hours.map((hour) => (
+                        <button
+                          key={hour}
+                          type="button"
+                          onClick={() => handleTimeSelect(hour, selectedMinute)}
+                          className={`w-full px-4 py-2 text-sm transition-all text-center ${
+                            selectedHour === hour
+                              ? "bg-theme-primary text-white"
+                              : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
+                          }`}
+                        >
+                          {hour}
+                        </button>
+                      ))}
                     </div>
-                    {minutes.map((minute) => (
-                      <button
-                        key={minute}
-                        type="button"
-                        onClick={() => handleTimeSelect(selectedHour, minute)}
-                        className={`w-full px-4 py-2 text-sm transition-all text-center ${
-                          selectedMinute === minute
-                            ? "bg-theme-primary text-white"
-                            : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
-                        }`}
-                      >
-                        {minute}
-                      </button>
-                    ))}
+
+                    {/* Minutes Column */}
+                    <div className="flex-1 max-h-64 overflow-y-auto">
+                      <div className="sticky top-0 bg-theme-card border-b border-theme px-3 py-2 text-xs font-semibold text-theme-primary">
+                        {t("schedulerSettings.minute") || "Minute"}
+                      </div>
+                      {minutes.map((minute) => (
+                        <button
+                          key={minute}
+                          type="button"
+                          onClick={() => handleTimeSelect(selectedHour, minute)}
+                          className={`w-full px-4 py-2 text-sm transition-all text-center ${
+                            selectedMinute === minute
+                              ? "bg-theme-primary text-white"
+                              : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
+                          }`}
+                        >
+                          {minute}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-          <div className="flex-1 space-y-2">
-            <div className="relative" ref={modeDropdownRef}>
+              )}
+            </div>
+
+            {/* Run Mode Dropdown */}
+            <div className="flex-1 relative" ref={modeDropdownRef}>
               <button
                 type="button"
                 onClick={() => {
@@ -929,9 +970,8 @@ const SchedulerSettings = () => {
                 className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
-                  {/* Shows the icon of the currently selected mode */}
-                  {React.createElement(modeConfigs[newMode]?.icon || Clock, { 
-                    className: `w-4 h-4 ${modeConfigs[newMode]?.color || 'text-theme-primary'}` 
+                  {React.createElement(modeConfigs[newMode]?.icon || Clock, {
+                    className: `w-4 h-4 ${modeConfigs[newMode]?.color || 'text-theme-primary'}`
                   })}
                   <span>{runModes.find((m) => m.id === newMode)?.label}</span>
                 </div>
@@ -959,27 +999,98 @@ const SchedulerSettings = () => {
                 </div>
               )}
             </div>
+
+            {/* Frequency Dropdown */}
+            <div className="flex-1 relative" ref={freqDropdownRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isUpdating) {
+                    const shouldOpenUp = calculateDropdownPosition(freqDropdownRef);
+                    setFreqDropdownUp(shouldOpenUp);
+                    setFreqDropdownOpen(!freqDropdownOpen);
+                  }
+                }}
+                disabled={isUpdating}
+                className="w-full px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text hover:bg-theme-hover hover:border-theme-primary/50 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-theme-primary" />
+                  <span>{frequencies.find((f) => f.id === frequency)?.label}</span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-theme-muted transition-transform ${freqDropdownOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {freqDropdownOpen && !isUpdating && (
+                <div className={`absolute z-50 left-0 right-0 ${freqDropdownUp ? "bottom-full mb-2" : "top-full mt-2"} bg-theme-card border border-theme-primary rounded-lg shadow-xl max-h-60 overflow-y-auto`}>
+                  {frequencies.map((freq) => (
+                    <button
+                      key={freq.id}
+                      type="button"
+                      onClick={() => {
+                        setFrequency(freq.id);
+                        setFreqDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 text-sm transition-all text-left ${
+                        frequency === freq.id ? "bg-theme-primary text-white" : "text-theme-text hover:bg-theme-hover hover:text-theme-primary"
+                      }`}
+                    >
+                      {freq.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <input
-            type="text"
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-            placeholder={t("schedulerSettings.descriptionPlaceholder")}
-            disabled={isUpdating}
-            className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          />
-          <button
-            type="submit"
-            disabled={isUpdating}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-theme-primary hover:bg-theme-primary/90 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            {isUpdating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Plus className="w-5 h-5" />
+
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Conditional Extra Inputs */}
+            {frequency === "weekly" && (
+              <select
+                value={dayOfWeek}
+                onChange={(e) => setDayOfWeek(e.target.value)}
+                className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 transition-all"
+              >
+                {daysOfWeek.map((day) => (
+                  <option key={day.id} value={day.id}>{day.label}</option>
+                ))}
+              </select>
             )}
-            {t("schedulerSettings.add")}
-          </button>
+
+            {frequency === "monthly" && (
+              <input
+                type="number"
+                min="1"
+                max="31"
+                value={dayOfMonth}
+                onChange={(e) => setDayOfMonth(parseInt(e.target.value))}
+                placeholder={t("schedulerSettings.dayPlaceholder") || "Day (1-31)"}
+                className="flex-1 px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 transition-all"
+              />
+            )}
+
+            <input
+              type="text"
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder={t("schedulerSettings.descriptionPlaceholder")}
+              disabled={isUpdating}
+              className="flex-[2] px-4 py-3 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            />
+
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-theme-primary hover:bg-theme-primary/90 text-white rounded-lg transition-all shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {isUpdating ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Plus className="w-5 h-5" />
+              )}
+              {t("schedulerSettings.add")}
+            </button>
+          </div>
         </form>
 
         {/* Schedule List */}
@@ -990,6 +1101,16 @@ const SchedulerSettings = () => {
               const mConfig = modeConfigs[mode] || modeConfigs.normal;
               const Icon = mConfig.icon;
 
+              // Frequency metadata display
+              const freqVal = schedule.frequency || "daily";
+              const freqLabel = frequencies.find(f => f.id === freqVal)?.label || freqVal;
+              let detailText = "";
+              if (freqVal === "weekly") {
+                detailText = `, ${daysOfWeek.find(d => d.id === schedule.day_of_week)?.label || schedule.day_of_week}`;
+              } else if (freqVal === "monthly") {
+                detailText = `, Day ${schedule.day}`;
+              }
+
               return (
                 <div key={index} className="flex items-center justify-between p-4 bg-theme-bg rounded-lg hover:bg-theme-hover transition-all border border-theme hover:border-theme-primary/50 group">
                   <div className="flex items-center gap-4">
@@ -997,7 +1118,7 @@ const SchedulerSettings = () => {
                     <div className={`p-2.5 rounded-lg ${mConfig.bgColor} transition-all`}>
                       <Icon className={`w-5 h-5 ${mConfig.color}`} />
                     </div>
-                    
+
                     <div>
                       <div className="flex items-center gap-3">
                         <span className="font-semibold text-theme-text text-lg">{schedule.time}</span>
@@ -1005,13 +1126,17 @@ const SchedulerSettings = () => {
                         <span className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border ${mConfig.color} ${mConfig.bgColor} border-current opacity-80`}>
                           {mConfig.label}
                         </span>
+                        {/* Frequency Badge */}
+                        <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border border-theme-muted/30 text-theme-muted">
+                          {freqLabel}{detailText}
+                        </span>
                       </div>
                       {schedule.description && (
                         <div className="text-sm text-theme-muted mt-0.5">{schedule.description}</div>
                       )}
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => removeSchedule(schedule.time)}
                     disabled={isUpdating}
