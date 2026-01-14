@@ -29,7 +29,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
     }
 
     public string Name => "Posterizarr Local Middleware";
-    public int Order => -10; 
+    public int Order => -10;
 
     private void LogDebug(string message, params object[] args)
     {
@@ -45,21 +45,33 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
     public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
     {
         var config = Plugin.Instance?.Configuration;
-        LogDebug(">>> Starting Search for: '{0}'", item.Name);
+        LogDebug(">>> Starting Search for: '{0}' (ID: {1})", item.Name, item.Id);
 
         if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
         {
-            _logger.LogWarning("[Posterizarr] Configuration missing or AssetFolderPath empty.");
+            _logger.LogWarning("[Posterizarr] Configuration missing or AssetFolderPath empty. Please check plugin settings.");
+            return Enumerable.Empty<RemoteImageInfo>();
+        }
+
+        if (!Directory.Exists(config.AssetFolderPath))
+        {
+            _logger.LogError("[Posterizarr] Root Asset Path does not exist: {0}. Ensure Docker mounts are correct.", config.AssetFolderPath);
             return Enumerable.Empty<RemoteImageInfo>();
         }
 
         var results = new List<RemoteImageInfo>();
         foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
         {
+            LogDebug("Searching for image type: {0}", type);
             var path = FindFile(item, config, type);
             if (!string.IsNullOrEmpty(path))
             {
+                LogDebug("SUCCESS: Found {0} at {1}", type, path);
                 results.Add(new RemoteImageInfo { ProviderName = Name, Url = path, Type = type });
+            }
+            else
+            {
+                LogDebug("NOTICE: No local {0} found for {1}", type, item.Name);
             }
         }
         return results;
@@ -67,7 +79,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
     private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
     {
-        // 1. Resolve Library Names (Display Name vs Internal Name)
+        // 1. Resolve Library Names
         var displayLibraryName = item.GetAncestorIds()
             .Select(id => _libraryManager.GetItemById(id))
             .OfType<CollectionFolder>()
@@ -78,20 +90,21 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             .FirstOrDefault(p => p != null && p.ParentId != Guid.Empty && _libraryManager.GetItemById(p.ParentId)?.ParentId == Guid.Empty)?
             .Name ?? "Unknown";
 
-        // 2. Multi-Strategy Library Lookup
-        if (!Directory.Exists(config.AssetFolderPath)) return null;
+        LogDebug("Library Resolution -> Display: '{0}', Internal: '{1}'", displayLibraryName, internalLibraryName);
 
+        // 2. Multi-Strategy Library Lookup
         var directories = Directory.GetDirectories(config.AssetFolderPath);
         string? libraryDir = null;
 
-        // Strategy A: Exact Match on Display Name (e.g., "4K TV Shows")
         libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), displayLibraryName, StringComparison.OrdinalIgnoreCase));
+        if (libraryDir != null) LogDebug("Matched Library via Strategy A (Exact Display Name): {0}", libraryDir);
 
-        // Strategy B: Exact Match on Internal Name (e.g., "4kshows")
         if (libraryDir == null)
+        {
             libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), internalLibraryName, StringComparison.OrdinalIgnoreCase));
+            if (libraryDir != null) LogDebug("Matched Library via Strategy B (Exact Internal Name): {0}", libraryDir);
+        }
 
-        // Strategy C: Fuzzy Match (Ignore spaces/casing or partial match)
         if (libraryDir == null)
         {
             var searchTerms = new[] { displayLibraryName, internalLibraryName }
@@ -103,20 +116,22 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
                 var folderStripped = Path.GetFileName(d).Replace(" ", "").ToLowerInvariant();
                 return searchTerms.Any(term => folderStripped.Contains(term) || term.Contains(folderStripped));
             });
+            if (libraryDir != null) LogDebug("Matched Library via Strategy C (Fuzzy Match): {0}", libraryDir);
         }
 
         if (libraryDir == null)
         {
-            LogDebug("FAIL: Library not found. Tried matching Display: '{0}' and Internal: '{1}'", displayLibraryName, internalLibraryName);
+            LogDebug("FAIL: Could not find a matching library folder in {0}", config.AssetFolderPath);
             return null;
         }
 
         // 3. Resolve Media Folder Name from Disk
-        var directoryPath = (item is Movie || item is Series) ? (item is Movie ? Path.GetDirectoryName(item.Path) : item.Path) : 
+        var directoryPath = (item is Movie || item is Series) ? (item is Movie ? Path.GetDirectoryName(item.Path) : item.Path) :
                             (item is Season s ? s.Series.Path : (item is Episode e ? e.Series.Path : ""));
-        
+
         var subFolder = Path.GetFileName(directoryPath) ?? "";
-        
+        LogDebug("Item Folder Name on disk: '{0}'", subFolder);
+
         string fileNameBase = type switch {
             ImageType.Primary when item is Season sn => $"season{sn.IndexNumber ?? 0:D2}",
             ImageType.Primary when item is Episode ep => $"S{ep.ParentIndexNumber ?? 0:D2}E{ep.IndexNumber ?? 0:D2}",
@@ -125,10 +140,16 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         };
 
         var actualFolder = Path.Combine(libraryDir, subFolder);
-        if (!Directory.Exists(actualFolder)) return null;
+        if (!Directory.Exists(actualFolder))
+        {
+            LogDebug("FAIL: Media subfolder not found: {0}", actualFolder);
+            return null;
+        }
 
         // 4. File Lookup
         var filesInFolder = Directory.GetFiles(actualFolder);
+        LogDebug("Scanning {0} files in folder: {1}", filesInFolder.Length, actualFolder);
+
         foreach (var ext in config.SupportedExtensions)
         {
             var targetFile = fileNameBase + ext;
@@ -147,14 +168,27 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
     public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     {
+        LogDebug("Proxying image request for: {0}", url);
+
         if (File.Exists(url))
         {
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead(url)) };
-            var ext = Path.GetExtension(url).ToLowerInvariant();
-            string mimeType = ext switch { ".png" => "image/png", ".webp" => "image/webp", ".bmp" => "image/bmp", _ => "image/jpeg" };
-            response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
-            return Task.FromResult(response);
+            try
+            {
+                var stream = File.OpenRead(url);
+                var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StreamContent(stream) };
+                var ext = Path.GetExtension(url).ToLowerInvariant();
+                string mimeType = ext switch { ".png" => "image/png", ".webp" => "image/webp", ".bmp" => "image/bmp", _ => "image/jpeg" };
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
+                return Task.FromResult(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Posterizarr] Failed to read image file at {0}. Check permissions.", url);
+                return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError));
+            }
         }
+
+        LogDebug("Proxy FAIL: File not found on disk during response task: {0}", url);
         return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
     }
 }
