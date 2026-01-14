@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -21,6 +22,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 {
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger<PosterizarrImageProvider> _logger;
+    private const string ProxyPrefix = "http://posterizarr.local";
 
     public PosterizarrImageProvider(ILibraryManager libraryManager, ILogger<PosterizarrImageProvider> logger)
     {
@@ -62,33 +64,18 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             {
                 LogDebug("SUCCESS: Found {0} at {1}", type, path);
 
-                try
-                {
-                    // To solve the 405 Method Not Allowed error, we convert the local image to a Base64
-                    // data URI. This allows the browser to display the image directly without
-                    // relying on the server's POST-only download endpoints.
-                    var bytes = File.ReadAllBytes(path);
-                    var ext = Path.GetExtension(path).ToLowerInvariant();
-                    string mimeType = ext switch {
-                        ".png" => "image/png",
-                        ".webp" => "image/webp",
-                        ".bmp" => "image/bmp",
-                        _ => "image/jpeg"
-                    };
+                // Construct a URL that Jellyfin's server can proxy.
+                // We use a relative path so the browser hits the Jellyfin server,
+                // and a fake domain so the server hands the request to our plugin.
+                var internalUrl = ProxyPrefix + path;
+                var publicProxyUrl = "/Images/Remote?url=" + WebUtility.UrlEncode(internalUrl);
 
-                    results.Add(new RemoteImageInfo
-                    {
-                        ProviderName = Name,
-                        Url = $"data:{mimeType};base64,{Convert.ToBase64String(bytes)}",
-                        Type = type
-                    });
-
-                    LogDebug("Converted {0} to Base64 data URI for UI display.", type);
-                }
-                catch (Exception ex)
+                results.Add(new RemoteImageInfo
                 {
-                    _logger.LogError(ex, "[Posterizarr] Failed to process image for UI at {0}", path);
-                }
+                    ProviderName = Name,
+                    Url = publicProxyUrl,
+                    Type = type
+                });
             }
             else
             {
@@ -100,7 +87,6 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
     private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
     {
-        // 1. Resolve Library Names (Display Name vs Internal Name)
         var displayLibraryName = item.GetAncestorIds()
             .Select(id => _libraryManager.GetItemById(id))
             .OfType<CollectionFolder>()
@@ -113,7 +99,6 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         LogDebug("Library Resolution -> Display: '{0}', Internal: '{1}'", displayLibraryName, internalLibraryName);
 
-        // 2. Multi-Strategy Library Lookup
         if (!Directory.Exists(config.AssetFolderPath))
         {
              _logger.LogError("[Posterizarr] Root Asset Path does not exist: {0}", config.AssetFolderPath);
@@ -123,15 +108,14 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         var directories = Directory.GetDirectories(config.AssetFolderPath);
         string? libraryDir = null;
 
+        // Strategy A: Exact Match
         libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), displayLibraryName, StringComparison.OrdinalIgnoreCase));
-        if (libraryDir != null) LogDebug("Matched Library via Strategy A: {0}", libraryDir);
 
+        // Strategy B: Exact Match Internal
         if (libraryDir == null)
-        {
             libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), internalLibraryName, StringComparison.OrdinalIgnoreCase));
-            if (libraryDir != null) LogDebug("Matched Library via Strategy B: {0}", libraryDir);
-        }
 
+        // Strategy C: Fuzzy Match
         if (libraryDir == null)
         {
             var searchTerms = new[] { displayLibraryName, internalLibraryName }
@@ -143,21 +127,19 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
                 var folderStripped = Path.GetFileName(d).Replace(" ", "").ToLowerInvariant();
                 return searchTerms.Any(term => folderStripped.Contains(term) || term.Contains(folderStripped));
             });
-            if (libraryDir != null) LogDebug("Matched Library via Strategy C: {0}", libraryDir);
         }
 
         if (libraryDir == null)
         {
-            LogDebug("FAIL: Library not found. Tried matching Display: '{0}' and Internal: '{1}'", displayLibraryName, internalLibraryName);
+            LogDebug("FAIL: Library match not found for '{0}'", item.Name);
             return null;
         }
 
-        // 3. Resolve Media Folder Name from Disk
         var directoryPath = (item is Movie || item is Series) ? (item is Movie ? Path.GetDirectoryName(item.Path) : item.Path) :
                             (item is Season s ? s.Series.Path : (item is Episode e ? e.Series.Path : ""));
 
         var subFolder = Path.GetFileName(directoryPath) ?? "";
-        LogDebug("Item Folder Name on disk: '{0}'", subFolder);
+		LogDebug("Item Folder Name on disk: '{0}'", subFolder);
 
         string fileNameBase = type switch {
             ImageType.Primary when item is Season sn => $"season{sn.IndexNumber ?? 0:D2}",
@@ -173,10 +155,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             return null;
         }
 
-        // 4. File Lookup
         var filesInFolder = Directory.GetFiles(actualFolder);
-        LogDebug("Scanning {0} files in folder: {1}", filesInFolder.Length, actualFolder);
-
         foreach (var ext in config.SupportedExtensions)
         {
             var targetFile = fileNameBase + ext;
@@ -189,24 +168,18 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
                 if (fanartMatch != null) return fanartMatch;
             }
         }
-
         return null;
     }
 
     public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     {
-        LogDebug("Incoming proxy request (fallback): {0}", url);
+        LogDebug("Incoming proxy request: {0}", url);
 
-        // This fallback handles cases where Jellyfin server tries to resolve the local
-        // path during the metadata application phase.
+        // Strip the fake domain to get the local path
         string localPath = url;
-        if (url.Contains("ImageUrl="))
+        if (url.StartsWith(ProxyPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            var parts = url.Split(new[] { "ImageUrl=" }, StringSplitOptions.None);
-            if (parts.Length > 1)
-            {
-                localPath = Uri.UnescapeDataString(parts[1].Split('&')[0]);
-            }
+            localPath = url.Substring(ProxyPrefix.Length);
         }
 
         LogDebug("Resolved path for streaming: {0}", localPath);
@@ -215,19 +188,13 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         {
             try
             {
-                var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StreamContent(File.OpenRead(localPath))
                 };
 
                 var ext = Path.GetExtension(localPath).ToLowerInvariant();
-                string mimeType = ext switch {
-                    ".png" => "image/png",
-                    ".webp" => "image/webp",
-                    ".bmp" => "image/bmp",
-                    _ => "image/jpeg"
-                };
-
+                string mimeType = ext switch { ".png" => "image/png", ".webp" => "image/webp", ".bmp" => "image/bmp", _ => "image/jpeg" };
                 response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
 
                 LogDebug("Proxy SUCCESS: Streaming {0}", localPath);
@@ -235,12 +202,12 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Posterizarr] Error reading local file at {0}", localPath);
-                return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError));
+                _logger.LogError(ex, "[Posterizarr] Error reading file at {0}", localPath);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
             }
         }
 
         LogDebug("Proxy FAIL: File not found at {0}", localPath);
-        return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
     }
 }
