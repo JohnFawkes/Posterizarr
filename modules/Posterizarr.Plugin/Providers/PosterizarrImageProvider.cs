@@ -62,16 +62,33 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             {
                 LogDebug("SUCCESS: Found {0} at {1}", type, path);
 
-                // Construct a URL that Jellyfin's internal proxy will handle.
-                // This ensures the browser doesn't try to access the path directly.
-                var proxyUrl = $"/Items/{item.Id}/RemoteImages/Download?ProviderName={Uri.EscapeDataString(Name)}&ImageUrl={Uri.EscapeDataString(path)}";
-
-                results.Add(new RemoteImageInfo
+                try
                 {
-                    ProviderName = Name,
-                    Url = proxyUrl,
-                    Type = type
-                });
+                    // To solve the 405 Method Not Allowed error, we convert the local image to a Base64
+                    // data URI. This allows the browser to display the image directly without
+                    // relying on the server's POST-only download endpoints.
+                    var bytes = File.ReadAllBytes(path);
+                    var ext = Path.GetExtension(path).ToLowerInvariant();
+                    string mimeType = ext switch {
+                        ".png" => "image/png",
+                        ".webp" => "image/webp",
+                        ".bmp" => "image/bmp",
+                        _ => "image/jpeg"
+                    };
+
+                    results.Add(new RemoteImageInfo
+                    {
+                        ProviderName = Name,
+                        Url = $"data:{mimeType};base64,{Convert.ToBase64String(bytes)}",
+                        Type = type
+                    });
+
+                    LogDebug("Converted {0} to Base64 data URI for UI display.", type);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[Posterizarr] Failed to process image for UI at {0}", path);
+                }
             }
             else
             {
@@ -106,18 +123,15 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         var directories = Directory.GetDirectories(config.AssetFolderPath);
         string? libraryDir = null;
 
-        // Strategy A: Exact Match on Display Name
         libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), displayLibraryName, StringComparison.OrdinalIgnoreCase));
         if (libraryDir != null) LogDebug("Matched Library via Strategy A: {0}", libraryDir);
 
-        // Strategy B: Exact Match on Internal Name
         if (libraryDir == null)
         {
             libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), internalLibraryName, StringComparison.OrdinalIgnoreCase));
             if (libraryDir != null) LogDebug("Matched Library via Strategy B: {0}", libraryDir);
         }
 
-        // Strategy C: Fuzzy Match (Ignore spaces/casing or partial match)
         if (libraryDir == null)
         {
             var searchTerms = new[] { displayLibraryName, internalLibraryName }
@@ -181,10 +195,10 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
     public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     {
-        LogDebug("Incoming proxy request: {0}", url);
+        LogDebug("Incoming proxy request (fallback): {0}", url);
 
-        // Extraction logic: If Jellyfin passes the full proxy URL, we extract the ImageUrl parameter.
-        // Otherwise, we treat it as a raw path.
+        // This fallback handles cases where Jellyfin server tries to resolve the local
+        // path during the metadata application phase.
         string localPath = url;
         if (url.Contains("ImageUrl="))
         {
