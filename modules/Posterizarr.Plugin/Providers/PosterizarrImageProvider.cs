@@ -62,11 +62,14 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             {
                 LogDebug("SUCCESS: Found {0} at {1}", type, path);
 
-                // PREFIX: Ensure Jellyfin treats this as a managed remote URL
+                // Return a URL that points back to the Jellyfin server's download proxy.
+                // This ensures the browser sees a valid HTTP URL on the same host.
+                var proxyUrl = $"/Items/{item.Id}/RemoteImages/Download?ProviderName={Uri.EscapeDataString(Name)}&ImageUrl={Uri.EscapeDataString(path)}";
+
                 results.Add(new RemoteImageInfo
                 {
                     ProviderName = Name,
-                    Url = "posterizarr:" + path,
+                    Url = proxyUrl,
                     Type = type
                 });
             }
@@ -80,6 +83,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
     private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
     {
+        // 1. Resolve Library Names
         var displayLibraryName = item.GetAncestorIds()
             .Select(id => _libraryManager.GetItemById(id))
             .OfType<CollectionFolder>()
@@ -123,6 +127,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         LogDebug("Matched Library Folder: {0}", libraryDir);
 
+        // 3. Resolve Media Folder Name from Disk
         var directoryPath = (item is Movie || item is Series) ? (item is Movie ? Path.GetDirectoryName(item.Path) : item.Path) :
                             (item is Season s ? s.Series.Path : (item is Episode e ? e.Series.Path : ""));
 
@@ -164,24 +169,20 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
     public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     {
-        // Strip custom prefix to retrieve the true local path for file system access
-        var localPath = url.StartsWith("posterizarr:", StringComparison.OrdinalIgnoreCase)
-                        ? url.Substring(12)
-                        : url;
+        // In the proxy flow, Jellyfin passes the 'ImageUrl' value directly to this method.
+        LogDebug("Proxying image request for path: {0}", url);
 
-        LogDebug("Proxying image request for path: {0}", localPath);
-
-        if (File.Exists(localPath))
+        if (File.Exists(url))
         {
             try
             {
-                var stream = File.OpenRead(localPath);
+                var stream = File.OpenRead(url);
                 var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
                 {
                     Content = new StreamContent(stream)
                 };
 
-                var ext = Path.GetExtension(localPath).ToLowerInvariant();
+                var ext = Path.GetExtension(url).ToLowerInvariant();
                 string mimeType = ext switch {
                     ".png" => "image/png",
                     ".webp" => "image/webp",
@@ -191,17 +192,17 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
                 response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
 
-                LogDebug("Proxy SUCCESS: Streaming {0} as {1}", localPath, mimeType);
+                LogDebug("Proxy SUCCESS: Streaming {0} as {1}", url, mimeType);
                 return Task.FromResult(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Posterizarr] Failed to read local image at {0}. Check permissions.", localPath);
+                _logger.LogError(ex, "[Posterizarr] Failed to read local image at {0}. Check permissions.", url);
                 return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError));
             }
         }
 
-        LogDebug("Proxy FAIL: File no longer exists at {0}", localPath);
+        LogDebug("Proxy FAIL: File no longer exists at {0}", url);
         return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
     }
 }
