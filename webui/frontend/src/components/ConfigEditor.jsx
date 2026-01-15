@@ -906,7 +906,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
             };
 
             const handleAddSymbol = () => {
-                updateValue(fieldKey, [...symbols, " "]);
+                updateValue(fieldKey, [...symbols, ""]);
             };
 
             return (
