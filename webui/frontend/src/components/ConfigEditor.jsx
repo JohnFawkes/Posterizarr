@@ -891,6 +891,65 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
         if (settingKey === "tmdbtoken") return renderValidate("tmdb", "Enter TMDB Token");
         if (settingKey === "tvdbapi") return renderValidate("tvdb", "Enter TVDB API Key");
         if (settingKey === "FanartTvAPIKey") return renderValidate("fanart", "Enter Fanart API Key");
+        if (settingKey === "NewLineSymbols" || settingKey === "SymbolsToKeepOnNewLine") {
+            const symbols = Array.isArray(value) ? value : [];
+
+            const handleUpdateSymbol = (index, newValue) => {
+                const newSymbols = [...symbols];
+                newSymbols[index] = newValue;
+                updateValue(fieldKey, newSymbols);
+            };
+
+            const handleRemoveSymbol = (index) => {
+                const newSymbols = symbols.filter((_, i) => i !== index);
+                updateValue(fieldKey, newSymbols);
+            };
+
+            const handleAddSymbol = () => {
+                updateValue(fieldKey, [...symbols, " "]);
+            };
+
+            return (
+                <div className="space-y-3">
+                    <div className={`flex flex-wrap gap-2 p-3 bg-theme-bg/50 rounded-lg border border-theme min-h-[52px] ${disabled ? "opacity-50" : ""}`}>
+                        {symbols.map((symbol, idx) => (
+                            <div key={idx} className="flex items-center gap-1 bg-theme-card border border-theme-primary/30 rounded px-2 py-1 group focus-within:border-theme-primary transition-all">
+                                <input
+                                    type="text"
+                                    value={symbol}
+                                    onChange={(e) => handleUpdateSymbol(idx, e.target.value)}
+                                    disabled={disabled}
+                                    className="bg-transparent border-none focus:ring-0 p-0 text-xs font-mono text-theme-primary min-w-[20px]"
+                                    style={{ width: `${Math.max(symbol.length, 1) + 0.5}ch` }}
+                                    placeholder="⎵"
+                                />
+                                {!disabled && (
+                                    <button
+                                        onClick={() => handleRemoveSymbol(idx)}
+                                        className="text-theme-muted hover:text-red-500 transition-colors ml-1"
+                                        title="Remove"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        {symbols.length === 0 && <span className="text-xs text-theme-muted italic py-1">No symbols defined</span>}
+                    </div>
+                    {!disabled && (
+                        <button
+                            onClick={handleAddSymbol}
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs bg-theme-primary/10 text-theme-primary border border-theme-primary/20 rounded-lg hover:bg-theme-primary/20 transition-all"
+                        >
+                            <Plus className="w-3 h-3" /> Add Symbol
+                        </button>
+                    )}
+                    <p className="text-[10px] text-theme-muted italic">
+                        Spaces are preserved exactly as typed inside the boxes.
+                    </p>
+                </div>
+            );
+        }
         if (settingKey === "NewLineWords") {
             const dictValue = value && typeof value === 'object' ? value : {};
 
