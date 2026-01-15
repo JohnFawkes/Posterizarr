@@ -1074,7 +1074,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
         if (Array.isArray(value)) {
             return (
                 <div className="space-y-3">
-                    <input defaultValue={value.join(", ")} onBlur={(e) => updateValue(fieldKey, e.target.value.split(",").map(i => i.trim()).filter(i => i !== ""))} disabled={disabled} className={commonInputClass} placeholder="Enter comma-separated values" />
+                    <input defaultValue={value.join(", ")} onBlur={(e) => updateValue(fieldKey, e.target.value.split(",").filter(i => i !== ""))} disabled={disabled} className={commonInputClass} placeholder="Enter comma-separated values" />
                     {value.length > 0 && <div className="flex flex-wrap gap-2 p-3 bg-theme-bg rounded-lg border border-theme">{value.map((item, idx) => <span key={idx} className="px-3 py-1 bg-theme-primary/20 text-theme-primary rounded-full text-sm border border-theme-primary/30 font-mono">{item}</span>)}</div>}
                 </div>
             );
