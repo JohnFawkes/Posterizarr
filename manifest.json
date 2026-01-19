@@ -3,7 +3,7 @@
     "guid": "f62d8560-6123-4567-89ab-cdef12345678",
     "name": "Posterizarr",
     "description": "Middleware for asset lookup. Maps local assets to library items as posters, backgrounds, or titlecards.",
-    "overview": "A custom plugin for Posterizarr that acts as a local asset proxy for Jellyfin and Emby.",
+    "overview": "A custom plugin for Posterizarr that acts as a local asset proxy for Jellyfin.",
     "owner": "Posterizarr",
     "category": "Metadata",
     "versions": [
