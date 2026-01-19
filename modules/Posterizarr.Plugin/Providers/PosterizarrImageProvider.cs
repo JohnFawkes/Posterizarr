@@ -17,7 +17,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 #else
-using MediaBrowser.Model.Services;
 using MediaBrowser.Model.Net;
 #endif
 
@@ -255,20 +254,20 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
     }
 #else
-    public Task<MediaBrowser.Model.Services.HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+    public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
     {
         LogDebug("EMBY: Serving image response for: {0}", url);
         if (File.Exists(url))
         {
             var ext = Path.GetExtension(url).ToLowerInvariant();
-            return Task.FromResult(new MediaBrowser.Model.Services.HttpResponseInfo
+            return Task.FromResult(new HttpResponseInfo
             {
                 Content = File.OpenRead(url),
                 ContentType = ext switch { ".png" => "image/png", ".webp" => "image/webp", _ => "image/jpeg" },
                 StatusCode = HttpStatusCode.OK
             });
         }
-        return Task.FromResult(new MediaBrowser.Model.Services.HttpResponseInfo { StatusCode = HttpStatusCode.NotFound });
+        return Task.FromResult(new HttpResponseInfo { StatusCode = HttpStatusCode.NotFound });
     }
 #endif
 }
