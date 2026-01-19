@@ -117,6 +117,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
+          lfs: true
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
