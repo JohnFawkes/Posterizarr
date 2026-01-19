@@ -3,8 +3,6 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using Posterizarr.Plugin.Configuration;
-using System;
-using System.Collections.Generic;
 
 namespace Posterizarr.Plugin;
 
@@ -29,13 +27,9 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo
             {
                 Name = "Posterizarr",
-                EmbeddedResourcePath = "Posterizarr.Plugin.Web.configPage.html"
+                // Assuming your folder structure is Web/configPage.html
+                EmbeddedResourcePath = string.Format("{0}.Web.configPage.html", GetType().Namespace)
             }
         };
-    }
-
-    public IEnumerable<PluginPageInfo> GetWebPages()
-    {
-        return GetPages();
     }
 }
