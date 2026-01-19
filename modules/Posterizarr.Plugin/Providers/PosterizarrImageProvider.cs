@@ -1,4 +1,3 @@
-using MediaBrowser.Model.Services;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -15,11 +14,12 @@ using System.Net;
 #if TARGET_JELLYFIN
 using System.Net.Http;
 using System.Net.Http.Headers;
+#else
+using MediaBrowser.Model.Services;
 #endif
+
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Posterizarr.Plugin.Providers;
 
 public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 {
