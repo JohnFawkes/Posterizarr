@@ -10,8 +10,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+#if TARGET_JELLYFIN
 using System.Net.Http;
 using System.Net.Http.Headers;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +45,11 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
     public bool Supports(BaseItem item) => item is Movie || item is Series || item is Season || item is Episode;
     public IEnumerable<ImageType> GetSupportedImages(BaseItem item) => new[] { ImageType.Primary, ImageType.Backdrop };
 
+#if TARGET_JELLYFIN
     public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
+#else
+    public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, MediaBrowser.Model.Configuration.LibraryOptions libraryOptions, CancellationToken cancellationToken)
+#endif
     {
         var config = Plugin.Instance?.Configuration;
         LogDebug(">>> STARTING image search for Item: '{0}' (Type: {1})", item.Name, item.GetType().Name);
@@ -71,9 +78,9 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         return results;
     }
 
+#if TARGET_JELLYFIN
     private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
     {
-        // 1. Resolve Library Names
         var displayLibraryName = item.GetAncestorIds()
             .Select(id => _libraryManager.GetItemById(id))
             .OfType<CollectionFolder>()
@@ -86,7 +93,6 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         LogDebug("Library Resolution -> Display Name: '{0}', Internal Name: '{1}'", displayLibraryName, internalLibraryName);
 
-        // 2. Multi-Strategy Library Lookup
         if (!Directory.Exists(config.AssetFolderPath))
         {
             _logger.LogError("[Posterizarr] Asset Folder Path does not exist: {0}", config.AssetFolderPath);
@@ -96,18 +102,15 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         var directories = Directory.GetDirectories(config.AssetFolderPath);
         string? libraryDir = null;
 
-        // Strategy A: Exact Match on Display Name
         libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), displayLibraryName, StringComparison.OrdinalIgnoreCase));
         if (libraryDir != null) LogDebug("Strategy A (Exact Display) MATCHED: {0}", Path.GetFileName(libraryDir));
 
-        // Strategy B: Exact Match on Internal Name
         if (libraryDir == null)
         {
             libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), internalLibraryName, StringComparison.OrdinalIgnoreCase));
             if (libraryDir != null) LogDebug("Strategy B (Exact Internal) MATCHED: {0}", Path.GetFileName(libraryDir));
         }
 
-        // Strategy C: Fuzzy Match
         if (libraryDir == null)
         {
             LogDebug("Strategies A & B failed. Attempting Strategy C (Fuzzy Match)...");
@@ -129,7 +132,6 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             return null;
         }
 
-        // 3. Resolve Media Folder Name from Disk
         var directoryPath = (item is Movie || item is Series) ? (item is Movie ? Path.GetDirectoryName(item.Path) : item.Path) :
                             (item is Season s ? s.Series.Path : (item is Episode e ? e.Series.Path : ""));
 
@@ -152,7 +154,6 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             return null;
         }
 
-        // 4. File Lookup
         var filesInFolder = Directory.GetFiles(actualFolder);
         LogDebug("Searching for base name '{0}' with supported extensions...", fileNameBase);
 
@@ -177,19 +178,93 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         LogDebug("No file matched '{0}' with extensions: {1}", fileNameBase, string.Join(", ", config.SupportedExtensions));
         return null;
     }
+#else
+    private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
+    {
+        BaseItem? current = item;
+        string displayLibraryName = "Unknown";
+        string internalLibraryName = "Unknown";
 
+        while (current != null)
+        {
+            if (current is CollectionFolder) displayLibraryName = current.Name;
+            if (current.ParentId == Guid.Empty) break;
+            var parent = _libraryManager.GetItemById(current.ParentId);
+            if (parent != null && parent.ParentId == Guid.Empty) internalLibraryName = current.Name;
+            current = parent;
+        }
+
+        LogDebug("EMBY Library Resolution -> Display: '{0}', Internal: '{1}'", displayLibraryName, internalLibraryName);
+
+        if (!Directory.Exists(config.AssetFolderPath)) return null;
+
+        var directories = Directory.GetDirectories(config.AssetFolderPath);
+        string? libraryDir = directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), displayLibraryName, StringComparison.OrdinalIgnoreCase))
+                           ?? directories.FirstOrDefault(d => string.Equals(Path.GetFileName(d), internalLibraryName, StringComparison.OrdinalIgnoreCase));
+
+        if (libraryDir == null) return null;
+
+        var directoryPath = (item is Movie || item is Series) ? (item is Movie ? Path.GetDirectoryName(item.Path) : item.Path) :
+                            (item is Season s ? s.Series.Path : (item is Episode e ? e.Series.Path : ""));
+
+        var subFolder = Path.GetFileName(directoryPath) ?? "";
+        string fileNameBase = type switch {
+            ImageType.Primary when item is Season sn => $"season{sn.IndexNumber ?? 0:D2}",
+            ImageType.Primary when item is Episode ep => $"S{ep.ParentIndexNumber ?? 0:D2}E{ep.IndexNumber ?? 0:D2}",
+            ImageType.Primary => "poster",
+            _ => "background"
+        };
+
+        var actualFolder = Path.Combine(libraryDir, subFolder);
+        if (!Directory.Exists(actualFolder)) return null;
+
+        var filesInFolder = Directory.GetFiles(actualFolder);
+        foreach (var ext in config.SupportedExtensions)
+        {
+            var targetFile = fileNameBase + ext;
+            var match = filesInFolder.FirstOrDefault(f => Path.GetFileName(f).Equals(targetFile, StringComparison.OrdinalIgnoreCase));
+            if (match != null) return match;
+
+            if (type == ImageType.Backdrop)
+            {
+                var fanartMatch = filesInFolder.FirstOrDefault(f => Path.GetFileName(f).Equals("fanart" + ext, StringComparison.OrdinalIgnoreCase));
+                if (fanartMatch != null) return fanartMatch;
+            }
+        }
+        return null;
+    }
+#endif
+
+#if TARGET_JELLYFIN
     public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     {
         LogDebug("Serving image response for: {0}", url);
         if (File.Exists(url))
         {
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead(url)) };
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead(url)) };
             var ext = Path.GetExtension(url).ToLowerInvariant();
             string mimeType = ext switch { ".png" => "image/png", ".webp" => "image/webp", ".bmp" => "image/bmp", _ => "image/jpeg" };
-            response.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
+            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mimeType);
             return Task.FromResult(response);
         }
         _logger.LogError("[Posterizarr] File not found when serving response: {0}", url);
-        return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
     }
+#else
+    public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+    {
+        LogDebug("EMBY: Serving image response for: {0}", url);
+        if (File.Exists(url))
+        {
+            var ext = Path.GetExtension(url).ToLowerInvariant();
+            return Task.FromResult(new HttpResponseInfo
+            {
+                Content = File.OpenRead(url),
+                ContentType = ext switch { ".png" => "image/png", ".webp" => "image/webp", _ => "image/jpeg" },
+                StatusCode = HttpStatusCode.OK
+            });
+        }
+        return Task.FromResult(new HttpResponseInfo { StatusCode = HttpStatusCode.NotFound });
+    }
+#endif
 }

@@ -5,14 +5,37 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Posterizarr.Plugin</AssemblyName>
     <PackageId>Posterizarr.Plugin</PackageId>
+    <PluginTarget Condition="'$(PluginTarget)' == ''">Jellyfin</PluginTarget>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(PluginTarget)' == 'Jellyfin'">
     <PackageReference Include="Jellyfin.Controller" Version="10.9.*" />
     <PackageReference Include="Jellyfin.Model" Version="10.9.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PluginTarget)' == 'Emby'">
+    <Reference Include="MediaBrowser.Common">
+      <HintPath>lib\MediaBrowser.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MediaBrowser.Controller">
+      <HintPath>lib\MediaBrowser.Controller.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MediaBrowser.Model">
+      <HintPath>lib\MediaBrowser.Model.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Web\*" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(PluginTarget)' == 'Jellyfin'">
+    <DefineConstants>$(DefineConstants);TARGET_JELLYFIN</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PluginTarget)' == 'Emby'">
+    <DefineConstants>$(DefineConstants);TARGET_EMBY</DefineConstants>
+  </PropertyGroup>
 </Project>

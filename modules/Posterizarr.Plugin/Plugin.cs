@@ -27,8 +27,13 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo
             {
                 Name = "Posterizarr",
-                // Assuming your folder structure is Web/configPage.html
+                // In Emby, the resource path might require a different prefixing
+                // depending on the assembly name and folder structure.
+    #if TARGET_JELLYFIN
                 EmbeddedResourcePath = string.Format("{0}.Web.configPage.html", GetType().Namespace)
+    #else
+                EmbeddedResourcePath = "Posterizarr.Plugin.Web.configPage.html"
+    #endif
             }
         };
     }

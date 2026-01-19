@@ -106,7 +106,7 @@ jobs:
           # Always save the latest successful build cache to the current branch scope
           cache-to: type=gha,scope=${{ github.ref_name }},mode=max
   build-plugin:
-    name: Build Jellyfin Plugin
+    name: Build Jellyfin & Emby Plugins
     if: github.event_name != 'workflow_dispatch' || inputs.run_plugin == true
     runs-on: ubuntu-latest
     permissions:
@@ -123,41 +123,46 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore modules/Posterizarr.Plugin/Posterizarr.Plugin.csproj
-
-      # 1. Generate the version string FIRST so we can use it in the build
       - name: Set Version String
         id: vars
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
-            # Strips 'v' or 'V' from the tag (e.g., v1.0.0 -> 1.0.0)
             V_STR=$(echo ${{ github.ref_name }} | sed 's/[vV]//')
           else
-            # Generates a high version number for dev builds (e.g., 99.0.0106.0921)
             V_STR="99.0.$(date +%m%d.%H%M)"
           fi
           echo "VERSION=$V_STR" >> $GITHUB_OUTPUT
 
-      # 2. Build the Plugin with the version injected into the DLL
-      - name: Build Plugin
+      # JELLYFIN
+      - name: Build Jellyfin Version
         run: |
           dotnet build modules/Posterizarr.Plugin/Posterizarr.Plugin.csproj \
             --configuration Release \
-            --no-restore \
+            -p:PluginTarget=Jellyfin \
             -p:Version=${{ steps.vars.outputs.VERSION }}
 
-      # 3. Create the versioned ZIP package
-      - name: Prepare Package
-        run: |
-          mkdir -p release_package
-          cp modules/Posterizarr.Plugin/bin/Release/net8.0/Posterizarr.Plugin.dll release_package/
-          cd release_package
-          zip -r ../Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip *
-          cd ..
-          mv Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip release_package/
+          mkdir -p release_package/jellyfin
+          cp modules/Posterizarr.Plugin/bin/Release/net8.0/Posterizarr.Plugin.dll release_package/jellyfin/
+          cd release_package/jellyfin && zip -r ../../Posterizarr.Plugin_Jellyfin_v${{ steps.vars.outputs.VERSION }}.zip *
 
-      # 4. DEV ONLY: Push ZIP to the builds branch
+      # EMBY
+      - name: Build Emby Version
+        run: |
+          dotnet build modules/Posterizarr.Plugin/Posterizarr.Plugin.csproj \
+            --configuration Release \
+            -p:PluginTarget=Emby \
+            -p:Version=${{ steps.vars.outputs.VERSION }}
+
+          mkdir -p release_package/emby
+          cp modules/Posterizarr.Plugin/bin/Release/net8.0/Posterizarr.Plugin.dll release_package/emby/
+          cd release_package/emby && zip -r ../../Posterizarr.Plugin_Emby_v${{ steps.vars.outputs.VERSION }}.zip *
+
+      - name: Prepare Final Package
+        run: |
+          rm -rf release_package/jellyfin
+          rm -rf release_package/emby
+          mv *.zip release_package/
+
       - name: Push to Builds Branch (Dev Only)
         if: github.event_name != 'release'
         uses: s0/git-publish-subdir-action@develop
@@ -166,9 +171,8 @@ jobs:
           BRANCH: builds
           FOLDER: release_package
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MESSAGE: "build: update dev zip v${{ steps.vars.outputs.VERSION }}"
+          MESSAGE: "build: update dev zips v${{ steps.vars.outputs.VERSION }}"
 
-      # 5. Run the Python script to update manifest.json
       - name: Run Manifest Update Script
         run: python3 update_manifest.py
         env:
@@ -177,33 +181,22 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
-      # 6. Commit changes back to the main/dev branch
       - name: Commit and Push Manifest Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add manifest.json
-          
           if ! git diff --cached --quiet; then
             git commit -m "chore: update manifest v${{ steps.vars.outputs.VERSION }} [skip ci]"
-            
-            # Determine target: if on a tag (release), push to main. Otherwise push to current branch.
-            if [ "${{ github.event_name }}" == "release" ]; then
-              TARGET_BRANCH="main"
-            else
-              TARGET_BRANCH=${{ github.ref_name }}
-            fi
-            
-            echo "Pushing manifest update to $TARGET_BRANCH"
+            if [ "${{ github.event_name }}" == "release" ]; then TARGET_BRANCH="main"; else TARGET_BRANCH=${{ github.ref_name }}; fi
             git push origin HEAD:$TARGET_BRANCH
-          else
-            echo "No changes to manifest.json. Skipping push."
           fi
-          
-      # 7. PRODUCTION ONLY: Upload ZIP to the GitHub Release page
+
       - name: Upload to GitHub Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: release_package/Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip
+          files: |
+            release_package/Posterizarr.Plugin_Jellyfin_v${{ steps.vars.outputs.VERSION }}.zip
+            release_package/Posterizarr.Plugin_Emby_v${{ steps.vars.outputs.VERSION }}.zip
           token: ${{ secrets.GITHUB_TOKEN }}
