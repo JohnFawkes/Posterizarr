@@ -1,3 +1,6 @@
+
+namespace Posterizarr.Plugin.Providers;
+
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -26,6 +29,8 @@ using System.Threading.Tasks;
 public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 {
     private readonly ILibraryManager _libraryManager;
+
+#if TARGET_JELLYFIN
     private readonly ILogger<PosterizarrImageProvider> _logger;
 
     public PosterizarrImageProvider(ILibraryManager libraryManager, ILogger<PosterizarrImageProvider> logger)
@@ -33,6 +38,15 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         _libraryManager = libraryManager;
         _logger = logger;
     }
+#else
+    private readonly MediaBrowser.Model.Logging.ILogger _logger;
+
+    public PosterizarrImageProvider(ILibraryManager libraryManager, MediaBrowser.Model.Logging.ILogManager logManager)
+    {
+        _libraryManager = libraryManager;
+        _logger = logManager.GetLogger(Name);
+    }
+#endif
 
     public string Name => "Posterizarr Local Middleware";
     public int Order => -10;
@@ -41,8 +55,30 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
     {
         if (Plugin.Instance?.Configuration?.EnableDebugMode == true)
         {
-            _logger.LogInformation("[Posterizarr DEBUG] " + message, args);
+#if TARGET_JELLYFIN
+            LogInformation("[Posterizarr DEBUG] " + message, args);
+#else
+            Info("[Posterizarr DEBUG] " + message, args);
+#endif
         }
+    }
+
+    private void LogWarning(string message, params object[] args)
+    {
+#if TARGET_JELLYFIN
+        LogWarning("[Posterizarr] " + message, args);
+#else
+        Warn("[Posterizarr] " + message, args);
+#endif
+    }
+
+    private void LogError(string message, params object[] args)
+    {
+#if TARGET_JELLYFIN
+        LogError("[Posterizarr] " + message, args);
+#else
+        Error("[Posterizarr] " + message, args);
+#endif
     }
 
     public bool Supports(BaseItem item) => item is Movie || item is Series || item is Season || item is Episode;
@@ -59,7 +95,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
         {
-            _logger.LogWarning("[Posterizarr] Configuration missing or AssetFolderPath is not configured.");
+            LogWarning("[Posterizarr] Configuration missing or AssetFolderPath is not configured.");
             return Enumerable.Empty<RemoteImageInfo>();
         }
 
@@ -98,7 +134,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         if (!Directory.Exists(config.AssetFolderPath))
         {
-            _logger.LogError("[Posterizarr] Asset Folder Path does not exist: {0}", config.AssetFolderPath);
+            LogError("[Posterizarr] Asset Folder Path does not exist: {0}", config.AssetFolderPath);
             return null;
         }
 
@@ -258,7 +294,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mimeType);
             return Task.FromResult(response);
         }
-        _logger.LogError("[Posterizarr] File not found when serving response: {0}", url);
+        LogError("[Posterizarr] File not found when serving response: {0}", url);
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
     }
 #else
