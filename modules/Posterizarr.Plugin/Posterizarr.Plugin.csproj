@@ -29,7 +29,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
     <EmbeddedResource Include="Web\*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PluginTarget)' == 'Jellyfin'">
+    <PackageReference Include="Jellyfin.Controller" Version="10.9.*" />
+    <PackageReference Include="Jellyfin.Model" Version="10.9.*" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(PluginTarget)' == 'Jellyfin'">
