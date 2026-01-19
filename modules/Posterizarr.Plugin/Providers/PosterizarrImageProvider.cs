@@ -191,9 +191,17 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         while (current != null)
         {
             if (current is CollectionFolder) displayLibraryName = current.Name;
-            if (current.ParentId == Guid.Empty) break;
+
+            if (current.ParentId == 0) break;
+
             var parent = _libraryManager.GetItemById(current.ParentId);
-            if (parent != null && parent.ParentId == Guid.Empty) internalLibraryName = current.Name;
+
+            // Check if the parent is the one directly under root to find Internal Name
+            if (parent != null && parent.ParentId == 0)
+            {
+                internalLibraryName = current.Name;
+            }
+
             current = parent;
         }
 
