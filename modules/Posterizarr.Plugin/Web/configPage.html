@@ -11,7 +11,7 @@
 
                 <div class="inputContainer">
                     <label class="inputLabel" for="txtAssetPath">Root Asset Folder Path</label>
-                    <input type="text" id="txtAssetPath" name="txtAssetPath" is="emby-input" required />
+                    <input type="text" id="AssetFolderPath" name="AssetFolderPath" is="emby-input" required />
                     <div class="fieldDescription">The path where your '4K Movies' and '4K TV Shows' folders live (e.g., /assets).</div>
                 </div>
 
@@ -28,48 +28,42 @@
     </div>
 
     <script type="text/javascript">
-        (function() {
-            'use strict';
+        (function () {
             const pluginId = "f62d8560-6123-4567-89ab-cdef12345678";
-            let configLoaded = false;
 
             function loadConfig(page) {
-                if (configLoaded) return;
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                    page.querySelector('#txtAssetPath').value = config.AssetFolderPath || "";
-                    page.querySelector('#chkDebugMode').checked = config.EnableDebugMode || false;
-                    configLoaded = true;
+                    if (config) {
+                        page.querySelector('#AssetFolderPath').value = config.AssetFolderPath || '';
+                        page.querySelector('#chkDebugMode').checked = config.EnableDebugMode || false;
+                    }
                     Dashboard.hideLoadingMsg();
                 });
             }
 
-            function init() {
-                const view = document.querySelector('#PosterizarrConfigPage');
-                if (!view) { setTimeout(init, 100); return; }
+            document.querySelector('#PosterizarrConfigPage').addEventListener('pageshow', function () {
+                loadConfig(this);
+            });
 
-                view.addEventListener('viewshow', function () { configLoaded = false; loadConfig(this); });
-                view.addEventListener('pageshow', function () { configLoaded = false; loadConfig(this); });
+            document.querySelector('#PosterizarrConfigForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                Dashboard.showLoadingMsg();
 
-                view.querySelector('#PosterizarrConfigForm').addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    Dashboard.showLoadingMsg();
-                    const form = this;
-                    
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                        config.AssetFolderPath = view.querySelector('#txtAssetPath').value;
-                        config.EnableDebugMode = view.querySelector('#chkDebugMode').checked;
-                        
-                        ApiClient.updatePluginConfiguration(pluginId, config).then(function(result) {
-                            Dashboard.processPluginConfigurationUpdateResult(result);
-                        });
+                const form = this;
+                const view = form.closest('#PosterizarrConfigPage');
+
+                ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                    config.AssetFolderPath = view.querySelector('#AssetFolderPath').value;
+                    config.EnableDebugMode = view.querySelector('#chkDebugMode').checked;
+
+                    ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
                     });
-                    return false;
                 });
-            }
 
-            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } 
-            else { init(); }
+                return false;
+            });
         })();
     </script>
 </div>

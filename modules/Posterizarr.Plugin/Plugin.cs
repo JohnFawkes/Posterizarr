@@ -3,6 +3,8 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using Posterizarr.Plugin.Configuration;
+using System;
+using System.Collections.Generic;
 
 namespace Posterizarr.Plugin;
 
@@ -20,20 +22,18 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         Instance = this;
     }
 
-    public IEnumerable<PluginPageInfo> GetPages()
+#if TARGET_JELLYFIN
+    public IEnumerable<PluginPageInfo> GetPages() => GetWebPages();
+#endif
+
+    public IEnumerable<PluginPageInfo> GetWebPages()
     {
         return new[]
         {
             new PluginPageInfo
             {
                 Name = "Posterizarr",
-                // In Emby, the resource path might require a different prefixing
-                // depending on the assembly name and folder structure.
-    #if TARGET_JELLYFIN
-                EmbeddedResourcePath = string.Format("{0}.Web.configPage.html", GetType().Namespace)
-    #else
                 EmbeddedResourcePath = "Posterizarr.Plugin.Web.configPage.html"
-    #endif
             }
         };
     }
