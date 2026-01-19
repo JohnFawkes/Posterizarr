@@ -1,4 +1,3 @@
-
 namespace Posterizarr.Plugin.Providers;
 
 using MediaBrowser.Controller.Entities;
@@ -8,7 +7,6 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
-using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Configuration;
 using Posterizarr.Plugin;
 using System;
@@ -16,10 +14,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+
 #if TARGET_JELLYFIN
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Headers;
 #else
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Services;
 using MediaBrowser.Common.Net;
 #endif
 
@@ -56,28 +58,37 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         if (Plugin.Instance?.Configuration?.EnableDebugMode == true)
         {
 #if TARGET_JELLYFIN
-            LogInformation("[Posterizarr DEBUG] " + message, args);
+            _logger.LogInformation("[Posterizarr DEBUG] " + message, args);
 #else
-            Info("[Posterizarr DEBUG] " + message, args);
+            _logger.Info("[Posterizarr DEBUG] " + message, args);
 #endif
         }
+    }
+
+    private void LogInfo(string message, params object[] args)
+    {
+#if TARGET_JELLYFIN
+        _logger.LogInformation("[Posterizarr] " + message, args);
+#else
+        _logger.Info("[Posterizarr] " + message, args);
+#endif
     }
 
     private void LogWarning(string message, params object[] args)
     {
 #if TARGET_JELLYFIN
-        LogWarning("[Posterizarr] " + message, args);
+        _logger.LogWarning("[Posterizarr] " + message, args);
 #else
-        Warn("[Posterizarr] " + message, args);
+        _logger.Warn("[Posterizarr] " + message, args);
 #endif
     }
 
     private void LogError(string message, params object[] args)
     {
 #if TARGET_JELLYFIN
-        LogError("[Posterizarr] " + message, args);
+        _logger.LogError("[Posterizarr] " + message, args);
 #else
-        Error("[Posterizarr] " + message, args);
+        _logger.Error("[Posterizarr] " + message, args);
 #endif
     }
 
@@ -95,7 +106,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
         {
-            LogWarning("[Posterizarr] Configuration missing or AssetFolderPath is not configured.");
+            LogWarning("Configuration missing or AssetFolderPath is not configured.");
             return Enumerable.Empty<RemoteImageInfo>();
         }
 
@@ -134,7 +145,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         if (!Directory.Exists(config.AssetFolderPath))
         {
-            LogError("[Posterizarr] Asset Folder Path does not exist: {0}", config.AssetFolderPath);
+            LogError("Asset Folder Path does not exist: {0}", config.AssetFolderPath);
             return null;
         }
 
@@ -167,7 +178,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
 
         if (libraryDir == null)
         {
-            LogDebug("FAIL: Could not find a folder in AssetPath matching '{0}' or '{1}'", displayLibraryName, internalLibraryName);
+            LogDebug("FAIL: Could find no folder in AssetPath matching '{0}' or '{1}'", displayLibraryName, internalLibraryName);
             return null;
         }
 
@@ -194,8 +205,6 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         }
 
         var filesInFolder = Directory.GetFiles(actualFolder);
-        LogDebug("Searching for base name '{0}' with supported extensions...", fileNameBase);
-
         foreach (var ext in config.SupportedExtensions)
         {
             var targetFile = fileNameBase + ext;
@@ -206,15 +215,9 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             {
                 var fanartTarget = "fanart" + ext;
                 var fanartMatch = filesInFolder.FirstOrDefault(f => Path.GetFileName(f).Equals(fanartTarget, StringComparison.OrdinalIgnoreCase));
-                if (fanartMatch != null)
-                {
-                    LogDebug("Found fallback: {0}", fanartTarget);
-                    return fanartMatch;
-                }
+                if (fanartMatch != null) return fanartMatch;
             }
         }
-
-        LogDebug("No file matched '{0}' with extensions: {1}", fileNameBase, string.Join(", ", config.SupportedExtensions));
         return null;
     }
 #else
@@ -227,17 +230,9 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         while (current != null)
         {
             if (current is CollectionFolder) displayLibraryName = current.Name;
-
             if (current.ParentId == 0) break;
-
             var parent = _libraryManager.GetItemById(current.ParentId);
-
-            // Check if the parent is the one directly under root to find Internal Name
-            if (parent != null && parent.ParentId == 0)
-            {
-                internalLibraryName = current.Name;
-            }
-
+            if (parent != null && parent.ParentId == 0) internalLibraryName = current.Name;
             current = parent;
         }
 
@@ -294,7 +289,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
             response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mimeType);
             return Task.FromResult(response);
         }
-        LogError("[Posterizarr] File not found when serving response: {0}", url);
+        LogError("File not found when serving response: {0}", url);
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
     }
 #else
