@@ -23,10 +23,21 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     }
 
 #if TARGET_JELLYFIN
-    public IEnumerable<PluginPageInfo> GetPages() => GetWebPages();
+    // Jellyfin interface requirement
+    public IEnumerable<PluginPageInfo> GetPages()
+    {
+        return CreatePluginPages();
+    }
+#else
+    // Emby interface requirement
+    public IEnumerable<PluginPageInfo> GetWebPages()
+    {
+        return CreatePluginPages();
+    }
 #endif
 
-    public IEnumerable<PluginPageInfo> GetWebPages()
+    // Shared logic to create the page info object
+    private IEnumerable<PluginPageInfo> CreatePluginPages()
     {
         return new[]
         {
