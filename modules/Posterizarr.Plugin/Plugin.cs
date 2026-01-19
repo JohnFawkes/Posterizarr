@@ -22,22 +22,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         Instance = this;
     }
 
-#if TARGET_JELLYFIN
-    // Jellyfin interface requirement
     public IEnumerable<PluginPageInfo> GetPages()
-    {
-        return CreatePluginPages();
-    }
-#else
-    // Emby interface requirement
-    public IEnumerable<PluginPageInfo> GetWebPages()
-    {
-        return CreatePluginPages();
-    }
-#endif
-
-    // Shared logic to create the page info object
-    private IEnumerable<PluginPageInfo> CreatePluginPages()
     {
         return new[]
         {
@@ -47,5 +32,10 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
                 EmbeddedResourcePath = "Posterizarr.Plugin.Web.configPage.html"
             }
         };
+    }
+
+    public IEnumerable<PluginPageInfo> GetWebPages()
+    {
+        return GetPages();
     }
 }
