@@ -7,6 +7,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Configuration;
+using Posterizarr.Plugin;
 using System;
 using System.Collections.Generic;
 using System.IO;
