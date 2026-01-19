@@ -8,11 +8,11 @@
     "category": "Metadata",
     "versions": [
       {
-        "version": "99.0.0116.0750",
-        "changelog": "Dev build: 2026-01-16 07:50",
+        "version": "99.0.0119.0720",
+        "changelog": "Dev build (Jellyfin): 2026-01-19 07:21",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0116.0750.zip",
-        "checksum": "BBC961A2292BED01E1E799D1AC7FACAE"
+        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_Jellyfin_v99.0.0119.0720.zip",
+        "checksum": "11E511B5CCA935045DC62C4E057F3B46"
       },
       {
         "version": "2.2.17",
