@@ -17,7 +17,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 #else
-using MediaBrowser.Model.Net;
+using MediaBrowser.Common.Net;
 #endif
 
 using System.Threading;
