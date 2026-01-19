@@ -6,6 +6,7 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
+using Posterizarr.Plugin.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -80,7 +81,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
     }
 
 #if TARGET_JELLYFIN
-    private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
+    private string? FindFile(BaseItem item, PluginConfiguration config, ImageType type)
     {
         var displayLibraryName = item.GetAncestorIds()
             .Select(id => _libraryManager.GetItemById(id))
@@ -180,7 +181,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         return null;
     }
 #else
-    private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
+    private string? FindFile(BaseItem item, PluginConfiguration config, ImageType type)
     {
         BaseItem? current = item;
         string displayLibraryName = "Unknown";
