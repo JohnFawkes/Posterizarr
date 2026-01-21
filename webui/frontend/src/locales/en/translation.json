@@ -1105,6 +1105,48 @@
   },
   "schedulerSettings": {
     "loading": "Loading scheduler settings...",
+    "days": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "interval": "Interval"
+    },
+    "months": {
+      "every": "Every Month",
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "interval": {
+      "every": "Every",
+      "hours": "Hours",
+      "days": "Days",
+      "weeks": "Weeks",
+      "placeholder": "Interval value"
+    },
+    "calendar": {
+      "selectDays": "Select Days",
+      "hint": "You can select multiple specific days of the month."
+    },
+    "dayPlaceholder": "Day (e.g. 1 or 1,15)",
     "runMode": "Run Mode",
     "modes": {
       "normal": "Standard Run",
@@ -1575,6 +1617,7 @@
     "missingAssets": "Missing Assets",
     "missingAssetsAtFavProvider": "Missing Assets at Fav Provider",
     "nonPrimaryLang": "Non-Primary Lang",
+    "missingLink": "Missing Link",
     "nonPrimaryProvider": "Non-Primary Provider",
     "truncatedTextCategory": "Truncated Text",
     "missingAsset": "Missing Asset",

@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.19"
+$CurrentScriptVersion = "2.2.20"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -15127,13 +15127,15 @@ Elseif ($ArrTrigger) {
             $seasonIndex = $arrTriggers['arr_episode_season']
             $episodeIndex = $arrTriggers['arr_episode_numbers']
             $seriesYear = $arrTriggers['arr_sonarr_series_year']
+            $ArrPath = $arrTriggers['arr_series_path']
             Write-Entry -Message "Series: '$seriesTitle' ($seriesYear) - Season $seasonIndex, Episode $episodeIndex" -Path $global:configLogging -Color Cyan -log Info
 
             if ($UseJellyfin -eq 'true') {
                 Write-Entry -Message "Using Jellyfin media server" -Path $global:configLogging -Color Green -log Info
+                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
                 $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
-                $seriesItem = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) } | Select-Object -First 1
-                if (-not $seriesItem) {
+                $seriesItems = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) } | Select-Object -First 1
+                if (-not $seriesItems) {
                     Write-Entry -Message "Series '$seriesTitle' ($seriesYear) not found in Jellyfin" -Path $global:configLogging -Color Red -log Error
                     # Clear Running File
                     if (Test-Path $CurrentlyRunning) {
@@ -15151,7 +15153,36 @@ Elseif ($ArrTrigger) {
                     }
                     Exit
                 }
-                Write-Entry -Message "Found series: $($seriesItem.Name)" -Path $global:configLogging -Color Green -log Info
+                Write-Entry -Message "Found $($seriesItems.Count) show(s) matching '$seriesTitle'" -Path $global:configLogging -Color Cyan -log Info
+
+                $matchedLib = $libsResponse.Where({ $ArrPath -match "^$([regex]::Escape($_.Locations))" }, 'First')
+
+                if ($matchedLib) {
+                    $MatchingPath = [regex]::Escape($matchedLib.Locations)
+                    $MatchingLib  = $matchedLib.Name
+                    Write-Entry -Message "Queried matching Lib: $MatchingLib" -Path $global:configLogging -Color Cyan -log Info
+                }
+
+                if ($seriesItems -and $MatchingPath) {
+                    $seriesItem = $seriesItems.Where({ $_.Path -match "^$MatchingPath" }, 'First')
+
+                    if (-not $seriesItem) {
+                        Write-Entry -Message "No valid show found matching path: $MatchingPath" -Path $global:configLogging -Color Green -log Info
+
+                        if (Test-Path $CurrentlyRunning) {
+                            try { Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null }
+                            catch {
+                                Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount++
+                            }
+                        }
+                        if ($global:UptimeKumaUrl) {
+                            Send-UptimeKumaWebhook -status "down" -msg "No show found matching '$seriesTitle'"
+                        }
+                        Exit
+                    }
+                }
+
                 $seriesId = $seriesItem.Id
 
                 $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
@@ -15204,9 +15235,10 @@ Elseif ($ArrTrigger) {
             }
             elseif ($UseEmby -eq 'true') {
                 Write-Entry -Message "Using Emby media server" -Path $global:configLogging -Color Green -log Info
+                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
                 $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
-                $seriesItem = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) } | Select-Object -First 1
-                if (-not $seriesItem) {
+                $seriesItems = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) } | Select-Object -First 1
+                if (-not $seriesItems) {
                     Write-Entry -Message "Series '$seriesTitle' ($seriesYear) not found in Emby" -Path $global:configLogging -Color Red -log Error
                     # Clear Running File
                     if (Test-Path $CurrentlyRunning) {
@@ -15224,7 +15256,36 @@ Elseif ($ArrTrigger) {
                     }
                     Exit
                 }
-                Write-Entry -Message "Found series: $($seriesItem.Name)" -Path $global:configLogging -Color Green -log Info
+                Write-Entry -Message "Found $($seriesItems.Count) show(s) matching '$seriesTitle'" -Path $global:configLogging -Color Cyan -log Info
+
+                $matchedLib = $libsResponse.Where({ $ArrPath -match "^$([regex]::Escape($_.Locations))" }, 'First')
+
+                if ($matchedLib) {
+                    $MatchingPath = [regex]::Escape($matchedLib.Locations)
+                    $MatchingLib  = $matchedLib.Name
+                    Write-Entry -Message "Queried matching Lib: $MatchingLib" -Path $global:configLogging -Color Cyan -log Info
+                }
+
+                if ($seriesItems -and $MatchingPath) {
+                    $seriesItem = $seriesItems.Where({ $_.Path -match "^$MatchingPath" }, 'First')
+
+                    if (-not $seriesItem) {
+                        Write-Entry -Message "No valid show found matching path: $MatchingPath" -Path $global:configLogging -Color Green -log Info
+
+                        if (Test-Path $CurrentlyRunning) {
+                            try { Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null }
+                            catch {
+                                Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount++
+                            }
+                        }
+                        if ($global:UptimeKumaUrl) {
+                            Send-UptimeKumaWebhook -status "down" -msg "No show found matching '$seriesTitle'"
+                        }
+                        Exit
+                    }
+                }
+
                 $seriesId = $seriesItem.Id
 
                 $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
@@ -15312,14 +15373,34 @@ Elseif ($ArrTrigger) {
                     }
                 }
 
-                if ($shows -is [array]) {
-                    $shows = $shows | Select-Object -First 1
-                }
+                $matchedShow = $shows.Where({ $_.librarySectionTitle -notin $LibstoExclude }, 'First')
 
-                if ($shows.type -eq 'show') {
+                if ($matchedShow) {
+                    $shows = $matchedShow
                     Write-Entry -Message "Selected show: $($shows.title)" -Path $global:configLogging -Color Green -log Info
+
                     $contentquery = "Directory"
-                    $queryKey = $shows.RatingKey
+                    $queryKey     = $shows.RatingKey
+                }
+                else {
+                    Write-Entry -Message "No valid show found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
+
+                    if (Test-Path $CurrentlyRunning) {
+                        try {
+                            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+                        }
+                        catch {
+                            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+                            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                            $global:errorCount++
+                        }
+                    }
+
+                    if ($global:UptimeKumaUrl) {
+                        # Note: Fixed the msg variable below to use $showTitle if this is for shows
+                        Send-UptimeKumaWebhook -status "down" -msg "No shows found matching search criteria"
+                    }
+                    Exit
                 }
 
                 $metadataUrl = "$PlexUrl/library/metadata/$($queryKey)"
@@ -15338,13 +15419,15 @@ Elseif ($ArrTrigger) {
             Write-Entry -Message "Processing Radarr trigger" -Path $global:configLogging -Color Yellow -log Info
             $movieTitle = $arrTriggers['arr_movie_title']
             $movieYear = $arrTriggers['arr_movie_year']
+            $ArrPath = $arrTriggers['arr_movie_path']
             Write-Entry -Message "Movie: '$movieTitle' ($movieYear)" -Path $global:configLogging -Color Cyan -log Info
 
             if ($UseJellyfin -eq 'true') {
                 Write-Entry -Message "Using Jellyfin media server" -Path $global:configLogging -Color Green -log Info
                 $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
-                $movieItem = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) } | Select-Object -First 1
-                if (-not $movieItem) {
+                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+                $movieItems = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
+                if (-not $movieItems) {
                     Write-Entry -Message "Movie '$movieTitle' ($movieYear) not found in Jellyfin" -Path $global:configLogging -Color Red -log Error
                     # Clear Running File
                     if (Test-Path $CurrentlyRunning) {
@@ -15362,14 +15445,52 @@ Elseif ($ArrTrigger) {
                     }
                     Exit
                 }
-                Write-Entry -Message "Found movie: $($movieItem.Name)" -Path $global:configLogging -Color Green -log Info
+                Write-Entry -Message "Found $($movieItems.Count) movie(s) matching '$movieTitle'" -Path $global:configLogging -Color Cyan -log Info
+                # Determine correct Lib
+                foreach ($lib in $libsResponse){
+                    $escapedRoot = [regex]::Escape($lib.Locations)
+                    if ($ArrPath -match "^$escapedRoot") {
+                        Write-Entry -Message "Queried matching Lib: $($lib.Name)" -Path $global:configLogging -Color Cyan -log Info
+                        $MatchingPath = $escapedRoot
+                        $MatchingLib = $lib.Name
+                    }
+                }
+
+                if ($movieItems -and $MatchingPath) {
+                    $escapedRoot = [regex]::Escape($MatchingPath)
+
+                    # Find the first movie where the path matches the root
+                    $movieItem = $movieItems.Where({ $_.Path -match "^$escapedRoot" }, 'First')
+
+                    if (-not $movieItem) {
+                        Write-Entry -Message "No valid movie found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
+
+                        # Cleanup logic
+                        if (Test-Path $CurrentlyRunning) {
+                            try { Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop }
+                            catch {
+                                Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+                                Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                                $global:errorCount++
+                            }
+                        }
+
+                        if ($global:UptimeKumaUrl) {
+                            Send-UptimeKumaWebhook -status "down" -msg "No movies found matching '$movieTitle'"
+                        }
+                        exit
+                    }
+                }
+
+                Write-Entry -Message "Found movie: $($movieItem.Name) in [$MatchingLib]" -Path $global:configLogging -Color Green -log Info
                 $AllMovies = [PSCustomObject]@{ Items = @($movieItem) }
             }
             elseif ($UseEmby -eq 'true') {
                 Write-Entry -Message "Using Emby media server" -Path $global:configLogging -Color Green -log Info
+                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
                 $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
-                $movieItem = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) } | Select-Object -First 1
-                if (-not $movieItem) {
+                $movieItems = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
+                if (-not $movieItems) {
                     Write-Entry -Message "Movie '$movieTitle' ($movieYear) not found in Jellyfin" -Path $global:configLogging -Color Red -log Error
                     # Clear Running File
                     if (Test-Path $CurrentlyRunning) {
@@ -15387,7 +15508,44 @@ Elseif ($ArrTrigger) {
                     }
                     Exit
                 }
-                Write-Entry -Message "Found movie: $($movieItem.Name)" -Path $global:configLogging -Color Green -log Info
+                Write-Entry -Message "Found $($movieItems.Count) movie(s) matching '$movieTitle'" -Path $global:configLogging -Color Cyan -log Info
+                # Determine correct Lib
+                foreach ($lib in $libsResponse){
+                    $escapedRoot = [regex]::Escape($lib.Locations)
+                    if ($ArrPath -match "^$escapedRoot") {
+                        Write-Entry -Message "Queried matching Lib: $($lib.Name)" -Path $global:configLogging -Color Cyan -log Info
+                        $MatchingPath = $escapedRoot
+                        $MatchingLib = $lib.Name
+                    }
+                }
+
+                if ($movieItems -and $MatchingPath) {
+                    $escapedRoot = [regex]::Escape($MatchingPath)
+
+                    # Find the first movie where the path matches the root
+                    $movieItem = $movieItems.Where({ $_.Path -match "^$escapedRoot" }, 'First')
+
+                    if (-not $movieItem) {
+                        Write-Entry -Message "No valid movie found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
+
+                        # Cleanup logic
+                        if (Test-Path $CurrentlyRunning) {
+                            try { Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop }
+                            catch {
+                                Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+                                Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                                $global:errorCount++
+                            }
+                        }
+
+                        if ($global:UptimeKumaUrl) {
+                            Send-UptimeKumaWebhook -status "down" -msg "No movies found matching '$movieTitle'"
+                        }
+                        exit
+                    }
+                }
+
+                Write-Entry -Message "Found movie: $($movieItem.Name) in [$MatchingLib]" -Path $global:configLogging -Color Green -log Info
                 $AllMovies = [PSCustomObject]@{ Items = @($movieItem) }
             }
             elseif ($UsePlex -eq 'true') {
@@ -15426,13 +15584,32 @@ Elseif ($ArrTrigger) {
                         Write-Entry -Message "Year mismatch ignored: Could not find '$movieTitle' with year $movieYear. Defaulting to first result." -Path $global:configLogging -Color Yellow -log Warning
                     }
                 }
-                if ($movies -is [array]) {
-                    $movies = $movies | Select-Object -First 1
-                }
-                if ($movies.type -eq 'movie') {
+                $matchedMovie = $movies.Where({ $_.librarySectionTitle -notin $LibstoExclude }, 'First')
+
+                if ($matchedMovie) {
+                    $movies = $matchedMovie
                     Write-Entry -Message "Selected movie: $($movies.title)" -Path $global:configLogging -Color Green -log Info
                     $contentquery = "video"
-                    $queryKey = $movies.RatingKey
+                    $queryKey     = $movies.RatingKey
+                }
+                else {
+                    # This only runs if NO movies passed the filter
+                    Write-Entry -Message "No valid movie found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
+                    # Clear Running File
+                    if (Test-Path $CurrentlyRunning) {
+                        try {
+                            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+                        }
+                        catch {
+                            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+                            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        }
+                    }
+                    if ($global:UptimeKumaUrl) {
+                        Send-UptimeKumaWebhook -status "down" -msg "No movies found matching '$movieTitle'"
+                    }
+                    Exit
                 }
                 $metadataUrl = "$PlexUrl/library/metadata/$($queryKey)"
                 if ($PlexToken) { $metadataUrl += "?X-Plex-Token=$PlexToken" }

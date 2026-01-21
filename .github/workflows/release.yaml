@@ -183,23 +183,23 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add manifest.json
-          
+
           if ! git diff --cached --quiet; then
             git commit -m "chore: update manifest v${{ steps.vars.outputs.VERSION }} [skip ci]"
-            
+
             # Determine target: if on a tag (release), push to main. Otherwise push to current branch.
             if [ "${{ github.event_name }}" == "release" ]; then
               TARGET_BRANCH="main"
             else
               TARGET_BRANCH=${{ github.ref_name }}
             fi
-            
+
             echo "Pushing manifest update to $TARGET_BRANCH"
             git push origin HEAD:$TARGET_BRANCH
           else
             echo "No changes to manifest.json. Skipping push."
           fi
-          
+
       # 7. PRODUCTION ONLY: Upload ZIP to the GitHub Release page
       - name: Upload to GitHub Release
         if: github.event_name == 'release'

@@ -4,3 +4,4 @@
 *.gif   binary -diff
 *.ttf   binary -diff
 *.otf   binary -diff
+*.dll   binary -diff

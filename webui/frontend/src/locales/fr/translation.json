@@ -1096,6 +1096,48 @@
     "next": "Suivant"
   },
   "schedulerSettings": {
+    "frequencies": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "interval": "Intervalle"
+    },
+    "days": {
+      "mon": "Lundi",
+      "tue": "Mardi",
+      "wed": "Mercredi",
+      "thu": "Jeudi",
+      "fri": "Vendredi",
+      "sat": "Samedi",
+      "sun": "Dimanche"
+    },
+    "months": {
+      "every": "Chaque mois",
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    },
+    "interval": {
+      "every": "Tous les",
+      "hours": "Heures",
+      "days": "Jours",
+      "weeks": "Semaines",
+      "placeholder": "Valeur de l'intervalle"
+    },
+    "calendar": {
+      "selectDays": "Sélectionner les jours",
+      "hint": "Vous pouvez sélectionner plusieurs jours spécifiques du mois."
+    },
+    "dayPlaceholder": "Jour (ex: 1 ou 1,15)",
     "loading": "Chargement des paramètres du planificateur...",
     "runMode": "Mode d'exécution",
     "modes": {
@@ -1567,6 +1609,7 @@
     "missingAssets": "Ressources manquantes",
     "missingAssetsAtFavProvider": "Manquant chez fournisseur favori",
     "nonPrimaryLang": "Langue non principale",
+    "missingLink": "Lien manquant",
     "nonPrimaryProvider": "Fournisseur non principal",
     "truncatedTextCategory": "Texte tronqué",
     "missingAsset": "Ressource manquante",

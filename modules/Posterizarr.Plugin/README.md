@@ -1,10 +1,14 @@
-# Posterizarr Plugin for Jellyfin & Emby
+# Posterizarr Plugin for Jellyfin
 
 **Middleware for asset lookup. Maps local assets to library items as posters, backgrounds, or titlecards.**
 
 ## Overview
 
-The Posterizarr Plugin acts as a local asset proxy for Jellyfin and Emby. It is designed to work alongside the [Posterizarr](https://github.com/fscorrupt/posterizarr) automation script, allowing your media server to utilize locally generated or managed assets (posters, backgrounds, title cards) as metadata.
+The Posterizarr Plugin acts as a local asset proxy for Jellyfin. It is designed to work alongside the [Posterizarr](https://github.com/fscorrupt/posterizarr) automation script, allowing your media server to utilize locally generated or managed assets (posters, backgrounds, title cards) as metadata.
+
+> [!IMPORTANT]
+> This middleware does not allow you to browse, search, or download assets.
+> Its sole purpose is to replace the default artwork by mapping library items to your local file system.
 
 ## Features
 
@@ -12,11 +16,14 @@ The Posterizarr Plugin acts as a local asset proxy for Jellyfin and Emby. It is 
 *   **Metadata Provider:** Registers as a metadata provider for images.
 *   **Support for Multiple Asset Types:** Handles Posters, Backgrounds (Fanart), and Title Cards.
 
+> [!WARNING]
+> Only use this if you are not syncing from Plex, as it will overwrite your synced items with locally created assets from Posterizarr.
+
 ## Installation
 
 ### Via Repository (Recommended)
 
-1.  Open your Jellyfin or Emby **Dashboard**.
+1.  Open your Jellyfin **Dashboard**.
 2.  Navigate to **Plugins** -> **Repositories**.
 3.  Click **Add** and enter the following information:
     *   **Repository Name:** Posterizarr

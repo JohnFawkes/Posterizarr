@@ -9243,7 +9243,6 @@ async def get_scheduler_status():
         logger.error(f"Error getting scheduler status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/api/scheduler/config")
 async def get_scheduler_config():
     """Get scheduler configuration"""
@@ -9256,7 +9255,6 @@ async def get_scheduler_config():
     except Exception as e:
         logger.error(f"Error loading scheduler config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/api/scheduler/config")
 async def update_scheduler_config(data: ScheduleUpdate):
@@ -9292,33 +9290,51 @@ async def update_scheduler_config(data: ScheduleUpdate):
         logger.error(f"Error updating scheduler config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/api/scheduler/schedule")
-async def add_schedule(data: ScheduleCreate):
-    if not SCHEDULER_AVAILABLE or not scheduler:
-        raise HTTPException(status_code=503, detail="Scheduler not available")
+async def add_schedule(request: Request):
+    """Add a new execution schedule with enhanced cron and interval support"""
     try:
-        # Validate time format before adding
-        hour, minute = scheduler.parse_schedule_time(data.time)
-        if hour is None or minute is None:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid time format '{data.time}'. Must be HH:MM (00:00-23:59)",
-            )
+        data = await request.json()
 
-        success = scheduler.add_schedule(data.time, data.description, data.mode)
+        # Core fields
+        time_str = data.get("time")
+        description = data.get("description", "")
+        mode = data.get("mode", "normal")
+
+        # Cron-like parameters
+        frequency = data.get("frequency", "daily")
+        day_of_week = data.get("day_of_week", "*")
+        day = data.get("day", "*")
+        month = data.get("month", "*")
+
+        # Interval parameters
+        interval_value = data.get("interval_value", 1)
+        interval_unit = data.get("interval_unit", "hours")
+
+        if frequency != "interval" and not time_str:
+            raise HTTPException(status_code=400, detail="Time is required for non-interval schedules")
+
+        # Pass all arguments to the updated scheduler logic
+        success = scheduler.add_schedule(
+            time_str=time_str,
+            description=description,
+            mode=mode,
+            frequency=frequency,
+            day_of_week=day_of_week,
+            day=day,
+            month=month,
+            interval_value=interval_value,
+            interval_unit=interval_unit
+        )
+
         if success:
-            return {"success": True, "message": f"Schedule added: {data.time}"}
+            return {"success": True, "message": "Schedule added successfully"}
         else:
-            raise HTTPException(
-                status_code=400, detail=f"Schedule {data.time} already exists"
-            )
-    except HTTPException:
-        raise
+            raise HTTPException(status_code=400, detail="Schedule already exists or is invalid")
+
     except Exception as e:
         logger.error(f"Error adding schedule: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.delete("/api/scheduler/schedule/{time}")
 async def remove_schedule(time: str):
@@ -9347,7 +9363,6 @@ async def remove_schedule(time: str):
         logger.error(f"Error removing schedule: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.delete("/api/scheduler/schedules")
 async def clear_all_schedules():
     """Remove all schedules"""
@@ -9363,7 +9378,6 @@ async def clear_all_schedules():
         logger.error(f"Error clearing schedules: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/api/scheduler/enable")
 async def enable_scheduler():
     """Enable the scheduler"""
@@ -9377,7 +9391,6 @@ async def enable_scheduler():
     except Exception as e:
         logger.error(f"Error enabling scheduler: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/api/scheduler/disable")
 async def disable_scheduler():
@@ -9393,7 +9406,6 @@ async def disable_scheduler():
         logger.error(f"Error disabling scheduler: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/api/scheduler/restart")
 async def restart_scheduler():
     """Restart the scheduler with current configuration"""
@@ -9407,7 +9419,6 @@ async def restart_scheduler():
     except Exception as e:
         logger.error(f"Error restarting scheduler: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/api/scheduler/run-now")
 async def run_scheduler_now():
@@ -9427,7 +9438,6 @@ async def run_scheduler_now():
     except Exception as e:
         logger.error(f"Error triggering scheduled run: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # ============================================================================
 # LOGS WATCHER API
