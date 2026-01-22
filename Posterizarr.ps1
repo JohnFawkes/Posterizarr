@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.20"
+$CurrentScriptVersion = "2.2.21"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -4457,24 +4457,27 @@ function RotateLogs {
 
     $logFolder = Join-Path $ScriptRoot "Logs"
     $global:RotationFolderName = "RotatedLogs"
-    $RotationFolder = Join-Path $ScriptRoot $global:RotationFolderName
+    $rotationFolder = Join-Path $ScriptRoot $global:RotationFolderName
 
-    # Create Rotation Folder if missing
-    if (!(Test-Path -path $RotationFolder)) {
-        New-Item -ItemType Directory -Path $ScriptRoot -Name $global:RotationFolderName -Force | Out-Null
-    }
-
-    # Check if the log folder exists
     if (Test-Path -Path $logFolder -PathType Container) {
-        # Rename the existing log folder with a timestamp
-        $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-        Rename-Item -Path $logFolder -NewName "Logs`_$timestamp"
-        # Create Rotation Folder if missing
-        if (!(Test-Path $RotationFolder)) {
-            New-Item -ItemType Directory -Path $ScriptRoot -Name $global:RotationFolderName -Force | Out-Null
+        $filesToMove = Get-ChildItem -Path $logFolder
+
+        if ($filesToMove.Count -gt 0) {
+            if (!(Test-Path -Path $rotationFolder)) {
+                New-Item -ItemType Directory -Path $rotationFolder -Force | Out-Null
+            }
+
+            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+            $destinationPath = Join-Path $rotationFolder "Logs_$timestamp"
+            New-Item -ItemType Directory -Path $destinationPath -Force | Out-Null
+
+            try {
+                $filesToMove | Move-Item -Destination $destinationPath -ErrorAction Stop
+            }
+            catch {
+                Write-Host "Log Rotation partial or failed: $($_.Exception.Message)"
+            }
         }
-        # Move logs to Rotation Folder
-        Move-Item -Path "$logFolder`_$timestamp" $RotationFolder
     }
 }
 function CheckConfigFile {
@@ -7452,13 +7455,14 @@ if ($maxLogs -le 0) {
     $maxLogs = 1
 }
 # Delete excess log folders
-$logFolders = Get-ChildItem -Path $(Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory | Where-Object { $_.Name -match $folderPattern } | Sort-Object CreationTime -Descending | Select-Object -First $maxLogs
-foreach ($folder in (Get-ChildItem -Path $(Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory | Where-Object { $_.Name -match $folderPattern })) {
-    if ($folder.FullName -notin $logFolders.FullName) {
-        Remove-Item -Path $folder.FullName -Recurse -Force
-        $fldrName = $folder.FullName
-        Write-Entry -Message "Deleting excess folder: $fldrName" -Path $global:configLogging -Color White -log Info
-    }
+$allFolders = Get-ChildItem -Path (Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory |
+              Where-Object { $_.Name -match $folderPattern } |
+              Sort-Object CreationTime -Descending
+
+$allFolders | Select-Object -Skip $maxLogs | ForEach-Object {
+    $fldrName = $_.FullName
+    Remove-Item -Path $fldrName -Recurse -Force
+    Write-Entry -Message "Deleting excess folder: $fldrName" -Path $global:configLogging -Color White -log Info
 }
 
 # Access variables from the config file

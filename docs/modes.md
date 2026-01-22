@@ -407,8 +407,8 @@ To use it we need to configure a script in Sonarr/Radarr, please follow these in
 4. **Name:** Posterizarr
 5. **On Import:** Yes
 6. **On Upgrade:** Yes
-7. **URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr`
-8. **Auth Webhook URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY`
+7. **URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr` or `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli`
+8. **Auth Webhook URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr?api_key=YOUR_API_KEY` or `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY`
     - *(Generate an API Key in Posterizarr settings under WebUI)*
 8. **Method:** POST
 9. Click **Save**.

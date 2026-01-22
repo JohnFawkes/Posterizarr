@@ -1997,6 +1997,29 @@
     "paginationNext": "Weiter"
   },
   "autoTriggers": {
+    "modes": {
+      "webhook": "Native Webhook",
+      "webhookRecommended": "Empfohlen",
+      "script": "Benutzerdefiniertes Skript",
+      "scriptLegacy": "Legacy",
+      "selectIntegration": "Integrationsmethode auswählen",
+      "webhookDesc": "Moderne Integration ohne Skripte über das Web-UI. Am einfachsten zu warten.",
+      "scriptDesc": "Legacy-Methode mit ArrTrigger.sh. Erfordert Volume-Mapping."
+    },
+    "webhookSetup": {
+      "recommendedNote": "Diese Methode ersetzt ArrTrigger.sh und funktioniert ohne komplexes Volume-Mapping.",
+      "steps": {
+        "open": "{{type}} öffnen",
+        "openDesc": "Navigieren Sie zu den Einstellungen Ihrer {{type}}-Instanz.",
+        "connect": "Gehen Sie zu Einstellungen -> Verbinden",
+        "add": "Klicken Sie auf die Schaltfläche + und wählen Sie Webhook",
+        "config": "Konfiguration",
+        "configDesc": "Geben Sie die Details wie unten gezeigt ein:",
+        "auth": "Optionale Authentifizierung",
+        "authDesc": "Wenn Sie einen API-Key zur Sicherheit verwenden möchten, nutzen Sie dieses URL-Format:",
+        "authInfo": "Erstellen Sie einen API-Key in den Posterizarr-WebUI-Einstellungen."
+      }
+    },
     "header": {
       "title": "Auto Trigger",
       "subtitle": "Richte automatische Poster-Erstellung ein, wenn neue Medien zu deiner Bibliothek hinzugefügt werden"

@@ -1945,6 +1945,29 @@
     "paginationNext": "Suivant"
   },
   "autoTriggers": {
+    "modes": {
+      "webhook": "Webhook Natif",
+      "webhookRecommended": "Recommandé",
+      "script": "Script Personnalisé",
+      "scriptLegacy": "Hérité",
+      "selectIntegration": "Sélectionner la méthode d'intégration",
+      "webhookDesc": "Intégration moderne sans script via l'interface Web. Plus simple à maintenir.",
+      "scriptDesc": "Méthode héritée utilisant ArrTrigger.sh. Nécessite un mappage de volume."
+    },
+    "webhookSetup": {
+      "recommendedNote": "Cette méthode remplace ArrTrigger.sh et fonctionne sans mappage de volume complexe.",
+      "steps": {
+        "open": "Ouvrir {{type}}",
+        "openDesc": "Accédez aux paramètres de votre instance {{type}}.",
+        "connect": "Allez dans Paramètres -> Connecter",
+        "add": "Cliquez sur le bouton + et sélectionnez Webhook",
+        "config": "Configuration",
+        "configDesc": "Remplissez les détails exactement comme indiqué ci-dessous :",
+        "auth": "Authentification Optionnelle",
+        "authDesc": "Si vous souhaitez utiliser une clé API pour la sécurité, utilisez ce format d'URL :",
+        "authInfo": "Générez une clé API dans les paramètres WebUI de Posterizarr."
+      }
+    },
     "header": {
       "title": "Déclencheurs automatiques",
       "subtitle": "Configurez la création automatique d'affiches lorsque de nouveaux médias sont ajoutés à votre bibliothèque"

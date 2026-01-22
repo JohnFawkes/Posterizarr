@@ -238,6 +238,12 @@ class LogsWatcher:
 
         while self.is_running:
             try:
+                if not self.logs_dir.exists():
+                    if poll_count % 12 == 1:
+                        logger.warning(f"Logs directory {self.logs_dir} is temporarily missing (possibly rotating). Waiting...")
+                    time.sleep(self.poll_interval)
+                    continue
+
                 poll_count += 1
 
                 # Log every 12 polls (1 minute if poll_interval is 5s)
