@@ -4459,21 +4459,23 @@ function RotateLogs {
     $rotationFolder = Join-Path $ScriptRoot "RotatedLogs"
 
     if (Test-Path -Path $logFolder -PathType Container) {
-        if (!(Test-Path -Path $rotationFolder)) {
-            New-Item -ItemType Directory -Path $rotationFolder -Force | Out-Null
-        }
+        $filesToMove = Get-ChildItem -Path $logFolder
 
-        $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-        $archivedLogPath = Join-Path $rotationFolder "Logs_$timestamp"
+        if ($filesToMove.Count -gt 0) {
+            if (!(Test-Path -Path $rotationFolder)) {
+                New-Item -ItemType Directory -Path $rotationFolder -Force | Out-Null
+            }
 
-        try {
-            Move-Item -Path $logFolder -Destination $archivedLogPath -ErrorAction Stop
-            New-Item -ItemType Directory -Path $logFolder -Force | Out-Null
+            $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+            $destinationPath = Join-Path $rotationFolder "Logs_$timestamp"
+            New-Item -ItemType Directory -Path $destinationPath -Force | Out-Null
 
-            Write-Entry -Subtext "Logs rotated to: $archivedLogPath" -Path $global:configLogging -Color Cyan -log Debug
-        }
-        catch {
-            Write-Entry -Subtext "Failed to rotate logs: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+            try {
+                $filesToMove | Move-Item -Destination $destinationPath -ErrorAction Stop
+            }
+            catch {
+                Write-Host "Log Rotation partial or failed: $($_.Exception.Message)"
+            }
         }
     }
 }
