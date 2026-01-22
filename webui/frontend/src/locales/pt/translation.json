@@ -1941,6 +1941,29 @@
     "assetReplaced": "Ativo substituído com sucesso!"
   },
   "autoTriggers": {
+    "modes": {
+      "webhook": "Webhook Nativo",
+      "webhookRecommended": "Recomendado",
+      "script": "Script Personalizado",
+      "scriptLegacy": "Legado",
+      "selectIntegration": "Selecionar método de integração",
+      "webhookDesc": "Integração moderna sem scripts via Web UI. Mais simples de manter.",
+      "scriptDesc": "Método legado usando ArrTrigger.sh. Requer mapeamento de volume."
+    },
+    "webhookSetup": {
+      "recommendedNote": "Este método substitui o ArrTrigger.sh e funciona sem mapeamentos de volume complexos.",
+      "steps": {
+        "open": "Abrir {{type}}",
+        "openDesc": "Navegue até as configurações da sua instância {{type}}.",
+        "connect": "Vá em Configurações -> Connect",
+        "add": "Clique no botão + e selecione Webhook",
+        "config": "Configuração",
+        "configDesc": "Preencha os detalhes exatamente como mostrado abaixo:",
+        "auth": "Autenticação Opcional",
+        "authDesc": "Se desejar usar uma chave API por segurança, use este formato de URL:",
+        "authInfo": "Gere uma chave API nas configurações da WebUI do Posterizarr."
+      }
+    },
     "header": {
       "title": "Gatilhos automáticos",
       "subtitle": "Configure a criação automática de cartazes quando novos conteúdos forem adicionados à sua biblioteca"

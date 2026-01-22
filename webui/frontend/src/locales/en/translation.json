@@ -1947,6 +1947,29 @@
     "paginationNext": "Next"
   },
   "autoTriggers": {
+    "modes": {
+      "webhook": "Native Webhook",
+      "webhookRecommended": "Recommended",
+      "script": "Custom Script",
+      "scriptLegacy": "Legacy",
+      "selectIntegration": "Select Integration Method",
+      "webhookDesc": "Modern, script-less integration via Web UI. Simplest to maintain.",
+      "scriptDesc": "Legacy method using ArrTrigger.sh. Requires volume mapping."
+    },
+    "webhookSetup": {
+      "recommendedNote": "This method replaces the need for ArrTrigger.sh and works without complex volume mapping.",
+      "steps": {
+        "open": "Open {{type}}",
+        "openDesc": "Navigate to the settings of your {{type}} instance.",
+        "connect": "Go to Settings -> Connect",
+        "add": "Click the + button and select Webhook",
+        "config": "Configuration",
+        "configDesc": "Fill in the details exactly as shown below:",
+        "auth": "Optional Authentication",
+        "authDesc": "If you want to use an API Key for security, use this URL format:",
+        "authInfo": "Generate an API Key in Posterizarr settings under WebUI."
+      }
+    },
     "header": {
       "title": "Auto Triggers",
       "subtitle": "Set up automatic poster creation when new media is added to your library"

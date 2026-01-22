@@ -1945,6 +1945,29 @@
     "paginationNext": "Successivo"
   },
   "autoTriggers": {
+    "modes": {
+      "webhook": "Webhook Nativo",
+      "webhookRecommended": "Consigliato",
+      "script": "Script Personalizzato",
+      "scriptLegacy": "Legacy",
+      "selectIntegration": "Seleziona metodo di integrazione",
+      "webhookDesc": "Integrazione moderna senza script tramite interfaccia Web. Più semplice da gestire.",
+      "scriptDesc": "Metodo legacy che utilizza ArrTrigger.sh. Richiede la mappatura dei volumi."
+    },
+    "webhookSetup": {
+      "recommendedNote": "Questo metodo sostituisce ArrTrigger.sh e funziona senza complesse mappature dei volumi.",
+      "steps": {
+        "open": "Apri {{type}}",
+        "openDesc": "Naviga nelle impostazioni della tua istanza {{type}}.",
+        "connect": "Vai in Impostazioni -> Connect",
+        "add": "Clicca sul pulsante + e seleziona Webhook",
+        "config": "Configurazione",
+        "configDesc": "Inserisci i dettagli esattamente come mostrato di seguito:",
+        "auth": "Autenticazione Opzionale",
+        "authDesc": "Se vuoi usare una chiave API per sicurezza, usa questo formato URL:",
+        "authInfo": "Genera una chiave API nelle impostazioni WebUI di Posterizarr."
+      }
+    },
     "header": {
       "title": "Trigger automatici",
       "subtitle": "Configura la creazione automatica di locandine quando vengono aggiunti nuovi media alla tua libreria"
