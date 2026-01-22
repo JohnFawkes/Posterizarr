@@ -4456,7 +4456,8 @@ function RotateLogs {
     )
 
     $logFolder = Join-Path $ScriptRoot "Logs"
-    $rotationFolder = Join-Path $ScriptRoot "RotatedLogs"
+    $global:RotationFolderName = "RotatedLogs"
+    $rotationFolder = Join-Path $ScriptRoot $global:RotationFolderName
 
     if (Test-Path -Path $logFolder -PathType Container) {
         $filesToMove = Get-ChildItem -Path $logFolder
@@ -7453,15 +7454,15 @@ if ($maxLogs -le 0) {
     Write-Entry -Message "Value for maxLogs -le 0. Setting it to 1. Adjust your config.json accordingly." -Path $global:configLogging -Color Yellow -log Warning
     $maxLogs = 1
 }
-
 # Delete excess log folders
-$logFolders = Get-ChildItem -Path $(Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory | Where-Object { $_.Name -match $folderPattern } | Sort-Object CreationTime -Descending | Select-Object -First $maxLogs
-foreach ($folder in (Get-ChildItem -Path $(Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory | Where-Object { $_.Name -match $folderPattern })) {
-    if ($folder.FullName -notin $logFolders.FullName) {
-        Remove-Item -Path $folder.FullName -Recurse -Force
-        $fldrName = $folder.FullName
-        Write-Entry -Message "Deleting excess folder: $fldrName" -Path $global:configLogging -Color White -log Info
-    }
+$allFolders = Get-ChildItem -Path (Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory |
+              Where-Object { $_.Name -match $folderPattern } |
+              Sort-Object CreationTime -Descending
+
+$allFolders | Select-Object -Skip $maxLogs | ForEach-Object {
+    $fldrName = $_.FullName
+    Remove-Item -Path $fldrName -Recurse -Force
+    Write-Entry -Message "Deleting excess folder: $fldrName" -Path $global:configLogging -Color White -log Info
 }
 
 # Access variables from the config file
