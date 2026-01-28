@@ -4,6 +4,7 @@ using MediaBrowser.Model.Tasks;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Querying;
+using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Providers;
 using System.Security.Cryptography;
@@ -16,15 +17,18 @@ public class PosterizarrSyncTask : IScheduledTask
 {
     private readonly ILibraryManager _libraryManager;
     private readonly IProviderManager _providerManager;
+    private readonly IFileSystem _fileSystem; // Added IFileSystem
     private readonly ILogger<PosterizarrSyncTask> _logger;
 
     public PosterizarrSyncTask(
         ILibraryManager libraryManager,
         IProviderManager providerManager,
+        IFileSystem fileSystem, // Injected via Constructor
         ILogger<PosterizarrSyncTask> logger)
     {
         _libraryManager = libraryManager;
         _providerManager = providerManager;
+        _fileSystem = fileSystem;
         _logger = logger;
     }
 
@@ -35,7 +39,14 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        return new[] { new TaskTriggerInfo { Type = TaskTriggerInfoType.DailyTrigger, TimeOfDayTicks = TimeSpan.FromHours(2).Ticks } };
+        return new[]
+        {
+            new TaskTriggerInfo
+            {
+                Type = TaskTriggerInfoType.DailyTrigger,
+                TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
+            }
+        };
     }
 
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
@@ -77,9 +88,6 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Syncing {0} for {1}...", type, item.Name);
 
-                    // BYPASSING HttpClient:
-                    // Directly set the image info on the item.
-                    // This avoids the 'Invalid URI' and 'file scheme' errors.
                     item.SetImage(new ItemImageInfo
                     {
                         Path = localPath,
@@ -93,9 +101,8 @@ public class PosterizarrSyncTask : IScheduledTask
 
             if (itemUpdated)
             {
-                // Trigger a refresh with 'LocalOnly' to force Jellyfin to process
-                // the new Path we just set without trying to download anything.
-                await item.RefreshMetadata(new MetadataRefreshOptions(new DirectoryService(_logger))
+                // Passing _fileSystem instead of _logger fixes CS1503
+                await item.RefreshMetadata(new MetadataRefreshOptions(new DirectoryService(_fileSystem))
                 {
                     ImageRefreshMode = MetadataRefreshMode.FullRefresh,
                     MetadataRefreshMode = MetadataRefreshMode.None,
