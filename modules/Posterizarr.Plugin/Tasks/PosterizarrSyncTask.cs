@@ -35,14 +35,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        return new[]
-        {
-            new TaskTriggerInfo
-            {
-                Type = TaskTriggerInfoType.DailyTrigger,
-                TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
-            }
-        };
+        return new[] { new TaskTriggerInfo { Type = TaskTriggerInfoType.DailyTrigger, TimeOfDayTicks = TimeSpan.FromHours(2).Ticks } };
     }
 
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
@@ -63,7 +56,6 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // Based on your interface, GetItemList returns IReadOnlyList<BaseItem>
         var items = _libraryManager.GetItemList(query);
 
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Count);
@@ -72,6 +64,7 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
+            bool itemUpdated = false;
 
             foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
             {
@@ -84,19 +77,31 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Syncing {0} for {1}...", type, item.Name);
 
-                    // Based on your provided classes:
-                    // 1. Create the required ItemImageInfo object
-                    var newImageInfo = new ItemImageInfo
+                    // BYPASSING HttpClient:
+                    // Directly set the image info on the item.
+                    // This avoids the 'Invalid URI' and 'file scheme' errors.
+                    item.SetImage(new ItemImageInfo
                     {
                         Path = localPath,
                         Type = type,
                         DateModified = File.GetLastWriteTimeUtc(localPath)
-                    };
+                    }, 0);
 
-                    // 2. Call ConvertImageToLocal using the 4-parameter overload from your interface:
-                    // Task<ItemImageInfo> ConvertImageToLocal(BaseItem item, ItemImageInfo image, int imageIndex, bool removeOnFailure = true);
-                    await _libraryManager.ConvertImageToLocal(item, newImageInfo, 0, true);
+                    itemUpdated = true;
                 }
+            }
+
+            if (itemUpdated)
+            {
+                // Trigger a refresh with 'LocalOnly' to force Jellyfin to process
+                // the new Path we just set without trying to download anything.
+                await item.RefreshMetadata(new MetadataRefreshOptions(new DirectoryService(_logger))
+                {
+                    ImageRefreshMode = MetadataRefreshMode.FullRefresh,
+                    MetadataRefreshMode = MetadataRefreshMode.None,
+                    ReplaceAllImages = true,
+                    ForceSave = true
+                }, cancellationToken);
             }
 
             progress.Report((double)i / items.Count * 100);
@@ -108,19 +113,16 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             Plugin.Instance.Configuration.LastSyncTime = DateTime.Now;
             Plugin.Instance.SaveConfiguration();
-            _logger.LogInformation("[Posterizarr] Sync task finished.");
         }
     }
 
     private bool IsHashMatch(string sourcePath, string jellyfinPath)
     {
         if (string.IsNullOrEmpty(jellyfinPath) || !File.Exists(sourcePath) || !File.Exists(jellyfinPath)) return false;
-
         try
         {
             var sourceInfo = new FileInfo(sourcePath);
             var jellyfinInfo = new FileInfo(jellyfinPath);
-
             if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
             using var md5 = MD5.Create();
@@ -128,9 +130,6 @@ public class PosterizarrSyncTask : IScheduledTask
             using var s2 = File.OpenRead(jellyfinPath);
             return md5.ComputeHash(s1).SequenceEqual(md5.ComputeHash(s2));
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 }
