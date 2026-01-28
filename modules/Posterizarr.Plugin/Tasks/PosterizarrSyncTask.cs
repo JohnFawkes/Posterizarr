@@ -63,12 +63,12 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // In 10.11.x, GetItemList returns the collection directly.
-        var items = _libraryManager.GetItemList(query).ToArray();
+        // Based on your interface, GetItemList returns IReadOnlyList<BaseItem>
+        var items = _libraryManager.GetItemList(query);
 
-        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
+        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Count);
 
-        for (var i = 0; i < items.Length; i++)
+        for (var i = 0; i < items.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
@@ -84,21 +84,22 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Syncing {0} for {1}...", type, item.Name);
 
-                    // 1. Manually set the image info to avoid overload and URI issues
-                    item.SetImage(new ItemImageInfo
+                    // Based on your provided classes:
+                    // 1. Create the required ItemImageInfo object
+                    var newImageInfo = new ItemImageInfo
                     {
                         Path = localPath,
                         Type = type,
-                        LastModified = File.GetLastWriteTimeUtc(localPath)
-                    }, 0);
+                        DateModified = File.GetLastWriteTimeUtc(localPath)
+                    };
 
-                    // 2. Persist the change to the database
-                    // Note: UpdateItem is the stable 10.11 method for internal persistence
-                    _libraryManager.UpdateItem(item, item, ItemUpdateType.MetadataEdit, cancellationToken);
+                    // 2. Call ConvertImageToLocal using the 4-parameter overload from your interface:
+                    // Task<ItemImageInfo> ConvertImageToLocal(BaseItem item, ItemImageInfo image, int imageIndex, bool removeOnFailure = true);
+                    await _libraryManager.ConvertImageToLocal(item, newImageInfo, 0, true);
                 }
             }
 
-            progress.Report((double)i / items.Length * 100);
+            progress.Report((double)i / items.Count * 100);
         }
 
         progress.Report(100);
@@ -120,7 +121,6 @@ public class PosterizarrSyncTask : IScheduledTask
             var sourceInfo = new FileInfo(sourcePath);
             var jellyfinInfo = new FileInfo(jellyfinPath);
 
-            // Optimization: If sizes differ, skip MD5
             if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
             using var md5 = MD5.Create();
