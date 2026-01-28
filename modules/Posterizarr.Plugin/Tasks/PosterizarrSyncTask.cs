@@ -30,7 +30,7 @@ public class PosterizarrSyncTask : IScheduledTask
         return new[] { new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerDaily, TimeOfDayTicks = TimeSpan.FromHours(2).Ticks } };
     }
 
-    public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
+    public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
         var config = Plugin.Instance?.Configuration;
         if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
