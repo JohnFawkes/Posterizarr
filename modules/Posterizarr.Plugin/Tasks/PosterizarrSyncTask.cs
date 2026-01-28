@@ -5,6 +5,7 @@ using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Providers;
 using System.Security.Cryptography;
+using Jellyfin.Data.Enums;
 
 namespace Posterizarr.Plugin.Tasks;
 
@@ -26,7 +27,6 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        // Default to running once a day at 2 AM
         return new[] { new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerDaily, TimeOfDayTicks = TimeSpan.FromHours(2).Ticks } };
     }
 
@@ -39,12 +39,11 @@ public class PosterizarrSyncTask : IScheduledTask
             return;
         }
 
-        // create a temporary instance of the provider to use its FindFile logic
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
         var items = _libraryManager.GetItemList(new InternalItemsQuery
         {
-            IncludeItemTypes = new[] { "Movie", "Series", "Season", "Episode" },
+            IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode },
             Recursive = true,
             IsVirtualItem = false
         });
@@ -61,18 +60,18 @@ public class PosterizarrSyncTask : IScheduledTask
 
                 var existingImage = item.GetImageInfo(type, 0);
 
-                // Check if we need to update
                 bool shouldUpdate = existingImage == null || !IsHashMatch(localPath, existingImage.Path);
 
                 if (shouldUpdate)
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
-                    await _libraryManager.ConvertImageToLocal(item, localPath, type, 0, cancellationToken);
+                    await _libraryManager.ConvertImageToLocal(item, localPath, type);
                 }
             }
 
             progress.Report((double)i / items.Count * 100);
         }
+
         progress.Report(100);
 
         if (Plugin.Instance != null)
