@@ -2,6 +2,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.Providers;
 using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Providers;
 using System.Security.Cryptography;
@@ -12,11 +13,16 @@ namespace Posterizarr.Plugin.Tasks;
 public class PosterizarrSyncTask : IScheduledTask
 {
     private readonly ILibraryManager _libraryManager;
+    private readonly IProviderManager _providerManager;
     private readonly ILogger<PosterizarrSyncTask> _logger;
 
-    public PosterizarrSyncTask(ILibraryManager libraryManager, ILogger<PosterizarrSyncTask> logger)
+    public PosterizarrSyncTask(
+        ILibraryManager libraryManager,
+        IProviderManager providerManager,
+        ILogger<PosterizarrSyncTask> logger)
     {
         _libraryManager = libraryManager;
+        _providerManager = providerManager;
         _logger = logger;
     }
 
@@ -52,7 +58,6 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
-            bool itemChanged = false;
 
             foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
             {
@@ -65,14 +70,8 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
-                    await _libraryManager.ConvertImageToLocal(item, localPath, type, 0);
-                    itemChanged = true;
+                    await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
-            }
-
-            if (itemChanged)
-            {
-                await item.UpdateSelfAsync();
             }
 
             progress.Report((double)i / items.Count * 100);
