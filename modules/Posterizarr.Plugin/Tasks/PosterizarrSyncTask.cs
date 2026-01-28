@@ -30,7 +30,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public string Name => "Sync Posterizarr Assets";
     public string Key => "PosterizarrSyncTask";
-    public string Description => "Checks local assets and updates Jellyfin images if the file hash has changed.";
+    public string Description => "Automated background sync: Scans library, matches local assets, and updates images if changed.";
     public string Category => "Posterizarr";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
@@ -39,7 +39,6 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             new TaskTriggerInfo
             {
-                // Matches the enum member you provided
                 Type = TaskTriggerInfoType.DailyTrigger,
                 TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
             }
@@ -55,6 +54,7 @@ public class PosterizarrSyncTask : IScheduledTask
             return;
         }
 
+        // We use your exact provider logic
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
         var query = new InternalItemsQuery
@@ -64,10 +64,7 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // In 10.11.x, GetItemList returns IReadOnlyList<BaseItem>
-        // We call ToArray() to handle the progress count reliably
         var items = _libraryManager.GetItemList(query).ToArray();
-
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
         for (var i = 0; i < items.Length; i++)
@@ -75,19 +72,23 @@ public class PosterizarrSyncTask : IScheduledTask
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
 
+            // Replicating the provider loop: Primary (Poster) and Backdrop (Background)
             foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
             {
+                // This uses your exact FindFile logic (Library Resolution -> Fuzzy Match -> File Lookup)
                 var localPath = provider.FindFile(item, config, type);
+
                 if (string.IsNullOrEmpty(localPath)) continue;
 
                 var existingImage = item.GetImageInfo(type, 0);
 
                 if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
                 {
-                    _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
+                    _logger.LogInformation("[Posterizarr] Change detected for {0} ({1}). Updating...", item.Name, type);
 
-                    // SaveImage is the standard for 10.11+
-                    await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
+                    var fileUri = new Uri(localPath).AbsoluteUri;
+
+                    await _providerManager.SaveImage(item, fileUri, type, null, cancellationToken);
                 }
             }
 
@@ -100,6 +101,7 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             Plugin.Instance.Configuration.LastSyncTime = DateTime.Now;
             Plugin.Instance.SaveConfiguration();
+            _logger.LogInformation("[Posterizarr] Sync task completed successfully.");
         }
     }
 
@@ -109,9 +111,9 @@ public class PosterizarrSyncTask : IScheduledTask
 
         try
         {
+            // Optimization: If file sizes are different, no need to hash
             var sourceInfo = new FileInfo(sourcePath);
             var jellyfinInfo = new FileInfo(jellyfinPath);
-
             if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
             using var md5 = MD5.Create();
