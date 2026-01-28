@@ -586,7 +586,7 @@ function Gallery() {
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 on search or folder change
-  }, [searchTerm, activeFolder, itemsPerPage]);
+  }, [searchTerm, activeFolder, itemsPerPage, sortOrder]);
 
   // Function to calculate dropdown position
   const calculateDropdownPosition = (ref) => {
@@ -628,10 +628,9 @@ function Gallery() {
 
   // --- PAGINATION LOGIC (Updated to use sortedImages) ---
   const totalPages = Math.ceil(sortedImages.length / itemsPerPage);
-  const displayedImages = sortedImages.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayedImages = sortedImages.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
