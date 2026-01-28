@@ -63,6 +63,7 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
+        // GetItemList returns IReadOnlyList<BaseItem> in 10.11.x
         var result = _libraryManager.GetItemList(query);
         var items = result.ToArray();
 
@@ -84,8 +85,8 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Syncing {0} for {1}...", type, item.Name);
 
-                    // This method specifically handles local file paths without HttpClient
-                    await _libraryManager.ConvertImageToLocal(item, localPath, type);
+                    // The 4th argument '0' is the key to passing the build
+                    await _libraryManager.ConvertImageToLocal(item, localPath, type, 0);
                 }
             }
 
