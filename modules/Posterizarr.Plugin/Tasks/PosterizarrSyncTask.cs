@@ -56,16 +56,14 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        var itemIds = _libraryManager.GetItemIds(query);
+        var items = _libraryManager.GetItems(query).ToArray();
 
-        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", itemIds.Count);
+        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
-        for (var i = 0; i < itemIds.Count; i++)
+        for (var i = 0; i < items.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var item = _libraryManager.GetItemById(itemIds[i]);
-            if (item == null) continue;
+            var item = items[i];
 
             foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
             {
@@ -77,11 +75,12 @@ public class PosterizarrSyncTask : IScheduledTask
                 if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
+
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
 
-            progress.Report((double)i / itemIds.Count * 100);
+            progress.Report((double)i / items.Length * 100);
         }
 
         progress.Report(100);
