@@ -35,7 +35,15 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        return new[] { new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerDaily, TimeOfDayTicks = TimeSpan.FromHours(2).Ticks } };
+        // Fix for CS0117: Using TaskTriggerInfo with manual Type string or dedicated trigger class
+        return new[]
+        {
+            new TaskTriggerInfo
+            {
+                Type = "DailyTrigger",
+                TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
+            }
+        };
     }
 
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
@@ -56,11 +64,13 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        var items = _libraryManager.GetItems(query).ToArray();
+        // Fix for CS1061: Using GetItemList which is the stable member of ILibraryManager in 10.11+
+        var result = _libraryManager.GetItemList(query);
+        var items = result.Items;
 
-        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
+        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Count);
 
-        for (var i = 0; i < items.Length; i++)
+        for (var i = 0; i < items.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
@@ -76,11 +86,12 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
+                    // SaveImage remains the standard way to persist local images
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
 
-            progress.Report((double)i / items.Length * 100);
+            progress.Report((double)i / items.Count * 100);
         }
 
         progress.Report(100);
@@ -98,7 +109,6 @@ public class PosterizarrSyncTask : IScheduledTask
 
         try
         {
-            // Quick check: If file sizes differ, hashes definitely differ
             if (new FileInfo(sourcePath).Length != new FileInfo(jellyfinPath).Length) return false;
 
             using var md5 = MD5.Create();
@@ -106,9 +116,8 @@ public class PosterizarrSyncTask : IScheduledTask
             using var s2 = File.OpenRead(jellyfinPath);
             return md5.ComputeHash(s1).SequenceEqual(md5.ComputeHash(s2));
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogError(ex, "[Posterizarr] Error comparing hash for {0}", sourcePath);
             return false;
         }
     }
