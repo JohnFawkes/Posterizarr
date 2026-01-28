@@ -56,8 +56,7 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        var result = _libraryManager.GetItemList(query);
-        var items = result.Items;
+        var items = _libraryManager.GetItemList(query).ToList();
 
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Count);
 
