@@ -39,7 +39,8 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             new TaskTriggerInfo
             {
-                Type = TaskTriggerInfoType.Daily,
+                // Matches the enum member you provided
+                Type = TaskTriggerInfoType.DailyTrigger,
                 TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
             }
         };
@@ -63,8 +64,8 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // In 10.11.x, GetItemList returns IReadOnlyList<BaseItem> directly.
-        // We convert to array to ensure we have a stable count for the progress report.
+        // In 10.11.x, GetItemList returns IReadOnlyList<BaseItem>
+        // We call ToArray() to handle the progress count reliably
         var items = _libraryManager.GetItemList(query).ToArray();
 
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
@@ -85,7 +86,7 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
-                    // SaveImage is the stable 10.11+ method
+                    // SaveImage is the standard for 10.11+
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
