@@ -4825,6 +4825,7 @@ function InvokeMagickCommand {
     }
 
     try {
+        Write-Entry -Subtext "Final Magick Args: $Arguments" -Path $global:configLogging -Color Cyan -log Debug
         $processInfo = New-Object System.Diagnostics.ProcessStartInfo
         $processInfo.FileName = $Command
         $processInfo.Arguments = $Arguments
@@ -8893,98 +8894,118 @@ if ($Manual) {
         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
         if (!$global:ImageMagickError -eq 'true') {
             if ($SeasonPoster) {
+                $CleanPosterImage = $PosterImage.Replace('"', '\"')
+
                 if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$PosterImage`""
+                    $CleanOverlay = $Seasonoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'false') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddSeasonBorder -eq 'false' -and $AddSeasonOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $CleanOverlay = $Seasonoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
                 $SeasonCount++
             }
             elseif ($CollectionCard) {
+                $CleanPosterImage = $PosterImage.Replace('"', '\"')
+
                 if ($AddCollectionBorder -eq 'true' -and $AddCollectionOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Collectionoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Collectionborderwidthsecond`"  -bordercolor `"$Collectionbordercolor`" -border `"$Collectionborderwidth`" `"$PosterImage`""
+                    $CleanOverlay = $Collectionoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Collectionborderwidthsecond`"  -bordercolor `"$Collectionbordercolor`" -border `"$Collectionborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddCollectionBorder -eq 'true' -and $AddCollectionOverlay -eq 'false') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Collectionborderwidthsecond`"  -bordercolor `"$Collectionbordercolor`" -border `"$Collectionborderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Collectionborderwidthsecond`"  -bordercolor `"$Collectionbordercolor`" -border `"$Collectionborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddCollectionBorder -eq 'false' -and $AddCollectionOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Collectionoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $CleanOverlay = $Collectionoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
                 $collectionCount++
             }
             elseif ($TitleCard) {
+                $CleanPosterImage = $PosterImage.Replace('"', '\"')
+
                 if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$titlecardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$PosterImage`""
+                    $CleanOverlay = $titlecardoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$titlecardoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $CleanOverlay = $titlecardoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
                 $EpisodeCount++
             }
             elseif ($BackgroundCard) {
+                $CleanPosterImage = $PosterImage.Replace('"', '\"')
+
                 # Resize Image to 2000x3000 and apply Border and overlay
                 if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$PosterImage`""
+                    $CleanOverlay = $Backgroundoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $CleanOverlay = $Backgroundoverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
                 $BackgroundCount++
             }
             Else {
+                $CleanPosterImage = $PosterImage.Replace('"', '\"')
+
                 # Resize Image to 2000x3000 and apply Border and overlay
                 if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
+                    $CleanOverlay = $Posteroverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $CleanOverlay = $Posteroverlay.Replace('"', '\"')
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanOverlay`" -gravity south -quality $global:outputQuality -composite `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+                    $Arguments = "`"$CleanPosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$CleanPosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
                 $posterCount++
