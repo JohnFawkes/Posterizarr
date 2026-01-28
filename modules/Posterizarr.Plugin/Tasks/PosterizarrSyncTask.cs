@@ -54,7 +54,6 @@ public class PosterizarrSyncTask : IScheduledTask
             return;
         }
 
-        // We use your exact provider logic
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
         var query = new InternalItemsQuery
@@ -64,7 +63,9 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        var items = _libraryManager.GetItemList(query).ToArray();
+        var result = _libraryManager.GetItemList(query);
+        var items = result.ToArray();
+
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
         for (var i = 0; i < items.Length; i++)
@@ -72,23 +73,19 @@ public class PosterizarrSyncTask : IScheduledTask
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
 
-            // Replicating the provider loop: Primary (Poster) and Backdrop (Background)
             foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
             {
-                // This uses your exact FindFile logic (Library Resolution -> Fuzzy Match -> File Lookup)
                 var localPath = provider.FindFile(item, config, type);
-
                 if (string.IsNullOrEmpty(localPath)) continue;
 
                 var existingImage = item.GetImageInfo(type, 0);
 
                 if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
                 {
-                    _logger.LogInformation("[Posterizarr] Change detected for {0} ({1}). Updating...", item.Name, type);
+                    _logger.LogInformation("[Posterizarr] Syncing {0} for {1}...", type, item.Name);
 
-                    var fileUri = new Uri(localPath).AbsoluteUri;
-
-                    await _providerManager.SaveImage(item, fileUri, type, null, cancellationToken);
+                    // This method specifically handles local file paths without HttpClient
+                    await _libraryManager.ConvertImageToLocal(item, localPath, type);
                 }
             }
 
@@ -101,7 +98,7 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             Plugin.Instance.Configuration.LastSyncTime = DateTime.Now;
             Plugin.Instance.SaveConfiguration();
-            _logger.LogInformation("[Posterizarr] Sync task completed successfully.");
+            _logger.LogInformation("[Posterizarr] Sync task finished.");
         }
     }
 
