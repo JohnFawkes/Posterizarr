@@ -30,7 +30,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public string Name => "Sync Posterizarr Assets";
     public string Key => "PosterizarrSyncTask";
-    public string Description => "Automated background sync: Scans library, matches local assets, and updates images if changed.";
+    public string Description => "Checks local assets and updates Jellyfin images if the file hash has changed.";
     public string Category => "Posterizarr";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
@@ -63,9 +63,8 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // GetItemList returns IReadOnlyList<BaseItem> in 10.11.x
-        var result = _libraryManager.GetItemList(query);
-        var items = result.ToArray();
+        // In 10.11.x, GetItemList returns the collection directly.
+        var items = _libraryManager.GetItemList(query).ToArray();
 
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
@@ -85,8 +84,17 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Syncing {0} for {1}...", type, item.Name);
 
-                    // The 4th argument '0' is the key to passing the build
-                    await _libraryManager.ConvertImageToLocal(item, localPath, type, 0);
+                    // 1. Manually set the image info to avoid overload and URI issues
+                    item.SetImage(new ItemImageInfo
+                    {
+                        Path = localPath,
+                        Type = type,
+                        LastModified = File.GetLastWriteTimeUtc(localPath)
+                    }, 0);
+
+                    // 2. Persist the change to the database
+                    // Note: UpdateItem is the stable 10.11 method for internal persistence
+                    _libraryManager.UpdateItem(item, item, ItemUpdateType.MetadataEdit, cancellationToken);
                 }
             }
 
@@ -109,9 +117,10 @@ public class PosterizarrSyncTask : IScheduledTask
 
         try
         {
-            // Optimization: If file sizes are different, no need to hash
             var sourceInfo = new FileInfo(sourcePath);
             var jellyfinInfo = new FileInfo(jellyfinPath);
+
+            // Optimization: If sizes differ, skip MD5
             if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
             using var md5 = MD5.Create();
