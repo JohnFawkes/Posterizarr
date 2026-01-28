@@ -47,9 +47,9 @@ public class PosterizarrSyncTask : IScheduledTask
             return;
         }
 
-        // Initialize provider for file lookup logic
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
+        // 1. Define the query using the 10.9+ Enum types
         var query = new InternalItemsQuery
         {
             IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode },
@@ -57,8 +57,9 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // Casting to IEnumerable ensures we bypass the return-type mismatch of the specific List/QueryResult implementation
-        var items = ((IEnumerable<BaseItem>)_libraryManager.GetItemList(query)).ToArray();
+        // 2. Use GetItems instead of GetItemList to avoid the MissingMethodException
+        // This returns the items directly as an IEnumerable
+        var items = _libraryManager.GetItems(query).ToArray();
 
         _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
@@ -78,7 +79,7 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
-                    // SaveImage handles the local-to-internal conversion and database update
+                    // SaveImage is the high-level 10.9+ way to persist local assets
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
@@ -92,7 +93,6 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             Plugin.Instance.Configuration.LastSyncTime = DateTime.Now;
             Plugin.Instance.SaveConfiguration();
-            _logger.LogInformation("[Posterizarr] Sync task finished and timestamp updated.");
         }
     }
 
