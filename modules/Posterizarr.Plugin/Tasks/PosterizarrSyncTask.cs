@@ -47,14 +47,17 @@ public class PosterizarrSyncTask : IScheduledTask
 
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
-        var items = _libraryManager.GetItemList(new InternalItemsQuery
+        var queryResult = _libraryManager.GetItems(new InternalItemsQuery
         {
             IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode },
             Recursive = true,
-            IsVirtualItem = false
+            IsVirtualItem = false,
+            DtoOptions = new MediaBrowser.Model.Dto.DtoOptions(false)
         });
 
-        for (var i = 0; i < items.Count; i++)
+        var items = queryResult.ToArray();
+
+        for (var i = 0; i < items.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
@@ -74,7 +77,7 @@ public class PosterizarrSyncTask : IScheduledTask
                 }
             }
 
-            progress.Report((double)i / items.Count * 100);
+            progress.Report((double)i / items.Length * 100);
         }
 
         progress.Report(100);
