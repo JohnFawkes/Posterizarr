@@ -49,7 +49,6 @@ public class PosterizarrSyncTask : IScheduledTask
 
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
-        // 1. Define the query using the 10.9+ Enum types
         var query = new InternalItemsQuery
         {
             IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode },
@@ -57,13 +56,12 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // 2. Use GetItems instead of GetItemList to avoid the MissingMethodException
-        // This returns the items directly as an IEnumerable
-        var items = _libraryManager.GetItems(query).ToArray();
+        var result = _libraryManager.GetItemList(query);
+        var items = result.Items;
 
-        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
+        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Count);
 
-        for (var i = 0; i < items.Length; i++)
+        for (var i = 0; i < items.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
@@ -79,12 +77,11 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
-                    // SaveImage is the high-level 10.9+ way to persist local assets
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
 
-            progress.Report((double)i / items.Length * 100);
+            progress.Report((double)i / items.Count * 100);
         }
 
         progress.Report(100);
