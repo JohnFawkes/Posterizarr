@@ -3,10 +3,12 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Providers;
 using System.Security.Cryptography;
 using Jellyfin.Data.Enums;
+using System.Linq;
 
 namespace Posterizarr.Plugin.Tasks;
 
@@ -45,6 +47,7 @@ public class PosterizarrSyncTask : IScheduledTask
             return;
         }
 
+        // Initialize provider for file lookup logic
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
         var query = new InternalItemsQuery
@@ -54,8 +57,10 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        var queryResult = _libraryManager.GetItemList(query);
-        var items = queryResult.ToArray();
+        // Casting to IEnumerable ensures we bypass the return-type mismatch of the specific List/QueryResult implementation
+        var items = ((IEnumerable<BaseItem>)_libraryManager.GetItemList(query)).ToArray();
+
+        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
         for (var i = 0; i < items.Length; i++)
         {
@@ -73,6 +78,7 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
+                    // SaveImage handles the local-to-internal conversion and database update
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
@@ -96,13 +102,17 @@ public class PosterizarrSyncTask : IScheduledTask
 
         try
         {
+            // Quick check: If file sizes differ, hashes definitely differ
+            if (new FileInfo(sourcePath).Length != new FileInfo(jellyfinPath).Length) return false;
+
             using var md5 = MD5.Create();
             using var s1 = File.OpenRead(sourcePath);
             using var s2 = File.OpenRead(jellyfinPath);
             return md5.ComputeHash(s1).SequenceEqual(md5.ComputeHash(s2));
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "[Posterizarr] Error comparing hash for {0}", sourcePath);
             return false;
         }
     }
