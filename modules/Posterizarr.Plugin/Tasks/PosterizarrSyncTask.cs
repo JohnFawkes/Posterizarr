@@ -35,12 +35,11 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        // Fix for CS0117: Using TaskTriggerInfo with manual Type string or dedicated trigger class
         return new[]
         {
             new TaskTriggerInfo
             {
-                Type = "DailyTrigger",
+                Type = TaskTriggerInfoType.Daily,
                 TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
             }
         };
@@ -64,13 +63,13 @@ public class PosterizarrSyncTask : IScheduledTask
             IsVirtualItem = false
         };
 
-        // Fix for CS1061: Using GetItemList which is the stable member of ILibraryManager in 10.11+
-        var result = _libraryManager.GetItemList(query);
-        var items = result.Items;
+        // In 10.11.x, GetItemList returns IReadOnlyList<BaseItem> directly.
+        // We convert to array to ensure we have a stable count for the progress report.
+        var items = _libraryManager.GetItemList(query).ToArray();
 
-        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Count);
+        _logger.LogInformation("[Posterizarr] Starting sync for {0} items.", items.Length);
 
-        for (var i = 0; i < items.Count; i++)
+        for (var i = 0; i < items.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
@@ -86,12 +85,12 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
 
-                    // SaveImage remains the standard way to persist local images
+                    // SaveImage is the stable 10.11+ method
                     await _providerManager.SaveImage(item, localPath, type, null, cancellationToken);
                 }
             }
 
-            progress.Report((double)i / items.Count * 100);
+            progress.Report((double)i / items.Length * 100);
         }
 
         progress.Report(100);
@@ -109,7 +108,10 @@ public class PosterizarrSyncTask : IScheduledTask
 
         try
         {
-            if (new FileInfo(sourcePath).Length != new FileInfo(jellyfinPath).Length) return false;
+            var sourceInfo = new FileInfo(sourcePath);
+            var jellyfinInfo = new FileInfo(jellyfinPath);
+
+            if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
             using var md5 = MD5.Create();
             using var s1 = File.OpenRead(sourcePath);
