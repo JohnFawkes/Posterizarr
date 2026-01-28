@@ -52,6 +52,7 @@ public class PosterizarrSyncTask : IScheduledTask
         {
             cancellationToken.ThrowIfCancellationRequested();
             var item = items[i];
+            bool itemChanged = false;
 
             foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
             {
@@ -60,13 +61,18 @@ public class PosterizarrSyncTask : IScheduledTask
 
                 var existingImage = item.GetImageInfo(type, 0);
 
-                bool shouldUpdate = existingImage == null || !IsHashMatch(localPath, existingImage.Path);
-
-                if (shouldUpdate)
+                if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
                 {
                     _logger.LogInformation("[Posterizarr] Updating {0} image for: {1}", type, item.Name);
-                    await _libraryManager.ConvertImageToLocal(item, localPath, type);
+
+                    await _libraryManager.ConvertImageToLocal(item, localPath, type, 0);
+                    itemChanged = true;
                 }
+            }
+
+            if (itemChanged)
+            {
+                await item.UpdateSelfAsync();
             }
 
             progress.Report((double)i / items.Count * 100);
@@ -84,7 +90,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
     private bool IsHashMatch(string sourcePath, string jellyfinPath)
     {
-        if (!File.Exists(sourcePath) || !File.Exists(jellyfinPath)) return false;
+        if (string.IsNullOrEmpty(jellyfinPath) || !File.Exists(sourcePath) || !File.Exists(jellyfinPath)) return false;
 
         try
         {
