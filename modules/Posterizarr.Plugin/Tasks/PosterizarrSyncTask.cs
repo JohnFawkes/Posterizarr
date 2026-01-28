@@ -47,14 +47,14 @@ public class PosterizarrSyncTask : IScheduledTask
 
         var provider = new PosterizarrImageProvider(_libraryManager, new LoggerFactory().CreateLogger<PosterizarrImageProvider>());
 
-        var queryResult = _libraryManager.GetItems(new InternalItemsQuery
+        var query = new InternalItemsQuery
         {
             IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode },
             Recursive = true,
-            IsVirtualItem = false,
-            DtoOptions = new MediaBrowser.Model.Dto.DtoOptions(false)
-        });
+            IsVirtualItem = false
+        };
 
+        var queryResult = _libraryManager.GetItemList(query);
         var items = queryResult.ToArray();
 
         for (var i = 0; i < items.Length; i++)
