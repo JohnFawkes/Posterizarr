@@ -16,17 +16,6 @@
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel" for="lblLastSync">Last Successful Sync</label>
-                    <div id="lblLastSync" style="padding: .5em 0; font-weight: bold; color: var(--theme-primary-color);">Never</div>
-                </div>
-
-                <div class="inputContainer">
-                    <button is="emby-button" type="button" id="btnSyncNow" class="raised button-cancel block">
-                        <span>Sync Assets Now</span>
-                    </button>
-                </div>
-
-                <div class="inputContainer">
                     <label class="checkboxContainerLabel">
                         <input type="checkbox" id="chkDebugMode" name="chkDebugMode" is="emby-checkbox" />
                         <span>Enable Debug Mode</span>
@@ -50,12 +39,6 @@
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                     page.querySelector('#txtAssetPath').value = config.AssetFolderPath || "";
                     page.querySelector('#chkDebugMode').checked = config.EnableDebugMode || false;
-
-                    if (config.LastSyncTime) {
-                        const date = new Date(config.LastSyncTime);
-                        page.querySelector('#lblLastSync').innerText = date.toLocaleString();
-                    }
-
                     configLoaded = true;
                     Dashboard.hideLoadingMsg();
                 });
@@ -63,41 +46,10 @@
 
             function init() {
                 const view = document.querySelector('#PosterizarrConfigPage');
-                if (!view) {
-                    setTimeout(init, 100);
-                    return;
-                }
+                if (!view) { setTimeout(init, 100); return; }
 
-                // Refresh configuration when the page is displayed
-                view.addEventListener('viewshow', function () {
-                    configLoaded = false;
-                    loadConfig(this);
-                });
-
-                view.addEventListener('pageshow', function () {
-                    configLoaded = false;
-                    loadConfig(this);
-                });
-
-                view.querySelector('#btnSyncNow').addEventListener('click', function () {
-                    const btn = this;
-                    btn.disabled = true;
-                    Dashboard.showLoadingMsg();
-
-                    // Triggers the scheduled task via the Jellyfin API using the Task Key defined in the C# class
-                    ApiClient.ajax({
-                        type: "POST",
-                        url: ApiClient.getUrl("ScheduledTasks/Running/" + "PosterizarrSyncTask")
-                    }).then(function () {
-                        Dashboard.hideLoadingMsg();
-                        Dashboard.alert("Sync task started in the background. Refresh this page later to see the updated timestamp.");
-                        btn.disabled = false;
-                    }).catch(function () {
-                        Dashboard.hideLoadingMsg();
-                        Dashboard.alert("Failed to start task. It might already be running.");
-                        btn.disabled = false;
-                    });
-                });
+                view.addEventListener('viewshow', function () { configLoaded = false; loadConfig(this); });
+                view.addEventListener('pageshow', function () { configLoaded = false; loadConfig(this); });
 
                 view.querySelector('#PosterizarrConfigForm').addEventListener('submit', function (e) {
                     e.preventDefault();
@@ -105,7 +57,6 @@
                     const form = this;
 
                     ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                        // Update config object from UI inputs
                         config.AssetFolderPath = view.querySelector('#txtAssetPath').value;
                         config.EnableDebugMode = view.querySelector('#chkDebugMode').checked;
 
