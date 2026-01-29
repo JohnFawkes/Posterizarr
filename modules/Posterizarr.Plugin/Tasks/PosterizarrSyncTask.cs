@@ -1,4 +1,6 @@
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using MediaBrowser.Model.Entities;
@@ -63,7 +65,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
         for (var i = 0; i < totalItems; i++)
         {
-            // Throttling: Check cancellation and update UI every 100 items
+            // Batch throttling: report progress and check cancellation
             if (i % 100 == 0)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -73,9 +75,11 @@ public class PosterizarrSyncTask : IScheduledTask
             var item = items[i];
             bool itemUpdated = false;
 
-            // Logical filtering: Only check backdrops for top-level media
+            // Define which images to check based on item type
             var typesToCheck = new List<ImageType> { ImageType.Primary };
-            if (item.Kind == BaseItemKind.Movie || item.Kind == BaseItemKind.Series)
+
+            // Checking type via pattern matching (Safe and fast)
+            if (item is Movie || item is Series)
             {
                 typesToCheck.Add(ImageType.Backdrop);
             }
@@ -87,7 +91,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
                 var existingImage = item.GetImageInfo(type, 0);
 
-                // High-performance hash match
+                // Memory-safe Hash Match
                 if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
                 {
                     item.SetImage(new ItemImageInfo
@@ -103,13 +107,13 @@ public class PosterizarrSyncTask : IScheduledTask
 
             if (itemUpdated)
             {
-                // ImageUpdate tells the DB to only touch the image rows (very fast)
+                // Persistence: Only updates the image rows in the database
                 await _libraryManager.UpdateItemAsync(item, item, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
             }
         }
 
         progress.Report(100);
-        _logger.LogInformation("[Posterizarr] Sync finished. RAM should remain stable.");
+        _logger.LogInformation("[Posterizarr] Sync finished. Memory usage stabilized.");
     }
 
     private bool IsHashMatch(string sourcePath, string jellyfinPath)
@@ -121,15 +125,12 @@ public class PosterizarrSyncTask : IScheduledTask
             var sourceInfo = new FileInfo(sourcePath);
             var jellyfinInfo = new FileInfo(jellyfinPath);
 
-            // Instant size check
             if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
-            // Memory-Safe Stream Handling:
-            // FileOptions.SequentialScan prevents the OS from caching these 37k files in RAM.
+            // SequentialScan prevents Windows/Linux from caching these 37k files in the RAM Page Cache
             using var fs1 = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
             using var fs2 = new FileStream(jellyfinPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
 
-            // HashData is a .NET modern method that is faster and more allocation-friendly
             byte[] hash1 = MD5.HashData(fs1);
             byte[] hash2 = MD5.HashData(fs2);
 
