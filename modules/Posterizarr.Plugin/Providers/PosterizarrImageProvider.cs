@@ -54,20 +54,39 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         }
 
         var results = new List<RemoteImageInfo>();
-        foreach (var type in new[] { ImageType.Primary, ImageType.Backdrop })
+        var typesToSearch = new[] { ImageType.Primary, ImageType.Backdrop };
+
+        // Define retry settings (e.g., check 5 times, once every 2 minutes)
+        int maxRetries = 5;
+        int delayMs = 120000; // 2 minutes
+
+        for (int i = 0; i < maxRetries; i++)
         {
-            LogDebug("Checking for image type: {0}", type);
-            var path = FindFile(item, config, type);
-            if (!string.IsNullOrEmpty(path))
+            results.Clear();
+            foreach (var type in typesToSearch)
             {
-                LogDebug("SUCCESS: Found {0} at '{1}'", type, path);
-                results.Add(new RemoteImageInfo { ProviderName = Name, Url = path, Type = type });
+                var path = FindFile(item, config, type);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    results.Add(new RemoteImageInfo { ProviderName = Name, Url = path, Type = type });
+                }
             }
-            else
+
+            // If we found at least one image, we can stop waiting
+            if (results.Any())
             {
-                LogDebug("RESULT: No matching file found for {0}", type);
+                LogDebug("SUCCESS: Found assets after attempt {0}", i + 1);
+                return results;
+            }
+
+            if (i < maxRetries - 1)
+            {
+                LogDebug("Attempt {0}: No assets found yet. Waiting {1}ms before retry...", i + 1, delayMs);
+                await Task.Delay(delayMs, cancellationToken);
             }
         }
+
+        LogDebug("FINAL RESULT: No matching files found after all retries.");
         return results;
     }
 
