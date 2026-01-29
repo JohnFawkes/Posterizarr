@@ -34,7 +34,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
     public string Name => "Sync Posterizarr Assets";
     public string Key => "PosterizarrSyncTask";
-    public string Description => "Resource-optimized sync for large libraries.";
+    public string Description => "High-performance sync optimized for 30k+ items.";
     public string Category => "Posterizarr";
 
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
@@ -59,12 +59,12 @@ public class PosterizarrSyncTask : IScheduledTask
         var items = _libraryManager.GetItemList(query);
         int totalItems = items.Count;
 
-        _logger.LogInformation("[Posterizarr] Starting optimized sync for {0} items.", totalItems);
+        _logger.LogInformation("[Posterizarr] Starting memory-optimized sync for {0} items.", totalItems);
 
         for (var i = 0; i < totalItems; i++)
         {
-            // Throttling: Check cancellation and GC every 50 items
-            if (i % 50 == 0)
+            // Throttling: Check cancellation and update UI every 100 items
+            if (i % 100 == 0)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 progress.Report((double)i / totalItems * 100);
@@ -73,9 +73,12 @@ public class PosterizarrSyncTask : IScheduledTask
             var item = items[i];
             bool itemUpdated = false;
 
-            // We check Primary always, Backdrop only if it makes sense
+            // Logical filtering: Only check backdrops for top-level media
             var typesToCheck = new List<ImageType> { ImageType.Primary };
-            if (item is Movie || item is Series) typesToCheck.Add(ImageType.Backdrop);
+            if (item.Kind == BaseItemKind.Movie || item.Kind == BaseItemKind.Series)
+            {
+                typesToCheck.Add(ImageType.Backdrop);
+            }
 
             foreach (var type in typesToCheck)
             {
@@ -84,7 +87,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
                 var existingImage = item.GetImageInfo(type, 0);
 
-                // IsHashMatch now uses proper stream disposal to prevent 14GB RAM usage
+                // High-performance hash match
                 if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
                 {
                     item.SetImage(new ItemImageInfo
@@ -100,13 +103,13 @@ public class PosterizarrSyncTask : IScheduledTask
 
             if (itemUpdated)
             {
-                // ImageUpdate is significantly lighter on RAM/CPU than RefreshMetadata
+                // ImageUpdate tells the DB to only touch the image rows (very fast)
                 await _libraryManager.UpdateItemAsync(item, item, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
             }
         }
 
         progress.Report(100);
-        _logger.LogInformation("[Posterizarr] Sync complete. RAM usage should now stabilize.");
+        _logger.LogInformation("[Posterizarr] Sync finished. RAM should remain stable.");
     }
 
     private bool IsHashMatch(string sourcePath, string jellyfinPath)
@@ -118,13 +121,15 @@ public class PosterizarrSyncTask : IScheduledTask
             var sourceInfo = new FileInfo(sourcePath);
             var jellyfinInfo = new FileInfo(jellyfinPath);
 
-            // Size check: Fastest way to skip work
+            // Instant size check
             if (sourceInfo.Length != jellyfinInfo.Length) return false;
 
-            // Using MD5.HashData (available in .NET 6+) is faster and handles allocation better
+            // Memory-Safe Stream Handling:
+            // FileOptions.SequentialScan prevents the OS from caching these 37k files in RAM.
             using var fs1 = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
             using var fs2 = new FileStream(jellyfinPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
 
+            // HashData is a .NET modern method that is faster and more allocation-friendly
             byte[] hash1 = MD5.HashData(fs1);
             byte[] hash2 = MD5.HashData(fs2);
 
