@@ -14735,109 +14735,76 @@ Elseif ($ArrTrigger) {
             $ArrPath = $arrTriggers['arr_series_path']
             Write-Entry -Message "Series: '$seriesTitle' ($seriesYear) - Season $seasonIndex, Episode $episodeIndex" -Path $global:configLogging -Color Cyan -log Info
 
-            if ($UseJellyfin -eq 'true') {
-                Write-Entry -Message "Using Jellyfin media server" -Path $global:configLogging -Color Green -log Info
-                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+            if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
+                $ServerType = if ($UseJellyfin -eq 'true') { "Jellyfin" } else { "Emby" }
+                Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
+                # Search for all matching series
                 $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
-                $seriesItems = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) } | Select-Object -First 1
-                if (-not $seriesItems) {
-                    Write-Entry -Message "Series '$seriesTitle' ($seriesYear) not found in Jellyfin" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Series '$seriesTitle' ($seriesYear) not found in Jellyfin"
-                }
-                Write-Entry -Message "Found $($seriesItems.Count) show(s) matching '$seriesTitle'" -Path $global:configLogging -Color Cyan -log Info
+                $seriesMatches = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) }
 
-                $matchedLib = $libsResponse.Where({ $ArrPath -match "^$([regex]::Escape($_.Locations))" }, 'First')
-
-                if ($matchedLib) {
-                    $MatchingPath = [regex]::Escape($matchedLib.Locations)
-                    $MatchingLib  = $matchedLib.Name
-                    Write-Entry -Message "Queried matching Lib: $MatchingLib" -Path $global:configLogging -Color Cyan -log Info
+                if (-not $seriesMatches) {
+                    Write-Entry -Message "Series '$seriesTitle' ($seriesYear) not found in $ServerType" -Path $global:configLogging -Color Red -log Error
+                    HandleScriptExit -Message "Series '$seriesTitle' ($seriesYear) not found in $ServerType"
                 }
 
-                if ($seriesItems -and $MatchingPath) {
-                    $seriesItem = $seriesItems.Where({ $_.Path -match "^$MatchingPath" }, 'First')
+                Write-Entry -Message "Found $($seriesMatches.Count) show(s) matching '$seriesTitle'" -Path $global:configLogging -Color Cyan -log Info
 
-                    if (-not $seriesItem) {
-                        Write-Entry -Message "No valid show found matching path: $MatchingPath" -Path $global:configLogging -Color Green -log Info
+                $seriesItem = $null
 
-                        HandleScriptExit -Message "No show found matching '$seriesTitle'"
+                # Bypass regex if single match, otherwise filter by path
+                if ($seriesMatches.Count -eq 1) {
+                    $seriesItem = $seriesMatches[0]
+                    Write-Entry -Message "Single match found. Bypassing library path validation." -Path $global:configLogging -Color Green -log Info
+                }
+                else {
+                    # Find the library matching the Sonarr path
+                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+                    
+                    foreach ($lib in $libsResponse) {
+                        foreach ($location in $lib.Locations) {
+                            $escapedRoot = [regex]::Escape($location)
+                            if ($ArrPath -match "^$escapedRoot") {
+                                $MatchingPath = $location
+                                $MatchingLib = $lib.Name
+                                Write-Entry -Message "Multiple matches: Filtering to Lib [$MatchingLib]" -Path $global:configLogging -Color Cyan -log Info
+                                break
+                            }
+                        }
+                        if ($MatchingPath) { break }
+                    }
+
+                    if ($MatchingPath) {
+                        $escapedRoot = [regex]::Escape($MatchingPath)
+                        $seriesItem = $seriesMatches.Where({ $_.Path -match "^$escapedRoot" }, 'First')
                     }
                 }
 
-                $seriesId = $seriesItem.Id
-
-                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
-                $seasonItem = $seasons.Items | Where-Object { $_.IndexNumber -eq $seasonIndex }
-                if (-not $seasonItem) {
-                    Write-Entry -Message "Season $seasonIndex not found for series $($seriesItem.Name)" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Season $seasonIndex not found for series $($seriesItem.Name)"
-                }
-                Write-Entry -Message "Found season $seasonIndex" -Path $global:configLogging -Color Green -log Info
-                $seasonId = $seasonItem.Id
-
-                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
-                $episodeItem = $episodes.Items | Where-Object { $_.IndexNumber -eq $episodeIndex }
-                if (-not $episodeItem) {
-                    Write-Entry -Message "Episode $episodeIndex not found in season $seasonIndex of series $($seriesItem.Name)" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Episode $episodeIndex not found in season $seasonIndex of series $($seriesItem.Name)"
-                }
-                Write-Entry -Message "Found episode $($episodeIndex): $($episodeItem.Name)" -Path $global:configLogging -Color Green -log Info
-
-                $AllShows = [PSCustomObject]@{ Items = @($seriesItem) }
-                $AllEpisodes = [PSCustomObject]@{ Items = @($episodeItem) }
-            }
-            elseif ($UseEmby -eq 'true') {
-                Write-Entry -Message "Using Emby media server" -Path $global:configLogging -Color Green -log Info
-                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
-                $seriesItems = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) } | Select-Object -First 1
-                if (-not $seriesItems) {
-                    Write-Entry -Message "Series '$seriesTitle' ($seriesYear) not found in Emby" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Series '$seriesTitle' ($seriesYear) not found in Emby"
-                }
-                Write-Entry -Message "Found $($seriesItems.Count) show(s) matching '$seriesTitle'" -Path $global:configLogging -Color Cyan -log Info
-
-                $matchedLib = $libsResponse.Where({ $ArrPath -match "^$([regex]::Escape($_.Locations))" }, 'First')
-
-                if ($matchedLib) {
-                    $MatchingPath = [regex]::Escape($matchedLib.Locations)
-                    $MatchingLib  = $matchedLib.Name
-                    Write-Entry -Message "Queried matching Lib: $MatchingLib" -Path $global:configLogging -Color Cyan -log Info
-                }
-
-                if ($seriesItems -and $MatchingPath) {
-                    $seriesItem = $seriesItems.Where({ $_.Path -match "^$MatchingPath" }, 'First')
-
-                    if (-not $seriesItem) {
-                        Write-Entry -Message "No valid show found matching path: $MatchingPath" -Path $global:configLogging -Color Green -log Info
-
-                        HandleScriptExit -Message "No show found matching '$seriesTitle'"
-                    }
+                # Validation and Retrieval of Seasons/Episodes
+                if (-not $seriesItem) {
+                    Write-Entry -Message "No valid show found matching criteria or path." -Path $global:configLogging -Color Red -log Error
+                    HandleScriptExit -Message "No show found matching '$seriesTitle'"
                 }
 
                 $seriesId = $seriesItem.Id
+                Write-Entry -Message "Proceeding with: $($seriesItem.Name) (ID: $seriesId)" -Path $global:configLogging -Color Green -log Info
 
+                # Get Season
                 $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
                 $seasonItem = $seasons.Items | Where-Object { $_.IndexNumber -eq $seasonIndex }
+                
                 if (-not $seasonItem) {
-                    Write-Entry -Message "Season $seasonIndex not found for series $($seriesItem.Name)" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
                     HandleScriptExit -Message "Season $seasonIndex not found for series $($seriesItem.Name)"
                 }
-                Write-Entry -Message "Found season $seasonIndex" -Path $global:configLogging -Color Green -log Info
-                $seasonId = $seasonItem.Id
 
+                # Get Episode
+                $seasonId = $seasonItem.Id
                 $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
                 $episodeItem = $episodes.Items | Where-Object { $_.IndexNumber -eq $episodeIndex }
+
                 if (-not $episodeItem) {
-                    Write-Entry -Message "Episode $episodeIndex not found in season $seasonIndex of series $($seriesItem.Name)" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Episode $episodeIndex not found in season $seasonIndex of series $($seriesItem.Name)"
+                    HandleScriptExit -Message "Episode $episodeIndex not found in season $seasonIndex"
                 }
+
                 Write-Entry -Message "Found episode $($episodeIndex): $($episodeItem.Name)" -Path $global:configLogging -Color Green -log Info
 
                 $AllShows = [PSCustomObject]@{ Items = @($seriesItem) }
@@ -14901,91 +14868,63 @@ Elseif ($ArrTrigger) {
             $ArrPath = $arrTriggers['arr_movie_path']
             Write-Entry -Message "Movie: '$movieTitle' ($movieYear)" -Path $global:configLogging -Color Cyan -log Info
 
-            if ($UseJellyfin -eq 'true') {
-                Write-Entry -Message "Using Jellyfin media server" -Path $global:configLogging -Color Green -log Info
-                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
-                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                $movieItems = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
-                if (-not $movieItems) {
-                    Write-Entry -Message "Movie '$movieTitle' ($movieYear) not found in Jellyfin" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Movie '$movieTitle' ($movieYear) not found in Jellyfin"
-                }
-                Write-Entry -Message "Found $($movieItems.Count) movie(s) matching '$movieTitle'" -Path $global:configLogging -Color Cyan -log Info
+            if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
+                $ServerType = if ($UseJellyfin -eq 'true') { "Jellyfin" } else { "Emby" }
+                Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
 
-                foreach ($lib in $libsResponse) {
-                    foreach ($location in $lib.Locations) {
-                        $escapedRoot = [regex]::Escape($location)
-                        if ($ArrPath -match "^$escapedRoot") {
-                            Write-Entry -Message "Queried matching Lib: $($lib.Name)" -Path $global:configLogging -Color Cyan -log Info
-                            $MatchingPath = $location
-                            $MatchingLib = $lib.Name
-                            break
+                # 1. Search for matching movies
+                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
+                $movieMatches = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
+
+                if (-not $movieMatches) {
+                    Write-Entry -Message "Movie '$movieTitle' ($movieYear) not found in $ServerType" -Path $global:configLogging -Color Red -log Error
+                    HandleScriptExit -Message "Movie '$movieTitle' ($movieYear) not found in $ServerType"
+                }
+
+                Write-Entry -Message "Found $($movieMatches.Count) movie(s) matching '$movieTitle'" -Path $global:configLogging -Color Cyan -log Info
+
+                $movieItem = $null
+
+                # 2. Logic: Bypass path validation if single match, otherwise filter by path
+                if ($movieMatches.Count -eq 1) {
+                    $movieItem = $movieMatches[0]
+                    Write-Entry -Message "Single match found. Bypassing library path validation." -Path $global:configLogging -Color Green -log Info
+                }
+                else {
+                    # Multiple results: Determine which library matches the Radarr/Arr path
+                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+                    
+                    $MatchingPath = $null
+                    $MatchingLib = $null
+
+                    foreach ($lib in $libsResponse) {
+                        # Emby sometimes has Locations as a single string or array; Jellyfin is usually an array
+                        foreach ($location in $lib.Locations) {
+                            $escapedRoot = [regex]::Escape($location)
+                            if ($ArrPath -match "^$escapedRoot") {
+                                $MatchingPath = $location
+                                $MatchingLib = $lib.Name
+                                Write-Entry -Message "Multiple matches: Filtering to Lib [$MatchingLib]" -Path $global:configLogging -Color Cyan -log Info
+                                break
+                            }
                         }
+                        if ($MatchingPath) { break }
                     }
-                    if ($MatchingPath) { break }
-                }
 
-                if ($movieItems -and $MatchingPath) {
-                    $escapedRoot = [regex]::Escape($MatchingPath)
-
-                    # Find the first movie where the path matches the root
-                    $movieItem = $movieItems.Where({ $_.Path -match "^$escapedRoot" }, 'First')
-
-                    if (-not $movieItem) {
-                        Write-Entry -Message "No valid movie found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
-
-                        # Cleanup logic
-                        HandleScriptExit -Message "No movies found matching '$movieTitle'"
-                    }
-                }
-                if (-not $MatchingLib) {
-                    Write-Entry -Message "Could not determine Jellyfin library for path: $ArrPath" -Path $global:configLogging -Color Red -log Error
-                    HandleScriptExit -Message "No movies found matching '$movieTitle'"
-                }
-                if ($null -eq $movieItem) {
-                    Write-Entry -Message "Movie found in search, but path match failed against $MatchingPath" -Path $global:configLogging -Color Red -log Error
-                    HandleScriptExit -Message "No movies found matching '$movieTitle'"
-                }
-                Write-Entry -Message "Found movie: $($movieItem.Name) in [$MatchingLib]" -Path $global:configLogging -Color Green -log Info
-                $AllMovies = [PSCustomObject]@{ Items = @($movieItem) }
-            }
-            elseif ($UseEmby -eq 'true') {
-                Write-Entry -Message "Using Emby media server" -Path $global:configLogging -Color Green -log Info
-                $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
-                $movieItems = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
-                if (-not $movieItems) {
-                    Write-Entry -Message "Movie '$movieTitle' ($movieYear) not found in Jellyfin" -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "Movie '$movieTitle' ($movieYear) not found in Jellyfin"
-                }
-                Write-Entry -Message "Found $($movieItems.Count) movie(s) matching '$movieTitle'" -Path $global:configLogging -Color Cyan -log Info
-                # Determine correct Lib
-                foreach ($lib in $libsResponse){
-                    $escapedRoot = [regex]::Escape($lib.Locations)
-                    if ($ArrPath -match "^$escapedRoot") {
-                        Write-Entry -Message "Queried matching Lib: $($lib.Name)" -Path $global:configLogging -Color Cyan -log Info
-                        $MatchingPath = $escapedRoot
-                        $MatchingLib = $lib.Name
+                    if ($MatchingPath) {
+                        $escapedRoot = [regex]::Escape($MatchingPath)
+                        # Find the movie within the specific library path
+                        $movieItem = $movieMatches.Where({ $_.Path -match "^$escapedRoot" }, 'First')
                     }
                 }
 
-                if ($movieItems -and $MatchingPath) {
-                    $escapedRoot = [regex]::Escape($MatchingPath)
-
-                    # Find the first movie where the path matches the root
-                    $movieItem = $movieItems.Where({ $_.Path -match "^$escapedRoot" }, 'First')
-
-                    if (-not $movieItem) {
-                        Write-Entry -Message "No valid movie found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
-
-                        # Cleanup logic
-                        HandleScriptExit -Message "No movies found matching '$movieTitle'"
-                    }
+                # 3. Final Validation
+                if (-not $movieItem) {
+                    Write-Entry -Message "No valid movie found matching criteria or path." -Path $global:configLogging -Color Red -log Error
+                    HandleScriptExit -Message "No movie found matching '$movieTitle'"
                 }
 
-                Write-Entry -Message "Found movie: $($movieItem.Name) in [$MatchingLib]" -Path $global:configLogging -Color Green -log Info
+                Write-Entry -Message "Found movie: $($movieItem.Name) (Path: $($movieItem.Path))" -Path $global:configLogging -Color Green -log Info
                 $AllMovies = [PSCustomObject]@{ Items = @($movieItem) }
             }
             elseif ($UsePlex -eq 'true') {
