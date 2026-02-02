@@ -5496,11 +5496,21 @@ function MassDownloadPlexArtwork {
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($entry.title -match $cjkPattern) {
-                    $Titletext = $entry.originalTitle
+                if ($UseOriginalTitle -eq 'true'){
+                    if ($entry.originalTitle -match $cjkPattern) {
+                        $Titletext = $entry.title
+                    }
+                    else {
+                        $Titletext = $entry.originalTitle
+                    }
                 }
-                else {
-                    $Titletext = $entry.title
+                Else {
+                    if ($entry.title -match $cjkPattern) {
+                        $Titletext = $entry.originalTitle
+                    }
+                    else {
+                        $Titletext = $entry.title
+                    }
                 }
 
                 if ($LibraryFolders -eq 'true') {
@@ -5816,11 +5826,21 @@ function MassDownloadPlexArtwork {
 
             $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-            if ($entry.title -match $cjkPattern) {
-                $Titletext = $entry.originalTitle
+            if ($UseOriginalTitle -eq 'true'){
+                if ($entry.originalTitle -match $cjkPattern) {
+                    $Titletext = $entry.title
+                }
+                else {
+                    $Titletext = $entry.originalTitle
+                }
             }
-            else {
-                $Titletext = $entry.title
+            Else {
+                if ($entry.title -match $cjkPattern) {
+                    $Titletext = $entry.originalTitle
+                }
+                else {
+                    $Titletext = $entry.title
+                }
             }
 
             if ($LibraryFolders -eq 'true') {
@@ -7405,6 +7425,7 @@ $global:DisableOnlineAssetFetch = $config.PrerequisitePart.DisableOnlineAssetFet
 $UseLogo = $config.PrerequisitePart.UseLogo.tolower()
 $ConvertLogoColor = $config.PrerequisitePart.ConvertLogoColor.tolower()
 $LogoFlatColor = $config.PrerequisitePart.LogoFlatColor.tolower()
+$UseOriginalTitle = $config.PrerequisitePart.UseOriginalTitle.tolower()
 $UseBGLogo = $config.PrerequisitePart.UseBGLogo.tolower()
 $TextFallback = $config.PrerequisitePart.LogoTextFallback.tolower()
 $global:UseClearlogo = $config.PrerequisitePart.UseClearlogo.tolower()
@@ -9905,11 +9926,21 @@ Elseif ($Tautulli) {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($entry.title -match $cjkPattern -and $entry.originalTitle) {
-                        $Titletext = $entry.originalTitle
+                    if ($UseOriginalTitle -eq 'true'){
+                        if ($entry.originalTitle -match $cjkPattern) {
+                            $Titletext = $entry.title
+                        }
+                        else {
+                            $Titletext = $entry.originalTitle
+                        }
                     }
-                    else {
-                        $Titletext = $entry.title
+                    Else {
+                        if ($entry.title -match $cjkPattern) {
+                            $Titletext = $entry.originalTitle
+                        }
+                        else {
+                            $Titletext = $entry.title
+                        }
                     }
 
                     if ($LibraryFolders -eq 'true') {
@@ -11256,11 +11287,21 @@ Elseif ($Tautulli) {
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($entry.title -match $cjkPattern) {
-                    $Titletext = $entry.originalTitle
+                if ($UseOriginalTitle -eq 'true'){
+                    if ($entry.originalTitle -match $cjkPattern) {
+                        $Titletext = $entry.title
+                    }
+                    else {
+                        $Titletext = $entry.originalTitle
+                    }
                 }
-                else {
-                    $Titletext = $entry.title
+                Else {
+                    if ($entry.title -match $cjkPattern) {
+                        $Titletext = $entry.originalTitle
+                    }
+                    else {
+                        $Titletext = $entry.title
+                    }
                 }
 
                 if ($LibraryFolders -eq 'true') {
@@ -14759,7 +14800,7 @@ Elseif ($ArrTrigger) {
                 else {
                     # Find the library matching the Sonarr path
                     $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                    
+
                     foreach ($lib in $libsResponse) {
                         foreach ($location in $lib.Locations) {
                             $escapedRoot = [regex]::Escape($location)
@@ -14791,7 +14832,7 @@ Elseif ($ArrTrigger) {
                 # Get Season
                 $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
                 $seasonItem = $seasons.Items | Where-Object { $_.IndexNumber -eq $seasonIndex }
-                
+
                 if (-not $seasonItem) {
                     HandleScriptExit -Message "Season $seasonIndex not found for series $($seriesItem.Name)"
                 }
@@ -14893,7 +14934,7 @@ Elseif ($ArrTrigger) {
                 else {
                     # Multiple results: Determine which library matches the Radarr/Arr path
                     $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                    
+
                     $MatchingPath = $null
                     $MatchingLib = $null
 
@@ -15414,11 +15455,21 @@ Elseif ($ArrTrigger) {
 
                         $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                        if ($entry.title -match $cjkPattern -and $entry.originalTitle) {
-                            $Titletext = $entry.originalTitle
+                        if ($UseOriginalTitle -eq 'true'){
+                            if ($entry.originalTitle -match $cjkPattern) {
+                                $Titletext = $entry.title
+                            }
+                            else {
+                                $Titletext = $entry.originalTitle
+                            }
                         }
-                        else {
-                            $Titletext = $entry.title
+                        Else {
+                            if ($entry.title -match $cjkPattern) {
+                                $Titletext = $entry.originalTitle
+                            }
+                            else {
+                                $Titletext = $entry.title
+                            }
                         }
 
                         if ($LibraryFolders -eq 'true') {
@@ -16634,11 +16685,21 @@ Elseif ($ArrTrigger) {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($entry.title -match $cjkPattern) {
-                        $Titletext = $entry.originalTitle
+                    if ($UseOriginalTitle -eq 'true'){
+                        if ($entry.originalTitle -match $cjkPattern) {
+                            $Titletext = $entry.title
+                        }
+                        else {
+                            $Titletext = $entry.originalTitle
+                        }
                     }
-                    else {
-                        $Titletext = $entry.title
+                    Else {
+                        if ($entry.title -match $cjkPattern) {
+                            $Titletext = $entry.originalTitle
+                        }
+                        else {
+                            $Titletext = $entry.title
+                        }
                     }
 
                     if ($LibraryFolders -eq 'true') {
@@ -19946,11 +20007,21 @@ Elseif ($ArrTrigger) {
 
                         $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                        if ($entry.title -match $cjkPattern -and $entry.originalTitle) {
-                            $Titletext = $entry.originalTitle
+                        if ($UseOriginalTitle -eq 'true'){
+                            if ($entry.originalTitle -match $cjkPattern) {
+                                $Titletext = $entry.title
+                            }
+                            else {
+                                $Titletext = $entry.originalTitle
+                            }
                         }
-                        else {
-                            $Titletext = $entry.title
+                        Else {
+                            if ($entry.title -match $cjkPattern) {
+                                $Titletext = $entry.originalTitle
+                            }
+                            else {
+                                $Titletext = $entry.title
+                            }
                         }
 
                         if ($LibraryFolders -eq 'true') {
@@ -21294,11 +21365,21 @@ Elseif ($ArrTrigger) {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($entry.title -match $cjkPattern) {
-                        $Titletext = $entry.originalTitle
+                    if ($UseOriginalTitle -eq 'true'){
+                        if ($entry.originalTitle -match $cjkPattern) {
+                            $Titletext = $entry.title
+                        }
+                        else {
+                            $Titletext = $entry.originalTitle
+                        }
                     }
-                    else {
-                        $Titletext = $entry.title
+                    Else {
+                        if ($entry.title -match $cjkPattern) {
+                            $Titletext = $entry.originalTitle
+                        }
+                        else {
+                            $Titletext = $entry.title
+                        }
                     }
 
                     if ($LibraryFolders -eq 'true') {
@@ -26631,11 +26712,21 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($entry.title -match $cjkPattern -and $entry.originalTitle) {
-                        $Titletext = $entry.originalTitle
+                    if ($UseOriginalTitle -eq 'true'){
+                        if ($entry.originalTitle -match $cjkPattern) {
+                            $Titletext = $entry.title
+                        }
+                        else {
+                            $Titletext = $entry.originalTitle
+                        }
                     }
-                    else {
-                        $Titletext = $entry.title
+                    Else {
+                        if ($entry.title -match $cjkPattern) {
+                            $Titletext = $entry.originalTitle
+                        }
+                        else {
+                            $Titletext = $entry.title
+                        }
                     }
 
                     if ($LibraryFolders -eq 'true') {
@@ -27852,11 +27943,21 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($entry.title -match $cjkPattern) {
-                    $Titletext = $entry.originalTitle
+                if ($UseOriginalTitle -eq 'true'){
+                    if ($entry.originalTitle -match $cjkPattern) {
+                        $Titletext = $entry.title
+                    }
+                    else {
+                        $Titletext = $entry.originalTitle
+                    }
                 }
-                else {
-                    $Titletext = $entry.title
+                Else {
+                    if ($entry.title -match $cjkPattern) {
+                        $Titletext = $entry.originalTitle
+                    }
+                    else {
+                        $Titletext = $entry.title
+                    }
                 }
 
                 if ($LibraryFolders -eq 'true') {
@@ -31602,11 +31703,21 @@ else {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($entry.title -match $cjkPattern) {
-                        $Titletext = $entry.originalTitle
+                    if ($UseOriginalTitle -eq 'true'){
+                        if ($entry.originalTitle -match $cjkPattern) {
+                            $Titletext = $entry.title
+                        }
+                        else {
+                            $Titletext = $entry.originalTitle
+                        }
                     }
-                    else {
-                        $Titletext = $entry.title
+                    Else {
+                        if ($entry.title -match $cjkPattern) {
+                            $Titletext = $entry.originalTitle
+                        }
+                        else {
+                            $Titletext = $entry.title
+                        }
                     }
 
                     if ($LibraryFolders -eq 'true') {
@@ -33080,11 +33191,21 @@ else {
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($entry.title -match $cjkPattern) {
-                    $Titletext = $entry.originalTitle
+                if ($UseOriginalTitle -eq 'true'){
+                    if ($entry.originalTitle -match $cjkPattern) {
+                        $Titletext = $entry.title
+                    }
+                    else {
+                        $Titletext = $entry.originalTitle
+                    }
                 }
-                else {
-                    $Titletext = $entry.title
+                Else {
+                    if ($entry.title -match $cjkPattern) {
+                        $Titletext = $entry.originalTitle
+                    }
+                    else {
+                        $Titletext = $entry.title
+                    }
                 }
 
                 if ($LibraryFolders -eq 'true') {

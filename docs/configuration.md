@@ -145,6 +145,7 @@
     - `AssetCleanup` : Set to `true` to cleanup Assets that are no longer in Plex.
     - `UseLogo` : Set to `true` to apply logos instead of title text to Posters.
     - `UseBGLogo` : Set to `true` to apply logos instead of title text to Backgrounds.
+    - `UseOriginalTitle`: Set to `true` to use the original title instead of the localized version.
     - `UseClearlogo` : Set to `true` to use `Clearlogo`.
         - `What it is:` A Clearlogo is a transparent PNG image that contains only the title text (logo) of a movie or show - no characters, no background, no extra artwork.
         - `Example:` https://artworks.thetvdb.com/banners/v4/movie/165/clearlogo/61249c87cb251.png

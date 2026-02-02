@@ -159,7 +159,8 @@
     "UseClearart": "false",
     "LogoTextFallback": "false",
     "ConvertLogoColor": "false",
-    "LogoFlatColor": "white"
+    "LogoFlatColor": "white",
+    "UseOriginalTitle": "false"
   },
   "OverlayPart": {
     "ImageProcessing": "true",
