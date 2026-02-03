@@ -79,26 +79,37 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Reload config on every request to support dynamic changes
         self._load_config()
-        
+        if not self.enabled:
+            return await call_next(request)
+
         path = request.url.path
         
-        # 1. API Key Check (Always check this first)
+        # 1. Identify "Browser-Based" assets that need to bypass strict Basic Auth
+        if path.startswith(("/api/fonts/preview/", "/api/overlayfiles/preview/")):
+            referer = request.headers.get("referer", "")
+            host = request.headers.get("host", "")
+
+            # Only allow if the request is coming from your own app's URL
+            if host and referer and host in referer:
+                return await call_next(request)
+        
+        # 2. API Key Check (Always check this first)
         api_key_candidate = request.query_params.get("api_key") or request.query_params.get("secret") or request.headers.get("X-API-Key")
         if api_key_candidate and self.auth_db:
             if self.auth_db.validate_api_key(api_key_candidate):
                 return await call_next(request)
 
-        # 2. Webhook Hard Block
+        # 3. Webhook Hard Block
         if path.startswith("/api/webhook/"):
             return self._unauthorized_response()
 
-        # 3. Whitelist Static Files & Frontend (CRITICAL FIX)
+        # 4. Whitelist Static Files & Frontend (CRITICAL FIX)
         # If the request is NOT for the API, let it pass so the UI can load.
         # The UI will then make API calls which WILL be caught by step 4.
         if not path.startswith("/api/"):
              return await call_next(request)
 
-        # 4. Public Access Logic (When Basic Auth is DISABLED)
+        # 5. Public Access Logic (When Basic Auth is DISABLED)
         if not self.enabled:
             # Prevent direct API access to sensitive endpoints without browser headers
             if path.startswith("/api/config") or path.startswith("/api/auth/keys"):
@@ -116,7 +127,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
 
             return await call_next(request)
 
-        # 5. Basic Auth Logic (When Basic Auth is ENABLED)
+        # 6. Basic Auth Logic (When Basic Auth is ENABLED)
         # Allow pre-flight OPTIONS requests for CORS and auth check
         if request.method == "OPTIONS" or path == "/api/auth/check":
             return await call_next(request)

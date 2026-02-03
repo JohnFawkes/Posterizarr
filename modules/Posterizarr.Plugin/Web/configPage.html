@@ -55,11 +55,11 @@
                     e.preventDefault();
                     Dashboard.showLoadingMsg();
                     const form = this;
-                    
+
                     ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         config.AssetFolderPath = view.querySelector('#txtAssetPath').value;
                         config.EnableDebugMode = view.querySelector('#chkDebugMode').checked;
-                        
+
                         ApiClient.updatePluginConfiguration(pluginId, config).then(function(result) {
                             Dashboard.processPluginConfigurationUpdateResult(result);
                         });
@@ -68,7 +68,7 @@
                 });
             }
 
-            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } 
+            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
             else { init(); }
         })();
     </script>

@@ -71,7 +71,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         return results;
     }
 
-    private string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
+    public string? FindFile(BaseItem item, Configuration.PluginConfiguration config, ImageType type)
     {
         // 1. Resolve Library Names
         var displayLibraryName = item.GetAncestorIds()

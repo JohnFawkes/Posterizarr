@@ -876,9 +876,19 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
   // Initialize season number from metadata
   useEffect(() => {
-    if (metadata.season_number) {
+    // Check if season_number exists (including 0 for specials)
+    if (metadata.season_number !== null && metadata.season_number !== undefined) {
       if (metadata.asset_type === "season") {
-        const seasonNum = String(metadata.season_number).padStart(2, "0");
+        // Format as "Season X" (e.g., "Season 3") or "Specials" for season 0
+        let seasonNum;
+        if (metadata.season_number === 0) {
+          seasonNum = "Specials";
+        } else {
+          // You can use String(metadata.season_number) for "Season 3"
+          // Or .padStart(2, "0") if you prefer "Season 03"
+          seasonNum = `Season ${metadata.season_number}`;
+        }
+
         setManualForm((prev) => ({
           ...prev,
           seasonPosterName: seasonNum,

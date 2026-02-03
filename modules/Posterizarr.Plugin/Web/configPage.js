@@ -3,21 +3,21 @@
 
     function loadConfig(page) {
         Dashboard.showLoadingMsg();
-        
+
         console.log("[Posterizarr] Attempting to load configuration...");
-        
+
         ApiClient.getPluginConfiguration(pluginId).then(function (config) {
             console.log("[Posterizarr] Configuration received:", config);
-            
+
             const pathInput = page.querySelector('#AssetFolderPath');
-            
+
             if (config && config.AssetFolderPath !== undefined) {
                 pathInput.value = config.AssetFolderPath;
                 console.log("[Posterizarr] Field populated with:", config.AssetFolderPath);
             } else {
                 console.warn("[Posterizarr] Configuration object is empty or AssetFolderPath is missing.");
             }
-            
+
             Dashboard.hideLoadingMsg();
         }).catch(function (err) {
             console.error("[Posterizarr] Error loading configuration:", err);
@@ -43,7 +43,7 @@
         ApiClient.getPluginConfiguration(pluginId).then(function (config) {
             // Update the existing config object
             config.AssetFolderPath = newPath;
-            
+
             console.log("[Posterizarr] Saving new configuration:", config);
 
             ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {

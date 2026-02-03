@@ -151,7 +151,7 @@ jobs:
       - name: Prepare Package
         run: |
           mkdir -p release_package
-          cp modules/Posterizarr.Plugin/bin/Release/net8.0/Posterizarr.Plugin.dll release_package/
+          cp modules/Posterizarr.Plugin/bin/Release/net9.0/Posterizarr.Plugin.dll release_package/
           cd release_package
           zip -r ../Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip *
           cd ..

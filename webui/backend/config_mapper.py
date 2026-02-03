@@ -370,6 +370,7 @@ CONFIG_GROUPS = {
     "LogoTextFallback": "PrerequisitePart",
     "ConvertLogoColor": "PrerequisitePart",
     "LogoFlatColor": "PrerequisitePart",
+    "UseOriginalTitle": "PrerequisitePart",
     # OverlayPart
     "ImageProcessing": "OverlayPart",
     "outputQuality": "OverlayPart",
@@ -559,6 +560,7 @@ UI_GROUPS = {
         "LogoTextFallback",
         "ConvertLogoColor",
         "LogoFlatColor",
+        "UseOriginalTitle",
     ],
     "API Keys & Tokens": [
         "tvdbapi",
@@ -1080,6 +1082,7 @@ DISPLAY_NAMES = {
     "LogoTextFallback": "Fallback to Text",
     "ConvertLogoColor": "Convert Logo Color",
     "LogoFlatColor": "Flat Logo Color",
+    "UseOriginalTitle": "Use the original title instead of the localized version",
     # Image Processing
     "ImageProcessing": "Image Processing",
     "outputQuality": "Output Quality",

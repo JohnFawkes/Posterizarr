@@ -191,11 +191,20 @@ function Gallery() {
   const getSortedImages = (imagesToSort) => {
     const sorted = [...imagesToSort];
     sorted.sort((a, b) => {
-      if (sortOrder === "name_asc") return a.name.localeCompare(b.name);
-      if (sortOrder === "name_desc") return b.name.localeCompare(a.name);
+      // Extract the movie/show folder name from the path for sorting
+      // This matches your display logic: image.path.split(/[\\/]/).slice(-2, -1)[0]
+      const getNameForSort = (img) => {
+        const parts = img.path.split(/[\\/]/);
+        // Get the second to last part (the folder name)
+        return parts.length > 1 ? parts[parts.length - 2] : img.name;
+      };
 
-      // Handle date sorting (backend sends 'modified' or 'created' timestamps)
-      // Fallback to 0 if undefined
+      const nameA = getNameForSort(a).toLowerCase();
+      const nameB = getNameForSort(b).toLowerCase();
+
+      if (sortOrder === "name_asc") return nameA.localeCompare(nameB);
+      if (sortOrder === "name_desc") return nameB.localeCompare(nameA);
+
       const dateA = a.modified || a.created || 0;
       const dateB = b.modified || b.created || 0;
 
@@ -586,7 +595,7 @@ function Gallery() {
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 on search or folder change
-  }, [searchTerm, activeFolder, itemsPerPage]);
+  }, [searchTerm, activeFolder, itemsPerPage, sortOrder]);
 
   // Function to calculate dropdown position
   const calculateDropdownPosition = (ref) => {
@@ -628,10 +637,9 @@ function Gallery() {
 
   // --- PAGINATION LOGIC (Updated to use sortedImages) ---
   const totalPages = Math.ceil(sortedImages.length / itemsPerPage);
-  const displayedImages = sortedImages.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayedImages = sortedImages.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
