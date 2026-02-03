@@ -13,13 +13,20 @@ def get_md5(file_path):
     return hash_md5.hexdigest().upper()
 
 def update_manifest():
-    manifest_path = "manifest.json"
     plugin_name = "Posterizarr.Plugin"
 
     # These variables are passed from the GitHub Action workflow
     event_name = os.getenv("GITHUB_EVENT_NAME")
     repo = os.getenv("GITHUB_REPOSITORY")
     version_str = os.getenv("VERSION")
+
+    # Determine filename based on build type
+    if event_name == "release":
+        manifest_path = "manifest.json"
+    else:
+        manifest_path = "manifest-dev.json"
+
+    print(f"Targeting manifest file: {manifest_path}")
 
     zip_name = f"{plugin_name}_v{version_str}.zip"
     zip_path = os.path.join("release_package", zip_name)
@@ -35,10 +42,11 @@ def update_manifest():
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
     else:
+        # Create fresh manifest structure
         manifest = [{
-            "name": "Posterizarr",
+            "name": "Posterizarr" + (" (Dev)" if event_name != "release" else ""),
             "guid": "f62d8560-6123-4567-89ab-cdef12345678",
-            "description": "Middleware for asset lookup. Maps local assets to library items as posters, backgrounds, or titlecards.",
+            "description": "Middleware for asset lookup. Maps local assets to library items.",
             "overview": "A custom plugin for Posterizarr that acts as a local asset proxy for Jellyfin.",
             "owner": "Posterizarr",
             "category": "Metadata",
@@ -47,21 +55,20 @@ def update_manifest():
 
     plugin = manifest[0]
 
+    # Separate Logic for Prod vs Dev
     if event_name == "release":
-        # Production builds: Point to the official GitHub Release ZIP
+        # === PRODUCTION ===
         source_url = f"https://github.com/{repo}/releases/download/{version_str}/{zip_name}"
         changelog = f"Official Release {version_str}"
 
-        # CLEANUP: Remove ALL dev versions (starting with 99.0) from the manifest
-        # This keeps the production manifest clean of development clutter.
+        # Safety: Ensure NO dev versions exist in the production manifest
         plugin["versions"] = [v for v in plugin["versions"] if not v["version"].startswith("99.0.")]
     else:
-        # Dev builds: Point to the 'builds' branch raw content
+        # === DEV / NIGHTLY ===
         source_url = f"https://raw.githubusercontent.com/{repo}/builds/{zip_name}"
         changelog = f"Dev build: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 
-        # If this is a Dev build, remove ONLY the previous 99.0 builds
-        # so the dev list doesn't grow indefinitely.
+        # This line removes any existing version that starts with "99.0." to prevent duplicates/bloat
         if version_str.startswith("99.0."):
             plugin["versions"] = [v for v in plugin["versions"] if not v["version"].startswith("99.0.")]
 
@@ -80,7 +87,7 @@ def update_manifest():
     with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
 
-    print(f"Successfully updated manifest with version {version_str}")
+    print(f"Successfully updated {manifest_path} with version {version_str}")
 
 if __name__ == "__main__":
     update_manifest()

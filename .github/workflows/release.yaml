@@ -61,13 +61,8 @@ jobs:
         if: github.event_name == 'release'
         id: clean_tag
         run: |
-          # The GITHUB_REF for a release is typically refs/tags/v.0.0.1 or refs/tags/v0.0.1
-          # This command strips "refs/tags/" and then removes any leading 'v' or '.'
           RAW_TAG=${{ github.ref_name }}
-          # Use 'sed' to remove leading 'v' and any '.' immediately following it.
           CLEANED_TAG=$(echo "$RAW_TAG" | sed -E 's/^[vV]\.?//')
-          echo "RAW_TAG: $RAW_TAG"
-          echo "CLEANED_TAG: $CLEANED_TAG"
           echo "CLEAN_TAG=$CLEANED_TAG" >> $GITHUB_ENV
 
       - name: Extract Docker metadata
@@ -75,20 +70,13 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ env.REPO_NAME_LOWERCASE }}
-
           tags: |
-            # Main/Production Tags (on 'release')
-            # Use the cleaned version for SemVer extraction.
             type=semver,pattern={{version}},value=${{ env.CLEAN_TAG }},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ env.CLEAN_TAG }},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}},value=${{ env.CLEAN_TAG }},enable=${{ github.event_name == 'release' }}
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
-
-            # Dev tags (only on dev branch)
             type=raw,value=dev,enable=${{ github.event_name == 'push' && github.ref_name == 'dev' }}
             type=sha,prefix=dev-,enable=${{ github.event_name == 'push' && github.ref_name == 'dev' }}
-
-            # Manual test tag
             type=raw,value=${{ github.event.inputs.version }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push Docker image
@@ -99,12 +87,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Look for cache in the current branch AND specifically in the dev branch
           cache-from: |
             type=gha,scope=${{ github.ref_name }}
             type=gha,scope=dev
-          # Always save the latest successful build cache to the current branch scope
           cache-to: type=gha,scope=${{ github.ref_name }},mode=max
+
   build-plugin:
     name: Build Jellyfin Plugin
     if: github.event_name != 'workflow_dispatch' || inputs.run_plugin == true
@@ -126,20 +113,16 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore modules/Posterizarr.Plugin/Posterizarr.Plugin.csproj
 
-      # 1. Generate the version string FIRST so we can use it in the build
       - name: Set Version String
         id: vars
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
-            # Strips 'v' or 'V' from the tag (e.g., v1.0.0 -> 1.0.0)
             V_STR=$(echo ${{ github.ref_name }} | sed 's/[vV]//')
           else
-            # Generates a high version number for dev builds (e.g., 99.0.0106.0921)
             V_STR="99.0.$(date +%m%d.%H%M)"
           fi
           echo "VERSION=$V_STR" >> $GITHUB_OUTPUT
 
-      # 2. Build the Plugin with the version injected into the DLL
       - name: Build Plugin
         run: |
           dotnet build modules/Posterizarr.Plugin/Posterizarr.Plugin.csproj \
@@ -147,7 +130,6 @@ jobs:
             --no-restore \
             -p:Version=${{ steps.vars.outputs.VERSION }}
 
-      # 3. Create the versioned ZIP package
       - name: Prepare Package
         run: |
           mkdir -p release_package
@@ -157,7 +139,6 @@ jobs:
           cd ..
           mv Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip release_package/
 
-      # 4. DEV ONLY: Push ZIP to the builds branch
       - name: Push to Builds Branch (Dev Only)
         if: github.event_name != 'release'
         uses: s0/git-publish-subdir-action@develop
@@ -168,7 +149,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MESSAGE: "build: update dev zip v${{ steps.vars.outputs.VERSION }}"
 
-      # 5. Run the Python script to update manifest.json
       - name: Run Manifest Update Script
         run: python3 update_manifest.py
         env:
@@ -177,17 +157,18 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
-      # 6. Commit changes back to the main/dev branch
+      # 6. Commit and Push Manifest Changes
       - name: Commit and Push Manifest Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add manifest.json
+
+          # CHANGE: Add both possible filenames. Git will only stage the one that changed.
+          git add manifest*.json
 
           if ! git diff --cached --quiet; then
             git commit -m "chore: update manifest v${{ steps.vars.outputs.VERSION }} [skip ci]"
 
-            # Determine target: if on a tag (release), push to main. Otherwise push to current branch.
             if [ "${{ github.event_name }}" == "release" ]; then
               TARGET_BRANCH="main"
             else
@@ -197,10 +178,9 @@ jobs:
             echo "Pushing manifest update to $TARGET_BRANCH"
             git push origin HEAD:$TARGET_BRANCH
           else
-            echo "No changes to manifest.json. Skipping push."
+            echo "No changes to manifest files. Skipping push."
           fi
 
-      # 7. PRODUCTION ONLY: Upload ZIP to the GitHub Release page
       - name: Upload to GitHub Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
