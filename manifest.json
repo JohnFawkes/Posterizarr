@@ -8,11 +8,39 @@
     "category": "Metadata",
     "versions": [
       {
-        "version": "99.0.0203.1035",
-        "changelog": "Dev build: 2026-02-03 10:35",
+        "version": "2.2.22",
+        "changelog": "Official Release 2.2.22",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0203.1035.zip",
-        "checksum": "F40F28432041C90A0BB87DA6B6A3F8A5"
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/2.2.22/Posterizarr.Plugin_v2.2.22.zip",
+        "checksum": "3019DFDE52EAC35B174B0396B7029CBE"
+      },
+      {
+        "version": "2.2.21",
+        "changelog": "Official Release 2.2.21",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/2.2.21/Posterizarr.Plugin_v2.2.21.zip",
+        "checksum": "5FC0D08F06C1A821F6CD41A24F65DBF0"
+      },
+      {
+        "version": "2.2.20",
+        "changelog": "Official Release 2.2.20",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/2.2.20/Posterizarr.Plugin_v2.2.20.zip",
+        "checksum": "3B91885B4A6E8C3F88800C9393AA9C4C"
+      },
+      {
+        "version": "2.2.19",
+        "changelog": "Official Release 2.2.19",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/2.2.19/Posterizarr.Plugin_v2.2.19.zip",
+        "checksum": "9692D65EDF4A03A919FFFD2ECA226996"
+      },
+      {
+        "version": "2.2.18",
+        "changelog": "Official Release 2.2.18",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/2.2.18/Posterizarr.Plugin_v2.2.18.zip",
+        "checksum": "02A9DEF0635650041A69B56126ED7396"
       },
       {
         "version": "2.2.17",
