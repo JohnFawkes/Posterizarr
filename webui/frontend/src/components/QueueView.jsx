@@ -188,86 +188,89 @@ const QueueView = () => {
     return (
         <div className="container mx-auto p-6 max-w-7xl animate-in fade-in duration-500">
             <div className="flex flex-col gap-6 mb-8">
-                <div className="flex justify-between items-end">
-                    <div>
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-theme-primary via-purple-500 to-pink-500">
-                            {t("queue.title")}
-                        </h1>
-                        <p className="text-theme-muted mt-1 text-lg">{t("queue.description")}</p>
+                {/* Header Section */}
+                <div>
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-theme-primary via-purple-500 to-pink-500">
+                        {t("queue.title")}
+                    </h1>
+                    <p className="text-theme-muted mt-1 text-lg">{t("queue.description")}</p>
+                </div>
 
-                        {/* Integrated How-To Section */}
-                        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-theme-muted/60">
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                                <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">1</span>
-                                    {t("queue.howTo.step1")}
-                                </span>
-                                <span className="w-1 h-1 rounded-full bg-theme-muted/20 hidden md:block"></span>
-                                <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">2</span>
-                                    {t("queue.howTo.step2")}
-                                </span>
-                                <span className="w-1 h-1 rounded-full bg-theme-muted/20 hidden md:block"></span>
-                                <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">3</span>
-                                    {t("queue.howTo.step3")}
-                                </span>
-                                <span className="w-1 h-1 rounded-full bg-theme-muted/20 hidden md:block"></span>
-                                <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">4</span>
-                                    {t("queue.howTo.step4")}
-                                </span>
-                            </div>
+                {/* Integrated How-To Section - Prominent & Above Buttons */}
+                <div className="bg-theme-primary/5 border-l-4 border-theme-primary rounded-r-xl p-5 flex flex-col md:flex-row items-start md:items-center gap-6 shadow-sm">
+                    <div className="flex items-center gap-2 font-bold text-theme-primary whitespace-nowrap min-w-fit">
+                        <AlertCircle className="w-5 h-5" />
+                        {t("queue.howTo.title")}
+                    </div>
+                    <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-x-8 gap-y-4 w-full">
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl font-bold text-theme-primary/40">1</span>
+                            <span className="text-sm font-medium opacity-90">{t("queue.howTo.step1")}</span>
+                        </div>
+                        <div className="hidden md:block w-px h-8 bg-theme-primary/10"></div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl font-bold text-theme-primary/40">2</span>
+                            <span className="text-sm font-medium opacity-90">{t("queue.howTo.step2")}</span>
+                        </div>
+                        <div className="hidden md:block w-px h-8 bg-theme-primary/10"></div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl font-bold text-theme-primary/40">3</span>
+                            <span className="text-sm font-medium opacity-90">{t("queue.howTo.step3")}</span>
+                        </div>
+                        <div className="hidden md:block w-px h-8 bg-theme-primary/10"></div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl font-bold text-theme-primary/40">4</span>
+                            <span className="text-sm font-medium opacity-90">{t("queue.howTo.step4")}</span>
                         </div>
                     </div>
+                </div>
 
-                    <div className="flex gap-3 pb-1">
+                {/* Actions Toolbar */}
+                <div className="flex justify-end gap-3 border-b border-theme/20 pb-6">
+                    <button
+                        onClick={fetchQueue}
+                        className="p-2 rounded-lg bg-theme-card border border-theme hover:bg-theme-hover transition-colors"
+                        title={t("queue.refresh")}
+                    >
+                        <RefreshCw className="w-5 h-5 text-theme-muted" />
+                    </button>
+
+                    {selectedItems.size > 0 ? (
                         <button
-                            onClick={fetchQueue}
-                            className="p-2.5 rounded-lg bg-theme-card border border-theme hover:bg-theme-hover transition-colors shadow-sm"
-                            title={t("queue.refresh")}
+                            onClick={handleDeleteSelected}
+                            className="flex items-center px-4 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors font-medium"
                         >
-                            <RefreshCw className="w-5 h-5 text-theme-muted" />
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete ({selectedItems.size})
                         </button>
-
-                        {selectedItems.size > 0 ? (
-                            <button
-                                onClick={handleDeleteSelected}
-                                className="flex items-center px-4 py-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors font-medium"
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete ({selectedItems.size})
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleClearQueue}
-                                disabled={items.length === 0}
-                                className="flex items-center px-4 py-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                {t("queue.clearQueue")}
-                            </button>
-                        )}
-
-
+                    ) : (
                         <button
-                            onClick={handleRunQueue}
-                            disabled={
-                                processing ||
-                                items.length === 0 ||
-                                (selectedItems.size === 0 && items.every(i => i.status === 'completed')) ||
-                                (selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed'))
-                            }
-                            className="flex items-center px-6 py-2.5 rounded-lg bg-theme-primary text-white hover:bg-theme-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-theme-primary/20 transition-all hover:scale-105 active:scale-95 font-medium"
-                            title={selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed') ? "Cannot run completed items" : ""}
+                            onClick={handleClearQueue}
+                            disabled={items.length === 0}
+                            className="flex items-center px-4 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                         >
-                            {processing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-                            {processing
-                                ? t("queue.running")
-                                : (selectedItems.size > 0 ? `Run Selected (${selectedItems.size})` : t("queue.runQueue"))
-                            }
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {t("queue.clearQueue")}
                         </button>
-                    </div>
+                    )}
+
+                    <button
+                        onClick={handleRunQueue}
+                        disabled={
+                            processing ||
+                            items.length === 0 ||
+                            (selectedItems.size === 0 && items.every(i => i.status === 'completed')) ||
+                            (selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed'))
+                        }
+                        className="flex items-center px-6 py-2 rounded-lg bg-theme-primary text-white hover:bg-theme-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-theme-primary/20 transition-all hover:scale-105 active:scale-95 font-medium"
+                        title={selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed') ? "Cannot run completed items" : ""}
+                    >
+                        {processing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
+                        {processing
+                            ? t("queue.running")
+                            : (selectedItems.size > 0 ? `Run Selected (${selectedItems.size})` : t("queue.runQueue"))
+                        }
+                    </button>
                 </div>
             </div>
 
