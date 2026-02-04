@@ -25,7 +25,6 @@ const QueueView = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
-    const [showHelp, setShowHelp] = useState(true);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -253,38 +252,33 @@ const QueueView = () => {
             </div>
 
             {/* How-To / Help Section */}
-            {showHelp && (
-                <div className="mb-8 p-6 bg-theme-hover/30 rounded-2xl border border-theme/50 relative">
-                    <button
-                        onClick={() => setShowHelp(false)}
-                        className="absolute top-4 right-4 text-theme-muted hover:text-theme-text transition-colors"
-                    >
-                        ×
-                    </button>
-                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-theme-primary" />
-                        {t("queue.howTo.title")}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="flex flex-col gap-2">
-                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 1</span>
-                            <p className="text-sm opacity-90">{t("queue.howTo.step1")}</p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 2</span>
-                            <p className="text-sm opacity-90">{t("queue.howTo.step2")}</p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 3</span>
-                            <p className="text-sm opacity-90">{t("queue.howTo.step3")}</p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 4</span>
-                            <p className="text-sm opacity-90">{t("queue.howTo.step4")}</p>
-                        </div>
-                    </div>
+            <div className="mb-6 py-3 px-4 bg-theme-hover/20 rounded-xl border border-theme/30 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                <div className="flex items-center gap-2 font-semibold text-theme-primary whitespace-nowrap">
+                    <AlertCircle className="w-4 h-4" />
+                    {t("queue.howTo.title")}
                 </div>
-            )}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 opacity-80">
+                    <span className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">1</span>
+                        {t("queue.howTo.step1")}
+                    </span>
+                    <span className="w-px h-3 bg-theme-muted/30 hidden md:block"></span>
+                    <span className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">2</span>
+                        {t("queue.howTo.step2")}
+                    </span>
+                    <span className="w-px h-3 bg-theme-muted/30 hidden md:block"></span>
+                    <span className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">3</span>
+                        {t("queue.howTo.step3")}
+                    </span>
+                    <span className="w-px h-3 bg-theme-muted/30 hidden md:block"></span>
+                    <span className="flex items-center gap-2">
+                        <span className="w-5 h-5 flex items-center justify-center bg-theme-muted/10 rounded-full text-[10px] font-bold">4</span>
+                        {t("queue.howTo.step4")}
+                    </span>
+                </div>
+            </div>
 
             <div className="bg-theme-card rounded-2xl border border-theme shadow-xl overflow-hidden flex flex-col min-h-[500px]">
                 {loading ? (
