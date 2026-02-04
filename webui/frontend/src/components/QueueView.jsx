@@ -229,10 +229,19 @@ const QueueView = () => {
                         </button>
                     )}
 
+
                     <button
                         onClick={handleRunQueue}
-                        disabled={processing || items.length === 0 || (selectedItems.size === 0 && items.every(i => i.status === 'completed'))}
+                        disabled={
+                            processing ||
+                            items.length === 0 ||
+                            // Disable if nothing selected AND all items are completed (no pending to run)
+                            (selectedItems.size === 0 && items.every(i => i.status === 'completed')) ||
+                            // Disable if items selected AND ANY of them are completed (user selected a completed one)
+                            (selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed'))
+                        }
                         className="flex items-center px-6 py-2 rounded-lg bg-theme-primary text-white hover:bg-theme-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-theme-primary/20 transition-all hover:scale-105 active:scale-95"
+                        title={selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed') ? "Cannot run completed items" : ""}
                     >
                         {processing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
                         {processing
@@ -353,8 +362,24 @@ const QueueView = () => {
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-center gap-2 text-sm">
-                                                        {item.source_type === 'url' ? <LinkIcon className="w-4 h-4 text-theme-muted opacity-70" /> : <FileImage className="w-4 h-4 text-theme-muted opacity-70" />}
-                                                        <span className="capitalize text-theme-muted opacity-70">{item.source_type}</span>
+                                                        {item.source_type === 'url' ? (
+                                                            <a
+                                                                href={item.source_data}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-2 hover:text-theme-primary hover:underline transition-colors group/link"
+                                                                title={item.source_data}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <LinkIcon className="w-4 h-4 text-theme-muted opacity-70 group-hover/link:text-theme-primary" />
+                                                                <span className="capitalize text-theme-muted opacity-70 group-hover/link:text-theme-primary">{item.source_type}</span>
+                                                            </a>
+                                                        ) : (
+                                                            <>
+                                                                <FileImage className="w-4 h-4 text-theme-muted opacity-70" />
+                                                                <span className="capitalize text-theme-muted opacity-70">{item.source_type}</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4">
