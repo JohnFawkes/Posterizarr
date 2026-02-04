@@ -160,62 +160,84 @@ const QueueView = () => {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-theme-hover/30 border-b border-theme/50">
-                                    <th className="px-6 py-4 font-semibold text-theme-muted text-sm">Status</th>
-                                    <th className="px-6 py-4 font-semibold text-theme-muted text-sm">Type</th>
-                                    <th className="px-6 py-4 font-semibold text-theme-muted text-sm">Asset Path</th>
-                                    <th className="px-6 py-4 font-semibold text-theme-muted text-sm">Details</th>
-                                    <th className="px-6 py-4 font-semibold text-theme-muted text-sm text-right">Actions</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[120px]">Status</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[100px]">Type</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[140px]">Asset Type</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm">Asset Path</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm">Details</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm text-right w-[80px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-theme/30">
-                                {items.map((item) => (
-                                    <tr key={item.id} className="group hover:bg-theme-hover/20 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                {getStatusIcon(item.status)}
-                                                <span className="capitalize text-sm font-medium opacity-80">{item.status}</span>
-                                            </div>
-                                            {item.error_message && (
-                                                <p className="text-xs text-red-400 mt-1 max-w-[200px] truncate" title={item.error_message}>
-                                                    {item.error_message}
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-sm">
-                                                {item.source_type === 'url' ? <LinkIcon className="w-4 h-4 text-blue-400" /> : <FileImage className="w-4 h-4 text-purple-400" />}
-                                                <span className="capitalize">{item.source_type}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="font-mono text-xs bg-black/20 px-2 py-1 rounded text-theme-text opacity-90 block max-w-[300px] truncate" title={item.asset_path}>
-                                                {item.asset_path}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-theme-muted">
-                                            <div className="flex flex-col gap-1">
-                                                {item.overlay_params?.title_text && (
-                                                    <span className="text-theme-text opacity-90">{item.overlay_params.title_text}</span>
-                                                )}
-                                                <div className="flex gap-2 text-xs opacity-70">
-                                                    {item.overlay_params?.process_with_overlays && (
-                                                        <span className="bg-theme-primary/20 text-theme-primary px-1.5 py-0.5 rounded">Overlays</span>
-                                                    )}
-                                                    <span>{new Date(item.created_at).toLocaleString()}</span>
+                                {items.map((item) => {
+                                    const assetType = item.overlay_params?.asset_type?.toLowerCase() ||
+                                        (item.overlay_params?.season_number ? "season" :
+                                            (item.overlay_params?.episode_number ? "titlecard" : "poster"));
+
+                                    const getAssetTypeStyles = (type) => {
+                                        switch (type) {
+                                            case 'titlecard': return "bg-purple-500/10 text-purple-400 border-purple-500/20";
+                                            case 'season': return "bg-green-500/10 text-green-400 border-green-500/20";
+                                            case 'background': return "bg-orange-500/10 text-orange-400 border-orange-500/20";
+                                            default: return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                                        }
+                                    };
+
+                                    return (
+                                        <tr key={item.id} className="group hover:bg-theme-hover/20 transition-colors">
+                                            <td className="px-4 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    {getStatusIcon(item.status)}
+                                                    <span className="capitalize text-sm font-medium opacity-80">{item.status}</span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => handleDeleteItem(item.id)}
-                                                className="p-2 text-theme-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                title="Remove from queue"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                                {item.error_message && (
+                                                    <p className="text-xs text-red-400 mt-1 max-w-[200px] truncate" title={item.error_message}>
+                                                        {item.error_message}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-4">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    {item.source_type === 'url' ? <LinkIcon className="w-4 h-4 text-theme-muted opacity-70" /> : <FileImage className="w-4 h-4 text-theme-muted opacity-70" />}
+                                                    <span className="capitalize text-theme-muted opacity-70">{item.source_type}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4">
+                                                <span className={`text-xs px-2.5 py-1 rounded-full border font-medium capitalize flex w-fit items-center gap-1.5 ${getAssetTypeStyles(assetType)}`}>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
+                                                    {assetType === 'titlecard' ? 'Title Card' : assetType}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4">
+                                                <span className="font-mono text-xs bg-black/20 px-2 py-1 rounded text-theme-text opacity-90 block max-w-[300px] truncate" title={item.asset_path}>
+                                                    {item.asset_path}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-theme-muted">
+                                                <div className="flex flex-col gap-1">
+                                                    {item.overlay_params?.title_text && (
+                                                        <span className="text-theme-text opacity-90 font-medium">{item.overlay_params.title_text}</span>
+                                                    )}
+                                                    <div className="flex gap-2 text-xs opacity-70">
+                                                        {item.overlay_params?.process_with_overlays && (
+                                                            <span className="bg-theme-primary/10 text-theme-primary px-1.5 py-0.5 rounded border border-theme-primary/10">Overlays</span>
+                                                        )}
+                                                        <span>{new Date(item.created_at).toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 text-right">
+                                                <button
+                                                    onClick={() => handleDeleteItem(item.id)}
+                                                    className="p-2 text-theme-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Remove from queue"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

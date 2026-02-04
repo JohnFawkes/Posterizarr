@@ -13411,6 +13411,13 @@ async def finalize_asset_replacement(
                              num_match = re.search(r"(\d+)", filename)
                              if num_match: season_poster_name = num_match.group(1)
 
+            # Clean up numbers (remove leading zeros)
+            if season_poster_name and str(season_poster_name).isdigit():
+                season_poster_name = str(int(season_poster_name))
+
+            if ep_number and str(ep_number).isdigit():
+                ep_number = str(int(ep_number))
+
             manual_request = ManualModeRequest(
                 picturePath=str(full_asset_path),
                 titletext=final_title_text or "",
