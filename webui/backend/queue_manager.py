@@ -117,6 +117,43 @@ class QueueManager:
             conn.close()
             logger.info(f"Queue item deleted: {item_id}")
 
+
+    def delete_items(self, item_ids):
+        """Delete multiple items from the queue."""
+        if not item_ids: return
+        with self.lock:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            placeholders = ','.join('?' for _ in item_ids)
+            cursor.execute(f"DELETE FROM queue_items WHERE id IN ({placeholders})", item_ids)
+            conn.commit()
+            conn.close()
+            logger.info(f"Queue items deleted: {item_ids}")
+
+    def get_items_by_ids(self, item_ids):
+        """Get specific pending items by IDs."""
+        if not item_ids: return []
+        with self.lock:
+            conn = self._get_connection()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            placeholders = ','.join('?' for _ in item_ids)
+            # Only select pending items for execution
+            cursor.execute(f"SELECT * FROM queue_items WHERE id IN ({placeholders}) AND status = 'pending' ORDER BY created_at ASC", item_ids)
+            rows = cursor.fetchall()
+            conn.close()
+
+            items = []
+            for row in rows:
+                item = dict(row)
+                if item['overlay_params']:
+                    try:
+                        item['overlay_params'] = json.loads(item['overlay_params'])
+                    except json.JSONDecodeError:
+                         item['overlay_params'] = {}
+                items.append(item)
+            return items
+
     def clear_queue(self):
         """Delete all items from the queue."""
         with self.lock:

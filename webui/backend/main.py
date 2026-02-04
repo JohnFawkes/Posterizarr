@@ -13448,7 +13448,14 @@ async def finalize_asset_replacement(
         raise e
 
 
-async def run_queue_processor():
+
+class RunQueueRequest(BaseModel):
+    item_ids: Optional[List[int]] = None
+
+class DeleteQueueRequest(BaseModel):
+    item_ids: List[int]
+
+async def run_queue_processor(item_ids: Optional[List[int]] = None):
     """
     Background task to process the queue sequentially.
     """
@@ -13459,7 +13466,12 @@ async def run_queue_processor():
         logger.warning("Posterizarr is running. Aborting queue start.")
         return
 
-    items = queue_manager.get_pending_items()
+    if item_ids:
+        logger.info(f"Queue Processor: Processing selected items: {item_ids}")
+        items = queue_manager.get_items_by_ids(item_ids)
+    else:
+        items = queue_manager.get_pending_items()
+
     logger.info(f"Queue Processor: Found {len(items)} pending items.")
 
     for item in items:
@@ -13522,17 +13534,23 @@ async def delete_queue_item(item_id: int):
     queue_manager.delete_item(item_id)
     return {"success": True, "message": "Item deleted"}
 
+@app.post("/api/queue/delete")
+async def delete_queue_items(request: DeleteQueueRequest):
+    queue_manager.delete_items(request.item_ids)
+    return {"success": True, "message": f"Deleted {len(request.item_ids)} items"}
+
 @app.post("/api/queue/clear")
 async def clear_queue():
     queue_manager.clear_queue()
     return {"success": True, "message": "Queue cleared"}
 
 @app.post("/api/queue/run")
-async def run_queue(background_tasks: BackgroundTasks):
+async def run_queue(background_tasks: BackgroundTasks, request: Optional[RunQueueRequest] = None):
     if RUNNING_FILE.exists():
         raise HTTPException(status_code=409, detail="Posterizarr is already running")
 
-    background_tasks.add_task(run_queue_processor)
+    item_ids = request.item_ids if request else None
+    background_tasks.add_task(run_queue_processor, item_ids)
     return {"success": True, "message": "Queue execution started"}
 
 
