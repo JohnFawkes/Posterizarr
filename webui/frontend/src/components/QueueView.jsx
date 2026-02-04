@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../context/ToastContext";
+import ConfirmDialog from "./ConfirmDialog";
 
 const ITEMS_PER_PAGE = 50;
 
@@ -27,6 +28,14 @@ const QueueView = () => {
     const [processing, setProcessing] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Confirm Dialog State
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmConfig, setConfirmConfig] = useState({
+        title: "",
+        message: "",
+        action: () => { }
+    });
 
     const fetchQueue = async () => {
         try {
@@ -85,9 +94,16 @@ const QueueView = () => {
         }
     };
 
-    const handleClearQueue = async () => {
-        if (!window.confirm(t("queue.confirmClear"))) return;
+    const confirmClearQueue = () => {
+        setConfirmConfig({
+            title: t("queue.clearQueue"),
+            message: t("queue.confirmClear"),
+            action: performClearQueue
+        });
+        setConfirmOpen(true);
+    };
 
+    const performClearQueue = async () => {
         try {
             const response = await fetch("/api/queue/clear", { method: "POST" });
             if (response.ok) {
@@ -121,10 +137,17 @@ const QueueView = () => {
         }
     }
 
-    const handleDeleteSelected = async () => {
+    const confirmDeleteSelected = () => {
         if (selectedItems.size === 0) return;
-        if (!window.confirm(`Are you sure you want to delete ${selectedItems.size} items?`)) return;
+        setConfirmConfig({
+            title: "Delete Selected",
+            message: `Are you sure you want to delete ${selectedItems.size} items?`,
+            action: performDeleteSelected
+        });
+        setConfirmOpen(true);
+    };
 
+    const performDeleteSelected = async () => {
         try {
             const response = await fetch("/api/queue/delete", {
                 method: "POST",
@@ -187,6 +210,17 @@ const QueueView = () => {
 
     return (
         <div className="container mx-auto p-6 max-w-7xl animate-in fade-in duration-500">
+            {/* Confirm Dialog */}
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={confirmConfig.action}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                confirmText={t("confirmDialog.confirm")} // Or specific text if needed
+                type="danger"
+            />
+
             <div className="flex flex-col gap-6 mb-8">
                 {/* Header Section */}
                 <div>
@@ -237,7 +271,7 @@ const QueueView = () => {
 
                     {selectedItems.size > 0 ? (
                         <button
-                            onClick={handleDeleteSelected}
+                            onClick={confirmDeleteSelected}
                             className="flex items-center px-4 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors font-medium"
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
@@ -245,7 +279,7 @@ const QueueView = () => {
                         </button>
                     ) : (
                         <button
-                            onClick={handleClearQueue}
+                            onClick={confirmClearQueue}
                             disabled={items.length === 0}
                             className="flex items-center px-4 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                         >
