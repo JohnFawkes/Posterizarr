@@ -272,8 +272,18 @@ const QueueView = () => {
                                                             {/* Season/Episode Numbers */}
                                                             {item.overlay_params?.season_number && (
                                                                 <span className="opacity-70">
-                                                                    S{String(item.overlay_params.season_number).padStart(2, '0')}
-                                                                    {item.overlay_params?.episode_number && `E${String(item.overlay_params.episode_number).padStart(2, '0')}`}
+                                                                    {(() => {
+                                                                        const seasonStr = String(item.overlay_params.season_number);
+                                                                        const seasonDigits = seasonStr.match(/\d+/);
+                                                                        const sNum = seasonDigits ? seasonDigits[0] : seasonStr;
+
+                                                                        return (
+                                                                            <>
+                                                                                S{sNum.padStart(2, '0')}
+                                                                                {item.overlay_params?.episode_number && `E${String(item.overlay_params.episode_number).padStart(2, '0')}`}
+                                                                            </>
+                                                                        );
+                                                                    })()}
                                                                 </span>
                                                             )}
                                                         </div>
