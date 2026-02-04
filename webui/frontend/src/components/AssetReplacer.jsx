@@ -36,6 +36,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
   const [activeTab, setActiveTab] = useState("upload");
   const [processWithOverlays, setProcessWithOverlays] = useState(false);
+  const [addToQueue, setAddToQueue] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null); // Store the actual file
   const [imageDimensions, setImageDimensions] = useState(null); // Store {width, height}
@@ -320,8 +321,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       if (dbSeasonMatch) {
         seasonNumber = parseInt(dbSeasonMatch[1]);
         console.log(
-          `Season number from DB Title '${dbTitle}': ${seasonNumber}${
-            seasonNumber === 0 ? " (Special Season)" : ""
+          `Season number from DB Title '${dbTitle}': ${seasonNumber}${seasonNumber === 0 ? " (Special Season)" : ""
           }`
         );
       }
@@ -330,8 +330,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         seasonNumber = parseInt(dbEpisodeMatch[1]);
         episodeNumber = parseInt(dbEpisodeMatch[2]);
         console.log(
-          `Episode info from DB Title '${dbTitle}': S${seasonNumber}E${episodeNumber}${
-            seasonNumber === 0 ? " (Special Season)" : ""
+          `Episode info from DB Title '${dbTitle}': S${seasonNumber}E${episodeNumber}${seasonNumber === 0 ? " (Special Season)" : ""
           }`
         );
       }
@@ -511,19 +510,19 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           // A) Get FavProvider
           const provider = cfg.FavProvider || cfg.favprovider || apiPart.FavProvider || apiPart.favprovider;
           if (provider) {
-             const p = provider.toLowerCase();
-             if (p.includes("tmdb")) userFavProvider = "tmdb";
-             else if (p.includes("tvdb")) userFavProvider = "tvdb";
-             else if (p.includes("fanart")) userFavProvider = "fanart";
+            const p = provider.toLowerCase();
+            if (p.includes("tmdb")) userFavProvider = "tmdb";
+            else if (p.includes("tvdb")) userFavProvider = "tvdb";
+            else if (p.includes("fanart")) userFavProvider = "fanart";
           }
 
           // B) Get LogoLanguageOrder (Handle Array or String)
           const rawOrder = cfg.LogoLanguageOrder || apiPart.LogoLanguageOrder;
 
           if (Array.isArray(rawOrder)) {
-             languageOrderList = rawOrder.map(lang => lang.trim().toLowerCase());
+            languageOrderList = rawOrder.map(lang => lang.trim().toLowerCase());
           } else if (typeof rawOrder === 'string' && rawOrder) {
-             languageOrderList = rawOrder.split(",").map(lang => lang.trim().toLowerCase());
+            languageOrderList = rawOrder.split(",").map(lang => lang.trim().toLowerCase());
           }
 
           if (languageOrderList.length > 0) {
@@ -604,9 +603,9 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         } else {
           // If 0 results, check if it was due to strict filtering
           if (languageOrderList.length > 0) {
-             showError(t("assetReplacer.noLogosMatchingLanguages", { languages: languageOrderList.join(", ") }));
+            showError(t("assetReplacer.noLogosMatchingLanguages", { languages: languageOrderList.join(", ") }));
           } else {
-             showError(t("assetReplacer.fetchPreviewsError"));
+            showError(t("assetReplacer.fetchPreviewsError"));
           }
           // Stay on upload tab or handle as prefered
           setLogoSelectionMode(false);
@@ -1144,7 +1143,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     try {
       let url = `${API_URL}/assets/upload-replacement?asset_path=${encodeURIComponent(
         asset.path
-      )}&process_with_overlays=${processWithOverlays}`;
+      )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}`;
 
       if (processWithOverlays) {
         const titleText = manualForm?.titletext || metadata.title;
@@ -1362,7 +1361,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         asset.path
       )}&image_url=${encodeURIComponent(
         preview.original_url
-      )}&process_with_overlays=${processWithOverlays}`;
+      )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}`;
 
       if (processWithOverlays && metadata.asset_type !== "titlecard") {
         const titleText = manualForm?.titletext || metadata.title;
@@ -1480,11 +1479,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           <div className="flex gap-2 sm:gap-4 -mb-px overflow-x-auto">
             <button
               onClick={() => setActiveTab("upload")}
-              className={`px-3 sm:px-4 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${
-                activeTab === "upload"
-                  ? "text-theme-primary border-theme-primary"
-                  : "text-theme-muted border-transparent hover:text-theme-text"
-              }`}
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "upload"
+                ? "text-theme-primary border-theme-primary"
+                : "text-theme-muted border-transparent hover:text-theme-text"
+                }`}
             >
               <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" />
               <span className="hidden sm:inline">
@@ -1494,11 +1492,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
             </button>
             <button
               onClick={() => setActiveTab("previews")}
-              className={`px-3 sm:px-4 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${
-                activeTab === "previews"
-                  ? "text-theme-primary border-theme-primary"
-                  : "text-theme-muted border-transparent hover:text-theme-text"
-              }`}
+              className={`px-3 sm:px-4 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "previews"
+                ? "text-theme-primary border-theme-primary"
+                : "text-theme-muted border-transparent hover:text-theme-text"
+                }`}
             >
               <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" />
               <span className="hidden sm:inline">
@@ -1523,167 +1520,149 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                 metadata.asset_type === "background" ||
                 metadata.asset_type === "season" ||
                 metadata.asset_type === "titlecard") && (
-                <div className="bg-theme-hover border border-theme rounded-lg p-3 sm:p-4">
-                  <div className="flex items-start sm:items-center justify-between gap-3 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-medium text-theme-text break-words">
-                        Process with overlays after replace
-                      </h4>
-                      <p className="text-xs text-theme-muted mt-0.5 leading-relaxed">
-                        {processWithOverlays
-                          ? "Applies borders, overlays & text to the replaced asset based on overlay settings. Asset will be saved to assets/ folder."
-                          : "Direct replacement without overlay processing. Asset will be saved to manualassets/ folder for manual use."}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() =>
-                        setProcessWithOverlays(!processWithOverlays)
-                      }
-                      className={`flex-shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg ${
-                        processWithOverlays ? "bg-theme-primary" : "bg-gray-600"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          processWithOverlays
+                  <div className="bg-theme-hover border border-theme rounded-lg p-3 sm:p-4">
+                    <div className="flex items-start sm:items-center justify-between gap-3 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-medium text-theme-text break-words">
+                          Process with overlays after replace
+                        </h4>
+                        <p className="text-xs text-theme-muted mt-0.5 leading-relaxed">
+                          {processWithOverlays
+                            ? "Applies borders, overlays & text to the replaced asset based on overlay settings. Asset will be saved to assets/ folder."
+                            : "Direct replacement without overlay processing. Asset will be saved to manualassets/ folder for manual use."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          setProcessWithOverlays(!processWithOverlays)
+                        }
+                        className={`flex-shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg ${processWithOverlays ? "bg-theme-primary" : "bg-gray-600"
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${processWithOverlays
                             ? "translate-x-6"
                             : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Parameter Inputs */}
-                  {processWithOverlays && (
-                    <div className="mt-4 pt-4 border-t border-theme space-y-3">
-
-                      {/* Title Text - For all types except titlecard */}
-                      {metadata.asset_type !== "titlecard" && (
-                        <div>
-                          <label className="block text-xs font-medium text-theme-text mb-1">
-                            Title Text *
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={manualForm?.titletext || ""}
-                              onChange={(e) =>
-                                setManualForm({
-                                  ...manualForm,
-                                  titletext: e.target.value,
-                                })
-                              }
-                              placeholder="Enter text or Browse for Logo..."
-                              className="flex-1 px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleFetchLogos}
-                              disabled={loading}
-                              title="Browse for Logos/ClearArt"
-                              className="px-3 py-1.5 bg-theme-card hover:bg-theme-hover border border-theme rounded text-theme-text transition-colors flex items-center gap-2 whitespace-nowrap"
-                            >
-                              {loading && logoSelectionMode ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Search className="w-4 h-4" />
-                              )}
-                              <span className="hidden sm:inline">{t("assetReplacer.browseLogos")}</span>
-                            </button>
-                          </div>
-                          {manualForm?.titletext?.startsWith("http") && (
-                            <p className="text-[10px] text-green-400 mt-1 flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Logo URL detected.
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Folder Name */}
-                      {metadata.asset_type !== "collection" && (
-                        <div>
-                          <label className="block text-xs font-medium text-theme-text mb-1">
-                            Folder Name *
-                          </label>
-                          <input
-                            type="text"
-                            value={manualForm?.foldername || ""}
-                            onChange={(e) =>
-                              setManualForm({
-                                ...manualForm,
-                                foldername: e.target.value,
-                              })
-                            }
-                            placeholder="e.g., Movie Name (2019) {tmdb-123}"
-                            className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                          />
-                        </div>
-                      )}
-
-                      {/* Library Name */}
-                      <div>
-                        <label className="block text-xs font-medium text-theme-text mb-1">
-                          Library Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={manualForm?.libraryname || ""}
-                          onChange={(e) =>
-                            setManualForm({
-                              ...manualForm,
-                              libraryname: e.target.value,
-                            })
-                          }
-                          placeholder="e.g., 4K"
-                          className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                            }`}
                         />
+                      </button>
+                    </div>
+
+                    {/* Add to Queue Toggle */}
+                    <div className="flex items-start sm:items-center justify-between gap-3 mb-2 pt-3 border-t border-theme/30">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-medium text-theme-text break-words">
+                          Add to Queue
+                        </h4>
+                        <p className="text-xs text-theme-muted mt-0.5 leading-relaxed">
+                          {addToQueue
+                            ? "Asset replacement will be queued and executed later."
+                            : "Asset will be replaced immediately."}
+                        </p>
                       </div>
+                      <button
+                        onClick={() => setAddToQueue(!addToQueue)}
+                        className={`flex-shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg ${addToQueue ? "bg-theme-primary" : "bg-gray-600"
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${addToQueue ? "translate-x-6" : "translate-x-1"
+                            }`}
+                        />
+                      </button>
+                    </div>
 
-                      {/* Season Number - For season posters */}
-                      {metadata.asset_type === "season" && (
-                        <div>
-                          <label className="block text-xs font-medium text-theme-text mb-1">
-                            Season Poster Name *
-                          </label>
-                          <input
-                            type="text"
-                            value={manualForm.seasonPosterName}
-                            onChange={(e) =>
-                              setManualForm({
-                                ...manualForm,
-                                seasonPosterName: e.target.value,
-                              })
-                            }
-                            placeholder="Season 01 or Season 00 (Specials)"
-                            className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                          />
-                        </div>
-                      )}
+                    {/* Parameter Inputs */}
+                    {processWithOverlays && (
+                      <div className="mt-4 pt-4 border-t border-theme space-y-3">
 
-                      {/* TitleCard-specific fields */}
-                      {metadata.asset_type === "titlecard" && (
-                        <>
+                        {/* Title Text - For all types except titlecard */}
+                        {metadata.asset_type !== "titlecard" && (
                           <div>
                             <label className="block text-xs font-medium text-theme-text mb-1">
-                              Episode Title *
+                              Title Text *
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={manualForm?.titletext || ""}
+                                onChange={(e) =>
+                                  setManualForm({
+                                    ...manualForm,
+                                    titletext: e.target.value,
+                                  })
+                                }
+                                placeholder="Enter text or Browse for Logo..."
+                                className="flex-1 px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleFetchLogos}
+                                disabled={loading}
+                                title="Browse for Logos/ClearArt"
+                                className="px-3 py-1.5 bg-theme-card hover:bg-theme-hover border border-theme rounded text-theme-text transition-colors flex items-center gap-2 whitespace-nowrap"
+                              >
+                                {loading && logoSelectionMode ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Search className="w-4 h-4" />
+                                )}
+                                <span className="hidden sm:inline">{t("assetReplacer.browseLogos")}</span>
+                              </button>
+                            </div>
+                            {manualForm?.titletext?.startsWith("http") && (
+                              <p className="text-[10px] text-green-400 mt-1 flex items-center gap-1">
+                                <Check className="w-3 h-3" /> Logo URL detected.
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Folder Name */}
+                        {metadata.asset_type !== "collection" && (
+                          <div>
+                            <label className="block text-xs font-medium text-theme-text mb-1">
+                              Folder Name *
                             </label>
                             <input
                               type="text"
-                              value={manualForm.episodeTitleName}
+                              value={manualForm?.foldername || ""}
                               onChange={(e) =>
                                 setManualForm({
                                   ...manualForm,
-                                  episodeTitleName: e.target.value,
+                                  foldername: e.target.value,
                                 })
                               }
-                              placeholder="e.g., Pilot"
+                              placeholder="e.g., Movie Name (2019) {tmdb-123}"
                               className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
                             />
                           </div>
+                        )}
 
+                        {/* Library Name */}
+                        <div>
+                          <label className="block text-xs font-medium text-theme-text mb-1">
+                            Library Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={manualForm?.libraryname || ""}
+                            onChange={(e) =>
+                              setManualForm({
+                                ...manualForm,
+                                libraryname: e.target.value,
+                              })
+                            }
+                            placeholder="e.g., 4K"
+                            className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                          />
+                        </div>
+
+                        {/* Season Number - For season posters */}
+                        {metadata.asset_type === "season" && (
                           <div>
                             <label className="block text-xs font-medium text-theme-text mb-1">
-                              Season Number *
+                              Season Poster Name *
                             </label>
                             <input
                               type="text"
@@ -1694,34 +1673,74 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                                   seasonPosterName: e.target.value,
                                 })
                               }
-                              placeholder="e.g., 01"
+                              placeholder="Season 01 or Season 00 (Specials)"
                               className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
                             />
                           </div>
+                        )}
 
-                          <div>
-                            <label className="block text-xs font-medium text-theme-text mb-1">
-                              Episode Number *
-                            </label>
-                            <input
-                              type="text"
-                              value={manualForm.episodeNumber}
-                              onChange={(e) =>
-                                setManualForm({
-                                  ...manualForm,
-                                  episodeNumber: e.target.value,
-                                })
-                              }
-                              placeholder="e.g., 01"
-                              className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                            />
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                        {/* TitleCard-specific fields */}
+                        {metadata.asset_type === "titlecard" && (
+                          <>
+                            <div>
+                              <label className="block text-xs font-medium text-theme-text mb-1">
+                                Episode Title *
+                              </label>
+                              <input
+                                type="text"
+                                value={manualForm.episodeTitleName}
+                                onChange={(e) =>
+                                  setManualForm({
+                                    ...manualForm,
+                                    episodeTitleName: e.target.value,
+                                  })
+                                }
+                                placeholder="e.g., Pilot"
+                                className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-theme-text mb-1">
+                                Season Number *
+                              </label>
+                              <input
+                                type="text"
+                                value={manualForm.seasonPosterName}
+                                onChange={(e) =>
+                                  setManualForm({
+                                    ...manualForm,
+                                    seasonPosterName: e.target.value,
+                                  })
+                                }
+                                placeholder="e.g., 01"
+                                className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-theme-text mb-1">
+                                Episode Number *
+                              </label>
+                              <input
+                                type="text"
+                                value={manualForm.episodeNumber}
+                                onChange={(e) =>
+                                  setManualForm({
+                                    ...manualForm,
+                                    episodeNumber: e.target.value,
+                                  })
+                                }
+                                placeholder="e.g., 01"
+                                className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                              />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
               {/* Manual Search Toggle */}
               <div className="bg-theme-hover border border-theme rounded-lg p-3 sm:p-4">
@@ -1736,14 +1755,12 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                   </div>
                   <button
                     onClick={() => setManualSearch(!manualSearch)}
-                    className={`flex-shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg ${
-                      manualSearch ? "bg-theme-primary" : "bg-gray-600"
-                    }`}
+                    className={`flex-shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg ${manualSearch ? "bg-theme-primary" : "bg-gray-600"
+                      }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        manualSearch ? "translate-x-6" : "translate-x-1"
-                      }`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${manualSearch ? "translate-x-6" : "translate-x-1"
+                        }`}
                     />
                   </button>
                 </div>
@@ -1780,44 +1797,44 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
                     {(metadata.asset_type === "season" ||
                       metadata.asset_type === "titlecard") && (
-                      <>
-                        <div>
-                          <label className="block text-xs font-medium text-theme-text mb-1">
-                            Season Number *
-                          </label>
-                          <input
-                            type="number"
-                            value={manualSearchForm.seasonNumber}
-                            onChange={(e) =>
-                              setManualSearchForm({
-                                ...manualSearchForm,
-                                seasonNumber: e.target.value,
-                              })
-                            }
-                            className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                          />
-                        </div>
-
-                        {metadata.asset_type === "titlecard" && (
+                        <>
                           <div>
                             <label className="block text-xs font-medium text-theme-text mb-1">
-                              Episode Number *
+                              Season Number *
                             </label>
                             <input
                               type="number"
-                              value={manualSearchForm.episodeNumber}
+                              value={manualSearchForm.seasonNumber}
                               onChange={(e) =>
                                 setManualSearchForm({
                                   ...manualSearchForm,
-                                  episodeNumber: e.target.value,
+                                  seasonNumber: e.target.value,
                                 })
                               }
                               className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
                             />
                           </div>
-                        )}
-                      </>
-                    )}
+
+                          {metadata.asset_type === "titlecard" && (
+                            <div>
+                              <label className="block text-xs font-medium text-theme-text mb-1">
+                                Episode Number *
+                              </label>
+                              <input
+                                type="number"
+                                value={manualSearchForm.episodeNumber}
+                                onChange={(e) =>
+                                  setManualSearchForm({
+                                    ...manualSearchForm,
+                                    episodeNumber: e.target.value,
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 text-sm bg-theme-bg border border-theme rounded text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
 
                     <div className="pt-3 border-t border-theme">
                       <button
@@ -1869,11 +1886,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                         Preview:
                       </p>
                       <div
-                        className={`relative bg-theme rounded-lg overflow-hidden border border-theme mx-auto ${
-                          useHorizontalLayout
-                            ? "aspect-[16/9] max-w-xs"
-                            : "aspect-[2/3] max-w-[12rem]"
-                        }`}
+                        className={`relative bg-theme rounded-lg overflow-hidden border border-theme mx-auto ${useHorizontalLayout
+                          ? "aspect-[16/9] max-w-xs"
+                          : "aspect-[2/3] max-w-[12rem]"
+                          }`}
                       >
                         <img
                           src={uploadedImage}
@@ -1883,11 +1899,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </div>
                       {imageDimensions && (
                         <div
-                          className={`mt-2 text-xs text-center p-2 rounded ${
-                            isDimensionValid
-                              ? "bg-green-500/10 text-green-400 border border-green-500/30"
-                              : "bg-red-500/10 text-red-400 border border-red-500/30"
-                          }`}
+                          className={`mt-2 text-xs text-center p-2 rounded ${isDimensionValid
+                            ? "bg-green-500/10 text-green-400 border border-green-500/30"
+                            : "bg-red-500/10 text-red-400 border border-red-500/30"
+                            }`}
                         >
                           {imageDimensions.width}x{imageDimensions.height}px
                           {isDimensionValid ? " ✓" : " ✗"}
@@ -1904,18 +1919,17 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       disabled={
                         !isDimensionValid || uploading || isPosterizarrRunning
                       }
-                      className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                        isDimensionValid && !uploading && !isPosterizarrRunning
-                          ? "bg-theme-primary hover:bg-theme-primary/90 text-white"
-                          : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
-                      }`}
+                      className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${isDimensionValid && !uploading && !isPosterizarrRunning
+                        ? "bg-theme-primary hover:bg-theme-primary/90 text-white"
+                        : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                        }`}
                     >
                       <Upload className="w-4 h-4" />
                       {uploading
                         ? t("assetReplacer.uploadingAsset")
                         : isPosterizarrRunning
-                        ? "Upload Disabled (Running)"
-                        : t("assetReplacer.uploadAssetButton")}
+                          ? "Upload Disabled (Running)"
+                          : t("assetReplacer.uploadAssetButton")}
                     </button>
                   </div>
                 )}
@@ -1980,11 +1994,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setActiveProviderTab("tmdb")}
-                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${
-                          activeProviderTab === "tmdb"
-                            ? "text-blue-400 border-blue-400 bg-blue-500/10"
-                            : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
-                        }`}
+                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${activeProviderTab === "tmdb"
+                          ? "text-blue-400 border-blue-400 bg-blue-500/10"
+                          : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
+                          }`}
                       >
                         <span className="flex items-center gap-2">
                           TMDB {previews.tmdb.length > 0 && <span>({previews.tmdb.length})</span>}
@@ -1992,11 +2005,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </button>
                       <button
                         onClick={() => setActiveProviderTab("tvdb")}
-                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${
-                          activeProviderTab === "tvdb"
-                            ? "text-green-400 border-green-400 bg-green-500/10"
-                            : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
-                        }`}
+                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${activeProviderTab === "tvdb"
+                          ? "text-green-400 border-green-400 bg-green-500/10"
+                          : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
+                          }`}
                       >
                         <span className="flex items-center gap-2">
                           TVDB {previews.tvdb.length > 0 && <span>({previews.tvdb.length})</span>}
@@ -2004,11 +2016,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </button>
                       <button
                         onClick={() => setActiveProviderTab("fanart")}
-                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${
-                          activeProviderTab === "fanart"
-                            ? "text-purple-400 border-purple-400 bg-purple-500/10"
-                            : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
-                        }`}
+                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${activeProviderTab === "fanart"
+                          ? "text-purple-400 border-purple-400 bg-purple-500/10"
+                          : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
+                          }`}
                       >
                         <span className="flex items-center gap-2">
                           Fanart.tv {previews.fanart.length > 0 && <span>({previews.fanart.length})</span>}
@@ -2100,7 +2111,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         confirmText={t("assetReplacer.confirmFetchButton")}
         type="info"
       />
-    </div>
+    </div >
   );
 }
 
@@ -2111,9 +2122,9 @@ function PreviewCard({ preview, onSelect, disabled, isHorizontal = false }) {
 
   // Detect if it is a logo (updated to handle multiple variants)
   const isLogo = preview.type === "logo" ||
-                 preview.type?.includes("clearart") ||
-                 preview.type?.includes("clearlogo") ||
-                 preview.type?.includes("hdmovielogo");
+    preview.type?.includes("clearart") ||
+    preview.type?.includes("clearlogo") ||
+    preview.type?.includes("hdmovielogo");
 
   const handleDownload = async (e) => {
     e.stopPropagation();
@@ -2146,9 +2157,8 @@ function PreviewCard({ preview, onSelect, disabled, isHorizontal = false }) {
       onClick={disabled ? undefined : onSelect}
     >
       <div
-        className={`relative ${isLogo ? "bg-slate-700/50" : "bg-theme"} ${
-          isHorizontal ? "aspect-[16/9]" : "aspect-[2/3]"
-        }`}
+        className={`relative ${isLogo ? "bg-slate-700/50" : "bg-theme"} ${isHorizontal ? "aspect-[16/9]" : "aspect-[2/3]"
+          }`}
       >
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -2163,9 +2173,8 @@ function PreviewCard({ preview, onSelect, disabled, isHorizontal = false }) {
           <img
             src={preview.url}
             alt="Preview"
-            className={`w-full h-full ${isLogo ? "object-contain p-2" : "object-cover"} group-hover:scale-105 transition-all duration-300 ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className={`w-full h-full ${isLogo ? "object-contain p-2" : "object-cover"} group-hover:scale-105 transition-all duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"
+              }`}
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
           />
@@ -2186,15 +2195,14 @@ function PreviewCard({ preview, onSelect, disabled, isHorizontal = false }) {
           <Check className="w-10 h-10 text-green-400 mb-3" />
 
           <div
-            className={`px-3 py-1 rounded-full text-xs font-semibold mb-2 ${
-              preview.source === "TMDB"
-                ? "bg-blue-500 text-white"
-                : preview.source === "TVDB"
+            className={`px-3 py-1 rounded-full text-xs font-semibold mb-2 ${preview.source === "TMDB"
+              ? "bg-blue-500 text-white"
+              : preview.source === "TVDB"
                 ? "bg-green-500 text-white"
                 : preview.source === "Fanart.tv"
-                ? "bg-purple-500 text-white"
-                : "bg-gray-500 text-white"
-            }`}
+                  ? "bg-purple-500 text-white"
+                  : "bg-gray-500 text-white"
+              }`}
           >
             {preview.source}
           </div>
@@ -2226,12 +2234,12 @@ function PreviewCard({ preview, onSelect, disabled, isHorizontal = false }) {
                 {preview.type === "episode_still"
                   ? "Episode"
                   : preview.type === "season_poster"
-                  ? "Season"
-                  : preview.type === "backdrop"
-                  ? "Backdrop"
-                  : preview.type === "poster"
-                  ? "Poster"
-                  : preview.type}
+                    ? "Season"
+                    : preview.type === "backdrop"
+                      ? "Backdrop"
+                      : preview.type === "poster"
+                        ? "Poster"
+                        : preview.type}
               </span>
             )}
           </div>

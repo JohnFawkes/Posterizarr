@@ -43,6 +43,7 @@ import TopNavbar from "./components/TopNavbar";
 import LoginScreen from "./components/LoginScreen";
 import LoadingScreen from "./components/LoadingScreen";
 import TestGallery from "./components/TestGallery";
+import QueueView from "./components/QueueView";
 
 function AppContent() {
   const { isCollapsed } = useSidebar();
@@ -209,9 +210,8 @@ function AppContent() {
         <Sidebar />
 
         <main
-          className={`pt-16 transition-all duration-300 ${
-            isCollapsed ? "md:ml-20" : "md:ml-80"
-          }`}
+          className={`pt-16 transition-all duration-300 ${isCollapsed ? "md:ml-20" : "md:ml-80"
+            }`}
         >
           {/* Extra padding on mobile for sidebar menu */}
           <div className="md:pt-0">
@@ -219,6 +219,7 @@ function AppContent() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/run-modes" element={<RunModes />} />
+                <Route path="/queue" element={<QueueView />} />
                 <Route path="/scheduler" element={<SchedulerSettings />} />
                 <Route path="/assets-manager" element={<AssetsManager />} />
                 <Route path="/manual-assets" element={<ManualAssets />} />

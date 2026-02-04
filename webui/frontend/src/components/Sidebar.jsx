@@ -5,7 +5,7 @@ import {
   Activity, Play, Image, Settings, Clock, FileText, Info, Menu, X,
   ChevronDown, ChevronRight, Film, Layers, Tv, Database, Server,
   Palette, Bell, Lock, User, FileImage, Lightbulb, AlertTriangle,
-  TrendingUp, Zap, FolderKanban, GripVertical, TestTube, Archive
+  TrendingUp, Zap, FolderKanban, GripVertical, TestTube, Archive, List
 } from "lucide-react";
 import VersionBadge from "./VersionBadge";
 import { useSidebar } from "../context/SidebarContext";
@@ -78,6 +78,7 @@ const Sidebar = () => {
   const defaultNavItems = [
     { id: "dashboard", path: "/", label: t("nav.dashboard"), icon: Activity },
     { id: "runModes", path: "/run-modes", label: t("nav.runModes"), icon: Play },
+    { id: "queue", path: "/queue", label: "Queue", icon: List },
     { id: "scheduler", path: "/scheduler", label: t("nav.scheduler"), icon: Clock },
     {
       id: "mediaServerExport",
@@ -98,24 +99,24 @@ const Sidebar = () => {
       hasSubItems: true,
       subItems: viewMode === "folder"
         ? [
-            { path: "/gallery/posters", label: t("assets.assetsFolders"), icon: FolderKanban },
-            { path: "/manual-assets", label: "Manual Assets", icon: FileImage, badge: manualAssetsCount, badgeColor: "green" },
-            { path: "/asset-backups", label: t("backupAssets.title") || "Backups", icon: Archive },
-            { path: "/asset-overview", label: t("nav.assetOverview"), icon: AlertTriangle, badge: missingAssetsCount, badgeColor: "red" },
-            { path: "/assets-manager", label: t("nav.assetsManager", "Assets Manager"), icon: Layers },
-            { path: "/test-gallery", label: t("nav.testGallery", "Test Gallery"), icon: TestTube },
-          ]
+          { path: "/gallery/posters", label: t("assets.assetsFolders"), icon: FolderKanban },
+          { path: "/manual-assets", label: "Manual Assets", icon: FileImage, badge: manualAssetsCount, badgeColor: "green" },
+          { path: "/asset-backups", label: t("backupAssets.title") || "Backups", icon: Archive },
+          { path: "/asset-overview", label: t("nav.assetOverview"), icon: AlertTriangle, badge: missingAssetsCount, badgeColor: "red" },
+          { path: "/assets-manager", label: t("nav.assetsManager", "Assets Manager"), icon: Layers },
+          { path: "/test-gallery", label: t("nav.testGallery", "Test Gallery"), icon: TestTube },
+        ]
         : [
-            { path: "/gallery/posters", label: t("assets.posters"), icon: Image },
-            { path: "/gallery/backgrounds", label: t("assets.backgrounds"), icon: Layers },
-            { path: "/gallery/seasons", label: t("assets.seasons"), icon: Film },
-            { path: "/gallery/titlecards", label: t("assets.titleCards"), icon: Tv },
-            { path: "/manual-assets", label: "Manual Assets", icon: FileImage, badge: manualAssetsCount, badgeColor: "green" },
-            { path: "/asset-backups", label: t("backupAssets.title") || "Backups", icon: Archive },
-            { path: "/asset-overview", label: t("nav.assetOverview"), icon: AlertTriangle, badge: missingAssetsCount, badgeColor: "red" },
-            { path: "/assets-manager", label: t("nav.assetsManager", "Assets Manager"), icon: Layers },
-            { path: "/test-gallery", label: t("nav.testGallery", "Test Gallery"), icon: TestTube },
-          ],
+          { path: "/gallery/posters", label: t("assets.posters"), icon: Image },
+          { path: "/gallery/backgrounds", label: t("assets.backgrounds"), icon: Layers },
+          { path: "/gallery/seasons", label: t("assets.seasons"), icon: Film },
+          { path: "/gallery/titlecards", label: t("assets.titleCards"), icon: Tv },
+          { path: "/manual-assets", label: "Manual Assets", icon: FileImage, badge: manualAssetsCount, badgeColor: "green" },
+          { path: "/asset-backups", label: t("backupAssets.title") || "Backups", icon: Archive },
+          { path: "/asset-overview", label: t("nav.assetOverview"), icon: AlertTriangle, badge: missingAssetsCount, badgeColor: "red" },
+          { path: "/assets-manager", label: t("nav.assetsManager", "Assets Manager"), icon: Layers },
+          { path: "/test-gallery", label: t("nav.testGallery", "Test Gallery"), icon: TestTube },
+        ],
     },
     { id: "autoTriggers", path: "/auto-triggers", label: t("nav.autoTriggers"), icon: Zap },
 
@@ -169,10 +170,10 @@ const Sidebar = () => {
             <Menu className="w-5 h-5" />
           </button>
           {!isCollapsed && (
-             <div className="ml-4 flex items-center animate-in fade-in duration-300">
-               <img src="/logo.png" alt="Posterizarr Logo" className="h-10 w-auto object-contain drop-shadow-md" />
-               {/* Text span removed entirely */}
-             </div>
+            <div className="ml-4 flex items-center animate-in fade-in duration-300">
+              <img src="/logo.png" alt="Posterizarr Logo" className="h-10 w-auto object-contain drop-shadow-md" />
+              {/* Text span removed entirely */}
+            </div>
           )}
         </div>
 
@@ -207,10 +208,10 @@ const Sidebar = () => {
                       </div>
                       <div className="flex items-center gap-1 relative z-10">
                         {!isCollapsed && (
-                           <>
-                             {hoveredItem === index && <GripVertical className="w-4 h-4 text-theme-muted opacity-60 cursor-grab active:cursor-grabbing" />}
-                             {isExpanded ? <ChevronDown className="w-4 h-4 opacity-70" /> : <ChevronRight className="w-4 h-4 opacity-70" />}
-                           </>
+                          <>
+                            {hoveredItem === index && <GripVertical className="w-4 h-4 text-theme-muted opacity-60 cursor-grab active:cursor-grabbing" />}
+                            {isExpanded ? <ChevronDown className="w-4 h-4 opacity-70" /> : <ChevronRight className="w-4 h-4 opacity-70" />}
+                          </>
                         )}
                       </div>
                     </button>
@@ -222,9 +223,9 @@ const Sidebar = () => {
                           const isSubActive = location.pathname === subItem.path;
                           return (
                             <Link
-                                key={subItem.path}
-                                to={subItem.path}
-                                className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isSubActive ? activeClass : "text-theme-muted hover:bg-theme-hover hover:text-theme-text"}`}
+                              key={subItem.path}
+                              to={subItem.path}
+                              className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isSubActive ? activeClass : "text-theme-muted hover:bg-theme-hover hover:text-theme-text"}`}
                             >
                               <div className="flex items-center">
                                 <SubIcon className="w-4 h-4 flex-shrink-0" />
@@ -232,7 +233,7 @@ const Sidebar = () => {
                               </div>
                               {subItem.badge !== undefined && subItem.badge > 0 && (
                                 <span className={`${subItem.badgeColor === "green" ? "bg-green-500" : "bg-red-500"} text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[1.25rem] text-center shadow-sm`}>
-                                    {subItem.badge}
+                                  {subItem.badge}
                                 </span>
                               )}
                             </Link>
@@ -252,17 +253,17 @@ const Sidebar = () => {
                     title={isCollapsed ? item.label : ""}
                   >
                     <div className="flex items-center relative z-10">
-                        <Icon className="w-5 h-5 flex-shrink-0" />
-                        {!isCollapsed && <span className="ml-3 font-medium">{item.label}</span>}
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      {!isCollapsed && <span className="ml-3 font-medium">{item.label}</span>}
                     </div>
 
                     <div className="flex items-center gap-2 relative z-10">
-                        {!isCollapsed && hoveredItem === index && <GripVertical className="w-4 h-4 text-theme-muted opacity-60 cursor-grab active:cursor-grabbing" />}
-                        {!isCollapsed && item.badge !== undefined && item.badge > 0 && (
-                            <span className={`${item.badgeColor === "green" ? "bg-green-500" : "bg-red-500"} text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[1.25rem] text-center shadow-sm`}>
-                                {item.badge}
-                            </span>
-                        )}
+                      {!isCollapsed && hoveredItem === index && <GripVertical className="w-4 h-4 text-theme-muted opacity-60 cursor-grab active:cursor-grabbing" />}
+                      {!isCollapsed && item.badge !== undefined && item.badge > 0 && (
+                        <span className={`${item.badgeColor === "green" ? "bg-green-500" : "bg-red-500"} text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[1.25rem] text-center shadow-sm`}>
+                          {item.badge}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 </div>
@@ -273,15 +274,15 @@ const Sidebar = () => {
 
         {/* Footer Version Area - REMOVED border-t */}
         <div className="p-5 bg-theme-hover/5">
-            {!isCollapsed ? (
-                <div className="transform scale-90 origin-left">
-                     <VersionBadge />
-                </div>
-            ) : (
-                <div className="flex justify-center items-center">
-                    <VersionBadge compact={true} />
-                </div>
-            )}
+          {!isCollapsed ? (
+            <div className="transform scale-90 origin-left">
+              <VersionBadge />
+            </div>
+          ) : (
+            <div className="flex justify-center items-center">
+              <VersionBadge compact={true} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -290,7 +291,7 @@ const Sidebar = () => {
         <div className="flex items-center justify-between h-full px-4">
           <div className="flex items-center">
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-xl hover:bg-theme-hover transition-colors text-theme-text">
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <span className="ml-3 text-lg font-bold text-theme-primary tracking-tight">Posterizarr</span>
           </div>
