@@ -252,12 +252,38 @@ const QueueView = () => {
                                             </td>
                                             <td className="px-4 py-4 text-sm text-theme-muted">
                                                 <div className="flex flex-col gap-1">
-                                                    {item.overlay_params?.title_text && (
-                                                        <span className="text-theme-text opacity-90 font-medium">{item.overlay_params.title_text}</span>
+                                                    {/* Primary Text: Show Episode Title (for Title Cards) or provided Title Text */}
+                                                    <span className="text-theme-text opacity-90 font-medium">
+                                                        {item.overlay_params?.episode_title || item.overlay_params?.title_text || (
+                                                            item.overlay_params?.season_number ? `${t("queue.seasonLabel")} ${item.overlay_params.season_number}` : "-"
+                                                        )}
+                                                    </span>
+
+                                                    {/* Secondary Info: Show Name, S/E numbers */}
+                                                    {(item.overlay_params?.folder_name || item.overlay_params?.season_number) && (
+                                                        <div className="flex flex-col gap-0.5 text-xs opacity-80">
+                                                            {/* Show/Movie Name from Folder Name */}
+                                                            {item.overlay_params?.folder_name && (
+                                                                <span className="truncate max-w-[200px]" title={item.overlay_params.folder_name}>
+                                                                    {item.overlay_params.folder_name.split(' {')[0]} {/* Clean up TMDB ID if present for display */}
+                                                                </span>
+                                                            )}
+
+                                                            {/* Season/Episode Numbers */}
+                                                            {item.overlay_params?.season_number && (
+                                                                <span className="opacity-70">
+                                                                    S{String(item.overlay_params.season_number).padStart(2, '0')}
+                                                                    {item.overlay_params?.episode_number && `E${String(item.overlay_params.episode_number).padStart(2, '0')}`}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     )}
-                                                    <div className="flex gap-2 text-xs opacity-70">
+
+                                                    <div className="flex gap-2 text-xs opacity-70 mt-1">
                                                         {item.overlay_params?.process_with_overlays && (
-                                                            <span className="bg-theme-primary/10 text-theme-primary px-1.5 py-0.5 rounded border border-theme-primary/10">{t("queue.overlays")}</span>
+                                                            <span className="bg-theme-primary/10 text-theme-primary px-1.5 py-0.5 rounded border border-theme-primary/10">
+                                                                {t("queue.overlays")}
+                                                            </span>
                                                         )}
                                                         <span>{new Date(item.created_at).toLocaleString()}</span>
                                                     </div>

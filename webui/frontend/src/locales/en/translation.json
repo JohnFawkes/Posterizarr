@@ -2399,6 +2399,7 @@
     "actions": "Actions",
     "overlays": "Overlays",
     "removeFromQueue": "Remove from queue",
+    "seasonLabel": "Season",
     "howTo": {
       "title": "How Queue Works:",
       "step1": "Select 'Add to Queue' when replacing an asset.",

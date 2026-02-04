@@ -2393,6 +2393,7 @@
     "actions": "Ações",
     "overlays": "Sobreposições",
     "removeFromQueue": "Remover da fila",
+    "seasonLabel": "Season",
     "howTo": {
       "title": "Como a Fila Funciona:",
       "step1": "Selecione \"Adicionar à Fila\" ao substituir um ativo.",

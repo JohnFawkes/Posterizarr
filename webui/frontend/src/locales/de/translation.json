@@ -2449,6 +2449,7 @@
     "actions": "Aktionen",
     "overlays": "Überlagerungen",
     "removeFromQueue": "Aus Warteschlange entfernen",
+    "seasonLabel": "Season",
     "howTo": {
       "title": "So funktioniert die Warteschlange:",
       "step1": "Wählen Sie beim Ersetzen eines Assets \"Zur Warteschlange hinzufügen\".",

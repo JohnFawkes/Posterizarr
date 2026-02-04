@@ -2397,6 +2397,7 @@
     "actions": "Azioni",
     "overlays": "Sovrapposizioni",
     "removeFromQueue": "Rimuovi dalla coda",
+    "seasonLabel": "Season",
     "howTo": {
       "title": "Come Funziona la Coda:",
       "step1": "Seleziona \"Aggiungi alla Coda\" durante la sostituzione di una risorsa.",

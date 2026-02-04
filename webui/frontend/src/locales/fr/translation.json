@@ -2397,6 +2397,7 @@
     "actions": "Actions",
     "overlays": "Superpositions",
     "removeFromQueue": "Retirer de la file",
+    "seasonLabel": "Season",
     "howTo": {
       "title": "Fonctionnement de la File :",
       "step1": "Sélectionnez \"Ajouter à la File\" lors du remplacement d’une ressource.",
