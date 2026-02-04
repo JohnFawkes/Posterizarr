@@ -13023,6 +13023,216 @@ if IMAGES_DIR.exists():
     )
     logger.info(f"Mounted /images -> {IMAGES_DIR} (with 24h cache)")
 
+# ============================================
+# QUEUE SYSTEM IMPLEMENTATION
+# ============================================
+
+async def finalize_asset_replacement(
+    asset_path: str,
+    file_content: bytes,
+    process_with_overlays: bool,
+    overlay_params: dict
+):
+    """
+    Finalize the replacement process: save file, update DB, and trigger manual run.
+    Reused by both immediate endpoints and Queue Processor.
+    """
+    try:
+        # Determine target directory
+        if not process_with_overlays:
+            target_base_dir = MANUAL_ASSETS_DIR
+        else:
+            target_base_dir = ASSETS_DIR
+
+        full_asset_path = target_base_dir / asset_path
+
+        # Ensure parent directory exists
+        full_asset_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Check alternate location cleanup
+        alternate_base_dir = ASSETS_DIR if not process_with_overlays else MANUAL_ASSETS_DIR
+        alternate_asset_path = alternate_base_dir / asset_path
+        if alternate_asset_path.exists():
+            try:
+                alternate_asset_path.unlink()
+            except Exception:
+                pass
+
+        # Save file
+        with open(full_asset_path, "wb") as f:
+            f.write(file_content)
+
+        logger.info(f"Queue Processor: Saved asset to {full_asset_path}")
+
+        # Update DB (Mark as Manual)
+        try:
+            await update_asset_db_entry_as_manual(
+                asset_path,
+                "Queue Processing", # Source URL/Info
+                overlay_params.get("library_name"),
+                overlay_params.get("folder_name"),
+                overlay_params.get("title_text")
+            )
+        except Exception as e:
+            logger.warning(f"Queue Processor: DB update warning: {e}")
+
+        # Trigger Manual Run if needed
+        if process_with_overlays:
+            logger.info(f"Queue Processor: Triggering Manual Run for {asset_path}")
+
+            # Logic similar to endpoints to determine params if not provided
+            path_parts = Path(asset_path).parts
+            filename = Path(asset_path).name.lower()
+
+            final_library_name = overlay_params.get("library_name")
+            final_folder_name = overlay_params.get("folder_name")
+            final_title_text = overlay_params.get("title_text")
+
+            if len(path_parts) >= 3:
+                extracted_library_name = path_parts[0]
+                extracted_folder_name = path_parts[1]
+
+                final_library_name = final_library_name or extracted_library_name
+                final_folder_name = final_folder_name or extracted_folder_name
+
+                if not final_title_text:
+                     title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
+                     final_title_text = title_match.group(1).strip() if title_match else final_folder_name
+
+            # Determine type
+            poster_type = "standard"
+            season_poster_name = overlay_params.get("season_number", "")
+            ep_number = overlay_params.get("episode_number", "")
+            ep_title_name = overlay_params.get("episode_title", "")
+
+            if "background" in filename: poster_type = "background"
+            elif "season" in filename.lower() or season_poster_name:
+                poster_type = "season"
+                if not season_poster_name:
+                    s_match = re.search(r"(\d+)", filename)
+                    if s_match: season_poster_name = s_match.group(1)
+
+            elif ("s" in filename.lower() and "e" in filename.lower()) or (ep_number and ep_title_name):
+                poster_type = "titlecard"
+
+            manual_request = ManualModeRequest(
+                picturePath=str(full_asset_path),
+                titletext=final_title_text or "",
+                folderName=final_folder_name or "",
+                libraryName=final_library_name or "",
+                posterType=poster_type,
+                seasonPosterName=season_poster_name or "",
+                epTitleName=ep_title_name or "",
+                episodeNumber=ep_number or ""
+            )
+
+            await trigger_manual_run_internal(manual_request)
+
+            # WAIT for the process to finish!
+            # Queue execution must be sequential.
+            global current_process
+            if current_process:
+                logger.info(f"Queue Processor: Waiting for Manual Run (PID {current_process.pid}) to finish...")
+                while current_process.poll() is None:
+                    await asyncio.sleep(1)
+                logger.info("Queue Processor: Manual Run finished.")
+                current_process = None
+
+    except Exception as e:
+        logger.error(f"Queue Processor Error finalizing {asset_path}: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        raise e
+
+
+async def run_queue_processor():
+    """
+    Background task to process the queue sequentially.
+    """
+    logger.info("Starting Queue Processor")
+
+    # helper check
+    if RUNNING_FILE.exists():
+        logger.warning("Posterizarr is running. Aborting queue start.")
+        return
+
+    items = queue_manager.get_pending_items()
+    logger.info(f"Queue Processor: Found {len(items)} pending items.")
+
+    for item in items:
+        # Check running file before each item to be safe/responsive to external stops
+        if RUNNING_FILE.exists():
+             logger.warning("Queue Processor: execution paused/stopped because RUNNING_FILE appeared.")
+             break
+
+        item_id = item["id"]
+        logger.info(f"Queue Processor: Processing item #{item_id} ({item['asset_path']})")
+
+        queue_manager.update_status(item_id, "processing")
+
+        try:
+            content = b""
+            if item["source_type"] == "url":
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get(item["source_data"])
+                    if resp.status_code != 200:
+                        raise Exception(f"Failed to download URL: {resp.status_code}")
+                    content = resp.content
+            elif item["source_type"] == "upload":
+                # Staged file
+                staged_path = Path(item["source_data"])
+                if not staged_path.exists():
+                    raise Exception(f"Staged file not found: {staged_path}")
+                with open(staged_path, "rb") as f:
+                    content = f.read()
+
+            # Execute
+            await finalize_asset_replacement(
+                asset_path=item["asset_path"],
+                file_content=content,
+                process_with_overlays=item["overlay_params"].get("process_with_overlays", False),
+                overlay_params=item["overlay_params"]
+            )
+
+            queue_manager.update_status(item_id, "completed")
+
+            # Cleanup staged file if upload
+            if item["source_type"] == "upload":
+                try:
+                    Path(item["source_data"]).unlink(missing_ok=True)
+                except: pass
+
+        except Exception as e:
+            logger.error(f"Queue Processor: Failed item #{item_id}: {e}")
+            queue_manager.update_status(item_id, "failed", str(e))
+
+    logger.info("Queue Processor: Batch finished.")
+
+
+@app.get("/api/queue")
+async def get_queue():
+    items = queue_manager.get_queue()
+    return items
+
+@app.delete("/api/queue/{item_id}")
+async def delete_queue_item(item_id: int):
+    queue_manager.delete_item(item_id)
+    return {"success": True, "message": "Item deleted"}
+
+@app.post("/api/queue/clear")
+async def clear_queue():
+    queue_manager.clear_queue()
+    return {"success": True, "message": "Queue cleared"}
+
+@app.post("/api/queue/run")
+async def run_queue(background_tasks: BackgroundTasks):
+    if RUNNING_FILE.exists():
+        raise HTTPException(status_code=409, detail="Posterizarr is already running")
+
+    background_tasks.add_task(run_queue_processor)
+    return {"success": True, "message": "Queue execution started"}
+
+
 if FRONTEND_DIR.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
     logger.info(f"Mounted frontend from {FRONTEND_DIR}")
