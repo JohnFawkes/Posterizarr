@@ -13380,37 +13380,36 @@ async def finalize_asset_replacement(
                 else:
                      poster_type = "standard"
             else:
+                # Regex patterns
+                # Matches S01E01, s01e01, etc.
+                title_card_regex = r"(?i)s(\d+)e(\d+)"
+                # Matches Season 01, Season01, etc.
+                season_regex = r"(?i)season\s*?-?_?(\d+)"
 
-            # Regex patterns
-            # Matches S01E01, s01e01, etc.
-            title_card_regex = r"(?i)s(\d+)e(\d+)"
-            # Matches Season 01, Season01, etc.
-            season_regex = r"(?i)season\s*?-?_?(\d+)"
+                if "background" in filename: poster_type = "background"
 
-            if "background" in filename: poster_type = "background"
+                # Check for Title Card (Explicit params OR Regex match)
+                elif (ep_number and ep_title_name) or re.search(title_card_regex, filename):
+                    poster_type = "titlecard"
+                    # If params missing, try to extract from filename
+                    if not ep_number or not season_poster_name:
+                        tc_match = re.search(title_card_regex, filename)
+                        if tc_match:
+                            # If we extracted it, populate it if missing
+                            if not season_poster_name: season_poster_name = tc_match.group(1)
+                            if not ep_number: ep_number = tc_match.group(2)
 
-            # Check for Title Card (Explicit params OR Regex match)
-            elif (ep_number and ep_title_name) or re.search(title_card_regex, filename):
-                poster_type = "titlecard"
-                # If params missing, try to extract from filename
-                if not ep_number or not season_poster_name:
-                    tc_match = re.search(title_card_regex, filename)
-                    if tc_match:
-                        # If we extracted it, populate it if missing
-                        if not season_poster_name: season_poster_name = tc_match.group(1)
-                        if not ep_number: ep_number = tc_match.group(2)
-
-            # Check for Season Poster (Explicit params OR Regex match)
-            elif season_poster_name or "season" in filename.lower():
-                poster_type = "season"
-                if not season_poster_name:
-                    s_match = re.search(season_regex, filename)
-                    if s_match:
-                        season_poster_name = s_match.group(1)
-                    else:
-                         # Fallback for just number extraction if "season" is in name
-                         num_match = re.search(r"(\d+)", filename)
-                         if num_match: season_poster_name = num_match.group(1)
+                # Check for Season Poster (Explicit params OR Regex match)
+                elif season_poster_name or "season" in filename:
+                    poster_type = "season"
+                    if not season_poster_name:
+                        s_match = re.search(season_regex, filename)
+                        if s_match:
+                            season_poster_name = s_match.group(1)
+                        else:
+                             # Fallback for just number extraction if "season" is in name
+                             num_match = re.search(r"(\d+)", filename)
+                             if num_match: season_poster_name = num_match.group(1)
 
             manual_request = ManualModeRequest(
                 picturePath=str(full_asset_path),
