@@ -2368,5 +2368,41 @@
       "title_cards": "Cartes de titre",
       "collections": "Collections"
     }
+  },
+  "queue": {
+    "title": "File d’Attente des Ressources",
+    "description": "Gérer les remplacements de ressources en attente",
+    "refresh": "Actualiser",
+    "clearQueue": "Vider la File",
+    "runQueue": "Lancer la File",
+    "running": "Démarrage...",
+    "confirmClear": "Êtes-vous sûr de vouloir vider toute la file ?",
+    "executionStarted": "Exécution de la file démarrée",
+    "startFailed": "Échec du démarrage de la file",
+    "errorStarting": "Erreur lors du démarrage de la file",
+    "cleared": "File vidée",
+    "clearFailed": "Échec du vidage de la file",
+    "errorClearing": "Erreur lors du vidage de la file",
+    "itemRemoved": "Élément supprimé de la file",
+    "removeFailed": "Échec de la suppression de l’élément",
+    "errorRemoving": "Erreur lors de la suppression de l’élément",
+    "loading": "Chargement de la file...",
+    "emptyTitle": "La file est vide",
+    "emptyDescription": "Pour ajouter des éléments à la file, utilisez le mode \"Remplacement\" et cochez l’option \"Ajouter à la File\" avant de confirmer.",
+    "status": "Statut",
+    "type": "Type",
+    "assetType": "Type de Ressource",
+    "assetPath": "Chemin de la Ressource",
+    "details": "Détails",
+    "actions": "Actions",
+    "overlays": "Superpositions",
+    "removeFromQueue": "Retirer de la file",
+    "howTo": {
+      "title": "Fonctionnement de la File :",
+      "step1": "Sélectionnez \"Ajouter à la File\" lors du remplacement d’une ressource.",
+      "step2": "Les éléments apparaissent ici avec le statut \"En attente\".",
+      "step3": "Cliquez sur \"Lancer la File\" pour les traiter séquentiellement.",
+      "step4": "Consultez la colonne de statut pour les résultats."
+    }
   }
 }

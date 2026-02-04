@@ -19,6 +19,7 @@ const QueueView = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+    const [showHelp, setShowHelp] = useState(true); // Default to showing help
 
     const fetchQueue = async () => {
         try {
@@ -45,32 +46,32 @@ const QueueView = () => {
         try {
             const response = await fetch("/api/queue/run", { method: "POST" });
             if (response.ok) {
-                showToast("Queue execution started", "success");
+                showToast(t("queue.executionStarted"), "success");
                 fetchQueue();
             } else {
                 const data = await response.json();
-                showToast(data.detail || "Failed to start queue", "error");
+                showToast(data.detail || t("queue.startFailed"), "error");
             }
         } catch (error) {
-            showToast("Error starting queue", "error");
+            showToast(t("queue.errorStarting"), "error");
         } finally {
             setProcessing(false);
         }
     };
 
     const handleClearQueue = async () => {
-        if (!window.confirm("Are you sure you want to clear the entire queue?")) return;
+        if (!window.confirm(t("queue.confirmClear"))) return;
 
         try {
             const response = await fetch("/api/queue/clear", { method: "POST" });
             if (response.ok) {
-                showToast("Queue cleared", "success");
+                showToast(t("queue.cleared"), "success");
                 fetchQueue();
             } else {
-                showToast("Failed to clear queue", "error");
+                showToast(t("queue.clearFailed"), "error");
             }
         } catch (error) {
-            showToast("Error clearing queue", "error");
+            showToast(t("queue.errorClearing"), "error");
         }
     };
 
@@ -78,13 +79,13 @@ const QueueView = () => {
         try {
             const response = await fetch(`/api/queue/${id}`, { method: "DELETE" });
             if (response.ok) {
-                showToast("Item removed from queue", "success");
+                showToast(t("queue.itemRemoved"), "success");
                 setItems(items.filter(item => item.id !== id));
             } else {
-                showToast("Failed to remove item", "error");
+                showToast(t("queue.removeFailed"), "error");
             }
         } catch (error) {
-            showToast("Error removing item", "error");
+            showToast(t("queue.errorRemoving"), "error");
         }
     };
 
@@ -106,9 +107,9 @@ const QueueView = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-theme-primary via-purple-500 to-pink-500">
-                            Asset Queue
+                            {t("queue.title")}
                         </h1>
-                        <p className="text-theme-muted mt-1">Manage pending asset replacements</p>
+                        <p className="text-theme-muted mt-1">{t("queue.description")}</p>
                     </div>
                 </div>
 
@@ -116,7 +117,7 @@ const QueueView = () => {
                     <button
                         onClick={fetchQueue}
                         className="p-2 rounded-lg bg-theme-card border border-theme hover:bg-theme-hover transition-colors"
-                        title="Refresh"
+                        title={t("queue.refresh")}
                     >
                         <RefreshCw className="w-5 h-5 text-theme-muted" />
                     </button>
@@ -127,7 +128,7 @@ const QueueView = () => {
                         className="flex items-center px-4 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Clear Queue
+                        {t("queue.clearQueue")}
                     </button>
 
                     <button
@@ -136,36 +137,72 @@ const QueueView = () => {
                         className="flex items-center px-6 py-2 rounded-lg bg-theme-primary text-white hover:bg-theme-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-theme-primary/20 transition-all hover:scale-105 active:scale-95"
                     >
                         {processing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-                        {processing ? "Starting..." : "Run Queue"}
+                        {processing ? t("queue.running") : t("queue.runQueue")}
                     </button>
                 </div>
             </div>
+
+            {/* How-To / Help Section */}
+            {showHelp && (
+                <div className="mb-8 p-6 bg-theme-hover/30 rounded-2xl border border-theme/50 relative">
+                    <button
+                        onClick={() => setShowHelp(false)}
+                        className="absolute top-4 right-4 text-theme-muted hover:text-theme-text transition-colors"
+                    >
+                        ×
+                    </button>
+                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-theme-primary" />
+                        {t("queue.howTo.title")}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="flex flex-col gap-2">
+                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 1</span>
+                            <p className="text-sm opacity-90">{t("queue.howTo.step1")}</p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 2</span>
+                            <p className="text-sm opacity-90">{t("queue.howTo.step2")}</p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 3</span>
+                            <p className="text-sm opacity-90">{t("queue.howTo.step3")}</p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <span className="text-xs font-bold text-theme-muted uppercase tracking-wider">Step 4</span>
+                            <p className="text-sm opacity-90">{t("queue.howTo.step4")}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-theme-card rounded-2xl border border-theme shadow-xl overflow-hidden">
                 {loading ? (
                     <div className="p-12 text-center text-theme-muted">
                         <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 opacity-50" />
-                        <p>Loading queue...</p>
+                        <p>{t("queue.loading")}</p>
                     </div>
                 ) : items.length === 0 ? (
                     <div className="p-16 text-center text-theme-muted">
                         <div className="w-16 h-16 bg-theme-hover rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
                             <List className="w-8 h-8" />
                         </div>
-                        <p className="text-lg font-medium">Queue is empty</p>
-                        <p className="text-sm mt-2 opacity-70">Add items from the Manual or Replace modes</p>
+                        <p className="text-lg font-medium">{t("queue.emptyTitle")}</p>
+                        <p className="text-sm mt-2 opacity-70 max-w-md mx-auto">
+                            {t("queue.emptyDescription")}
+                        </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-theme-hover/30 border-b border-theme/50">
-                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[120px]">Status</th>
-                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[100px]">Type</th>
-                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[140px]">Asset Type</th>
-                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm">Asset Path</th>
-                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm">Details</th>
-                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm text-right w-[80px]">Actions</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[120px]">{t("queue.status")}</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[100px]">{t("queue.type")}</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm w-[140px]">{t("queue.assetType")}</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm">{t("queue.assetPath")}</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm">{t("queue.details")}</th>
+                                    <th className="px-4 py-4 font-semibold text-theme-muted text-sm text-right w-[80px]">{t("queue.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-theme/30">
@@ -220,7 +257,7 @@ const QueueView = () => {
                                                     )}
                                                     <div className="flex gap-2 text-xs opacity-70">
                                                         {item.overlay_params?.process_with_overlays && (
-                                                            <span className="bg-theme-primary/10 text-theme-primary px-1.5 py-0.5 rounded border border-theme-primary/10">Overlays</span>
+                                                            <span className="bg-theme-primary/10 text-theme-primary px-1.5 py-0.5 rounded border border-theme-primary/10">{t("queue.overlays")}</span>
                                                         )}
                                                         <span>{new Date(item.created_at).toLocaleString()}</span>
                                                     </div>
@@ -230,7 +267,7 @@ const QueueView = () => {
                                                 <button
                                                     onClick={() => handleDeleteItem(item.id)}
                                                     className="p-2 text-theme-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                    title="Remove from queue"
+                                                    title={t("queue.removeFromQueue")}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

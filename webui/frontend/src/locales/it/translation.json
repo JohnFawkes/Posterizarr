@@ -2368,5 +2368,41 @@
       "title_cards": "Schede titolo",
       "collections": "Collezioni"
     }
+  },
+  "queue": {
+    "title": "Coda Risorse",
+    "description": "Gestisci le sostituzioni di risorse in sospeso",
+    "refresh": "Aggiorna",
+    "clearQueue": "Svuota Coda",
+    "runQueue": "Esegui Coda",
+    "running": "Avvio in corso...",
+    "confirmClear": "Sei sicuro di voler svuotare l'intera coda?",
+    "executionStarted": "Esecuzione della coda avviata",
+    "startFailed": "Avvio della coda non riuscito",
+    "errorStarting": "Errore durante l'avvio della coda",
+    "cleared": "Coda svuotata",
+    "clearFailed": "Impossibile svuotare la coda",
+    "errorClearing": "Errore durante lo svuotamento della coda",
+    "itemRemoved": "Elemento rimosso dalla coda",
+    "removeFailed": "Impossibile rimuovere l'elemento",
+    "errorRemoving": "Errore durante la rimozione dell'elemento",
+    "loading": "Caricamento coda...",
+    "emptyTitle": "La coda è vuota",
+    "emptyDescription": "Per aggiungere elementi alla coda, utilizza la modalità \"Sostituzione\" e seleziona l'opzione \"Aggiungi alla Coda\" prima di confermare.",
+    "status": "Stato",
+    "type": "Tipo",
+    "assetType": "Tipo di Risorsa",
+    "assetPath": "Percorso Risorsa",
+    "details": "Dettagli",
+    "actions": "Azioni",
+    "overlays": "Sovrapposizioni",
+    "removeFromQueue": "Rimuovi dalla coda",
+    "howTo": {
+      "title": "Come Funziona la Coda:",
+      "step1": "Seleziona \"Aggiungi alla Coda\" durante la sostituzione di una risorsa.",
+      "step2": "Gli elementi appaiono qui con stato \"In sospeso\".",
+      "step3": "Clicca su \"Esegui Coda\" per elaborarli in sequenza.",
+      "step4": "Controlla la colonna dello stato per i risultati."
+    }
   }
 }

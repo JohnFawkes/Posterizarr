@@ -2420,5 +2420,41 @@
       "title_cards": "Titelkarten",
       "collections": "Sammlungen"
     }
+  },
+  "queue": {
+    "title": "Asset-Warteschlange",
+    "description": "Ausstehende Asset-Ersetzungen verwalten",
+    "refresh": "Aktualisieren",
+    "clearQueue": "Warteschlange leeren",
+    "runQueue": "Warteschlange ausführen",
+    "running": "Startet...",
+    "confirmClear": "Möchten Sie wirklich die gesamte Warteschlange leeren?",
+    "executionStarted": "Ausführung der Warteschlange gestartet",
+    "startFailed": "Start der Warteschlange fehlgeschlagen",
+    "errorStarting": "Fehler beim Starten der Warteschlange",
+    "cleared": "Warteschlange geleert",
+    "clearFailed": "Warteschlange konnte nicht geleert werden",
+    "errorClearing": "Fehler beim Leeren der Warteschlange",
+    "itemRemoved": "Element aus der Warteschlange entfernt",
+    "removeFailed": "Element konnte nicht entfernt werden",
+    "errorRemoving": "Fehler beim Entfernen des Elements",
+    "loading": "Warteschlange wird geladen...",
+    "emptyTitle": "Warteschlange ist leer",
+    "emptyDescription": "Um Elemente zur Warteschlange hinzuzufügen, verwenden Sie den Modus \"Ersetzen\" und aktivieren Sie vor der Bestätigung die Option \"Zur Warteschlange hinzufügen\".",
+    "status": "Status",
+    "type": "Typ",
+    "assetType": "Asset-Typ",
+    "assetPath": "Asset-Pfad",
+    "details": "Details",
+    "actions": "Aktionen",
+    "overlays": "Überlagerungen",
+    "removeFromQueue": "Aus Warteschlange entfernen",
+    "howTo": {
+      "title": "So funktioniert die Warteschlange:",
+      "step1": "Wählen Sie beim Ersetzen eines Assets \"Zur Warteschlange hinzufügen\".",
+      "step2": "Elemente erscheinen hier mit dem Status \"Ausstehend\".",
+      "step3": "Klicken Sie auf \"Warteschlange ausführen\", um sie nacheinander zu verarbeiten.",
+      "step4": "Überprüfen Sie die Statusspalte für die Ergebnisse."
+    }
   }
 }
