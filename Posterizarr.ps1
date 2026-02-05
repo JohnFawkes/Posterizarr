@@ -4659,7 +4659,7 @@ function InvokeMagickCommand {
         [string]$Command,
         [string]$Arguments
     )
-
+    $global:ImageMagickError = $null
     if ([string]::IsNullOrWhiteSpace($Arguments)) {
         Write-Entry -Subtext "Skipping: No arguments provided for magick command." -Path $global:configLogging -Color Cyan -log Debug
         return
@@ -4670,6 +4670,7 @@ function InvokeMagickCommand {
         )
 
         # Split the error message into lines
+        $global:ImageMagickError = $true
         $lines = $ErrorMessage -split "convert: |magick.exe: |@"
         if ($lines[1]) {
             return $lines[1]
@@ -8526,7 +8527,7 @@ if ($Manual) {
         $CommentlogEntry = "`"$magick`" $CommentArguments"
         $CommentlogEntry | Out-File $magickLog -Append
         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-        if (!$global:ImageMagickError -eq 'true') {
+        if ($global:ImageMagickError -ne 'true') {
             if ($SeasonPoster) {
                 if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
                     $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$PosterImage`""
@@ -8989,7 +8990,7 @@ if ($Manual) {
         $logEntry | Out-File $magickLog -Append
         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
     }
-    if (!$global:ImageMagickError -eq 'true') {
+    if ($global:ImageMagickError -ne 'true') {
         # Move file back to original naming with Brackets.
         Move-Item -LiteralPath $PosterImage -destination $PosterImageoriginal -Force -ErrorAction SilentlyContinue
         Write-Entry -Subtext "Poster created and moved to: $PosterImageoriginal" -Path $global:configLogging -Color Green -log Info
@@ -10238,7 +10239,7 @@ Elseif ($Tautulli) {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -10453,7 +10454,7 @@ Elseif ($Tautulli) {
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
                                             try {
@@ -10849,7 +10850,7 @@ Elseif ($Tautulli) {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -11063,7 +11064,7 @@ Elseif ($Tautulli) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
@@ -11558,7 +11559,7 @@ Elseif ($Tautulli) {
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -11771,7 +11772,7 @@ Elseif ($Tautulli) {
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
                                     if ($global:IsTruncated -ne $true) {
@@ -12179,7 +12180,7 @@ Elseif ($Tautulli) {
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -12397,7 +12398,7 @@ Elseif ($Tautulli) {
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                     if ($global:IsTruncated -ne $true) {
@@ -12923,7 +12924,7 @@ Elseif ($Tautulli) {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $AddSeasonOverlay = 'false'
@@ -13148,7 +13149,7 @@ Elseif ($Tautulli) {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
                                         if ($global:IsTruncated -ne $true) {
@@ -13627,7 +13628,7 @@ Elseif ($Tautulli) {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'true') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -13829,7 +13830,7 @@ Elseif ($Tautulli) {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
@@ -14294,7 +14295,7 @@ Elseif ($Tautulli) {
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                         $CommentlogEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                        if (!$global:ImageMagickError -eq 'true') {
+                                                        if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -14494,7 +14495,7 @@ Elseif ($Tautulli) {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
@@ -15737,7 +15738,7 @@ Elseif ($ArrTrigger) {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'True') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UsePosterResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -15947,7 +15948,7 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                             if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $PosterImage
@@ -16284,7 +16285,7 @@ Elseif ($ArrTrigger) {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'True') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UseBackgroundResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -16496,7 +16497,7 @@ Elseif ($ArrTrigger) {
                                         $logEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         # Move file back to original naming with Brackets.
                                         if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                             if ($global:IsTruncated -ne $true) {
@@ -16924,7 +16925,7 @@ Elseif ($ArrTrigger) {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -17135,7 +17136,7 @@ Elseif ($ArrTrigger) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
                                         if ($global:IsTruncated -ne $true) {
@@ -17484,7 +17485,7 @@ Elseif ($ArrTrigger) {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -17694,7 +17695,7 @@ Elseif ($ArrTrigger) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
@@ -18166,7 +18167,7 @@ Elseif ($ArrTrigger) {
                                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                 $CommentlogEntry | Out-File $magickLog -Append
                                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                if (!$global:ImageMagickError -eq 'True') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                         $AddSeasonOverlay = 'false'
@@ -18330,7 +18331,7 @@ Elseif ($ArrTrigger) {
                                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                             }
                                         }
-                                        if (!$global:ImageMagickError -eq 'True') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                                 # Move file back to original naming with Brackets.
                                                 if ($global:IsTruncated -ne $true) {
@@ -18735,7 +18736,7 @@ Elseif ($ArrTrigger) {
                                                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                                 $CommentlogEntry | Out-File $magickLog -Append
                                                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                                if (!$global:ImageMagickError -eq 'True') {
+                                                                if ($global:ImageMagickError -ne 'true') {
                                                                     if ($UseTCResolutionOverlays -eq 'true') {
                                                                         switch ($global:EPResolution) {
                                                                             '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -18889,7 +18890,7 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'True') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
                                                             if ($global:IsTruncated -ne $true) {
@@ -19280,7 +19281,7 @@ Elseif ($ArrTrigger) {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'True') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                     switch ($global:EPResolution) {
@@ -19434,7 +19435,7 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'True') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
                                                             if ($global:IsTruncated -ne $true) {
@@ -20318,7 +20319,7 @@ Elseif ($ArrTrigger) {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UsePosterResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -20532,7 +20533,7 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                             if ($global:IsTruncated -ne $true) {
                                                 try {
@@ -20928,7 +20929,7 @@ Elseif ($ArrTrigger) {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UseBackgroundResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -21141,7 +21142,7 @@ Elseif ($ArrTrigger) {
                                         $logEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         # Move file back to original naming with Brackets.
                                         if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                             if ($global:IsTruncated -ne $true) {
@@ -21636,7 +21637,7 @@ Elseif ($ArrTrigger) {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -21849,7 +21850,7 @@ Elseif ($ArrTrigger) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
                                         if ($global:IsTruncated -ne $true) {
@@ -22257,7 +22258,7 @@ Elseif ($ArrTrigger) {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -22475,7 +22476,7 @@ Elseif ($ArrTrigger) {
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
@@ -23001,7 +23002,7 @@ Elseif ($ArrTrigger) {
                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                             $CommentlogEntry | Out-File $magickLog -Append
                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                            if (!$global:ImageMagickError -eq 'true') {
+                                            if ($global:ImageMagickError -ne 'true') {
                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                     $AddSeasonOverlay = 'false'
@@ -23225,7 +23226,7 @@ Elseif ($ArrTrigger) {
                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                         }
                                     }
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             # Move file back to original naming with Brackets.
                                             if ($global:IsTruncated -ne $true) {
@@ -23704,7 +23705,7 @@ Elseif ($ArrTrigger) {
                                                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                                 $CommentlogEntry | Out-File $magickLog -Append
                                                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                                if (!$global:ImageMagickError -eq 'true') {
+                                                                if ($global:ImageMagickError -ne 'true') {
                                                                     if ($UseTCResolutionOverlays -eq 'true') {
                                                                         switch ($global:EPResolution) {
                                                                             '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -23906,7 +23907,7 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'true') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
                                                             if ($global:IsTruncated -ne $true) {
@@ -24371,7 +24372,7 @@ Elseif ($ArrTrigger) {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'true') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -24571,7 +24572,7 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'true') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
                                                             if ($global:IsTruncated -ne $true) {
@@ -26995,7 +26996,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -27206,7 +27207,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $PosterImage
@@ -27543,7 +27544,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -27755,7 +27756,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
@@ -28183,7 +28184,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -28394,7 +28395,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'True') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
                                     if ($global:IsTruncated -ne $true) {
@@ -28743,7 +28744,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -28953,7 +28954,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'True') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                     if ($global:IsTruncated -ne $true) {
@@ -29439,7 +29440,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                             $CommentlogEntry | Out-File $magickLog -Append
                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                            if (!$global:ImageMagickError -eq 'True') {
+                                            if ($global:ImageMagickError -ne 'true') {
                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                     $AddSeasonOverlay = 'false'
@@ -29603,7 +29604,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                         }
                                     }
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             # Move file back to original naming with Brackets.
                                             if ($global:IsTruncated -ne $true) {
@@ -30008,7 +30009,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'True') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -30162,7 +30163,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'True') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
@@ -30553,7 +30554,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                         $CommentlogEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                        if (!$global:ImageMagickError -eq 'True') {
+                                                        if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                 switch ($global:EPResolution) {
@@ -30707,7 +30708,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'True') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
@@ -32017,7 +32018,7 @@ else {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -32230,7 +32231,7 @@ else {
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
@@ -32693,7 +32694,7 @@ else {
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -32906,7 +32907,7 @@ else {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
@@ -33470,7 +33471,7 @@ else {
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -33683,7 +33684,7 @@ else {
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
                                     if ($global:IsTruncated -ne $true) {
@@ -34161,7 +34162,7 @@ else {
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -34374,7 +34375,7 @@ else {
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                     if ($global:IsTruncated -ne $true) {
@@ -34980,7 +34981,7 @@ else {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $AddSeasonOverlay = 'false'
@@ -35205,7 +35206,7 @@ else {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
                                         if ($global:IsTruncated -ne $true) {
@@ -35750,7 +35751,7 @@ else {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'true') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -35951,7 +35952,7 @@ else {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
@@ -36483,7 +36484,7 @@ else {
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                         $CommentlogEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                        if (!$global:ImageMagickError -eq 'true') {
+                                                        if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -36683,7 +36684,7 @@ else {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
