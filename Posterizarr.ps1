@@ -10424,7 +10424,7 @@ Elseif ($Tautulli) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -10455,7 +10455,7 @@ Elseif ($Tautulli) {
                                 # Move file back to original naming with Brackets.
                                 if (!$global:ImageMagickError -eq 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -11035,7 +11035,7 @@ Elseif ($Tautulli) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -11066,7 +11066,7 @@ Elseif ($Tautulli) {
                                 if (!$global:ImageMagickError -eq 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -11743,7 +11743,7 @@ Elseif ($Tautulli) {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -11774,7 +11774,7 @@ Elseif ($Tautulli) {
                             if (!$global:ImageMagickError -eq 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         try {
                                             Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                             $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -12364,7 +12364,7 @@ Elseif ($Tautulli) {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -12400,7 +12400,7 @@ Elseif ($Tautulli) {
                             if (!$global:ImageMagickError -eq 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         try {
                                             Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                             $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -13023,7 +13023,7 @@ Elseif ($Tautulli) {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Season Part
@@ -13057,7 +13057,7 @@ Elseif ($Tautulli) {
                                                 }
                                                 Else {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddSeasonTextStroke -eq 'true') {
@@ -13151,7 +13151,7 @@ Elseif ($Tautulli) {
                                 if (!$global:ImageMagickError -eq 'true') {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($SeasonImage)
@@ -13728,7 +13728,7 @@ Elseif ($Tautulli) {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -13751,7 +13751,7 @@ Elseif ($Tautulli) {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardTextStroke -eq 'true') {
@@ -13832,7 +13832,7 @@ Elseif ($Tautulli) {
                                                 if (!$global:ImageMagickError -eq 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             try {
                                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                 $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -14395,7 +14395,7 @@ Elseif ($Tautulli) {
                                                                 }
                                                                 $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -14417,7 +14417,7 @@ Elseif ($Tautulli) {
                                                                 $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                 $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardTextStroke -eq 'true') {
@@ -14497,7 +14497,7 @@ Elseif ($Tautulli) {
                                                 if (!$global:ImageMagickError -eq 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             try {
                                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                 $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -15920,7 +15920,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Add Stroke
                                                             if ($AddTextStroke -eq 'true') {
@@ -15949,7 +15949,7 @@ Elseif ($ArrTrigger) {
                                     # Move file back to original naming with Brackets.
                                     if (!$global:ImageMagickError -eq 'True') {
                                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $PosterImage
                                                 try {
                                                     # Attempt to move the item
@@ -16468,7 +16468,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                             # Add Stroke
@@ -16499,7 +16499,7 @@ Elseif ($ArrTrigger) {
                                     if (!$global:ImageMagickError -eq 'True') {
                                         # Move file back to original naming with Brackets.
                                         if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                                 try {
                                                     # Attempt to move the item
@@ -17108,7 +17108,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddTextStroke -eq 'true') {
@@ -17138,7 +17138,7 @@ Elseif ($ArrTrigger) {
                                 if (!$global:ImageMagickError -eq 'True') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImage
                                             try {
                                                 # Attempt to move the item
@@ -17668,7 +17668,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddBackgroundTextStroke -eq 'true') {
@@ -17697,7 +17697,7 @@ Elseif ($ArrTrigger) {
                                 if (!$global:ImageMagickError -eq 'True') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                             try {
                                                 # Attempt to move the item
@@ -18266,7 +18266,7 @@ Elseif ($ArrTrigger) {
                                                         if ($AddShowTitletoSeason -eq 'true') {
                                                             $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                             $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 # Season Part
@@ -18300,7 +18300,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         Else {
                                                             $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 # Add Stroke
                                                                 if ($AddSeasonTextStroke -eq 'true') {
@@ -18333,7 +18333,7 @@ Elseif ($ArrTrigger) {
                                         if (!$global:ImageMagickError -eq 'True') {
                                             if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                                 # Move file back to original naming with Brackets.
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImage
                                                     try {
                                                         # Attempt to move the item
@@ -18835,7 +18835,7 @@ Elseif ($ArrTrigger) {
                                                                         }
                                                                         $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                             # Add Stroke
                                                                             if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -18858,7 +18858,7 @@ Elseif ($ArrTrigger) {
                                                                         $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                         $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                             # Add Stroke
@@ -18892,7 +18892,7 @@ Elseif ($ArrTrigger) {
                                                     if (!$global:ImageMagickError -eq 'True') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                                 try {
                                                                     # Attempt to move the item
@@ -19381,7 +19381,7 @@ Elseif ($ArrTrigger) {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                         # Add Stroke
@@ -19405,7 +19405,7 @@ Elseif ($ArrTrigger) {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                         # Add Stroke
@@ -19437,7 +19437,7 @@ Elseif ($ArrTrigger) {
                                                     if (!$global:ImageMagickError -eq 'True') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                                 try {
                                                                     # Attempt to move the item
@@ -20503,7 +20503,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                             # Add Stroke
@@ -20534,7 +20534,7 @@ Elseif ($ArrTrigger) {
                                     # Move file back to original naming with Brackets.
                                     if (!$global:ImageMagickError -eq 'true') {
                                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -21113,7 +21113,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                             # Add Stroke
@@ -21144,7 +21144,7 @@ Elseif ($ArrTrigger) {
                                     if (!$global:ImageMagickError -eq 'true') {
                                         # Move file back to original naming with Brackets.
                                         if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -21821,7 +21821,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -21852,7 +21852,7 @@ Elseif ($ArrTrigger) {
                                 if (!$global:ImageMagickError -eq 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -22442,7 +22442,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -22478,7 +22478,7 @@ Elseif ($ArrTrigger) {
                                 if (!$global:ImageMagickError -eq 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -23101,7 +23101,7 @@ Elseif ($ArrTrigger) {
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Season Part
@@ -23135,7 +23135,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     Else {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Add Stroke
                                                             if ($AddSeasonTextStroke -eq 'true') {
@@ -23228,7 +23228,7 @@ Elseif ($ArrTrigger) {
                                     if (!$global:ImageMagickError -eq 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             # Move file back to original naming with Brackets.
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($SeasonImage)
@@ -23805,7 +23805,7 @@ Elseif ($ArrTrigger) {
                                                                         }
                                                                         $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                             # Add Stroke
                                                                             if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -23828,7 +23828,7 @@ Elseif ($ArrTrigger) {
                                                                         $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                         $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                             # Add Stroke
                                                                             if ($AddTitleCardTextStroke -eq 'true') {
@@ -23909,7 +23909,7 @@ Elseif ($ArrTrigger) {
                                                     if (!$global:ImageMagickError -eq 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                     $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -24472,7 +24472,7 @@ Elseif ($ArrTrigger) {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -24494,7 +24494,7 @@ Elseif ($ArrTrigger) {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardTextStroke -eq 'true') {
@@ -24574,7 +24574,7 @@ Elseif ($ArrTrigger) {
                                                     if (!$global:ImageMagickError -eq 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                     $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -27179,7 +27179,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddTextStroke -eq 'true') {
@@ -27208,7 +27208,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 # Move file back to original naming with Brackets.
                                 if (!$global:ImageMagickError -eq 'True') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $PosterImage
                                             try {
                                                 # Attempt to move the item
@@ -27727,7 +27727,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -27758,7 +27758,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 if (!$global:ImageMagickError -eq 'True') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                             try {
                                                 # Attempt to move the item
@@ -28367,7 +28367,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                     # Add Stroke
                                                     if ($AddTextStroke -eq 'true') {
@@ -28397,7 +28397,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             if (!$global:ImageMagickError -eq 'True') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImage
                                         try {
                                             # Attempt to move the item
@@ -28927,7 +28927,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                     # Add Stroke
                                                     if ($AddBackgroundTextStroke -eq 'true') {
@@ -28956,7 +28956,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             if (!$global:ImageMagickError -eq 'True') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                         try {
                                             # Attempt to move the item
@@ -29539,7 +29539,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Season Part
@@ -29573,7 +29573,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     }
                                                     Else {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Add Stroke
                                                             if ($AddSeasonTextStroke -eq 'true') {
@@ -29606,7 +29606,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     if (!$global:ImageMagickError -eq 'True') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             # Move file back to original naming with Brackets.
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImage
                                                 try {
                                                     # Attempt to move the item
@@ -30108,7 +30108,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -30131,7 +30131,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                         # Add Stroke
@@ -30165,7 +30165,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if (!$global:ImageMagickError -eq 'True') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                             try {
                                                                 # Attempt to move the item
@@ -30654,7 +30654,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 }
                                                                 $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                     # Add Stroke
@@ -30678,7 +30678,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                 $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                     # Add Stroke
@@ -30710,7 +30710,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if (!$global:ImageMagickError -eq 'True') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                             try {
                                                                 # Attempt to move the item
@@ -32201,7 +32201,7 @@ else {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -32232,7 +32232,7 @@ else {
                                 # Move file back to original naming with Brackets.
                                 if (!$global:ImageMagickError -eq 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -32878,7 +32878,7 @@ else {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -32909,7 +32909,7 @@ else {
                                 if (!$global:ImageMagickError -eq 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -33655,7 +33655,7 @@ else {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -33686,7 +33686,7 @@ else {
                             if (!$global:ImageMagickError -eq 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         if ($Upload2Plex -eq 'true') {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -34346,7 +34346,7 @@ else {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -34377,7 +34377,7 @@ else {
                             if (!$global:ImageMagickError -eq 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         if ($Upload2Plex -eq 'true') {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -35080,7 +35080,7 @@ else {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Season Part
@@ -35114,7 +35114,7 @@ else {
                                                 }
                                                 Else {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddSeasonTextStroke -eq 'true') {
@@ -35208,7 +35208,7 @@ else {
                                 if (!$global:ImageMagickError -eq 'true') {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -35851,7 +35851,7 @@ else {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -35873,7 +35873,7 @@ else {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardTextStroke -eq 'true') {
@@ -35954,7 +35954,7 @@ else {
                                                 if (!$global:ImageMagickError -eq 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -36583,7 +36583,7 @@ else {
                                                                 }
                                                                 $joinedTitlePointSize = $global:EPTitle -replace '""', '""""' -replace '`', ''
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -36606,7 +36606,7 @@ else {
                                                                 $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                 $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardTextStroke -eq 'true') {
@@ -36686,7 +36686,7 @@ else {
                                                 if (!$global:ImageMagickError -eq 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
