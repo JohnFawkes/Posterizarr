@@ -13157,12 +13157,18 @@ async def finalize_asset_replacement(
             # WAIT for the process to finish!
             # Queue execution must be sequential.
             global current_process
-            if current_process:
-                logger.info(f"Queue Processor: Waiting for Manual Run (PID {current_process.pid}) to finish...")
-                while current_process.poll() is None:
-                    await asyncio.sleep(1)
-                logger.info("Queue Processor: Manual Run finished.")
-                current_process = None
+            if current_process is not None:
+                try:
+                    logger.info(f"Queue Processor: Waiting for Manual Run (PID {current_process.pid}) to finish...")
+                    while current_process.poll() is None:
+                        await asyncio.sleep(1)
+                    logger.info("Queue Processor: Manual Run finished.")
+                except Exception as e:
+                    logger.error(f"Queue Processor: Error while polling process: {e}")
+                finally:
+                    current_process = None # Always clear it so the next item starts fresh
+            else:
+                logger.warning("Queue Processor: Manual Run process was not captured or finished instantly.")
 
     except Exception as e:
         logger.error(f"Queue Processor Error finalizing {asset_path}: {e}")
