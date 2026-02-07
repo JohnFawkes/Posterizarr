@@ -28,6 +28,25 @@ const QueueView = () => {
     const [processing, setProcessing] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [currentPage, setCurrentPage] = useState(1);
+    const [isPosterizarrRunning, setIsPosterizarrRunning] = useState(false);
+
+    useEffect(() => {
+        const checkStatus = async () => {
+            try {
+                const response = await fetch("/api/status");
+                if (response.ok) {
+                    const data = await response.json();
+                    setIsPosterizarrRunning(data.running || false);
+                }
+            } catch (error) {
+                console.error("Error checking status:", error);
+            }
+        };
+
+        checkStatus();
+        const interval = setInterval(checkStatus, 3000); // Poll every 3 seconds
+        return () => clearInterval(interval);
+    }, []);
 
     // Confirm Dialog State
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -302,6 +321,7 @@ const QueueView = () => {
                         onClick={handleRunQueue}
                         disabled={
                             processing ||
+                            isPosterizarrRunning ||
                             items.length === 0 ||
                             (selectedItems.size === 0 && items.every(i => i.status === 'completed')) ||
                             (selectedItems.size > 0 && Array.from(selectedItems).some(id => items.find(i => i.id === id)?.status === 'completed'))
