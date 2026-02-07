@@ -1127,7 +1127,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       return;
     }
 
-    if (isPosterizarrRunning) {
+    if (isPosterizarrRunning && !addToQueue) {
       showError(t("assetReplacer.posterizarrRunningError"));
       return;
     }
@@ -1250,7 +1250,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       return;
     }
 
-    if (isPosterizarrRunning) {
+    if (isPosterizarrRunning && !addToQueue) {
       showError(t("assetReplacer.posterizarrRunningError"));
       return;
     }
