@@ -7024,16 +7024,18 @@ async def run_manual_mode_upload(
 
             # Schedule cleanup after process completes (in background)
             async def cleanup_upload():
-                """Cleanup uploaded file after process completes"""
+                # Capture local reference immediately
+                proc = current_process 
+                if proc is None:
+                    return
+
                 try:
-                    # Wait for process to complete
-                    while current_process.poll() is None:
+                    # Poll the local reference 'proc' instead of the global 'current_process'
+                    while proc.poll() is None:
                         await asyncio.sleep(1)
 
-                    # Wait a bit more to ensure file operations are complete
                     await asyncio.sleep(5)
 
-                    # Delete the uploaded file
                     if upload_path.exists():
                         upload_path.unlink()
                         logger.info(f"Cleaned up uploaded file: {upload_path}")
@@ -13137,9 +13139,9 @@ async def finalize_asset_replacement(
                     if s_match:
                         season_poster_name = s_match.group(1)
                     else:
-                         # Fallback for just number extraction if "season" is in name
-                         num_match = re.search(r"(\d+)", filename)
-                         if num_match: season_poster_name = num_match.group(1)
+                        # Fallback for just number extraction if "season" is in name
+                        num_match = re.search(r"(\d+)", filename)
+                        if num_match: season_poster_name = num_match.group(1)
 
             manual_request = ManualModeRequest(
                 picturePath=str(full_asset_path),
@@ -13155,18 +13157,21 @@ async def finalize_asset_replacement(
             await trigger_manual_run_internal(manual_request)
 
             # WAIT for the process to finish!
-            # Queue execution must be sequential.
             global current_process
-            if current_process is not None:
+            proc = current_process 
+            
+            if proc is not None:
                 try:
-                    logger.info(f"Queue Processor: Waiting for Manual Run (PID {current_process.pid}) to finish...")
-                    while current_process.poll() is None:
+                    logger.info(f"Queue Processor: Waiting for Manual Run (PID {proc.pid}) to finish...")
+                    while proc.poll() is None:
                         await asyncio.sleep(1)
+                        
                     logger.info("Queue Processor: Manual Run finished.")
                 except Exception as e:
                     logger.error(f"Queue Processor: Error while polling process: {e}")
                 finally:
-                    current_process = None # Always clear it so the next item starts fresh
+                    if current_process == proc:
+                        current_process = None 
             else:
                 logger.warning("Queue Processor: Manual Run process was not captured or finished instantly.")
 
@@ -13440,12 +13445,19 @@ async def finalize_asset_replacement(
             # WAIT for the process to finish!
             # Queue execution must be sequential.
             global current_process
-            if current_process:
-                logger.info(f"Queue Processor: Waiting for Manual Run (PID {current_process.pid}) to finish...")
-                while current_process.poll() is None:
-                    await asyncio.sleep(1)
-                logger.info("Queue Processor: Manual Run finished.")
-                current_process = None
+            proc = current_process 
+            if proc is not None:
+                try:
+                    logger.info(f"Queue Processor: Waiting for Manual Run (PID {proc.pid}) to finish...")
+                    while proc.poll() is None:
+                        await asyncio.sleep(1)
+                    logger.info("Queue Processor: Manual Run finished.")
+                except Exception as e:
+                    logger.error(f"Queue Processor: Error while polling process: {e}")
+                finally:
+                    # Only clear the global if it's still pointing to our process
+                    if current_process == proc:
+                        current_process = None
 
     except Exception as e:
         logger.error(f"Queue Processor Error finalizing {asset_path}: {e}")
