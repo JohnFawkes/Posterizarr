@@ -60,12 +60,22 @@ const QueueView = () => {
         }
     };
 
+    const prevProcessingRef = React.useRef(false);
+
     useEffect(() => {
         fetchQueue();
-        const interval = setInterval(fetchQueue, 5000);
+        const interval = setInterval(() => {
+            fetchQueue();
+            
+            if (prevProcessingRef.current === true && processing === false) {
+                // The queue just finished! Trigger the refresh once.
+                window.dispatchEvent(new Event("assetReplaced"));
+            }
+            prevProcessingRef.current = processing;
+        }, 5000);
         return () => clearInterval(interval);
-    }, []);
-
+    }, [processing]);
+    
     const handleRunQueue = async () => {
         setProcessing(true);
         try {

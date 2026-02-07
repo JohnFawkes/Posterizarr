@@ -712,14 +712,16 @@ const AssetOverview = () => {
   };
 
   // Handle successful replacement
-  const handleReplaceSuccess = async () => {
+  const handleReplaceSuccess = async (shouldRefresh = true) => {
     try {
       const response = await fetch(`/api/imagechoices/${selectedAsset.id}`, {
         method: "DELETE",
       });
       if (response.ok) {
-        await fetchData();
-        window.dispatchEvent(new Event("assetReplaced"));
+        if (shouldRefresh) {
+          await fetchData();
+          window.dispatchEvent(new Event("assetReplaced"));
+        }
       } else {
         console.error("Failed to delete DB entry:", response.status, await response.text());
       }

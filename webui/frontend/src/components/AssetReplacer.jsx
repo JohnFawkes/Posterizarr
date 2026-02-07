@@ -1219,18 +1219,18 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       if (data.success) {
         if (data.manual_run_triggered) {
           showSuccess(t("assetReplacer.replacedAndQueued"));
-          window.dispatchEvent(new Event("assetReplaced"));
-          if (onSuccess) {
-            await onSuccess();
+          if (!addToQueue) {
+            window.dispatchEvent(new Event("assetReplaced"));
           }
+          if (onSuccess) await onSuccess(!addToQueue);
           onClose();
         } else {
           showSuccess(t("assetReplacer.replacedSuccessfully"));
-          window.dispatchEvent(new Event("assetReplaced"));
+          if (!addToQueue) {
+            window.dispatchEvent(new Event("assetReplaced"));
+          }
           setTimeout(async () => {
-            if (onSuccess) {
-              await onSuccess();
-            }
+            if (onSuccess) await onSuccess(!addToQueue);
             onClose();
           }, 2000);
         }
@@ -1407,14 +1407,18 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       if (data.success) {
         if (data.manual_run_triggered) {
           showSuccess(t("assetReplacer.replacedAndQueued"));
-          window.dispatchEvent(new Event("assetReplaced"));
-          if (onSuccess) await onSuccess();
+          if (!addToQueue) {
+            window.dispatchEvent(new Event("assetReplaced"));
+          }
+          if (onSuccess) await onSuccess(!addToQueue);
           onClose();
         } else {
           showSuccess(t("assetReplacer.replacedSuccessfully"));
-          window.dispatchEvent(new Event("assetReplaced"));
+          if (!addToQueue) {
+            window.dispatchEvent(new Event("assetReplaced"));
+          }
           setTimeout(async () => {
-            if (onSuccess) await onSuccess();
+            if (onSuccess) await onSuccess(!addToQueue);
             onClose();
           }, 2000);
         }
