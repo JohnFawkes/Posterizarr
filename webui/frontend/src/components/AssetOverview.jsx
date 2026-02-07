@@ -1515,7 +1515,7 @@ const AssetOverview = () => {
     // -------------------------------------------------------
     if (asset.TextTruncated === true || asset.TextTruncated === "true") {
       tags.push({
-        label: t("assetOverview.truncated"), // "Truncated"
+        label: t("runtimeStats.truncated"), // "Truncated"
         color: "bg-red-500/20 text-red-400 border-red-500/30",
       });
     }

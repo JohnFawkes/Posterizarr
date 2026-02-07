@@ -8407,6 +8407,7 @@ if ($Manual) {
         $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$FolderName.jpg"
     }
     $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
+    $global:IsTruncated = $null
     if ($global:ImageProcessing -eq 'true') {
         if ($SeasonPoster) {
             $Posteroverlay = $Seasonoverlay
@@ -10233,6 +10234,7 @@ Elseif ($Tautulli) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -10844,6 +10846,7 @@ Elseif ($Tautulli) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -11553,6 +11556,7 @@ Elseif ($Tautulli) {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -12174,6 +12178,7 @@ Elseif ($Tautulli) {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -12858,6 +12863,7 @@ Elseif ($Tautulli) {
 
                             }
                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     if ($TakeLocal) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -13555,6 +13561,7 @@ Elseif ($Tautulli) {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal -or $global:TempImagecopied -eq 'true') {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -14241,6 +14248,7 @@ Elseif ($Tautulli) {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -15732,6 +15740,7 @@ Elseif ($ArrTrigger) {
 
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -16279,6 +16288,7 @@ Elseif ($ArrTrigger) {
 
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -16919,6 +16929,7 @@ Elseif ($ArrTrigger) {
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -17479,6 +17490,7 @@ Elseif ($ArrTrigger) {
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -18161,6 +18173,7 @@ Elseif ($ArrTrigger) {
 
                                             }
                                         }
+                                        $global:IsTruncated = $null
                                         if ($global:ImageProcessing -eq 'true') {
                                             if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                                 $CommentArguments = "`"$SeasonImage`" -set `"comment`" `"created with posterizarr`" `"$SeasonImage`""
@@ -18722,6 +18735,7 @@ Elseif ($ArrTrigger) {
                                                             }
                                                         }
                                                     }
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         $global:TempImagecopied = $true
                                                         # Check temp image
@@ -19275,6 +19289,7 @@ Elseif ($ArrTrigger) {
 
                                                         }
                                                     }
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             $CommentArguments = "`"$EpisodeImage`" -set `"comment`" `"created with posterizarr`" `"$EpisodeImage`""
@@ -20313,6 +20328,7 @@ Elseif ($ArrTrigger) {
                                             $global:IsFallback = $true
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -20923,6 +20939,7 @@ Elseif ($ArrTrigger) {
                                             $global:IsFallback = $true
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -21631,6 +21648,7 @@ Elseif ($ArrTrigger) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -22252,6 +22270,7 @@ Elseif ($ArrTrigger) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -22936,6 +22955,7 @@ Elseif ($ArrTrigger) {
 
                                 }
                                 if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         if ($TakeLocal) {
                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -23632,6 +23652,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                 }
                                                 if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal -or $global:TempImagecopied -eq 'true') {
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         if ($TakeLocal) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -24318,6 +24339,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                 }
                                                 if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         if ($TakeLocal) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -26990,6 +27012,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -27538,6 +27561,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -28178,6 +28202,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -28738,6 +28763,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -29434,6 +29460,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             $CommentArguments = "`"$SeasonImage`" -set `"comment`" `"created with posterizarr`" `"$SeasonImage`""
@@ -29995,6 +30022,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         }
                                                     }
                                                 }
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     $global:TempImagecopied = $true
                                                     # Check temp image
@@ -30548,6 +30576,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                                     }
                                                 }
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         $CommentArguments = "`"$EpisodeImage`" -set `"comment`" `"created with posterizarr`" `"$EpisodeImage`""
@@ -32012,6 +32041,7 @@ else {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -32688,6 +32718,7 @@ else {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -33465,6 +33496,7 @@ else {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
@@ -34156,6 +34188,7 @@ else {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
@@ -34915,6 +34948,7 @@ else {
 
                             }
                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     if ($TakeLocal) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -35679,6 +35713,7 @@ else {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal -or $global:TempImagecopied -eq 'true') {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -36430,6 +36465,7 @@ else {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
