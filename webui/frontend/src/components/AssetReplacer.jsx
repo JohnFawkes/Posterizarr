@@ -1924,9 +1924,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                   <div className="mt-4">
                     <button
                       onClick={handleUploadClick}
-                      disabled={
-                        !isDimensionValid || uploading || isPosterizarrRunning
-                      }
+                      disabled={!isDimensionValid || uploading || (isPosterizarrRunning && !addToQueue)}
                       className={`w-full px-4 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${isDimensionValid && !uploading && !isPosterizarrRunning
                         ? "bg-theme-primary hover:bg-theme-primary/90 text-white"
                         : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
@@ -2044,7 +2042,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                             key={`tmdb-${index}`}
                             preview={preview}
                             onSelect={() => handlePreviewClick(preview)}
-                            disabled={uploading || isPosterizarrRunning}
+                            disabled={uploading || (isPosterizarrRunning && !addToQueue)}
                             isHorizontal={useHorizontalLayout}
                           />
                         ))}
@@ -2057,7 +2055,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                             key={`tvdb-${index}`}
                             preview={preview}
                             onSelect={() => handlePreviewClick(preview)}
-                            disabled={uploading || isPosterizarrRunning}
+                            disabled={uploading || (isPosterizarrRunning && !addToQueue)}
                             isHorizontal={useHorizontalLayout}
                           />
                         ))}
@@ -2070,7 +2068,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                             key={`fanart-${index}`}
                             preview={preview}
                             onSelect={() => handlePreviewClick(preview)}
-                            disabled={uploading || isPosterizarrRunning}
+                            disabled={uploading || (isPosterizarrRunning && !addToQueue)}
                             isHorizontal={useHorizontalLayout}
                           />
                         ))}
