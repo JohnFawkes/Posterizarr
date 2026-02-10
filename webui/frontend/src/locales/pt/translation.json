@@ -1597,7 +1597,9 @@
     "confirmFetchTitle": "Confirmar busca de opções de substituição",
     "confirmFetchMessage": "Isso buscará opções de substituição no TMDB, TVDB e Fanart.tv. Continuar?",
     "confirmFetchButton": "Buscar substituições",
-    "titleText": "Texto do título"
+    "addToQueue": "Adicionar à fila",
+    "queueDescriptionOn": "O processo será enfileirado",
+    "queueDescriptionOff": "O processo iniciará imediatamente"
   },
   "assetOverview": {
     "title": "Central de Ações",

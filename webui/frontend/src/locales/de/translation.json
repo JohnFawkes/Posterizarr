@@ -1649,7 +1649,10 @@
     "confirmReplaceButton": "Asset ersetzen",
     "confirmFetchTitle": "Abrufen von Ersetzungsoptionen bestätigen",
     "confirmFetchMessage": "Dies wird TMDB, TVDB und Fanart.tv nach Ersetzungsoptionen durchsuchen. Fortfahren?",
-    "confirmFetchButton": "Ersetzungen abrufen"
+    "confirmFetchButton": "Ersetzungen abrufen",
+    "addToQueue": "Zur Warteschlange hinzufügen",
+    "queueDescriptionOn": "Prozess wird eingereiht",
+    "queueDescriptionOff": "Prozess startet sofort"
   },
   "assetOverview": {
     "title": "Aktionszentrum",

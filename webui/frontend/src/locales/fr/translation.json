@@ -1597,7 +1597,10 @@
     "confirmFetchTitle": "Confirmer la récupération des options de remplacement",
     "confirmFetchMessage": "Cela recherchera des options de remplacement sur TMDB, TVDB et Fanart.tv. Continuer ?",
     "confirmFetchButton": "Récupérer les remplacements",
-    "titleText": "Texte du titre"
+    "titleText": "Texte du titre",
+    "addToQueue": "Ajouter à la file d'attente",
+    "queueDescriptionOn": "Le processus sera mis en file d'attente",
+    "queueDescriptionOff": "Le processus démarrera immédiatement"
   },
   "assetOverview": {
     "title": "Centre d'actions",

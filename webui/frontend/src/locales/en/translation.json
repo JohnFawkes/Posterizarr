@@ -1605,7 +1605,9 @@
     "confirmFetchTitle": "Confirm Fetch Replacement Options",
     "confirmFetchMessage": "This will search TMDB, TVDB, and Fanart.tv for replacement options. Continue?",
     "confirmFetchButton": "Fetch Replacements",
-    "titleText": "Title Text"
+    "addToQueue": "Add to Queue",
+    "queueDescriptionOn": "Process will be queued",
+    "queueDescriptionOff": "Process will start immediately"
   },
   "assetOverview": {
     "title": "Action Center",
