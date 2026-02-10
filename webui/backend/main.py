@@ -2116,6 +2116,7 @@ class ManualModeRequest(BaseModel):
     seasonPosterName: str = ""
     epTitleName: str = ""
     episodeNumber: str = ""
+    add_to_queue: bool = False
 
 
 class UILogEntry(BaseModel):
@@ -6501,6 +6502,48 @@ async def run_manual_mode(request: ManualModeRequest):
     """Run manual mode with custom parameters"""
     global current_process, current_mode, current_start_time
 
+    # QUEUE HANDLING
+    if request.add_to_queue:
+        logger.info(f"Queuing manual run (PicturePath: {request.picturePath})")
+
+        # Determine source type
+        source_type = "url"
+        # if not http/https, assume local path
+        if not request.picturePath.lower().startswith("http"):
+            source_type = "local_path"
+
+        # Construct parameters for queue
+        overlay_params = {
+            "library_name": request.libraryName,
+            "folder_name": request.folderName,
+            "title_text": request.titletext,
+            "poster_type": request.posterType,
+            "season_number": request.seasonPosterName if request.posterType == "season" else None,
+            "episode_number": request.episodeNumber if request.posterType == "titlecard" else None,
+            "episode_title": request.epTitleName if request.posterType == "titlecard" else None,
+            "process_with_overlays": True,
+            "asset_type": request.posterType,
+        }
+
+        # Construct a reference asset path
+        filename = Path(request.picturePath).name
+        # Sanitize filename
+        import re
+        filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        asset_path = f"{request.libraryName}/{request.folderName}/{filename}"
+
+        try:
+            queue_manager.add_item(
+                asset_path=asset_path,
+                source_type=source_type,
+                source_data=request.picturePath,
+                overlay_params=overlay_params
+            )
+            return {"success": True, "message": "Manual run added to queue"}
+        except Exception as e:
+            logger.error(f"Failed to add to queue: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to queue: {str(e)}")
+
     with process_lock:
         # Debug logging
         logger.info(f"Manual mode request received: {request.model_dump()}")
@@ -6710,207 +6753,236 @@ async def run_manual_mode_upload(
     seasonPosterName: str = Form(""),
     epTitleName: str = Form(""),
     episodeNumber: str = Form(""),
+    add_to_queue: bool = Form(False),
 ):
     """Run manual mode with uploaded file"""
     global current_process, current_mode, current_start_time
 
-    with process_lock:
-        logger.info(f"Manual mode upload request received")
-        logger.info(f"  File: {file.filename if file else 'None'}")
-        logger.info(f"  File content type: {file.content_type if file else 'None'}")
-        logger.info(f"  Poster Type: {posterType}")
-        logger.info(f"  Title Text: '{titletext}'")
-        logger.info(f"  Folder Name: '{folderName}'")
-        logger.info(f"  Library Name: '{libraryName}'")
-        logger.info(f"  Season Poster Name: '{seasonPosterName}'")
-        logger.info(f"  Episode Title Name: '{epTitleName}'")
-        logger.info(f"  Episode Number: '{episodeNumber}'")
+    # Validate file upload
+    if not file:
+        error_msg = "No file uploaded"
+        logger.error(f"Manual upload validation failed: {error_msg}")
+        raise HTTPException(status_code=400, detail=error_msg)
 
-        # Check if already running
-        if current_process and current_process.poll() is None:
-            error_msg = "Script is already running. Please stop the script first."
-            logger.error(f"Manual upload rejected: {error_msg}")
+    # Validate file type
+    allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff"]
+    file_extension = Path(file.filename).suffix.lower()
+    if file_extension not in allowed_extensions:
+        error_msg = f"Invalid file type '{file_extension}'. Allowed: {', '.join(allowed_extensions)}"
+        logger.error(f"Manual upload validation failed: {error_msg}")
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    # Validate required fields
+    if not folderName.strip():
+        error_msg = "Folder name is required"
+        logger.error(f"Manual upload validation failed: {error_msg} (posterType: {posterType})")
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    if not libraryName.strip():
+        error_msg = "Library name is required"
+        logger.error(f"Manual upload validation failed: {error_msg}")
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    if posterType == "season" and not seasonPosterName.strip():
+        error_msg = "Season poster name is required for season posters"
+        logger.error(f"Manual upload validation failed: {error_msg}")
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    if posterType == "titlecard":
+        if not epTitleName.strip():
+            error_msg = "Episode title name is required for title cards"
+            logger.error(f"Manual upload validation failed: {error_msg}")
             raise HTTPException(status_code=400, detail=error_msg)
-
-        if not SCRIPT_PATH.exists():
-            error_msg = "Posterizarr.ps1 not found"
-            logger.error(f"Manual upload failed: {error_msg}")
-            raise HTTPException(status_code=404, detail=error_msg)
-
-        # Validate file upload
-        if not file:
-            error_msg = "No file uploaded"
+        if not episodeNumber.strip():
+            error_msg = "Episode number is required for title cards"
+            logger.error(f"Manual upload validation failed: {error_msg}")
+            raise HTTPException(status_code=400, detail=error_msg)
+        if not seasonPosterName.strip():
+            error_msg = "Season name is required for title cards"
             logger.error(f"Manual upload validation failed: {error_msg}")
             raise HTTPException(status_code=400, detail=error_msg)
 
-        # Validate file type
-        allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff"]
-        file_extension = Path(file.filename).suffix.lower()
-        if file_extension not in allowed_extensions:
-            error_msg = f"Invalid file type '{file_extension}'. Allowed: {', '.join(allowed_extensions)}"
-            logger.error(f"Manual upload validation failed: {error_msg}")
-            raise HTTPException(status_code=400, detail=error_msg)
+    try:
+        # Create uploads directory if it doesn't exist with permission check
+        try:
+            UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+            # Verify write permissions
+            test_file = UPLOADS_DIR / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+        except PermissionError as e:
+            logger.error(f"No write permission for uploads directory: {UPLOADS_DIR}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"No write permission for uploads directory. This may be a Docker/NAS permission issue. Please check folder permissions.",
+            )
+        except Exception as e:
+            logger.error(f"Error creating uploads directory: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Cannot create uploads directory: {str(e)}",
+            )
 
-        # Validate required fields
-        if not folderName.strip():
-            error_msg = "Folder name is required"
-            logger.error(f"Manual upload validation failed: {error_msg} (posterType: {posterType})")
-            raise HTTPException(status_code=400, detail=error_msg)
+        # Generate unique filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Sanitize filename to prevent path traversal and special characters
+        safe_name = "".join(
+            c for c in file.filename if c.isalnum() or c in "._- "
+        ).strip()
+        if not safe_name:
+            safe_name = "upload.jpg"
+        safe_filename = f"{timestamp}_{safe_name}"
+        upload_path = UPLOADS_DIR / safe_filename
 
-        if not libraryName.strip():
-            error_msg = "Library name is required"
-            logger.error(f"Manual upload validation failed: {error_msg}")
-            raise HTTPException(status_code=400, detail=error_msg)
-
-        if posterType == "season" and not seasonPosterName.strip():
-            error_msg = "Season poster name is required for season posters"
-            logger.error(f"Manual upload validation failed: {error_msg}")
-            raise HTTPException(status_code=400, detail=error_msg)
-
-        if posterType == "titlecard":
-            if not epTitleName.strip():
-                error_msg = "Episode title name is required for title cards"
-                logger.error(f"Manual upload validation failed: {error_msg}")
-                raise HTTPException(status_code=400, detail=error_msg)
-            if not episodeNumber.strip():
-                error_msg = "Episode number is required for title cards"
-                logger.error(f"Manual upload validation failed: {error_msg}")
-                raise HTTPException(status_code=400, detail=error_msg)
-            if not seasonPosterName.strip():
-                error_msg = "Season name is required for title cards"
-                logger.error(f"Manual upload validation failed: {error_msg}")
-                raise HTTPException(status_code=400, detail=error_msg)
+        # Save uploaded file to uploads directory
+        logger.info(f"Saving uploaded file to: {upload_path}")
+        logger.info(f"Upload directory: {UPLOADS_DIR.resolve()}")
+        logger.info(f"Is Docker: {IS_DOCKER}")
 
         try:
-            # Create uploads directory if it doesn't exist with permission check
+            content = await file.read()
+            if len(content) == 0:
+                raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+            # Validate image aspect ratio
             try:
-                UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-                # Verify write permissions
-                test_file = UPLOADS_DIR / ".write_test"
-                test_file.touch()
-                test_file.unlink()
-            except PermissionError as e:
-                logger.error(f"No write permission for uploads directory: {UPLOADS_DIR}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"No write permission for uploads directory. This may be a Docker/NAS permission issue. Please check folder permissions.",
-                )
-            except Exception as e:
-                logger.error(f"Error creating uploads directory: {e}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Cannot create uploads directory: {str(e)}",
-                )
+                from PIL import Image
+                import io
 
-            # Generate unique filename with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # Sanitize filename to prevent path traversal and special characters
-            safe_name = "".join(
-                c for c in file.filename if c.isalnum() or c in "._- "
-            ).strip()
-            if not safe_name:
-                safe_name = "upload.jpg"
-            safe_filename = f"{timestamp}_{safe_name}"
-            upload_path = UPLOADS_DIR / safe_filename
+                # Open image from bytes
+                img = Image.open(io.BytesIO(content))
+                width, height = img.size
+                logger.info(f"Manual upload image dimensions: {width}x{height} pixels")
 
-            # Save uploaded file to uploads directory
-            logger.info(f"Saving uploaded file to: {upload_path}")
-            logger.info(f"Upload directory: {UPLOADS_DIR.resolve()}")
-            logger.info(f"Is Docker: {IS_DOCKER}")
+                # Define target ratios and tolerance
+                POSTER_RATIO = 2 / 3  # 0.666...
+                BACKGROUND_RATIO = 16 / 9  # 1.777...
+                # Tolerance allows for minor pixel deviations
+                TOLERANCE = 0.05
 
-            try:
-                content = await file.read()
-                if len(content) == 0:
-                    raise HTTPException(status_code=400, detail="Uploaded file is empty")
+                # Check for zero height
+                if height == 0:
+                    error_msg = "Image height cannot be zero."
+                    logger.error(error_msg)
+                    raise HTTPException(status_code=400, detail=error_msg)
 
-                # Validate image aspect ratio
-                try:
-                    from PIL import Image
-                    import io
+                image_ratio = width / height
+                logger.info(f"Image ratio calculated as: {image_ratio}")
 
-                    # Open image from bytes
-                    img = Image.open(io.BytesIO(content))
-                    width, height = img.size
-                    logger.info(f"Manual upload image dimensions: {width}x{height} pixels")
-
-                    # Define target ratios and tolerance
-                    POSTER_RATIO = 2 / 3  # 0.666...
-                    BACKGROUND_RATIO = 16 / 9  # 1.777...
-                    # Tolerance allows for minor pixel deviations
-                    TOLERANCE = 0.05
-
-                    # Check for zero height
-                    if height == 0:
-                        error_msg = "Image height cannot be zero."
+                # Check aspect ratio based on poster type
+                if posterType in ["standard", "season", "collection"]:
+                    # Check for 2:3 ratio
+                    if abs(image_ratio - POSTER_RATIO) > TOLERANCE:
+                        error_msg = (
+                            f"Invalid aspect ratio for poster. Image is {width}x{height} "
+                            f"(ratio ~{image_ratio:.2f}), but must be 2:3 "
+                            f"(ratio ~{POSTER_RATIO:.2f})."
+                        )
                         logger.error(error_msg)
                         raise HTTPException(status_code=400, detail=error_msg)
+                    logger.info("Image aspect ratio validated as 2:3.")
 
-                    image_ratio = width / height
-                    logger.info(f"Image ratio calculated as: {image_ratio}")
+                elif posterType in ["background", "titlecard"]:
+                    # Check for 16:9 ratio
+                    if abs(image_ratio - BACKGROUND_RATIO) > TOLERANCE:
+                        error_msg = (
+                            f"Invalid aspect ratio for background/title card. Image is {width}x{height} "
+                            f"(ratio ~{image_ratio:.2f}), but must be 16:9 "
+                            f"(ratio ~{BACKGROUND_RATIO:.2f})."
+                        )
+                        logger.error(error_msg)
+                        raise HTTPException(status_code=400, detail=error_msg)
+                    logger.info("Image aspect ratio validated as 16:9.")
 
-                    # Check aspect ratio based on poster type
-                    if posterType in ["standard", "season", "collection"]:
-                        # Check for 2:3 ratio
-                        if abs(image_ratio - POSTER_RATIO) > TOLERANCE:
-                            error_msg = (
-                                f"Invalid aspect ratio for poster. Image is {width}x{height} "
-                                f"(ratio ~{image_ratio:.2f}), but must be 2:3 "
-                                f"(ratio ~{POSTER_RATIO:.2f})."
-                            )
-                            logger.error(error_msg)
-                            raise HTTPException(status_code=400, detail=error_msg)
-                        logger.info("Image aspect ratio validated as 2:3.")
-
-                    elif posterType in ["background", "titlecard"]:
-                        # Check for 16:9 ratio
-                        if abs(image_ratio - BACKGROUND_RATIO) > TOLERANCE:
-                            error_msg = (
-                                f"Invalid aspect ratio for background/title card. Image is {width}x{height} "
-                                f"(ratio ~{image_ratio:.2f}), but must be 16:9 "
-                                f"(ratio ~{BACKGROUND_RATIO:.2f})."
-                            )
-                            logger.error(error_msg)
-                            raise HTTPException(status_code=400, detail=error_msg)
-                        logger.info("Image aspect ratio validated as 16:9.")
-
-                except HTTPException:
-                    # Re-raise HTTP exceptions (ratio validation failures)
-                    raise
-                except Exception as e:
-                    logger.warning(
-                        f"Could not validate image dimensions for manual upload: {e}"
-                    )
-                    # Don't fail upload if dimension check itself fails
-
-                with open(upload_path, "wb") as buffer:
-                    buffer.write(content)
-
-                # Verify file was written
-                if not upload_path.exists():
-                    raise HTTPException(
-                        status_code=500, detail="File was not saved successfully"
-                    )
-
-                actual_size = upload_path.stat().st_size
-                if actual_size != len(content):
-                    logger.warning(
-                        f"File size mismatch: expected {len(content)}, got {actual_size}"
-                    )
-
-            except PermissionError as e:
-                logger.error(f"Permission denied writing file: {e}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Permission denied: Unable to write uploaded file. Check Docker/NAS/Unraid volume permissions.",
+            except HTTPException:
+                # Re-raise HTTP exceptions (ratio validation failures)
+                raise
+            except Exception as e:
+                logger.warning(
+                    f"Could not validate image dimensions for manual upload: {e}"
                 )
-            except OSError as e:
-                logger.error(f"OS error writing file: {e}")
+                # Don't fail upload if dimension check itself fails
+
+            with open(upload_path, "wb") as buffer:
+                buffer.write(content)
+
+            # Verify file was written
+            if not upload_path.exists():
                 raise HTTPException(
-                    status_code=500,
-                    detail=f"File system error: {str(e)}. This may be a Docker volume mount issue.",
+                    status_code=500, detail="File was not saved successfully"
                 )
 
-            logger.info(f"File saved successfully: {upload_path} ({len(content)} bytes)")
+            actual_size = upload_path.stat().st_size
+            if actual_size != len(content):
+                logger.warning(
+                    f"File size mismatch: expected {len(content)}, got {actual_size}"
+                )
+
+        except PermissionError as e:
+            logger.error(f"Permission denied writing file: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Permission denied: Unable to write uploaded file. Check Docker/NAS/Unraid volume permissions.",
+            )
+        except OSError as e:
+            logger.error(f"OS error writing file: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"File system error: {str(e)}. This may be a Docker volume mount issue.",
+            )
+
+        logger.info(f"File saved successfully: {upload_path} ({len(content)} bytes)")
+
+        # QUEUE HANDLING
+        if add_to_queue:
+            logger.info("Queuing manual upload")
+
+            # Construct parameters for queue
+            overlay_params = {
+                "library_name": libraryName,
+                "folder_name": folderName,
+                "title_text": titletext,
+                "poster_type": posterType,
+                "season_number": seasonPosterName if posterType == "season" else None,
+                "episode_number": episodeNumber if posterType == "titlecard" else None,
+                "episode_title": epTitleName if posterType == "titlecard" else None,
+                "process_with_overlays": True,
+                "asset_type": posterType,
+            }
+
+            # Construct a reference asset path
+            filename = Path(file.filename).name
+            import re
+            filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+            asset_path = f"{libraryName}/{folderName}/{filename}"
+
+            try:
+                queue_manager.add_item(
+                    asset_path=asset_path,
+                    source_type="upload",
+                    source_data=str(upload_path), # Path to the file we just saved
+                    overlay_params=overlay_params
+                )
+                return {
+                     "success": True,
+                     "message": "Manual run queued",
+                     "upload_path": str(upload_path)
+                }
+            except Exception as e:
+                logger.error(f"Failed to add to queue: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to queue: {str(e)}")
+
+
+        with process_lock:
+             # Check if already running
+            if current_process and current_process.poll() is None:
+                error_msg = "Script is already running. Please stop the script first."
+                logger.error(f"Manual upload rejected: {error_msg}")
+                # Clean up upload if we can't run
+                try:
+                    upload_path.unlink()
+                except: pass
+                raise HTTPException(status_code=400, detail=error_msg)
 
             # Determine PowerShell command
             import platform
@@ -7025,7 +7097,7 @@ async def run_manual_mode_upload(
             # Schedule cleanup after process completes (in background)
             async def cleanup_upload():
                 # Capture local reference immediately
-                proc = current_process 
+                proc = current_process
                 if proc is None:
                     return
 
@@ -7059,19 +7131,19 @@ async def run_manual_mode_upload(
                 "pid": current_process.pid,
                 "upload_path": str(upload_path),
             }
-        except HTTPException:
-            # Re-raise HTTPExceptions as they are already properly formatted
-            raise
-        except FileNotFoundError as e:
-            error_msg = f"PowerShell not found. Please install PowerShell 7+ (pwsh) or ensure Windows PowerShell is in PATH."
-            logger.error(f"Manual upload failed: {error_msg}")
-            logger.error(f"Exception details: {e}")
-            raise HTTPException(status_code=500, detail=error_msg)
-        except Exception as e:
-            error_msg = f"Error running manual mode with uploaded file: {str(e)}"
-            logger.error(error_msg)
-            logger.exception("Full traceback:")
-            raise HTTPException(status_code=500, detail=str(e))
+    except HTTPException:
+        # Re-raise HTTPExceptions as they are already properly formatted
+        raise
+    except FileNotFoundError as e:
+        error_msg = f"PowerShell not found. Please install PowerShell 7+ (pwsh) or ensure Windows PowerShell is in PATH."
+        logger.error(f"Manual upload failed: {error_msg}")
+        logger.error(f"Exception details: {e}")
+        raise HTTPException(status_code=500, detail=error_msg)
+    except Exception as e:
+        error_msg = f"Error running manual mode with uploaded file: {str(e)}"
+        logger.error(error_msg)
+        logger.exception("Full traceback:")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================
@@ -10902,7 +10974,7 @@ async def upload_asset_replacement(
         if len(contents) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty")
 
-        # --- QUEUE LOGIC ---
+        # QUEUE LOGIC
         if add_to_queue:
             try:
                 # Ensure staging directory exists
@@ -10952,8 +11024,6 @@ async def upload_asset_replacement(
             except Exception as e:
                 logger.error(f"Error adding to queue: {e}")
                 raise HTTPException(status_code=500, detail=f"Failed to add to queue: {str(e)}")
-
-        # --- IMMEDIATE EXECUTION LOGIC (Existing) ---
 
         # Validate and sanitize asset path
         try:
@@ -11453,7 +11523,7 @@ async def replace_asset_from_url(
                 detail="Cannot replace assets while Posterizarr is running. Please wait or use 'Add to Queue'.",
             )
 
-        # --- QUEUE LOGIC ---
+        # QUEUE LOGIC
         if add_to_queue:
             try:
                 # Prepare overlay parameters
@@ -11489,8 +11559,6 @@ async def replace_asset_from_url(
             except Exception as e:
                 logger.error(f"Error adding to queue: {e}")
                 raise HTTPException(status_code=500, detail=f"Failed to add to queue: {str(e)}")
-
-        # --- IMMEDIATE EXECUTION LOGIC (Existing) ---
 
         # Validate asset path exists
         # Determine target directory based on process_with_overlays flag
@@ -13158,20 +13226,20 @@ async def finalize_asset_replacement(
 
             # WAIT for the process to finish!
             global current_process
-            proc = current_process 
-            
+            proc = current_process
+
             if proc is not None:
                 try:
                     logger.info(f"Queue Processor: Waiting for Manual Run (PID {proc.pid}) to finish...")
                     while proc.poll() is None:
                         await asyncio.sleep(1)
-                        
+
                     logger.info("Queue Processor: Manual Run finished.")
                 except Exception as e:
                     logger.error(f"Queue Processor: Error while polling process: {e}")
                 finally:
                     if current_process == proc:
-                        current_process = None 
+                        current_process = None
             else:
                 logger.warning("Queue Processor: Manual Run process was not captured or finished instantly.")
 
@@ -13445,7 +13513,7 @@ async def finalize_asset_replacement(
             # WAIT for the process to finish!
             # Queue execution must be sequential.
             global current_process
-            proc = current_process 
+            proc = current_process
             if proc is not None:
                 try:
                     logger.info(f"Queue Processor: Waiting for Manual Run (PID {proc.pid}) to finish...")
