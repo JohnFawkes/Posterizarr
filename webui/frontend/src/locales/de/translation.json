@@ -189,7 +189,7 @@
       "step3Title": "Intelligente Synchronisation",
       "step3Text": "Synchronisiert nur Artworks, wenn die Hashes nicht übereinstimmen, was Zeit und Bandbreite spart.",
       "tip": "Tipp: Dies ist praktisch, wenn du die Synchronisation nach einem Kometa-Durchlauf ausführen möchtest, damit du Kometa-überlappte Bilder in Jellyfin hast.",
-      "important": "Wichtig: Stelle sicher, dass sowohl UseJellyfin als auch UsePlex in deiner config.json auf true gesetzt sind und dass die Bibliotheksnamen genau übereinstimmen.",
+      "important": "Wichtig: Stellen Sie sicher, dass 'UsePlex' auf true gesetzt ist und die Jellyfin-API-Daten validiert sind.",
       "cancel": "Abbrechen",
       "start": "Jellyfin Sync starten"
     },
@@ -205,7 +205,7 @@
       "step3Title": "Intelligente Synchronisation",
       "step3Text": "Synchronisiert nur Artworks, wenn die Hashes nicht übereinstimmen, was Zeit und Bandbreite spart.",
       "tip": "Tipp: Dies ist praktisch, wenn du die Synchronisation nach einem Kometa-Durchlauf ausführen möchtest, damit du Kometa-überlappte Bilder in Emby hast.",
-      "important": "Wichtig: Stelle sicher, dass sowohl UseEmby als auch UsePlex in deiner config.json auf true gesetzt sind und dass die Bibliotheksnamen genau übereinstimmen.",
+      "important": "Wichtig: Stellen Sie sicher, dass 'UsePlex' auf true gesetzt ist und die Emby-API-Daten validiert sind.",
       "cancel": "Abbrechen",
       "start": "Emby Sync starten"
     },

@@ -189,7 +189,7 @@
       "step3Title": "Sincronização inteligente",
       "step3Text": "Sincroniza apenas as artes se os hashes não corresponderem, economizando tempo e largura de banda.",
       "tip": "Dica: isso é útil se você deseja executar a sincronização após uma execução do Kometa, para ter imagens sobrepostas do Kometa no Jellyfin.",
-      "important": "Importante: certifique-se de que UseJellyfin e UsePlex estejam definidos como true em seu config.json e que os nomes das bibliotecas correspondam exatamente.",
+      "important": "Importante: Verifique se 'UsePlex' está como true e se os dados da API do Jellyfin estão validados.",
       "cancel": "Cancelar",
       "start": "Iniciar sincronização do Jellyfin"
     },
@@ -205,7 +205,7 @@
       "step3Title": "Sincronização inteligente",
       "step3Text": "Sincroniza apenas as artes se os hashes não corresponderem, economizando tempo e largura de banda.",
       "tip": "Dica: isso é útil se você deseja executar a sincronização após uma execução do Kometa, para ter imagens sobrepostas do Kometa no Emby.",
-      "important": "Importante: certifique-se de que UseEmby e UsePlex estejam definidos como true em seu config.json e que os nomes das bibliotecas correspondam exatamente.",
+      "important": "Importante: Verifique se 'UsePlex' está como true e se os dados da API do Emby estão validados.",
       "cancel": "Cancelar",
       "start": "Iniciar sincronização do Emby"
     },

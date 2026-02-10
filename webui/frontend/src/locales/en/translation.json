@@ -189,7 +189,7 @@
       "step3Title": "Smart Sync",
       "step3Text": "Only syncs artwork if the hashes don't match, saving time and bandwidth.",
       "tip": "Tip: This is handy if you want to run the sync after a Kometa run, so you have Kometa overlayed images in Jellyfin.",
-      "important": "Important: Make sure both UseJellyfin and UsePlex are set to true in your config.json, and that library names match exactly.",
+      "important": "Important: Ensure 'UsePlex' is set to true and your Jellyfin API details are fully validated.",
       "cancel": "Cancel",
       "start": "Start Jellyfin Sync"
     },
@@ -205,7 +205,7 @@
       "step3Title": "Smart Sync",
       "step3Text": "Only syncs artwork if the hashes don't match, saving time and bandwidth.",
       "tip": "Tip: This is handy if you want to run the sync after a Kometa run, so you have Kometa overlayed images in Emby.",
-      "important": "Important: Make sure both UseEmby and UsePlex are set to true in your config.json, and that library names match exactly.",
+      "important": "Important: Ensure 'UsePlex' is set to true and your Emby API details are fully validated.",
       "cancel": "Cancel",
       "start": "Start Emby Sync"
     },
