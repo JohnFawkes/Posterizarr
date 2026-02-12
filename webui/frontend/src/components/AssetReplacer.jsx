@@ -42,8 +42,6 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
   const [imageDimensions, setImageDimensions] = useState(null); // Store {width, height}
   const [isDimensionValid, setIsDimensionValid] = useState(false); // Track if dimensions are valid
   const [activeProviderTab, setActiveProviderTab] = useState("tmdb"); // Provider tabs: tmdb, tvdb, fanart
-  const [pastedUrl, setPastedUrl] = useState(""); // URL input state
-  const [isUrlValid, setIsUrlValid] = useState(false); // URL validation state
 
   // Logo selection mode
   const [logoSelectionMode, setLogoSelectionMode] = useState(false);
@@ -1123,90 +1121,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     reader.readAsDataURL(file);
   };
 
-  const handleUrlPreview = async () => {
-    if (!pastedUrl) return;
-
-    // Basic URL validation
-    try {
-      new URL(pastedUrl);
-    } catch (_) {
-      showError(t("assetReplacer.invalidUrl", "Invalid URL format"));
-      return;
-    }
-
-    setLoading(true);
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-
-    // Use proxy for preview to avoid CORS
-    const proxyUrl = `${API_URL}/proxy?url=${encodeURIComponent(pastedUrl)}`;
-
-    img.onload = () => {
-      const width = img.width;
-      const height = img.height;
-      setImageDimensions({ width, height });
-      // Use proxy URL for display
-      setUploadedImage(proxyUrl);
-      setUploadedFile(null); // Clear file if URL is used
-      setLoading(false);
-      setIsUrlValid(true);
-
-      const POSTER_RATIO = 2 / 3;
-      const BACKGROUND_RATIO = 16 / 9;
-      const TOLERANCE = 0.05;
-
-      if (height === 0) {
-        setIsDimensionValid(false);
-        showError(t("assetReplacer.imageHeightZero", "Image height cannot be zero."));
-        return;
-      }
-
-      const imageRatio = width / height;
-      let isValid = false;
-      let expectedRatio = 0;
-      let expectedRatioString = "";
-
-      if (
-        metadata.asset_type === "poster" ||
-        metadata.asset_type === "season"
-      ) {
-        expectedRatio = POSTER_RATIO;
-        expectedRatioString = "2:3";
-        isValid = Math.abs(imageRatio - POSTER_RATIO) <= TOLERANCE;
-      } else {
-        expectedRatio = BACKGROUND_RATIO;
-        expectedRatioString = "16:9";
-        isValid = Math.abs(imageRatio - BACKGROUND_RATIO) <= TOLERANCE;
-      }
-
-      setIsDimensionValid(isValid);
-
-      if (!isValid) {
-        showError(
-          t("assetReplacer.invalidImageRatio", {
-            width,
-            height,
-            ratio: imageRatio.toFixed(3),
-            expectedRatioString: expectedRatioString,
-            expectedRatio: expectedRatio.toFixed(3),
-          })
-        );
-      } else {
-        showSuccess(t("assetReplacer.imageDimensionsValid", { width, height }));
-      }
-    };
-
-    img.onerror = () => {
-      setLoading(false);
-      setIsUrlValid(false);
-      showError(t("assetReplacer.errorLoadingImage", "Failed to load image from URL"));
-    };
-
-    img.src = proxyUrl;
-  };
-
   const handleUploadClick = () => {
-    if ((!uploadedFile && !pastedUrl) || !isDimensionValid) {
+    if (!uploadedFile || !isDimensionValid) {
       showError(t("assetReplacer.selectValidImage"));
       return;
     }
@@ -1287,54 +1203,12 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       }
 
       const formData = new FormData();
-      let response;
+      formData.append("file", uploadedFile);
 
-      if (uploadedFile) {
-        formData.append("file", uploadedFile);
-        response = await fetch(url, {
-          method: "POST",
-          body: formData,
-        });
-      } else if (pastedUrl) {
-        // Use replace-from-url endpoint logic but constructed here or redirect
-        // Actually, we should probably just use the replace-from-url endpoint we already have
-        // But that endpoint expects 'image_url' param, not 'file' upload
-        // Let's adjust the URL/endpoint based on source
-
-        let urlParams = `asset_path=${encodeURIComponent(
-          asset.path
-        )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(
-          metadata.asset_type
-        )}`;
-
-        // Add overlay params
-        if (processWithOverlays) {
-          const titleText = manualForm?.titletext || metadata.title;
-          const folderName = manualForm?.foldername || metadata.folder_name;
-          const libraryName = manualForm?.libraryname || metadata.library_name;
-
-          urlParams += `&title_text=${encodeURIComponent(titleText)}`;
-          urlParams += `&folder_name=${encodeURIComponent(folderName)}`;
-          urlParams += `&library_name=${encodeURIComponent(libraryName)}`;
-
-          if (metadata.asset_type === "season") {
-            urlParams += `&season_number=${encodeURIComponent(manualForm?.seasonPosterName)}`;
-          }
-          if (metadata.asset_type === "titlecard") {
-            urlParams += `&episode_number=${encodeURIComponent(manualForm?.episodeNumber)}`;
-            urlParams += `&episode_title=${encodeURIComponent(manualForm?.episodeTitleName)}`;
-            urlParams += `&season_number=${encodeURIComponent(manualForm?.seasonPosterName)}`;
-
-          }
-        }
-
-        const replaceUrl = `${API_URL}/assets/replace-from-url?${urlParams}&image_url=${encodeURIComponent(pastedUrl)}`;
-
-        response = await fetch(replaceUrl, {
-          method: "POST"
-        });
-
-      }
+      const response = await fetch(url, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
@@ -1987,32 +1861,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
               </div>
 
               {/* Upload Section */}
-              <div className="bg-theme-card border border-theme rounded-lg p-4 sm:p-6 space-y-6">
-
-                {/* URL Input Section */}
-                <div className="space-y-3">
-                  <h3 className="text-base sm:text-lg font-semibold text-theme-text">
-                    {t("assetReplacer.pasteImageUrl", "Paste Image URL")}
-                  </h3>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={pastedUrl}
-                      onChange={(e) => setPastedUrl(e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                      className="flex-1 px-3 py-2 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary"
-                    />
-                    <button
-                      onClick={handleUrlPreview}
-                      disabled={loading || !pastedUrl}
-                      className="px-4 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg text-theme-text transition-colors disabled:opacity-50"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("assetReplacer.preview", "Preview")}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 border-t border-theme pt-6">
+              <div className="bg-theme-card border border-theme rounded-lg p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                   <div className="flex-1 w-full">
                     <h3 className="text-base sm:text-lg font-semibold text-theme-text mb-3">
                       {t("assetReplacer.uploadYourOwnImage")}
@@ -2083,9 +1933,9 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       <Upload className="w-4 h-4" />
                       {uploading
                         ? t("assetReplacer.uploadingAsset")
-                        : isPosterizarrRunning && !addToQueue
+                        : isPosterizarrRunning
                           ? "Upload Disabled (Running)"
-                          : uploadedFile ? t("assetReplacer.uploadAssetButton") : t("assetReplacer.replaceAsset", "Replace from URL")}
+                          : t("assetReplacer.uploadAssetButton")}
                     </button>
                   </div>
                 )}
