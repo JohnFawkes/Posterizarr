@@ -43,7 +43,7 @@ import shutil
 import sqlite3
 import bcrypt
 import secrets
-from starlette.responses import FileResponse, Response
+from starlette.responses import FileResponse, Response, JSONResponse
 from PIL import Image, ImageDraw, ImageChops
 from io import BytesIO
 from base64 import b64encode
@@ -13640,24 +13640,49 @@ async def run_queue(background_tasks: BackgroundTasks, request: Optional[RunQueu
     return {"success": True, "message": "Queue execution started"}
 
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
-
-
 @app.get("/api/proxy")
 async def proxy_image(url: str = Query(...)):
     """
     Proxy an image URL to avoid CORS issues.
     """
+    logger.info(f"Proxy request for URL: {url}")
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, follow_redirects=True)
-            resp.raise_for_status()
+        if not url:
+            logger.warning("Proxy request missing URL")
+            return JSONResponse(status_code=400, content={"error": "URL is required"})
+
+        from urllib.parse import urlparse
+        parsed_url = urlparse(url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Referer": base_url,
+        }
+
+        async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=30.0) as client:
+            logger.debug(f"Fetching upstream URL: {url}")
+            resp = await client.get(url, headers=headers)
+
+            if resp.is_error:
+                logger.error(f"Proxy upstream error for {url}: {resp.status_code} - {resp.text[:200]}")
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": f"Upstream error: {resp.status_code}", "detail": str(resp.content[:200])}
+                )
 
             content_type = resp.headers.get("Content-Type", "image/jpeg")
+            logger.info(f"Proxy success for {url}, Content-Type: {content_type}, Size: {len(resp.content)} bytes")
             return Response(content=resp.content, media_type=content_type)
+
     except Exception as e:
-        logger.error(f"Proxy error for {url}: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        import traceback
+        error_details = traceback.format_exc()
+        logger.error(f"Proxy exception for {url}: {e}\n{error_details}")
+        return JSONResponse(status_code=500, content={"error": str(e), "traceback": error_details})
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
