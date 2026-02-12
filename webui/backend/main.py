@@ -43,7 +43,7 @@ import shutil
 import sqlite3
 import bcrypt
 import secrets
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 from PIL import Image, ImageDraw, ImageChops
 from io import BytesIO
 from base64 import b64encode
@@ -13644,3 +13644,20 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+
+
+@app.get("/api/proxy")
+async def proxy_image(url: str = Query(...)):
+    """
+    Proxy an image URL to avoid CORS issues.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, follow_redirects=True)
+            resp.raise_for_status()
+
+            content_type = resp.headers.get("Content-Type", "image/jpeg")
+            return Response(content=resp.content, media_type=content_type)
+    except Exception as e:
+        logger.error(f"Proxy error for {url}: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
