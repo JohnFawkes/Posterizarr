@@ -1138,11 +1138,15 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     const img = new Image();
     img.crossOrigin = "Anonymous";
 
+    // Use proxy for preview to avoid CORS
+    const proxyUrl = `${API_URL}/proxy?url=${encodeURIComponent(pastedUrl)}`;
+
     img.onload = () => {
       const width = img.width;
       const height = img.height;
       setImageDimensions({ width, height });
-      setUploadedImage(pastedUrl);
+      // Use proxy URL for display
+      setUploadedImage(proxyUrl);
       setUploadedFile(null); // Clear file if URL is used
       setLoading(false);
       setIsUrlValid(true);
@@ -1198,7 +1202,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       showError(t("assetReplacer.errorLoadingImage", "Failed to load image from URL"));
     };
 
-    img.src = pastedUrl;
+    img.src = proxyUrl;
   };
 
   const handleUploadClick = () => {
