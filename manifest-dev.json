@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Posterizarr (Dev)",
+    "guid": "f62d8560-6123-4567-89ab-cdef12345678",
+    "description": "Middleware for asset lookup. Maps local assets to library items.",
+    "overview": "A custom plugin for Posterizarr that acts as a local asset proxy for Jellyfin.",
+    "owner": "Posterizarr",
+    "category": "Metadata",
+    "versions": [
+      {
+        "version": "99.0.0212.1129",
+        "changelog": "Dev build: 2026-02-12 11:29",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0212.1129.zip",
+        "checksum": "DF3160A65AC2F0A82A7AB9E2CC216DD4"
+      }
+    ]
+  }
+]

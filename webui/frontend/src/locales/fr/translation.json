@@ -189,7 +189,7 @@
       "step3Title": "Synchronisation intelligente",
       "step3Text": "Ne synchronise les illustrations que si les hashes ne correspondent pas, économisant du temps et de la bande passante.",
       "tip": "Astuce : Ceci est pratique si vous voulez lancer la synchronisation après une exécution de Kometa, pour avoir les images avec superposition de Kometa dans Jellyfin.",
-      "important": "Important : Assurez-vous que UseJellyfin et UsePlex sont tous deux définis sur vrai dans votre config.json, et que les noms de bibliothèque correspondent exactement.",
+      "important": "Important : Assurez-vous que 'UsePlex' est sur true et que les identifiants API Jellyfin sont validés.",
       "cancel": "Annuler",
       "start": "Démarrer la synchronisation Jellyfin"
     },
@@ -205,7 +205,7 @@
       "step3Title": "Synchronisation intelligente",
       "step3Text": "Ne synchronise les illustrations que si les hashes ne correspondent pas, économisant du temps et de la bande passante.",
       "tip": "Astuce : Ceci est pratique si vous voulez lancer la synchronisation après une exécution de Kometa, pour avoir les images avec superposition de Kometa dans Emby.",
-      "important": "Important : Assurez-vous que UseEmby et UsePlex sont tous deux définis sur vrai dans votre config.json, et que les noms de bibliothèque correspondent exactement.",
+      "important": "Important : Assurez-vous que 'UsePlex' est sur true et que les identifiants API Emby sont validés.",
       "cancel": "Annuler",
       "start": "Démarrer la synchronisation Emby"
     },
@@ -1597,7 +1597,10 @@
     "confirmFetchTitle": "Confirmer la récupération des options de remplacement",
     "confirmFetchMessage": "Cela recherchera des options de remplacement sur TMDB, TVDB et Fanart.tv. Continuer ?",
     "confirmFetchButton": "Récupérer les remplacements",
-    "titleText": "Texte du titre"
+    "titleText": "Texte du titre",
+    "addToQueue": "Ajouter à la file d'attente",
+    "queueDescriptionOn": "Le processus sera mis en file d'attente",
+    "queueDescriptionOff": "Le processus démarrera immédiatement"
   },
   "assetOverview": {
     "title": "Centre d'actions",
@@ -2367,6 +2370,43 @@
       "seasons": "Saisons",
       "title_cards": "Cartes de titre",
       "collections": "Collections"
+    }
+  },
+  "queue": {
+    "title": "File d’Attente des Ressources",
+    "description": "Gérer les remplacements de ressources en attente",
+    "refresh": "Actualiser",
+    "clearQueue": "Vider la File",
+    "runQueue": "Lancer la File",
+    "running": "Démarrage...",
+    "confirmClear": "Êtes-vous sûr de vouloir vider toute la file ?",
+    "executionStarted": "Exécution de la file démarrée",
+    "startFailed": "Échec du démarrage de la file",
+    "errorStarting": "Erreur lors du démarrage de la file",
+    "cleared": "File vidée",
+    "clearFailed": "Échec du vidage de la file",
+    "errorClearing": "Erreur lors du vidage de la file",
+    "itemRemoved": "Élément supprimé de la file",
+    "removeFailed": "Échec de la suppression de l’élément",
+    "errorRemoving": "Erreur lors de la suppression de l’élément",
+    "loading": "Chargement de la file...",
+    "emptyTitle": "La file est vide",
+    "emptyDescription": "Pour ajouter des éléments à la file, utilisez le mode \"Remplacement\" et cochez l’option \"Ajouter à la File\" avant de confirmer.",
+    "status": "Statut",
+    "type": "Type",
+    "assetType": "Type de Ressource",
+    "assetPath": "Chemin de la Ressource",
+    "details": "Détails",
+    "actions": "Actions",
+    "overlays": "Superpositions",
+    "removeFromQueue": "Retirer de la file",
+    "seasonLabel": "Season",
+    "howTo": {
+      "title": "Fonctionnement de la File :",
+      "step1": "Sélectionnez \"Ajouter à la File\" lors du remplacement d’une ressource.",
+      "step2": "Les éléments apparaissent ici avec le statut \"En attente\".",
+      "step3": "Cliquez sur \"Lancer la File\" pour les traiter séquentiellement.",
+      "step4": "Consultez la colonne de statut pour les résultats."
     }
   }
 }

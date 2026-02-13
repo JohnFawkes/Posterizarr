@@ -712,14 +712,16 @@ const AssetOverview = () => {
   };
 
   // Handle successful replacement
-  const handleReplaceSuccess = async () => {
+  const handleReplaceSuccess = async (shouldRefresh = true) => {
     try {
       const response = await fetch(`/api/imagechoices/${selectedAsset.id}`, {
         method: "DELETE",
       });
       if (response.ok) {
-        await fetchData();
-        window.dispatchEvent(new Event("assetReplaced"));
+        if (shouldRefresh) {
+          await fetchData();
+          window.dispatchEvent(new Event("assetReplaced"));
+        }
       } else {
         console.error("Failed to delete DB entry:", response.status, await response.text());
       }
@@ -1515,7 +1517,7 @@ const AssetOverview = () => {
     // -------------------------------------------------------
     if (asset.TextTruncated === true || asset.TextTruncated === "true") {
       tags.push({
-        label: t("assetOverview.truncated"), // "Truncated"
+        label: t("runtimeStats.truncated"), // "Truncated"
         color: "bg-red-500/20 text-red-400 border-red-500/30",
       });
     }

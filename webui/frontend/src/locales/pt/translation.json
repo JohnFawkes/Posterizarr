@@ -189,7 +189,7 @@
       "step3Title": "Sincronização inteligente",
       "step3Text": "Sincroniza apenas as artes se os hashes não corresponderem, economizando tempo e largura de banda.",
       "tip": "Dica: isso é útil se você deseja executar a sincronização após uma execução do Kometa, para ter imagens sobrepostas do Kometa no Jellyfin.",
-      "important": "Importante: certifique-se de que UseJellyfin e UsePlex estejam definidos como true em seu config.json e que os nomes das bibliotecas correspondam exatamente.",
+      "important": "Importante: Verifique se 'UsePlex' está como true e se os dados da API do Jellyfin estão validados.",
       "cancel": "Cancelar",
       "start": "Iniciar sincronização do Jellyfin"
     },
@@ -205,7 +205,7 @@
       "step3Title": "Sincronização inteligente",
       "step3Text": "Sincroniza apenas as artes se os hashes não corresponderem, economizando tempo e largura de banda.",
       "tip": "Dica: isso é útil se você deseja executar a sincronização após uma execução do Kometa, para ter imagens sobrepostas do Kometa no Emby.",
-      "important": "Importante: certifique-se de que UseEmby e UsePlex estejam definidos como true em seu config.json e que os nomes das bibliotecas correspondam exatamente.",
+      "important": "Importante: Verifique se 'UsePlex' está como true e se os dados da API do Emby estão validados.",
       "cancel": "Cancelar",
       "start": "Iniciar sincronização do Emby"
     },
@@ -1597,7 +1597,9 @@
     "confirmFetchTitle": "Confirmar busca de opções de substituição",
     "confirmFetchMessage": "Isso buscará opções de substituição no TMDB, TVDB e Fanart.tv. Continuar?",
     "confirmFetchButton": "Buscar substituições",
-    "titleText": "Texto do título"
+    "addToQueue": "Adicionar à fila",
+    "queueDescriptionOn": "O processo será enfileirado",
+    "queueDescriptionOff": "O processo iniciará imediatamente"
   },
   "assetOverview": {
     "title": "Central de Ações",
@@ -2363,6 +2365,43 @@
       "seasons": "Temporadas",
       "title_cards": "Cartões de título",
       "collections": "Coleções"
+    }
+  },
+  "queue": {
+    "title": "Fila de Ativos",
+    "description": "Gerir substituições de ativos pendentes",
+    "refresh": "Atualizar",
+    "clearQueue": "Limpar Fila",
+    "runQueue": "Executar Fila",
+    "running": "A iniciar...",
+    "confirmClear": "Tem a certeza de que deseja limpar toda a fila?",
+    "executionStarted": "Execução da fila iniciada",
+    "startFailed": "Falha ao iniciar a fila",
+    "errorStarting": "Erro ao iniciar a fila",
+    "cleared": "Fila limpa",
+    "clearFailed": "Falha ao limpar a fila",
+    "errorClearing": "Erro ao limpar a fila",
+    "itemRemoved": "Item removido da fila",
+    "removeFailed": "Falha ao remover o item",
+    "errorRemoving": "Erro ao remover o item",
+    "loading": "A carregar fila...",
+    "emptyTitle": "A fila está vazia",
+    "emptyDescription": "Para adicionar itens à fila, utilize o modo \"Substituidor\" e marque a opção \"Adicionar à Fila\" antes de confirmar.",
+    "status": "Estado",
+    "type": "Tipo",
+    "assetType": "Tipo de Ativo",
+    "assetPath": "Caminho do Ativo",
+    "details": "Detalhes",
+    "actions": "Ações",
+    "overlays": "Sobreposições",
+    "removeFromQueue": "Remover da fila",
+    "seasonLabel": "Season",
+    "howTo": {
+      "title": "Como a Fila Funciona:",
+      "step1": "Selecione \"Adicionar à Fila\" ao substituir um ativo.",
+      "step2": "Os itens aparecem aqui com o estado \"Pendente\".",
+      "step3": "Clique em \"Executar Fila\" para processá-los sequencialmente.",
+      "step4": "Verifique a coluna de estado para os resultados."
     }
   }
 }

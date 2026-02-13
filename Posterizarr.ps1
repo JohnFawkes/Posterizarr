@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.22"
+$CurrentScriptVersion = "2.2.23"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -4659,7 +4659,7 @@ function InvokeMagickCommand {
         [string]$Command,
         [string]$Arguments
     )
-
+    $global:ImageMagickError = $null
     if ([string]::IsNullOrWhiteSpace($Arguments)) {
         Write-Entry -Subtext "Skipping: No arguments provided for magick command." -Path $global:configLogging -Color Cyan -log Debug
         return
@@ -4670,6 +4670,7 @@ function InvokeMagickCommand {
         )
 
         # Split the error message into lines
+        $global:ImageMagickError = $true
         $lines = $ErrorMessage -split "convert: |magick.exe: |@"
         if ($lines[1]) {
             return $lines[1]
@@ -8406,6 +8407,7 @@ if ($Manual) {
         $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$FolderName.jpg"
     }
     $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
+    $global:IsTruncated = $null
     if ($global:ImageProcessing -eq 'true') {
         if ($SeasonPoster) {
             $Posteroverlay = $Seasonoverlay
@@ -8526,7 +8528,7 @@ if ($Manual) {
         $CommentlogEntry = "`"$magick`" $CommentArguments"
         $CommentlogEntry | Out-File $magickLog -Append
         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-        if (!$global:ImageMagickError -eq 'true') {
+        if ($global:ImageMagickError -ne 'true') {
             if ($SeasonPoster) {
                 if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
                     $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$PosterImage`""
@@ -8989,7 +8991,7 @@ if ($Manual) {
         $logEntry | Out-File $magickLog -Append
         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
     }
-    if (!$global:ImageMagickError -eq 'true') {
+    if ($global:ImageMagickError -ne 'true') {
         # Move file back to original naming with Brackets.
         Move-Item -LiteralPath $PosterImage -destination $PosterImageoriginal -Force -ErrorAction SilentlyContinue
         Write-Entry -Subtext "Poster created and moved to: $PosterImageoriginal" -Path $global:configLogging -Color Green -log Info
@@ -10232,13 +10234,14 @@ Elseif ($Tautulli) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -10424,7 +10427,7 @@ Elseif ($Tautulli) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -10453,9 +10456,9 @@ Elseif ($Tautulli) {
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -10843,13 +10846,14 @@ Elseif ($Tautulli) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -11035,7 +11039,7 @@ Elseif ($Tautulli) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -11063,10 +11067,10 @@ Elseif ($Tautulli) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -11552,13 +11556,14 @@ Elseif ($Tautulli) {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -11743,7 +11748,7 @@ Elseif ($Tautulli) {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -11771,10 +11776,10 @@ Elseif ($Tautulli) {
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         try {
                                             Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                             $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -12173,13 +12178,14 @@ Elseif ($Tautulli) {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -12364,7 +12370,7 @@ Elseif ($Tautulli) {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -12397,10 +12403,10 @@ Elseif ($Tautulli) {
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         try {
                                             Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                             $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -12857,6 +12863,7 @@ Elseif ($Tautulli) {
 
                             }
                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     if ($TakeLocal) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -12923,7 +12930,7 @@ Elseif ($Tautulli) {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $AddSeasonOverlay = 'false'
@@ -13023,7 +13030,7 @@ Elseif ($Tautulli) {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Season Part
@@ -13057,7 +13064,7 @@ Elseif ($Tautulli) {
                                                 }
                                                 Else {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddSeasonTextStroke -eq 'true') {
@@ -13148,10 +13155,10 @@ Elseif ($Tautulli) {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($SeasonImage)
@@ -13554,6 +13561,7 @@ Elseif ($Tautulli) {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal -or $global:TempImagecopied -eq 'true') {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -13627,7 +13635,7 @@ Elseif ($Tautulli) {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'true') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -13728,7 +13736,7 @@ Elseif ($Tautulli) {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -13751,7 +13759,7 @@ Elseif ($Tautulli) {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardTextStroke -eq 'true') {
@@ -13829,10 +13837,10 @@ Elseif ($Tautulli) {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             try {
                                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                 $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -14240,6 +14248,7 @@ Elseif ($Tautulli) {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -14294,7 +14303,7 @@ Elseif ($Tautulli) {
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                         $CommentlogEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                        if (!$global:ImageMagickError -eq 'true') {
+                                                        if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -14395,7 +14404,7 @@ Elseif ($Tautulli) {
                                                                 }
                                                                 $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -14417,7 +14426,7 @@ Elseif ($Tautulli) {
                                                                 $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                 $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardTextStroke -eq 'true') {
@@ -14494,10 +14503,10 @@ Elseif ($Tautulli) {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             try {
                                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                 $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -15731,13 +15740,14 @@ Elseif ($ArrTrigger) {
 
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'True') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UsePosterResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -15920,7 +15930,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Add Stroke
                                                             if ($AddTextStroke -eq 'true') {
@@ -15947,9 +15957,9 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $PosterImage
                                                 try {
                                                     # Attempt to move the item
@@ -16278,13 +16288,14 @@ Elseif ($ArrTrigger) {
 
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'True') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UseBackgroundResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -16468,7 +16479,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                             # Add Stroke
@@ -16496,10 +16507,10 @@ Elseif ($ArrTrigger) {
                                         $logEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         # Move file back to original naming with Brackets.
                                         if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                                 try {
                                                     # Attempt to move the item
@@ -16918,13 +16929,14 @@ Elseif ($ArrTrigger) {
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -17108,7 +17120,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddTextStroke -eq 'true') {
@@ -17135,10 +17147,10 @@ Elseif ($ArrTrigger) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImage
                                             try {
                                                 # Attempt to move the item
@@ -17478,13 +17490,14 @@ Elseif ($ArrTrigger) {
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -17668,7 +17681,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddBackgroundTextStroke -eq 'true') {
@@ -17694,10 +17707,10 @@ Elseif ($ArrTrigger) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                             try {
                                                 # Attempt to move the item
@@ -18160,13 +18173,14 @@ Elseif ($ArrTrigger) {
 
                                             }
                                         }
+                                        $global:IsTruncated = $null
                                         if ($global:ImageProcessing -eq 'true') {
                                             if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                                 $CommentArguments = "`"$SeasonImage`" -set `"comment`" `"created with posterizarr`" `"$SeasonImage`""
                                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                 $CommentlogEntry | Out-File $magickLog -Append
                                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                if (!$global:ImageMagickError -eq 'True') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                         $AddSeasonOverlay = 'false'
@@ -18266,7 +18280,7 @@ Elseif ($ArrTrigger) {
                                                         if ($AddShowTitletoSeason -eq 'true') {
                                                             $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                             $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 # Season Part
@@ -18300,7 +18314,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         Else {
                                                             $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 # Add Stroke
                                                                 if ($AddSeasonTextStroke -eq 'true') {
@@ -18330,10 +18344,10 @@ Elseif ($ArrTrigger) {
                                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                             }
                                         }
-                                        if (!$global:ImageMagickError -eq 'True') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                                 # Move file back to original naming with Brackets.
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImage
                                                     try {
                                                         # Attempt to move the item
@@ -18721,6 +18735,7 @@ Elseif ($ArrTrigger) {
                                                             }
                                                         }
                                                     }
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         $global:TempImagecopied = $true
                                                         # Check temp image
@@ -18735,7 +18750,7 @@ Elseif ($ArrTrigger) {
                                                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                                 $CommentlogEntry | Out-File $magickLog -Append
                                                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                                if (!$global:ImageMagickError -eq 'True') {
+                                                                if ($global:ImageMagickError -ne 'true') {
                                                                     if ($UseTCResolutionOverlays -eq 'true') {
                                                                         switch ($global:EPResolution) {
                                                                             '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -18835,7 +18850,7 @@ Elseif ($ArrTrigger) {
                                                                         }
                                                                         $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                             # Add Stroke
                                                                             if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -18858,7 +18873,7 @@ Elseif ($ArrTrigger) {
                                                                         $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                         $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                             # Add Stroke
@@ -18889,10 +18904,10 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'True') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                                 try {
                                                                     # Attempt to move the item
@@ -19274,13 +19289,14 @@ Elseif ($ArrTrigger) {
 
                                                         }
                                                     }
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             $CommentArguments = "`"$EpisodeImage`" -set `"comment`" `"created with posterizarr`" `"$EpisodeImage`""
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'True') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                     switch ($global:EPResolution) {
@@ -19381,7 +19397,7 @@ Elseif ($ArrTrigger) {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                         # Add Stroke
@@ -19405,7 +19421,7 @@ Elseif ($ArrTrigger) {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                         # Add Stroke
@@ -19434,10 +19450,10 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'True') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                                 try {
                                                                     # Attempt to move the item
@@ -20312,13 +20328,14 @@ Elseif ($ArrTrigger) {
                                             $global:IsFallback = $true
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UsePosterResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -20503,7 +20520,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                             # Add Stroke
@@ -20532,9 +20549,9 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -20922,13 +20939,14 @@ Elseif ($ArrTrigger) {
                                             $global:IsFallback = $true
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                         $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             if ($UseBackgroundResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -21113,7 +21131,7 @@ Elseif ($ArrTrigger) {
                                                         }
                                                         $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                             # Add Stroke
@@ -21141,10 +21159,10 @@ Elseif ($ArrTrigger) {
                                         $logEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         # Move file back to original naming with Brackets.
                                         if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -21630,13 +21648,14 @@ Elseif ($ArrTrigger) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -21821,7 +21840,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -21849,10 +21868,10 @@ Elseif ($ArrTrigger) {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
@@ -22251,13 +22270,14 @@ Elseif ($ArrTrigger) {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -22442,7 +22462,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -22475,10 +22495,10 @@ Elseif ($ArrTrigger) {
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                 $fileContent = [System.IO.File]::ReadAllBytes($backgroundImage)
@@ -22935,6 +22955,7 @@ Elseif ($ArrTrigger) {
 
                                 }
                                 if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         if ($TakeLocal) {
                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -23001,7 +23022,7 @@ Elseif ($ArrTrigger) {
                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                             $CommentlogEntry | Out-File $magickLog -Append
                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                            if (!$global:ImageMagickError -eq 'true') {
+                                            if ($global:ImageMagickError -ne 'true') {
                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                     $AddSeasonOverlay = 'false'
@@ -23101,7 +23122,7 @@ Elseif ($ArrTrigger) {
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Season Part
@@ -23135,7 +23156,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     Else {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Add Stroke
                                                             if ($AddSeasonTextStroke -eq 'true') {
@@ -23225,10 +23246,10 @@ Elseif ($ArrTrigger) {
                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                         }
                                     }
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             # Move file back to original naming with Brackets.
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($SeasonImage)
@@ -23631,6 +23652,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                 }
                                                 if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal -or $global:TempImagecopied -eq 'true') {
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         if ($TakeLocal) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -23704,7 +23726,7 @@ Elseif ($ArrTrigger) {
                                                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                                 $CommentlogEntry | Out-File $magickLog -Append
                                                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                                if (!$global:ImageMagickError -eq 'true') {
+                                                                if ($global:ImageMagickError -ne 'true') {
                                                                     if ($UseTCResolutionOverlays -eq 'true') {
                                                                         switch ($global:EPResolution) {
                                                                             '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -23805,7 +23827,7 @@ Elseif ($ArrTrigger) {
                                                                         }
                                                                         $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                             # Add Stroke
                                                                             if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -23828,7 +23850,7 @@ Elseif ($ArrTrigger) {
                                                                         $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                         $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                        if (!$global:IsTruncated) {
+                                                                        if ($global:IsTruncated -ne $true) {
                                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                             # Add Stroke
                                                                             if ($AddTitleCardTextStroke -eq 'true') {
@@ -23906,10 +23928,10 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'true') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                     $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -24317,6 +24339,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                 }
                                                 if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                                    $global:IsTruncated = $null
                                                     if ($global:ImageProcessing -eq 'true') {
                                                         if ($TakeLocal) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -24371,7 +24394,7 @@ Elseif ($ArrTrigger) {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'true') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -24472,7 +24495,7 @@ Elseif ($ArrTrigger) {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -24494,7 +24517,7 @@ Elseif ($ArrTrigger) {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardTextStroke -eq 'true') {
@@ -24571,10 +24594,10 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                         }
                                                     }
-                                                    if (!$global:ImageMagickError -eq 'true') {
+                                                    if ($global:ImageMagickError -ne 'true') {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             # Move file back to original naming with Brackets.
-                                                            if (!$global:IsTruncated) {
+                                                            if ($global:IsTruncated -ne $true) {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
                                                                     $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImage)
@@ -26989,13 +27012,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -27179,7 +27203,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddTextStroke -eq 'true') {
@@ -27206,9 +27230,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $PosterImage
                                             try {
                                                 # Attempt to move the item
@@ -27537,13 +27561,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -27727,7 +27752,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -27755,10 +27780,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                             try {
                                                 # Attempt to move the item
@@ -28177,13 +28202,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -28367,7 +28393,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                     # Add Stroke
                                                     if ($AddTextStroke -eq 'true') {
@@ -28394,10 +28420,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'True') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImage
                                         try {
                                             # Attempt to move the item
@@ -28737,13 +28763,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'True') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -28927,7 +28954,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                     # Add Stroke
                                                     if ($AddBackgroundTextStroke -eq 'true') {
@@ -28953,10 +28980,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'True') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Backdrop" -imagePath $backgroundImage
                                         try {
                                             # Attempt to move the item
@@ -29433,13 +29460,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                         }
                                     }
+                                    $global:IsTruncated = $null
                                     if ($global:ImageProcessing -eq 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             $CommentArguments = "`"$SeasonImage`" -set `"comment`" `"created with posterizarr`" `"$SeasonImage`""
                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                             $CommentlogEntry | Out-File $magickLog -Append
                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                            if (!$global:ImageMagickError -eq 'True') {
+                                            if ($global:ImageMagickError -ne 'true') {
                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                     $AddSeasonOverlay = 'false'
@@ -29539,7 +29567,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Season Part
@@ -29573,7 +29601,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     }
                                                     Else {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             # Add Stroke
                                                             if ($AddSeasonTextStroke -eq 'true') {
@@ -29603,10 +29631,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                         }
                                     }
-                                    if (!$global:ImageMagickError -eq 'True') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                             # Move file back to original naming with Brackets.
-                                            if (!$global:IsTruncated) {
+                                            if ($global:IsTruncated -ne $true) {
                                                 UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImage
                                                 try {
                                                     # Attempt to move the item
@@ -29994,6 +30022,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         }
                                                     }
                                                 }
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     $global:TempImagecopied = $true
                                                     # Check temp image
@@ -30008,7 +30037,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'True') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -30108,7 +30137,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -30131,7 +30160,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                         # Add Stroke
@@ -30162,10 +30191,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'True') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                             try {
                                                                 # Attempt to move the item
@@ -30547,13 +30576,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                                                     }
                                                 }
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         $CommentArguments = "`"$EpisodeImage`" -set `"comment`" `"created with posterizarr`" `"$EpisodeImage`""
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                         $CommentlogEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                        if (!$global:ImageMagickError -eq 'True') {
+                                                        if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                 switch ($global:EPResolution) {
@@ -30654,7 +30684,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 }
                                                                 $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                     # Add Stroke
@@ -30678,7 +30708,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                 $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                                     # Add Stroke
@@ -30707,10 +30737,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'True') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                             try {
                                                                 # Attempt to move the item
@@ -32011,13 +32041,14 @@ else {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -32201,7 +32232,7 @@ else {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -32230,9 +32261,9 @@ else {
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -32687,13 +32718,14 @@ else {
                                         $global:IsFallback = $true
                                     }
                                 }
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
                                     $CommentlogEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                    if (!$global:ImageMagickError -eq 'true') {
+                                    if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -32878,7 +32910,7 @@ else {
                                                     }
                                                     $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                         # Add Stroke
@@ -32906,10 +32938,10 @@ else {
                                     $logEntry | Out-File $magickLog -Append
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -33464,13 +33496,14 @@ else {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
@@ -33655,7 +33688,7 @@ else {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -33683,10 +33716,10 @@ else {
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         if ($Upload2Plex -eq 'true') {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -34155,13 +34188,14 @@ else {
                                     $global:IsFallback = $true
                                 }
                             }
+                            $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
                                 $CommentlogEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
@@ -34346,7 +34380,7 @@ else {
                                                 }
                                                 $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-                                                if (!$global:IsTruncated) {
+                                                if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                                                     # Add Stroke
@@ -34374,10 +34408,10 @@ else {
                                 $logEntry | Out-File $magickLog -Append
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
-                            if (!$global:ImageMagickError -eq 'true') {
+                            if ($global:ImageMagickError -ne 'true') {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
-                                    if (!$global:IsTruncated) {
+                                    if ($global:IsTruncated -ne $true) {
                                         if ($Upload2Plex -eq 'true') {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -34914,6 +34948,7 @@ else {
 
                             }
                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
                                     if ($TakeLocal) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -34980,7 +35015,7 @@ else {
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                         $CommentlogEntry | Out-File $magickLog -Append
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                        if (!$global:ImageMagickError -eq 'true') {
+                                        if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $AddSeasonOverlay = 'false'
@@ -35080,7 +35115,7 @@ else {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Season Part
@@ -35114,7 +35149,7 @@ else {
                                                 }
                                                 Else {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                                                    if (!$global:IsTruncated) {
+                                                    if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         # Add Stroke
                                                         if ($AddSeasonTextStroke -eq 'true') {
@@ -35205,10 +35240,10 @@ else {
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                 }
-                                if (!$global:ImageMagickError -eq 'true') {
+                                if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
-                                        if (!$global:IsTruncated) {
+                                        if ($global:IsTruncated -ne $true) {
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -35678,6 +35713,7 @@ else {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal -or $global:TempImagecopied -eq 'true') {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -35750,7 +35786,7 @@ else {
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                             $CommentlogEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                            if (!$global:ImageMagickError -eq 'true') {
+                                                            if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -35851,7 +35887,7 @@ else {
                                                                     }
                                                                     $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -35873,7 +35909,7 @@ else {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                     $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                    if (!$global:IsTruncated) {
+                                                                    if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                         # Add Stroke
                                                                         if ($AddTitleCardTextStroke -eq 'true') {
@@ -35951,10 +35987,10 @@ else {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -36429,6 +36465,7 @@ else {
                                                 }
                                             }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
+                                                $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {
                                                     if ($TakeLocal) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
@@ -36483,7 +36520,7 @@ else {
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
                                                         $CommentlogEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                                                        if (!$global:ImageMagickError -eq 'true') {
+                                                        if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
@@ -36583,7 +36620,7 @@ else {
                                                                 }
                                                                 $joinedTitlePointSize = $global:EPTitle -replace '""', '""""' -replace '`', ''
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardEPTitleTextStroke -eq 'true') {
@@ -36606,7 +36643,7 @@ else {
                                                                 $global:SeasonEPNumber = $global:SeasonEPNumber -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                                                                 $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-                                                                if (!$global:IsTruncated) {
+                                                                if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                     # Add Stroke
                                                                     if ($AddTitleCardTextStroke -eq 'true') {
@@ -36683,10 +36720,10 @@ else {
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
-                                                if (!$global:ImageMagickError -eq 'true') {
+                                                if ($global:ImageMagickError -ne 'true') {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
-                                                        if (!$global:IsTruncated) {
+                                                        if ($global:IsTruncated -ne $true) {
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info

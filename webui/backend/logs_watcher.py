@@ -926,47 +926,36 @@ class LogsFileHandler(FileSystemEventHandler):
     def on_modified(self, event):
         """Handle file modification events"""
         if event.is_directory:
-            logger.debug(f"EVENT: Directory modification (ignored): {event.src_path}")
             return
 
         try:
             file_path = Path(event.src_path)
             filename = file_path.name
-            logger.info("=" * 80)
-            logger.info(f"[EVENT] FILESYSTEM EVENT: File MODIFIED")
-            logger.info(f"  File: {filename}")
-            logger.info(f"  Path: {file_path}")
-            logger.info(f"  Event type: {event.event_type}")
-            logger.info("=" * 80)
+            filename_lower = filename.lower()
 
-            # Check if it's a file we're interested in
+            # Check if it's a file we're interested in FIRST to avoid log hammering
             if filename == self.CSV_FILE:
-                logger.info(f"[OK] File matches monitored CSV: {filename}")
+                logger.info(f"[EVENT] File MODIFIED: {filename}")
                 self.watcher.on_csv_modified()
 
             elif filename in (self.PLEX_LIBRARY_CSV, self.PLEX_EPISODE_CSV):
-                logger.info(f"[OK] File matches monitored Plex CSV: {filename}")
+                logger.info(f"[EVENT] File MODIFIED: {filename}")
                 self.watcher.on_plex_csv_modified()
 
-            elif filename in (
-                self.OTHER_MEDIA_LIBRARY_CSV,
-                self.OTHER_MEDIA_EPISODE_CSV,
-            ):
-                logger.info(f"[OK] File matches monitored OtherMedia CSV: {filename}")
+            elif filename in (self.OTHER_MEDIA_LIBRARY_CSV, self.OTHER_MEDIA_EPISODE_CSV):
+                logger.info(f"[EVENT] File MODIFIED: {filename}")
                 self.watcher.on_other_media_csv_modified()
 
-            elif filename.lower() in self.RUNTIME_JSON_FILES:
-                logger.info(f"[OK] File matches monitored JSON: {filename}")
+            elif filename_lower in self.RUNTIME_JSON_FILES:
+                logger.info(f"[EVENT] File MODIFIED: {filename}")
                 self.watcher.on_runtime_json_modified(filename)
 
             else:
+                # Log non-monitored files (like .log files) only in DEBUG mode
                 logger.debug(f"[SKIP] File not monitored, ignoring: {filename}")
 
         except Exception as e:
-            logger.error("=" * 80)
-            logger.error(f"[ERROR] ERROR processing file modification event")
-            logger.error(f"  Error: {e}", exc_info=True)
-            logger.error("=" * 80)
+            logger.error(f"[ERROR] Error processing modification event for {event.src_path}: {e}", exc_info=True)
 
     def on_created(self, event):
         """Handle file creation events (treat as modification)"""

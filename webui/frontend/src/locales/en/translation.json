@@ -189,7 +189,7 @@
       "step3Title": "Smart Sync",
       "step3Text": "Only syncs artwork if the hashes don't match, saving time and bandwidth.",
       "tip": "Tip: This is handy if you want to run the sync after a Kometa run, so you have Kometa overlayed images in Jellyfin.",
-      "important": "Important: Make sure both UseJellyfin and UsePlex are set to true in your config.json, and that library names match exactly.",
+      "important": "Important: Ensure 'UsePlex' is set to true and your Jellyfin API details are fully validated.",
       "cancel": "Cancel",
       "start": "Start Jellyfin Sync"
     },
@@ -205,7 +205,7 @@
       "step3Title": "Smart Sync",
       "step3Text": "Only syncs artwork if the hashes don't match, saving time and bandwidth.",
       "tip": "Tip: This is handy if you want to run the sync after a Kometa run, so you have Kometa overlayed images in Emby.",
-      "important": "Important: Make sure both UseEmby and UsePlex are set to true in your config.json, and that library names match exactly.",
+      "important": "Important: Ensure 'UsePlex' is set to true and your Emby API details are fully validated.",
       "cancel": "Cancel",
       "start": "Start Emby Sync"
     },
@@ -1605,7 +1605,9 @@
     "confirmFetchTitle": "Confirm Fetch Replacement Options",
     "confirmFetchMessage": "This will search TMDB, TVDB, and Fanart.tv for replacement options. Continue?",
     "confirmFetchButton": "Fetch Replacements",
-    "titleText": "Title Text"
+    "addToQueue": "Add to Queue",
+    "queueDescriptionOn": "Process will be queued",
+    "queueDescriptionOff": "Process will start immediately"
   },
   "assetOverview": {
     "title": "Action Center",
@@ -2369,6 +2371,43 @@
       "seasons": "Seasons",
       "title_cards": "Title Cards",
       "collections": "Collections"
+    }
+  },
+  "queue": {
+    "title": "Asset Queue",
+    "description": "Manage pending asset replacements",
+    "refresh": "Refresh",
+    "clearQueue": "Clear Queue",
+    "runQueue": "Run Queue",
+    "running": "Starting...",
+    "confirmClear": "Are you sure you want to clear the entire queue?",
+    "executionStarted": "Queue execution started",
+    "startFailed": "Failed to start queue",
+    "errorStarting": "Error starting queue",
+    "cleared": "Queue cleared",
+    "clearFailed": "Failed to clear queue",
+    "errorClearing": "Error clearing queue",
+    "itemRemoved": "Item removed from queue",
+    "removeFailed": "Failed to remove item",
+    "errorRemoving": "Error removing item",
+    "loading": "Loading queue...",
+    "emptyTitle": "Queue is empty",
+    "emptyDescription": "To add items to the queue, use the \"Replacer\" mode and check the \"Add to Queue\" option before confirming.",
+    "status": "Status",
+    "type": "Type",
+    "assetType": "Asset Type",
+    "assetPath": "Asset Path",
+    "details": "Details",
+    "actions": "Actions",
+    "overlays": "Overlays",
+    "removeFromQueue": "Remove from queue",
+    "seasonLabel": "Season",
+    "howTo": {
+      "title": "How Queue Works:",
+      "step1": "Select 'Add to Queue' when replacing an asset.",
+      "step2": "Items appear here with 'Pending' status.",
+      "step3": "Click 'Run Queue' to process them sequentially.",
+      "step4": "Check status column for results."
     }
   }
 }

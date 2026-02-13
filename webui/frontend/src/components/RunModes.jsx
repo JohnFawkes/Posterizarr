@@ -178,15 +178,15 @@ const TMDBPosterSearchModal = React.memo(
                 {tmdbSearch.isLogoSearch
                   ? t("runModes.tmdb.selectLogo") + ` (${totalResults})`
                   : manualForm.posterType === "season"
-                  ? t("runModes.tmdb.seasonResults", {
+                    ? t("runModes.tmdb.seasonResults", {
                       season: tmdbSearch.seasonNumber,
                     }) + ` (${totalResults})`
-                  : manualForm.posterType === "titlecard"
-                  ? t("runModes.tmdb.episodeResults", {
-                      season: tmdbSearch.seasonNumber,
-                      episode: tmdbSearch.episodeNumber,
-                    }) + ` (${totalResults})`
-                  : t("runModes.tmdb.results") + ` (${totalResults})`}
+                    : manualForm.posterType === "titlecard"
+                      ? t("runModes.tmdb.episodeResults", {
+                        season: tmdbSearch.seasonNumber,
+                        episode: tmdbSearch.episodeNumber,
+                      }) + ` (${totalResults})`
+                      : t("runModes.tmdb.results") + ` (${totalResults})`}
               </h3>
             </div>
             <button
@@ -205,21 +205,19 @@ const TMDBPosterSearchModal = React.memo(
                 onClick={() =>
                   setTmdbSearch({ ...tmdbSearch, activeProvider: "tmdb" })
                 }
-                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${
-                  tmdbSearch.activeProvider === "tmdb"
-                    ? "bg-theme-primary text-white"
-                    : "bg-theme-hover text-theme-muted hover:bg-theme-bg"
-                }`}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${tmdbSearch.activeProvider === "tmdb"
+                  ? "bg-theme-primary text-white"
+                  : "bg-theme-hover text-theme-muted hover:bg-theme-bg"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <span>TMDB</span>
                   {tmdbSearch.results.tmdb?.length > 0 && (
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${
-                        tmdbSearch.activeProvider === "tmdb"
-                          ? "bg-white/20 text-white"
-                          : "bg-theme-primary text-white"
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-xs ${tmdbSearch.activeProvider === "tmdb"
+                        ? "bg-white/20 text-white"
+                        : "bg-theme-primary text-white"
+                        }`}
                     >
                       {tmdbSearch.results.tmdb.length}
                     </span>
@@ -234,21 +232,19 @@ const TMDBPosterSearchModal = React.memo(
                 onClick={() =>
                   setTmdbSearch({ ...tmdbSearch, activeProvider: "tvdb" })
                 }
-                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${
-                  tmdbSearch.activeProvider === "tvdb"
-                    ? "bg-theme-primary text-white"
-                    : "bg-theme-hover text-theme-muted hover:bg-theme-bg"
-                }`}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${tmdbSearch.activeProvider === "tvdb"
+                  ? "bg-theme-primary text-white"
+                  : "bg-theme-hover text-theme-muted hover:bg-theme-bg"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <span>TVDB</span>
                   {tmdbSearch.results.tvdb?.length > 0 && (
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${
-                        tmdbSearch.activeProvider === "tvdb"
-                          ? "bg-white/20 text-white"
-                          : "bg-theme-primary text-white"
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-xs ${tmdbSearch.activeProvider === "tvdb"
+                        ? "bg-white/20 text-white"
+                        : "bg-theme-primary text-white"
+                        }`}
                     >
                       {tmdbSearch.results.tvdb.length}
                     </span>
@@ -263,21 +259,19 @@ const TMDBPosterSearchModal = React.memo(
                 onClick={() =>
                   setTmdbSearch({ ...tmdbSearch, activeProvider: "fanart" })
                 }
-                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${
-                  tmdbSearch.activeProvider === "fanart"
-                    ? "bg-theme-primary text-white"
-                    : "bg-theme-hover text-theme-muted hover:bg-theme-bg"
-                }`}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${tmdbSearch.activeProvider === "fanart"
+                  ? "bg-theme-primary text-white"
+                  : "bg-theme-hover text-theme-muted hover:bg-theme-bg"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <span>Fanart.tv</span>
                   {tmdbSearch.results.fanart?.length > 0 && (
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${
-                        tmdbSearch.activeProvider === "fanart"
-                          ? "bg-white/20 text-white"
-                          : "bg-theme-primary text-white"
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-xs ${tmdbSearch.activeProvider === "fanart"
+                        ? "bg-white/20 text-white"
+                        : "bg-theme-primary text-white"
+                        }`}
                     >
                       {tmdbSearch.results.fanart.length}
                     </span>
@@ -317,19 +311,17 @@ const TMDBPosterSearchModal = React.memo(
                                   : "title_search"
                               )
                             }
-                            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 border-2 transition-all ${
-                              sourceFilter === "title_search"
-                                ? "bg-theme-primary text-white border-theme-primary shadow-lg"
-                                : "bg-theme-hover text-theme-text border-theme hover:border-theme-primary"
-                            }`}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 border-2 transition-all ${sourceFilter === "title_search"
+                              ? "bg-theme-primary text-white border-theme-primary shadow-lg"
+                              : "bg-theme-hover text-theme-text border-theme hover:border-theme-primary"
+                              }`}
                           >
                             <span>{t("runModes.tmdb.textResult")}</span>
                             <span
-                              className={`px-2 py-0.5 rounded-full text-xs ${
-                                sourceFilter === "title_search"
-                                  ? "bg-white/20 text-white"
-                                  : "bg-theme-primary text-white"
-                              }`}
+                              className={`px-2 py-0.5 rounded-full text-xs ${sourceFilter === "title_search"
+                                ? "bg-white/20 text-white"
+                                : "bg-theme-primary text-white"
+                                }`}
                             >
                               {textResultsCount}
                             </span>
@@ -344,19 +336,17 @@ const TMDBPosterSearchModal = React.memo(
                                   : "provided_id"
                               )
                             }
-                            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 border-2 transition-all ${
-                              sourceFilter === "provided_id"
-                                ? "bg-theme-primary text-white border-theme-primary shadow-lg"
-                                : "bg-theme-hover text-theme-text border-theme hover:border-theme-primary"
-                            }`}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 border-2 transition-all ${sourceFilter === "provided_id"
+                              ? "bg-theme-primary text-white border-theme-primary shadow-lg"
+                              : "bg-theme-hover text-theme-text border-theme hover:border-theme-primary"
+                              }`}
                           >
                             <span>{t("runModes.tmdb.idResult")}</span>
                             <span
-                              className={`px-2 py-0.5 rounded-full text-xs ${
-                                sourceFilter === "provided_id"
-                                  ? "bg-white/20 text-white"
-                                  : "bg-theme-primary text-white"
-                              }`}
+                              className={`px-2 py-0.5 rounded-full text-xs ${sourceFilter === "provided_id"
+                                ? "bg-white/20 text-white"
+                                : "bg-theme-primary text-white"
+                                }`}
                             >
                               {idResultsCount}
                             </span>
@@ -495,6 +485,9 @@ function RunModes() {
     episodeNumber: "",
   });
 
+  // State for Add to Queue
+  const [addToQueue, setAddToQueue] = useState(false);
+
   // File upload state
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadPreview, setUploadPreview] = useState(null);
@@ -618,8 +611,7 @@ function RunModes() {
       if (data.success) {
         setFolderItems(data.folders || []);
         console.log(
-          `Loaded ${data.folders?.length || 0} folders from assets/${
-            manualForm.libraryName
+          `Loaded ${data.folders?.length || 0} folders from assets/${manualForm.libraryName
           }`
         );
 
@@ -704,9 +696,8 @@ function RunModes() {
   const runScript = async (mode) => {
     if (status.running) {
       showError(
-        `${t("runModes.scriptRunning")} - ${t("runModes.status.mode")}: ${
-          status.current_mode.charAt(0).toUpperCase() +
-          status.current_mode.slice(1)
+        `${t("runModes.scriptRunning")} - ${t("runModes.status.mode")}: ${status.current_mode.charAt(0).toUpperCase() +
+        status.current_mode.slice(1)
         }`
       );
       return;
@@ -755,9 +746,8 @@ function RunModes() {
   const runManualMode = async () => {
     if (status.running) {
       showError(
-        `${t("runModes.scriptRunning")} - ${t("runModes.status.mode")}: ${
-          status.current_mode.charAt(0).toUpperCase() +
-          status.current_mode.slice(1)
+        `${t("runModes.scriptRunning")} - ${t("runModes.status.mode")}: ${status.current_mode.charAt(0).toUpperCase() +
+        status.current_mode.slice(1)
         }`
       );
       return;
@@ -806,7 +796,7 @@ function RunModes() {
 
     setLoading(true);
     try {
-      let requestPayload = { ...manualForm };
+      let requestPayload = { ...manualForm, add_to_queue: addToQueue };
       delete requestPayload.mediaTypeSelection;
 
       // If a file was uploaded, use FormData for multipart upload
@@ -820,6 +810,7 @@ function RunModes() {
 
         const formData = new FormData();
         formData.append("file", uploadedFile);
+        formData.append("add_to_queue", addToQueue);
 
         // Append all other form fields
         Object.keys(requestPayload).forEach((key) => {
@@ -849,7 +840,7 @@ function RunModes() {
         }
 
         if (data.success) {
-          showSuccess("Manual mode started successfully!");
+          showSuccess(addToQueue ? "Manual run added to queue!" : "Manual mode started successfully!");
           // Reset form
           setManualForm({
             picturePath: "",
@@ -864,18 +855,21 @@ function RunModes() {
           });
           setUploadedFile(null);
           setUploadPreview(null);
+          setAddToQueue(false); // Reset queue toggle
           fetchStatus();
         } else {
           showError(`Error: ${data.message}`);
         }
       } else {
         // Use URL/path - existing behavior
+        const payloadWithQueue = { ...requestPayload, add_to_queue: addToQueue };
+
         const response = await fetch(`${API_URL}/run-manual`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestPayload),
+          body: JSON.stringify(payloadWithQueue),
         });
 
         const data = await response.json();
@@ -893,7 +887,7 @@ function RunModes() {
         }
 
         if (data.success) {
-          showSuccess(t("runModes.manualModeSuccess"));
+          showSuccess(addToQueue ? "Manual run added to queue!" : t("runModes.manualModeSuccess"));
           // Reset form
           setManualForm({
             picturePath: "",
@@ -907,6 +901,7 @@ function RunModes() {
             episodeNumber: "",
           });
           setUploadedFile(null);
+          setAddToQueue(false); // Reset queue toggle
           setUploadPreview(null);
           fetchStatus();
         } else {
@@ -1031,10 +1026,10 @@ function RunModes() {
           // A) Get FavProvider
           const provider = cfg.FavProvider || cfg.favprovider || apiPart.FavProvider || apiPart.favprovider;
           if (provider) {
-             const p = provider.toLowerCase();
-             if (p.includes("tmdb")) userFavProvider = "tmdb";
-             else if (p.includes("tvdb")) userFavProvider = "tvdb";
-             else if (p.includes("fanart")) userFavProvider = "fanart";
+            const p = provider.toLowerCase();
+            if (p.includes("tmdb")) userFavProvider = "tmdb";
+            else if (p.includes("tvdb")) userFavProvider = "tvdb";
+            else if (p.includes("fanart")) userFavProvider = "fanart";
           }
 
           // B) Get LogoLanguageOrder (Handle Array or String)
@@ -2031,11 +2026,10 @@ function RunModes() {
                   setManualForm({ ...manualForm, posterType: "standard" })
                 }
                 disabled={loading || status.running}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                  manualForm.posterType === "standard"
-                    ? "bg-theme-primary border-theme-primary text-white"
-                    : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.posterType === "standard"
+                  ? "bg-theme-primary border-theme-primary text-white"
+                  : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <Film className="w-5 h-5" />
                 {t("runModes.manual.types.poster")}
@@ -2045,11 +2039,10 @@ function RunModes() {
                   setManualForm({ ...manualForm, posterType: "season" })
                 }
                 disabled={loading || status.running}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                  manualForm.posterType === "season"
-                    ? "bg-theme-primary border-theme-primary text-white"
-                    : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.posterType === "season"
+                  ? "bg-theme-primary border-theme-primary text-white"
+                  : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <Tv className="w-5 h-5" />
                 {t("runModes.manual.types.season")}
@@ -2059,11 +2052,10 @@ function RunModes() {
                   setManualForm({ ...manualForm, posterType: "titlecard" })
                 }
                 disabled={loading || status.running}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                  manualForm.posterType === "titlecard"
-                    ? "bg-theme-primary border-theme-primary text-white"
-                    : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.posterType === "titlecard"
+                  ? "bg-theme-primary border-theme-primary text-white"
+                  : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <Clapperboard className="w-5 h-5" />
                 {t("runModes.manual.types.titleCard")}
@@ -2073,11 +2065,10 @@ function RunModes() {
                   setManualForm({ ...manualForm, posterType: "background" })
                 }
                 disabled={loading || status.running}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                  manualForm.posterType === "background"
-                    ? "bg-theme-primary border-theme-primary text-white"
-                    : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.posterType === "background"
+                  ? "bg-theme-primary border-theme-primary text-white"
+                  : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <ImageIcon className="w-5 h-5" />
                 {t("runModes.manual.types.background")}
@@ -2087,11 +2078,10 @@ function RunModes() {
                   setManualForm({ ...manualForm, posterType: "collection" })
                 }
                 disabled={loading || status.running}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                  manualForm.posterType === "collection"
-                    ? "bg-theme-primary border-theme-primary text-white"
-                    : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.posterType === "collection"
+                  ? "bg-theme-primary border-theme-primary text-white"
+                  : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <FolderHeart className="w-5 h-5" />
                 {t("runModes.manual.types.collection")}
@@ -2102,48 +2092,46 @@ function RunModes() {
           {/* Movie/TV Show Toggle - For Standard and Background Poster Types */}
           {(manualForm.posterType === "standard" ||
             manualForm.posterType === "background") && (
-            <div>
-              <label className="block text-sm font-medium text-theme-text mb-2">
-                {t("runModes.manual.mediaType")}
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() =>
-                    setManualForm({
-                      ...manualForm,
-                      mediaTypeSelection: "movie",
-                    })
-                  }
-                  disabled={loading || status.running}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                    manualForm.mediaTypeSelection === "movie"
+              <div>
+                <label className="block text-sm font-medium text-theme-text mb-2">
+                  {t("runModes.manual.mediaType")}
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() =>
+                      setManualForm({
+                        ...manualForm,
+                        mediaTypeSelection: "movie",
+                      })
+                    }
+                    disabled={loading || status.running}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.mediaTypeSelection === "movie"
                       ? "bg-theme-primary border-theme-primary text-white"
                       : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <Film className="w-5 h-5" />
-                  {t("runModes.manual.mediaTypes.movie")}
-                </button>
-                <button
-                  onClick={() =>
-                    setManualForm({ ...manualForm, mediaTypeSelection: "tv" })
-                  }
-                  disabled={loading || status.running}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                    manualForm.mediaTypeSelection === "tv"
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <Film className="w-5 h-5" />
+                    {t("runModes.manual.mediaTypes.movie")}
+                  </button>
+                  <button
+                    onClick={() =>
+                      setManualForm({ ...manualForm, mediaTypeSelection: "tv" })
+                    }
+                    disabled={loading || status.running}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${manualForm.mediaTypeSelection === "tv"
                       ? "bg-theme-primary border-theme-primary text-white"
                       : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <Tv className="w-5 h-5" />
-                  {t("runModes.manual.mediaTypes.tv")}
-                </button>
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <Tv className="w-5 h-5" />
+                    {t("runModes.manual.mediaTypes.tv")}
+                  </button>
+                </div>
+                <p className="text-xs text-theme-muted mt-1">
+                  {t("runModes.manual.mediaTypeHint")}
+                </p>
               </div>
-              <p className="text-xs text-theme-muted mt-1">
-                {t("runModes.manual.mediaTypeHint")}
-              </p>
-            </div>
-          )}
+            )}
 
           {/* TMDB Poster Search*/}
           <div className="bg-theme-hover border border-theme rounded-lg p-4">
@@ -2155,14 +2143,13 @@ function RunModes() {
                     manualForm.posterType === "season"
                       ? t("runModes.manual.tmdbTypeSeasonPosters")
                       : manualForm.posterType === "titlecard"
-                      ? t("runModes.manual.tmdbTypeEpisodeImages")
-                      : manualForm.posterType === "standard"
-                      ? `${
-                          manualForm.mediaTypeSelection === "tv"
+                        ? t("runModes.manual.tmdbTypeEpisodeImages")
+                        : manualForm.posterType === "standard"
+                          ? `${manualForm.mediaTypeSelection === "tv"
                             ? t("runModes.manual.tmdbTypeTvPosters")
                             : t("runModes.manual.tmdbTypeMoviePosters")
-                        }`
-                      : t("runModes.manual.tmdbTypePosters"),
+                          }`
+                          : t("runModes.manual.tmdbTypePosters"),
                 })}
               </h3>
             </div>
@@ -2170,8 +2157,8 @@ function RunModes() {
               {manualForm.posterType === "season"
                 ? t("runModes.manual.tmdbHintSeason")
                 : manualForm.posterType === "titlecard"
-                ? t("runModes.manual.tmdbHintTitleCard")
-                : t("runModes.manual.tmdbHintStandard")}
+                  ? t("runModes.manual.tmdbHintTitleCard")
+                  : t("runModes.manual.tmdbHintStandard")}
             </p>
 
             <div className="space-y-3 mb-3">
@@ -2192,18 +2179,16 @@ function RunModes() {
                         disabled={
                           loading || status.running || tmdbSearch.searching
                         }
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg disabled:opacity-50 disabled:cursor-not-allowed ${
-                          tmdbSearch.searchByID
-                            ? "bg-theme-primary"
-                            : "bg-gray-600"
-                        }`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg disabled:opacity-50 disabled:cursor-not-allowed ${tmdbSearch.searchByID
+                          ? "bg-theme-primary"
+                          : "bg-gray-600"
+                          }`}
                       >
                         <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            tmdbSearch.searchByID
-                              ? "translate-x-6"
-                              : "translate-x-1"
-                          }`}
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tmdbSearch.searchByID
+                            ? "translate-x-6"
+                            : "translate-x-1"
+                            }`}
                         />
                       </button>
                       <span className="text-sm text-theme-text">
@@ -2334,69 +2319,69 @@ function RunModes() {
             {/* Season/Episode Eingaben (nur wenn relevant) */}
             {(manualForm.posterType === "season" ||
               manualForm.posterType === "titlecard") && (
-              <div className="grid grid-cols-2 gap-2">
-                {/* Season Number */}
-                <div>
-                  <label className="block text-xs font-medium text-theme-text mb-1">
-                    {t("runModes.manual.seasonName")}{" "}
-                    <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={tmdbSearch.seasonNumber}
-                    onChange={(e) =>
-                      setTmdbSearch({
-                        ...tmdbSearch,
-                        seasonNumber: e.target.value,
-                      })
-                    }
-                    placeholder="1"
-                    disabled={loading || status.running || tmdbSearch.searching}
-                    className="w-full px-3 py-2 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-
-                {/* Episode Number (only for Title Cards) */}
-                {manualForm.posterType === "titlecard" && (
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Season Number */}
                   <div>
                     <label className="block text-xs font-medium text-theme-text mb-1">
-                      {t("runModes.manual.episodeNumber")}{" "}
+                      {t("runModes.manual.seasonName")}{" "}
                       <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="number"
                       min="0"
-                      value={tmdbSearch.episodeNumber}
+                      value={tmdbSearch.seasonNumber}
                       onChange={(e) =>
                         setTmdbSearch({
                           ...tmdbSearch,
-                          episodeNumber: e.target.value,
+                          seasonNumber: e.target.value,
                         })
                       }
                       placeholder="1"
-                      disabled={
-                        loading || status.running || tmdbSearch.searching
-                      }
+                      disabled={loading || status.running || tmdbSearch.searching}
                       className="w-full px-3 py-2 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
-                )}
-              </div>
-            )}
+
+                  {/* Episode Number (only for Title Cards) */}
+                  {manualForm.posterType === "titlecard" && (
+                    <div>
+                      <label className="block text-xs font-medium text-theme-text mb-1">
+                        {t("runModes.manual.episodeNumber")}{" "}
+                        <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={tmdbSearch.episodeNumber}
+                        onChange={(e) =>
+                          setTmdbSearch({
+                            ...tmdbSearch,
+                            episodeNumber: e.target.value,
+                          })
+                        }
+                        placeholder="1"
+                        disabled={
+                          loading || status.running || tmdbSearch.searching
+                        }
+                        className="w-full px-3 py-2 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
             {/* Hilfetext */}
             {(manualForm.posterType === "season" ||
               manualForm.posterType === "titlecard") && (
-              <div className="mt-2 text-xs text-theme-muted">
-                {manualForm.posterType === "season" && (
-                  <p>{t("runModes.tmdb.seasonNumberHint")}</p>
-                )}
-                {manualForm.posterType === "titlecard" && (
-                  <p>{t("runModes.tmdb.episodeNumberHint")}</p>
-                )}
-              </div>
-            )}
+                <div className="mt-2 text-xs text-theme-muted">
+                  {manualForm.posterType === "season" && (
+                    <p>{t("runModes.tmdb.seasonNumberHint")}</p>
+                  )}
+                  {manualForm.posterType === "titlecard" && (
+                    <p>{t("runModes.tmdb.episodeNumberHint")}</p>
+                  )}
+                </div>
+              )}
           </div>
 
           {/* Picture Path */}
@@ -2411,7 +2396,7 @@ function RunModes() {
               <p className="text-xs text-blue-400 flex items-center gap-2">
                 <span className="font-semibold">ℹ️ Recommended sizes:</span>
                 {manualForm.posterType === "background" ||
-                manualForm.posterType === "titlecard" ? (
+                  manualForm.posterType === "titlecard" ? (
                   <span>
                     Backgrounds/Title Cards: 1920×1080px or higher (16:9 ratio)
                   </span>
@@ -2427,15 +2412,13 @@ function RunModes() {
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="file-upload"
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
-                    uploadedFile
-                      ? "bg-green-600 border-green-500 text-white"
-                      : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
-                  } ${
-                    loading || status.running
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${uploadedFile
+                    ? "bg-green-600 border-green-500 text-white"
+                    : "bg-theme-hover border-theme hover:border-theme-primary text-theme-text"
+                    } ${loading || status.running
                       ? "opacity-50 cursor-not-allowed"
                       : ""
-                  }`}
+                    }`}
                 >
                   <FolderOpen className="w-5 h-5" />
                   {uploadedFile
@@ -2814,6 +2797,30 @@ function RunModes() {
             </>
           )}
 
+          {/* --- Add to Queue Toggle --- */}
+          <div className="flex items-start sm:items-center justify-between gap-3 mb-6 pt-3 border-t border-theme">
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-medium text-theme-text break-words">
+                {t("assetReplacer.addToQueue")}
+              </h4>
+              <p className="text-xs text-theme-muted mt-0.5 leading-relaxed">
+                {addToQueue
+                  ? t("assetReplacer.queueDescriptionOn")
+                  : t("assetReplacer.queueDescriptionOff")}
+              </p>
+            </div>
+            <button
+              onClick={() => setAddToQueue(!addToQueue)}
+              className={`flex-shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-theme-bg ${addToQueue ? "bg-theme-primary" : "bg-gray-600"
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${addToQueue ? "translate-x-6" : "translate-x-1"
+                  }`}
+              />
+            </button>
+          </div>
+
           {/* --- Run Button & Info Box --- */}
           <button
             onClick={runManualMode}
@@ -2932,244 +2939,244 @@ function RunModes() {
         onStatusUpdate={fetchStatus}
       />
 
-    {/* Folder Selector Modal */}
-    {showFolderSelector && (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-theme-card border border-theme-primary rounded-xl max-w-4xl w-full max-h-[80vh] shadow-2xl animate-in fade-in duration-200 flex flex-col">
-          {/* Header */}
-          <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center">
-              <FolderOpen className="w-6 h-6 mr-3 text-white" />
-              <h3 className="text-xl font-bold text-white">
-                {t('runModes.folderSelector.title', { libraryName: manualForm.libraryName })}
-                {folderItems.length > 0 && ` (${t('runModes.folderSelector.folderCount', { count: folderItems.length })})`}
-              </h3>
-            </div>
-            <button
-              onClick={() => {
-                setShowFolderSelector(false);
-                setFolderSearchQuery("");
-              }}
-              className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Search Bar */}
-          <div className="px-6 py-4 border-b border-theme-primary/30">
-            <div className="relative">
-              <input
-                type="text"
-                value={folderSearchQuery}
-                onChange={(e) => setFolderSearchQuery(e.target.value)}
-                placeholder={t('runModes.folderSelector.searchPlaceholder')}
-                className="w-full px-4 py-2 pr-10 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
-              />
-              {folderSearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setFolderSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-text p-1 hover:bg-theme-hover rounded-full transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {loadingFolders ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="w-12 h-12 text-theme-primary animate-spin mb-4" />
-                <p className="text-theme-muted">{t('runModes.folderSelector.loading')}</p>
+      {/* Folder Selector Modal */}
+      {showFolderSelector && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-theme-card border border-theme-primary rounded-xl max-w-4xl w-full max-h-[80vh] shadow-2xl animate-in fade-in duration-200 flex flex-col">
+            {/* Header */}
+            <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center">
+                <FolderOpen className="w-6 h-6 mr-3 text-white" />
+                <h3 className="text-xl font-bold text-white">
+                  {t('runModes.folderSelector.title', { libraryName: manualForm.libraryName })}
+                  {folderItems.length > 0 && ` (${t('runModes.folderSelector.folderCount', { count: folderItems.length })})`}
+                </h3>
               </div>
-            ) : folderItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <FolderOpen className="w-16 h-16 text-theme-muted mb-4" />
-                <p className="text-theme-muted text-center">
-                  {t('runModes.folderSelector.noFolders', { libraryName: manualForm.libraryName })}
-                </p>
-                <p className="text-theme-muted text-sm mt-2">
-                  {t('runModes.folderSelector.noFoldersSubtext')}
-                </p>
+              <button
+                onClick={() => {
+                  setShowFolderSelector(false);
+                  setFolderSearchQuery("");
+                }}
+                className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="px-6 py-4 border-b border-theme-primary/30">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={folderSearchQuery}
+                  onChange={(e) => setFolderSearchQuery(e.target.value)}
+                  placeholder={t('runModes.folderSelector.searchPlaceholder')}
+                  className="w-full px-4 py-2 pr-10 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                />
+                {folderSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setFolderSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-text p-1 hover:bg-theme-hover rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-2">
-                {folderItems
-                  .filter((item) =>
-                    folderSearchQuery
-                      ? item.folderName
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingFolders ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-12 h-12 text-theme-primary animate-spin mb-4" />
+                  <p className="text-theme-muted">{t('runModes.folderSelector.loading')}</p>
+                </div>
+              ) : folderItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <FolderOpen className="w-16 h-16 text-theme-muted mb-4" />
+                  <p className="text-theme-muted text-center">
+                    {t('runModes.folderSelector.noFolders', { libraryName: manualForm.libraryName })}
+                  </p>
+                  <p className="text-theme-muted text-sm mt-2">
+                    {t('runModes.folderSelector.noFoldersSubtext')}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {folderItems
+                    .filter((item) =>
+                      folderSearchQuery
+                        ? item.folderName
                           .toLowerCase()
                           .includes(folderSearchQuery.toLowerCase()) ||
                         item.title
                           .toLowerCase()
                           .includes(folderSearchQuery.toLowerCase())
-                      : true
-                  )
-                  .map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={() =>
-                        handleFolderSelect(item.folderName, item.title)
-                      }
-                      className="w-full text-left px-4 py-3 bg-theme-bg hover:bg-theme-primary/20 border border-theme rounded-lg transition-all duration-200 group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-theme-text font-medium truncate">
-                            {item.title}
-                            {item.year && (
-                              <span className="text-theme-muted ml-2">
-                                ({item.year})
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-xs text-theme-muted mt-1 truncate">
-                            {t('runModes.folderSelector.folderPrefix')}: {item.folderName}
-                          </p>
+                        : true
+                    )
+                    .map((item, index) => (
+                      <button
+                        key={index}
+                        onClick={() =>
+                          handleFolderSelect(item.folderName, item.title)
+                        }
+                        className="w-full text-left px-4 py-3 bg-theme-bg hover:bg-theme-primary/20 border border-theme rounded-lg transition-all duration-200 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-theme-text font-medium truncate">
+                              {item.title}
+                              {item.year && (
+                                <span className="text-theme-muted ml-2">
+                                  ({item.year})
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs text-theme-muted mt-1 truncate">
+                              {t('runModes.folderSelector.folderPrefix')}: {item.folderName}
+                            </p>
+                          </div>
+                          <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <CheckCircle className="w-5 h-5 text-green-400" />
+                          </div>
                         </div>
-                        <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-theme-primary/30 flex justify-end">
-            <button
-              onClick={() => {
-                setShowFolderSelector(false);
-                setFolderSearchQuery("");
-              }}
-              className="px-4 py-2 bg-theme-bg hover:bg-theme-bg/80 text-theme-text rounded-lg transition-all duration-200"
-            >
-              {t('common.cancel')}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* Library Selector Modal */}
-    {showLibrarySelector && (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-theme-card border border-theme-primary rounded-xl max-w-3xl w-full max-h-[70vh] shadow-2xl animate-in fade-in duration-200 flex flex-col">
-          {/* Header */}
-          <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center">
-              <FolderHeart className="w-6 h-6 mr-3 text-white" />
-              <h3 className="text-xl font-bold text-white">
-                {t('runModes.librarySelector.title')}
-                {libraryItems.length > 0 &&
-                  ` (${t('runModes.librarySelector.libraryCount', { count: libraryItems.length })})`}
-              </h3>
-            </div>
-            <button
-              onClick={() => {
-                setShowLibrarySelector(false);
-                setLibrarySearchQuery("");
-              }}
-              className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Search Bar */}
-          <div className="px-6 py-4 border-b border-theme-primary/30">
-            <div className="relative">
-              <input
-                type="text"
-                value={librarySearchQuery}
-                onChange={(e) => setLibrarySearchQuery(e.target.value)}
-                placeholder={t('runModes.librarySelector.searchPlaceholder')}
-                className="w-full px-4 py-2 pr-10 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
-              />
-              {librarySearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setLibrarySearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-text p-1 hover:bg-theme-hover rounded-full transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                      </button>
+                    ))}
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {loadingLibraries ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="w-12 h-12 text-theme-primary animate-spin mb-4" />
-                <p className="text-theme-muted">{t('runModes.librarySelector.loading')}</p>
-              </div>
-            ) : libraryItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <FolderHeart className="w-16 h-16 text-theme-muted mb-4" />
-                <p className="text-theme-muted text-center">
-                  {t('runModes.librarySelector.noLibraries')}
-                </p>
-                <p className="text-theme-muted text-sm mt-2">
-                  {t('runModes.librarySelector.noLibrariesSubtext')}
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-2">
-                {libraryItems
-                  .filter((lib) =>
-                    librarySearchQuery
-                      ? lib.name
-                          .toLowerCase()
-                          .includes(librarySearchQuery.toLowerCase())
-                      : true
-                  )
-                  .map((lib, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleLibrarySelect(lib.name)}
-                      className="w-full text-left px-4 py-3 bg-theme-bg hover:bg-theme-primary/20 border border-theme rounded-lg transition-all duration-200 group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-theme-text font-medium truncate">
-                            {lib.name}
-                          </p>
-                          <p className="text-xs text-theme-muted mt-1">
-                            {t('runModes.librarySelector.itemCount', { count: lib.itemCount })}
-                          </p>
-                        </div>
-                        <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-theme-primary/30 flex justify-end">
-            <button
-              onClick={() => {
-                setShowLibrarySelector(false);
-                setLibrarySearchQuery("");
-              }}
-              className="px-4 py-2 bg-theme-bg hover:bg-theme-bg/80 text-theme-text rounded-lg transition-all duration-200"
-            >
-              {t('common.cancel')}
-            </button>
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-theme-primary/30 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowFolderSelector(false);
+                  setFolderSearchQuery("");
+                }}
+                className="px-4 py-2 bg-theme-bg hover:bg-theme-bg/80 text-theme-text rounded-lg transition-all duration-200"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
+
+      {/* Library Selector Modal */}
+      {showLibrarySelector && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-theme-card border border-theme-primary rounded-xl max-w-3xl w-full max-h-[70vh] shadow-2xl animate-in fade-in duration-200 flex flex-col">
+            {/* Header */}
+            <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center">
+                <FolderHeart className="w-6 h-6 mr-3 text-white" />
+                <h3 className="text-xl font-bold text-white">
+                  {t('runModes.librarySelector.title')}
+                  {libraryItems.length > 0 &&
+                    ` (${t('runModes.librarySelector.libraryCount', { count: libraryItems.length })})`}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowLibrarySelector(false);
+                  setLibrarySearchQuery("");
+                }}
+                className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="px-6 py-4 border-b border-theme-primary/30">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={librarySearchQuery}
+                  onChange={(e) => setLibrarySearchQuery(e.target.value)}
+                  placeholder={t('runModes.librarySelector.searchPlaceholder')}
+                  className="w-full px-4 py-2 pr-10 bg-theme-bg border border-theme rounded-lg text-theme-text placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                />
+                {librarySearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setLibrarySearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-text p-1 hover:bg-theme-hover rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingLibraries ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-12 h-12 text-theme-primary animate-spin mb-4" />
+                  <p className="text-theme-muted">{t('runModes.librarySelector.loading')}</p>
+                </div>
+              ) : libraryItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <FolderHeart className="w-16 h-16 text-theme-muted mb-4" />
+                  <p className="text-theme-muted text-center">
+                    {t('runModes.librarySelector.noLibraries')}
+                  </p>
+                  <p className="text-theme-muted text-sm mt-2">
+                    {t('runModes.librarySelector.noLibrariesSubtext')}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {libraryItems
+                    .filter((lib) =>
+                      librarySearchQuery
+                        ? lib.name
+                          .toLowerCase()
+                          .includes(librarySearchQuery.toLowerCase())
+                        : true
+                    )
+                    .map((lib, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleLibrarySelect(lib.name)}
+                        className="w-full text-left px-4 py-3 bg-theme-bg hover:bg-theme-primary/20 border border-theme rounded-lg transition-all duration-200 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-theme-text font-medium truncate">
+                              {lib.name}
+                            </p>
+                            <p className="text-xs text-theme-muted mt-1">
+                              {t('runModes.librarySelector.itemCount', { count: lib.itemCount })}
+                            </p>
+                          </div>
+                          <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <CheckCircle className="w-5 h-5 text-green-400" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-theme-primary/30 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowLibrarySelector(false);
+                  setLibrarySearchQuery("");
+                }}
+                className="px-4 py-2 bg-theme-bg hover:bg-theme-bg/80 text-theme-text rounded-lg transition-all duration-200"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
