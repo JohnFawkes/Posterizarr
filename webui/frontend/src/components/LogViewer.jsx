@@ -486,42 +486,50 @@ function LogViewer() {
   // Initial load effect
   useEffect(() => {
     const initialize = async () => {
-      // 1. Fetch all available logs
-      const logsData = await fetchAvailableLogs();
+      // 1. Fetch logs and get the returned array directly
+      const logsData = await fetchAvailableLogs(false);
 
-      // 2. Determine which log to load
-      const requestedLogFile = location.state?.logFile || "Scriptlog.log";
-      const logExists = logsData.some((log) => log.name === requestedLogFile);
+      const priorityLogs = ["Scriptlog.log", "Manuallog.log", "Testinglog.log"];
+      const backendLog = "FrontendUI.log";
 
       let logToLoad = null;
 
-      if (logExists) {
+      // 2. Check Navigation State
+      const requestedLogFile = location.state?.logFile;
+      const requestedExists = requestedLogFile && logsData.some(l => l.name === requestedLogFile);
+
+      if (requestedExists) {
         logToLoad = requestedLogFile;
-      } else if (requestedLogFile === "Scriptlog.log" && logsData.length > 0) {
-        // If Scriptlog.log was default but missing, pick the first available log
-        logToLoad = logsData[0].name;
-        showInfo(t("logViewer.scriptlogMissing", { fallback: logToLoad }));
-      } else if (logsData.length === 0) {
-        // No logs exist at all
-        showInfo(t("logViewer.noLogsFound"));
-        setLogs([]);
-        return; // Do not fetch or connect
-      } else if (logsData.length > 0) {
-        // Requested log doesn't exist, and it wasn't the default Scriptlog
-        showError(t("logViewer.loadFailed", { name: requestedLogFile }));
-        logToLoad = logsData[0].name; // Fallback to first log
       } else {
-        // This case should be covered by logsData.length === 0, but as a safety net:
-        return; // No logs to load
+        // 3. Automated Search Logic
+        // Find the first available script log from priority list
+        logToLoad = priorityLogs.find(priorityName =>
+          logsData.some(available => available.name === priorityName)
+        );
+
+        // 4. Final Fallback: if no script logs exist, load the backend log
+        if (!logToLoad) {
+          const backendExists = logsData.some(l => l.name === backendLog);
+          // If FrontendUI exists, use it. Otherwise, take the first file in the list or null.
+          logToLoad = backendExists ? backendLog : (logsData[0]?.name || null);
+
+          if (logToLoad === backendLog) {
+            showInfo(t("logViewer.fallbackToBackend", "Script logs not found, showing backend log."));
+          }
+        }
       }
 
-      // 3. Set the log, fetch content, and connect
-      setSelectedLog(logToLoad);
-      currentLogFileRef.current = logToLoad; // Manually set ref to prevent re-connect
-      // await fetchLogFile(logToLoad); // <-- REMOVED to prevent duplicates
-      connectWebSocket(logToLoad);
+      // 5. Connect to the determined log
+      if (logToLoad) {
+        setSelectedLog(logToLoad);
+        currentLogFileRef.current = logToLoad;
+        connectWebSocket(logToLoad);
+      } else {
+        showInfo(t("logViewer.noLogsFound"));
+        setLogs([]);
+      }
 
-      isInitialLoad.current = false; // Mark initial load as complete
+      isInitialLoad.current = false;
     };
 
     initialize();
