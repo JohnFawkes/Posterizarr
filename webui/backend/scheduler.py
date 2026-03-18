@@ -353,7 +353,13 @@ class PosterizarrScheduler:
         with self._lock:
             try:
                 jobs = self.scheduler.get_jobs()
-                next_runs = [j.next_run_time for j in jobs if j.next_run_time]
+                # Use getattr to safely check for the attribute
+                next_runs = [
+                    getattr(j, 'next_run_time', None)
+                    for j in jobs
+                    if getattr(j, 'next_run_time', None) is not None
+                ]
+
                 if next_runs:
                     next_run = min(next_runs)
                     config = self.load_config()
@@ -370,8 +376,8 @@ class PosterizarrScheduler:
                 return
             if not self.scheduler.running:
                 self.scheduler.configure(timezone=self._get_timezone())
-                self.apply_schedules()
                 self.scheduler.start()
+                self.apply_schedules()
                 self._scheduler_initialized = True
 
     def stop(self):
