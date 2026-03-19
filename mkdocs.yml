@@ -44,6 +44,7 @@ nav:
   - 'Configuration': 'configuration.md'
   - 'Usage & Guides':
     - 'Usage & Modes': 'modes.md'
+    - 'Homepage Custom API': 'homepage.md'
     - 'Manual UI Installation': 'uiinstallation.md'
     - 'Jellyfin Plugin': 'plugin.md'
   - 'Advanced':

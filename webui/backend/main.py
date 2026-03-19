@@ -1014,6 +1014,34 @@ def get_library_type_from_db(library_folder: str) -> Optional[str]:
 
     return None
 
+def cleanup_outdated_assets():
+    """Asset cleanup"""
+    logger.info("Starting cleanup of outdated assets...")
+    deleted_count = 0
+
+    if not MANUAL_ASSETS_DIR.exists() or not ASSETS_DIR.exists():
+        logger.warning("Cleanup skipped: Manual assets or assets directory missing.")
+        return
+
+    # Iterate through manual assets
+    for manual_file in MANUAL_ASSETS_DIR.rglob("*"):
+        if manual_file.is_file():
+            # Get relative path to find corresponding file in assets
+            relative_path = manual_file.relative_to(MANUAL_ASSETS_DIR)
+            corresponding_asset = ASSETS_DIR / relative_path
+
+            if corresponding_asset.exists():
+                # Compare modification times (stat().st_mtime)
+                if manual_file.stat().st_mtime > corresponding_asset.stat().st_mtime:
+                    try:
+                        corresponding_asset.unlink()
+                        deleted_count += 1
+                        logger.info(f"Deleted outdated asset: {relative_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to delete {corresponding_asset}: {e}")
+
+    logger.info(f"Asset cleanup finished. Files deleted: {deleted_count}")
+
 def scan_and_cache_assets():
     """
     Scans the assets directory and populates/refreshes the cache atomically.
@@ -1039,7 +1067,7 @@ def scan_and_cache_assets():
         "titlecards": [],
         "folders": [],
         "manual_gallery": {"libraries": [], "total_assets": 0},
-        "backup_gallery": {"libraries": [], "total_assets": 0}, # NEW: Initialize backup gallery
+        "backup_gallery": {"libraries": [], "total_assets": 0},
         "last_scanned": 0, # Will be set at the end
     }
 
@@ -1055,7 +1083,10 @@ def scan_and_cache_assets():
         # =========================================================
         # 1. MAIN ASSETS SCAN (Existing Logic)
         # =========================================================
-        # Scan once for all image types and filter @eaDir in one pass
+
+        # Cleanup Assets when newer Manualasset found.
+        cleanup_outdated_assets()
+
         image_extensions = {".jpg", ".jpeg", ".png", ".webp"}
 
         logger.info(f"Scanning assets directory: {ASSETS_DIR}")
