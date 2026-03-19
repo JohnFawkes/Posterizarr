@@ -66,6 +66,10 @@ All installation instructions, configuration guides, and advanced tutorials have
 
 Feel free to customize the script further to meet your specific preferences or automation requirements.
 
+I'm open about the fact that I use AI as a coding assistant, for the UI and Web components since I’m not a web dev by trade.
+It helps me handle boilerplate and refactoring at a speed I couldn't achieve alone.
+I review and test every line before it’s committed.
+
 ## PR Rules
 
 > [!IMPORTANT]
