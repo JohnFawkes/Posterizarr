@@ -11584,15 +11584,12 @@ async def update_asset_db_entry_as_manual(
 
         # Extract title from folder name if not provided
         # Remove year and ID tags like (2024) {tmdb-12345}
-        if not title_text:
+        final_title_text = title_text
+        if not final_title_text:  # This catches both None and "" for DB cleanup purposes
             # Match patterns like "Movie Name (2024) {tmdb-12345}"
             title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
-            if title_match:
-                title_text = title_match.group(1).strip()
-            else:
-                # Fallback: use folder name as-is
-                title_text = final_folder_name
-
+            final_title_text = title_match.group(1).strip() if title_match else final_folder_name
+        
         # Determine asset type from filename
         # Match database Type column values: "Show", "Movie", "Show Background", "Movie Background", "Season", "Episode"
         asset_type = "Poster"  # Default, will be refined below
@@ -11618,6 +11615,7 @@ async def update_asset_db_entry_as_manual(
         with db.lock:
             conn = db._get_connection()
             try:
+                conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
 
                 # Extract season/episode info from filename for more specific matching
@@ -11937,14 +11935,11 @@ async def replace_asset_from_url(
                     # Extract title text from folder name if not provided
                     # Remove year and TMDB/TVDB ID from folder name
                     final_title_text = title_text
-                    if not final_title_text:
-                        # Match patterns like "Movie Name (2024) {tmdb-12345}"
+                    if title_text is None:
                         title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
-                        if title_match:
-                            final_title_text = title_match.group(1).strip()
-                        else:
-                            # Fallback: use folder name as-is
-                            final_title_text = final_folder_name
+                        final_title_text = title_match.group(1).strip() if title_match else final_folder_name
+                    else:
+                        final_title_text = title_text
 
                     logger.info(
                         f"Manual Run params - Library: {final_library_name}, Folder: {final_folder_name}, Type: {poster_type}, Title: {final_title_text}"
@@ -13397,8 +13392,7 @@ async def finalize_asset_replacement(
                 final_folder_name = final_folder_name or path_parts[1]
 
                 if not final_title_text:
-                     title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
-                     final_title_text = title_match.group(1).strip() if title_match else final_folder_name
+                     final_title_text = overlay_params.get("title_text", "")
 
             # 6. Poster Type and Regex Extraction Logic
             poster_type = "standard"
