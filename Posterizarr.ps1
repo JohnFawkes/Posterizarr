@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.31"
+$CurrentScriptVersion = "2.2.32"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -8477,20 +8477,10 @@ if ($Manual) {
             }
             Else {
                 if ($fontAllCaps -eq 'true') {
-                    if ($global:ExtractedTitle) {
-                        $joinedTitle = $global:ExtractedTitle.ToUpper()
-                    }
-                    else {
-                        $joinedTitle = $SeasonPosterName.ToUpper()
-                    }
+                    $joinedTitle = $titletext.ToUpper()
                 }
                 Else {
-                    if ($global:ExtractedTitle) {
-                        $joinedTitle = $global:ExtractedTitle
-                    }
-                    else {
-                        $joinedTitle = $SeasonPosterName
-                    }
+                    $joinedTitle = $titletext
                 }
             }
         }
