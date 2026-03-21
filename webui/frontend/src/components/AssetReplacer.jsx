@@ -1449,10 +1449,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         )}
 
         {/* Header */}
-        <div className="border-b border-theme p-4 sm:p-6">
+        <div className="border-b border-theme p-3 sm:p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-2xl font-bold text-theme-text flex items-center gap-2 sm:gap-3">
+              <h2 className="text-lg sm:text-xl font-bold text-theme-text flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 rounded-lg bg-theme-primary/10">
                   <RefreshCw className="w-4 h-4 sm:w-6 sm:h-6 text-theme-primary" />
                 </div>
@@ -1460,10 +1460,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                   {logoSelectionMode ? t("assetReplacer.selectLogoTitle") : t("assetReplacer.title")}
                 </span>
               </h2>
-              <p className="text-base sm:text-xl font-bold text-theme-text mt-2 sm:mt-3 break-words">
+              <p className="text-sm sm:text-lg font-bold text-theme-text mt-0.5 sm:mt-1 break-words">
                 {asset.path.split(/[\\/]/).slice(-2, -1)[0] || "Unknown"}
               </p>
-              <p className="text-xs sm:text-sm text-theme-muted break-all mt-1">
+              <p className="text-xs text-theme-muted break-all mt-1">
                 {asset.path}
               </p>
             </div>
@@ -1481,7 +1481,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           <div className="flex gap-2 sm:gap-4 -mb-px overflow-x-auto">
             <button
               onClick={() => setActiveTab("upload")}
-              className={`px-3 sm:px-4 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "upload"
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-sm:text-base ${activeTab === "upload"
                 ? "text-theme-primary border-theme-primary"
                 : "text-theme-muted border-transparent hover:text-theme-text"
                 }`}
@@ -1494,7 +1494,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
             </button>
             <button
               onClick={() => setActiveTab("previews")}
-              className={`px-3 sm:px-4 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "previews"
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-sm:text-base ${activeTab === "previews"
                 ? "text-theme-primary border-theme-primary"
                 : "text-theme-muted border-transparent hover:text-theme-text"
                 }`}
@@ -1514,7 +1514,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4">
           {activeTab === "upload" && (
             <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
               {/* Process with Overlays Toggle */}
@@ -1990,11 +1990,11 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                 </div>
               ) : (
                 <div>
-                  <div className="border-b border-theme mb-6">
+                  <div className="border-b border-theme mb-3">
                     <div className="flex gap-2">
                       <button
                         onClick={() => setActiveProviderTab("tmdb")}
-                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${activeProviderTab === "tmdb"
+                        className={`px-3 py-1.5 font-medium transition-colors border-b-2 ${activeProviderTab === "tmdb"
                           ? "text-blue-400 border-blue-400 bg-blue-500/10"
                           : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
                           }`}
@@ -2005,7 +2005,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </button>
                       <button
                         onClick={() => setActiveProviderTab("tvdb")}
-                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${activeProviderTab === "tvdb"
+                        className={`px-3 py-1.5 font-medium transition-colors border-b-2 ${activeProviderTab === "tvdb"
                           ? "text-green-400 border-green-400 bg-green-500/10"
                           : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
                           }`}
@@ -2016,7 +2016,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </button>
                       <button
                         onClick={() => setActiveProviderTab("fanart")}
-                        className={`px-4 py-3 font-medium transition-colors border-b-2 ${activeProviderTab === "fanart"
+                        className={`px-3 py-1.5 font-medium transition-colors border-b-2 ${activeProviderTab === "fanart"
                           ? "text-purple-400 border-purple-400 bg-purple-500/10"
                           : "text-theme-muted border-transparent hover:text-theme-text hover:bg-theme-hover"
                           }`}
@@ -2030,7 +2030,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
                   <div>
                     {activeProviderTab === "tmdb" && (
-                      <div className={useHorizontalLayout ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"}>
+                      <div className={useHorizontalLayout 
+                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2" 
+                        : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
+                      }>
                         {previews.tmdb.map((preview, index) => (
                           <PreviewCard
                             key={`tmdb-${index}`}
@@ -2043,7 +2046,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </div>
                     )}
                     {activeProviderTab === "tvdb" && (
-                      <div className={useHorizontalLayout ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"}>
+                      <div className={useHorizontalLayout 
+                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2" 
+                        : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
+                      }>
                         {previews.tvdb.map((preview, index) => (
                           <PreviewCard
                             key={`tvdb-${index}`}
@@ -2056,7 +2062,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </div>
                     )}
                     {activeProviderTab === "fanart" && (
-                      <div className={useHorizontalLayout ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"}>
+                      <div className={useHorizontalLayout 
+                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2" 
+                        : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
+                      }>
                         {previews.fanart.map((preview, index) => (
                           <PreviewCard
                             key={`fanart-${index}`}

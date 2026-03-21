@@ -9980,7 +9980,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                 result.extend(language_groups[lang])
 
             # Add other languages at the end
-            result.extend(language_groups["other"])
+            #result.extend(language_groups["other"])
 
             return result
 
