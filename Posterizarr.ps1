@@ -4078,7 +4078,7 @@ function GetPlexArtwork {
             $stream.Close()
             $_localExif = [System.Text.Encoding]::UTF8.GetString($buffer, 0, $read) -match 'posterizarr|overlay|titlecard'
         } catch { $_localExif = $false }
-        if ($_localExif) {
+        if ($_localExif -and $DisableHashValidation -ne 'true') {
             Write-Entry -Subtext "Local asset already processed (EXIF found), skipping Plex query for $Type" -Path $global:configLogging -Color Yellow -log Warning
             return
         }
