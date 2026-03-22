@@ -4064,9 +4064,25 @@ function GetPlexArtwork {
     param(
         [string]$Type,
         [string]$ArtUrl,
-        [string]$TempImage
+        [string]$TempImage,
+        [string]$LocalAssetPath = ""
     )
 
+
+    # Fast local EXIF pre-check: read first 64KB without spawning a subprocess
+    if ($LocalAssetPath -and (Test-Path -LiteralPath $LocalAssetPath)) {
+        try {
+            $stream = [System.IO.File]::OpenRead($LocalAssetPath)
+            $buffer = New-Object byte[] 65536
+            $read = $stream.Read($buffer, 0, 65536)
+            $stream.Close()
+            $_localExif = [System.Text.Encoding]::UTF8.GetString($buffer, 0, $read) -match 'posterizarr|overlay|titlecard'
+        } catch { $_localExif = $false }
+        if ($_localExif) {
+            Write-Entry -Subtext "Local asset already processed (EXIF found), skipping Plex query for $Type" -Path $global:configLogging -Color Yellow -log Warning
+            return
+        }
+    }
     Write-Entry -Subtext "Searching on Plex for $Type" -Path $global:configLogging -Color Cyan -log Info
 
     try {
@@ -32992,7 +33008,7 @@ else {
                                 }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
-                                    GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage
+                                    GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage -LocalAssetPath $PosterImageoriginal
                                     if ($global:PlexartworkDownloaded -eq 'true') {
                                         Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                         $fileContent = [System.IO.File]::ReadAllBytes($PosterImageoriginal)
@@ -33694,7 +33710,7 @@ else {
                                 }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
-                                    GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
+                                    GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage -LocalAssetPath $backgroundImageoriginal
                                     if ($global:PlexartworkDownloaded -eq 'true') {
                                         Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                         $fileContent = [System.IO.File]::ReadAllBytes($backgroundImageoriginal)
@@ -34495,7 +34511,7 @@ else {
                             }
                             Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                             try {
-                                GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage
+                                GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage -LocalAssetPath $PosterImageoriginal
                                 if ($global:PlexartworkDownloaded -eq 'true') {
                                     Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                     $fileContent = [System.IO.File]::ReadAllBytes($PosterImageoriginal)
@@ -35212,7 +35228,7 @@ else {
                             }
                             Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                             try {
-                                GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
+                                GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage -LocalAssetPath $backgroundImageoriginal
                                 if ($global:PlexartworkDownloaded -eq 'true') {
                                     Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                     $fileContent = [System.IO.File]::ReadAllBytes($backgroundImageoriginal)
@@ -36044,7 +36060,7 @@ else {
                                 }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
-                                    GetPlexArtwork -Type " $Titletext | $global:seasontmp Artwork."  -ArtUrl $Arturl -TempImage $SeasonImage
+                                    GetPlexArtwork -Type " $Titletext | $global:seasontmp Artwork."  -ArtUrl $Arturl -TempImage $SeasonImage -LocalAssetPath $SeasonImageoriginal
                                     if ($global:PlexartworkDownloaded -eq 'true') {
                                         Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                         $fileContent = [System.IO.File]::ReadAllBytes($SeasonImageoriginal)
@@ -36803,7 +36819,7 @@ else {
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
-                                                GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
+                                                GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage -LocalAssetPath $EpisodeImageoriginal
                                                 if ($global:PlexartworkDownloaded -eq 'true') {
                                                     Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                                     $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
@@ -37546,7 +37562,7 @@ else {
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
-                                                    GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
+                                                    GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage -LocalAssetPath $EpisodeImageoriginal
                                                     if ($global:PlexartworkDownloaded -eq 'true') {
                                                         Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
                                                         $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
