@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.32"
+$CurrentScriptVersion = "2.2.33"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -4067,44 +4067,66 @@ function GetPlexArtwork {
         [string]$TempImage
     )
 
-    Write-Entry -Subtext "Searching on Plex for $Type" -Path $global:configLogging -Color Cyan -log Info
+    Write-Entry -Subtext "Checking Plex metadata for $Type..." -Path $global:configLogging -Color Cyan -log Info
+
+    $ExifFound = $false
 
     try {
-        Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+        $client = New-Object System.Net.Http.HttpClient
+        # Request only the first 64KB for EXIF/Metadata
+        $client.DefaultRequestHeaders.Range = New-Object System.Net.Http.Headers.RangeHeaderValue(0, 65536)
+
+        # Add Plex Headers
+        foreach ($key in $extraPlexHeaders.Keys) {
+            $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+        }
+
+        $task = $client.GetByteArrayAsync($ArtUrl)
+        $buffer = $task.GetAwaiter().GetResult()
+        $client.Dispose()
+
+        # Check for markers
+        $content = [System.Text.Encoding]::UTF8.GetString($buffer)
+        if ($content -match 'overlay|titlecard|created with ppm|created with posterizarr') {
+            $ExifFound = $true
+        }
     }
     catch {
-        Write-Entry -Subtext "Could not download Artwork from plex, Error Message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-        continue
+        Write-Entry -Subtext "Fast-Scan failed for $Type. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+        try {
+            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
+            if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
+                $ExifFound = $true
+            }
+        } catch {
+            Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount++; return
+        }
     }
 
-    $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
-    $magickcommand | Out-File $magickLog -Append
-
-    # Execute command and get exif data
-    $value = (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr')
-
-    if ($value -and $DisableHashValidation -eq 'false') {
-        $ExifFound = $True
+    if ($ExifFound -and $DisableHashValidation -eq 'false') {
         if ($global:UploadExistingAssets -eq 'true') {
-            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, skip upload..." -Path $global:configLogging -Color Yellow -log Warning
+            Write-Entry -Subtext "Plex artwork already has EXIF (posterizarr/kometa/tcm), skipping..." -Path $global:configLogging -Color Yellow -log Warning
         }
-        Else {
-            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, cant take it..." -Path $global:configLogging -Color Yellow -log Warning
+        else {
+            Write-Entry -Subtext "Plex artwork already processed, cannot use as source..." -Path $global:configLogging -Color Yellow -log Warning
         }
-        Remove-Item -LiteralPath $TempImage | out-null
+        if (Test-Path -LiteralPath $TempImage) {
+            Remove-Item -LiteralPath $TempImage -Force -ErrorAction SilentlyContinue | Out-Null
+        }
     }
-    Else {
-        if ($DisableHashValidation -eq 'false') {
-            Write-Entry -Subtext "No posterizarr/kometa/tcm exif data found, taking Plex artwork..." -Path $global:configLogging -Color Green -log Info
+    else {
+        # Only download the FULL image if needed
+        Write-Entry -Subtext "No EXIF found or validation disabled, downloading full $Type..." -Path $global:configLogging -Color Green -log Info
+        try {
+            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            $global:PlexartworkDownloaded = $true
+            $global:posterurl = $ArtUrl
         }
-        Else {
-            Write-Entry -Subtext "taking Plex artwork..." -Path $global:configLogging -Color Green -log Info
+        catch {
+            Write-Entry -Subtext "Full download failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
         }
-
-        $global:PlexartworkDownloaded = $true
-        $global:posterurl = $ArtUrl
     }
 }
 function Push-ObjectToDiscord {
@@ -4971,29 +4993,52 @@ function MassDownloadPlexArtwork {
             [string]$ArtUrl,
             [string]$TempImage
         )
+
+        Write-Entry -Subtext "Fast-scanning Plex URL for EXIF data..." -Path $global:configLogging -Color Cyan -log Info
+
+        $ExifFound = $false
+
         try {
-            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            # Perform a partial download (64KB) to check for EXIF markers in memory
+            $client = New-Object System.Net.Http.HttpClient
+            $client.DefaultRequestHeaders.Range = New-Object System.Net.Http.Headers.RangeHeaderValue(0, 65536)
+
+            # Add Plex Headers
+            foreach ($key in $extraPlexHeaders.Keys) {
+                $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+            }
+
+            $task = $client.GetByteArrayAsync($ArtUrl)
+            $buffer = $task.GetAwaiter().GetResult()
+            $client.Dispose()
+
+            $content = [System.Text.Encoding]::UTF8.GetString($buffer)
+
+            if ($content -match 'overlay|titlecard|created with ppm|created with posterizarr') {
+                $ExifFound = $true
+            }
         }
         catch {
-            Write-Entry -Subtext "Could not download Artwork from plex, Error Message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Fast-scan failed, falling back to full download. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
 
-            continue
+            try {
+                Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+                $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
+                if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
+                    $ExifFound = $true
+                }
+            } catch {
+                Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount++; return
+            }
         }
 
-        $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
-        $magickcommand | Out-File $magickLog -Append
-
-        # Execute command and get exif data
-        $value = (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr')
-
-        if ($value) {
-            $ExifFound = $True
-            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, downloading it now..." -Path $global:configLogging -Color Green -log Info
+        if ($ExifFound) {
+            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, using URL..." -Path $global:configLogging -Color Green -log Info
             $global:posterurl = $ArtUrl
         }
-        Else {
-            Write-Entry -Subtext "No posterizarr/kometa/tcm exif data found, downloading it now..." -Path $global:configLogging -Color Yellow -log Warning
+        else {
+            Write-Entry -Subtext "No posterizarr/kometa/tcm exif data found, using URL..." -Path $global:configLogging -Color Yellow -log Warning
             $global:posterurl = $ArtUrl
         }
     }
