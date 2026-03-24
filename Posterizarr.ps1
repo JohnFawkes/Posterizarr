@@ -4013,7 +4013,7 @@ function GetTVDBShowBackground {
 function GetTVDBTitleCard {
     if ($global:tvdbid) {
         Write-Entry -Subtext "Searching on TVDB for: $global:show_name 'Season $global:season_number - Episode $global:episodenumber' Title Card - TVDBID: $global:tvdbid" -Path $global:configLogging -Color Cyan -log Info
-        $allEpisodes = @()
+        $allEpisodes = [System.Collections.Generic.List[object]]::new()
         $page = 0
 
         do {
@@ -4023,7 +4023,7 @@ function GetTVDBTitleCard {
                 $seriesData = $response.data
 
                 if ($episodes) {
-                    $allEpisodes += $seriesData
+                    $allEpisodes.Add($seriesData)
                     $page++
                 }
             }
@@ -5070,7 +5070,7 @@ function MassDownloadPlexArtwork {
     $Mode = "backup"
     Write-Entry -Message "Backup Mode Started..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
-    $Libsoverview = @()
+    $Libsoverview = [System.Collections.Generic.List[object]]::new()
     foreach ($lib in $Libs.MediaContainer.Directory) {
         if ($lib.title -notin $LibstoExclude) {
             $libtemp = New-Object psobject
@@ -5092,7 +5092,7 @@ function MassDownloadPlexArtwork {
                 Write-Entry -Subtext "Please rename your lib and remove all chars that are listed here: '/, :, *, ?, `", <, >, |, \, or }'" -Path $global:configLogging -Color Yellow -log Warning
                 HandleScriptExit -Message "Invalid lib chars"
             }
-            $Libsoverview += $libtemp
+            $Libsoverview.Add($libtemp)
         }
     }
     if ($($Libsoverview.count) -lt 1) {
@@ -5103,7 +5103,7 @@ function MassDownloadPlexArtwork {
     $IncludedLibraryNames = $Libsoverview.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     Foreach ($Library in $Libsoverview) {
         if ($Library.Name -notin $LibstoExclude) {
             $PlexHeaders = @{}
@@ -5395,7 +5395,7 @@ function MassDownloadPlexArtwork {
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -5420,7 +5420,7 @@ function MassDownloadPlexArtwork {
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -5435,10 +5435,10 @@ function MassDownloadPlexArtwork {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -5456,7 +5456,7 @@ function MassDownloadPlexArtwork {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
@@ -5584,7 +5584,7 @@ function MassDownloadPlexArtwork {
     Write-Entry -Message "Starting asset download now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster/Background download part..." -Path $global:configLogging -Color Green -log Info
 
-    $checkedItems = @()
+    $checkedItems = [System.Collections.Generic.List[object]]::new()
     # Movie Part
     foreach ($entry in $AllMovies) {
         try {
@@ -5660,7 +5660,7 @@ function MassDownloadPlexArtwork {
                 $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                 # Now we can start the Poster Part
                 if ($global:Posters -eq 'true') {
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
@@ -5789,7 +5789,7 @@ function MassDownloadPlexArtwork {
 
                     $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
@@ -5996,7 +5996,7 @@ function MassDownloadPlexArtwork {
 
             # Now we can start the Poster Part
             if ($global:Posters -eq 'true') {
-                $checkedItems += $hashtestpath
+                $checkedItems.Add($hashtestpath)
 
                 if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                     $Arturl = $null
@@ -6114,7 +6114,7 @@ function MassDownloadPlexArtwork {
 
                 $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                 $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                $checkedItems += $hashtestpath
+                $checkedItems.Add($hashtestpath)
 
                 if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                     # Define Global Variables
@@ -6287,7 +6287,7 @@ function MassDownloadPlexArtwork {
 
                     $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
                     $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
@@ -6454,7 +6454,7 @@ function MassDownloadPlexArtwork {
                             $EpisodeImage = $EpisodeImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
 
                             $cjkTitlePattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsThai}]'
-                            $checkedItems += $hashtestpath
+                            $checkedItems.Add($hashtestpath)
 
                             if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                 $Arturl = $null
@@ -9706,7 +9706,7 @@ Elseif ($Tautulli) {
     # {grandparent_rating_key}	The unique identifier for the TV show or artist.
     $Mode = "tautulli"
     Write-Entry -Message "Tautulli Mode Started..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     if (($RatingKey -or $parentratingkey -or $grandparentratingkey) -and $mediatype) {
         if ($mediatype -eq 'movie') {
             $contentquery = "video"
@@ -9895,7 +9895,7 @@ Elseif ($Tautulli) {
         $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
         $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
         $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-        $Libraries += $temp
+        $Libraries.Add($temp)
         Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
@@ -9906,7 +9906,7 @@ Elseif ($Tautulli) {
     if ($global:TitleCards -eq 'true' -and $mediatype -ne 'movie') {
         Write-Entry -Message "Query episodes data..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -9921,10 +9921,10 @@ Elseif ($Tautulli) {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -9942,7 +9942,7 @@ Elseif ($Tautulli) {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
@@ -15268,7 +15268,7 @@ Elseif ($ArrTrigger) {
         }
         default { Write-Entry -Message "Unknown platform: $arrplatform" -Path $global:configLogging -Color Red -log Error }
     }
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
         $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
         foreach ($Movie in $AllMovies.Items) {
@@ -15349,7 +15349,7 @@ Elseif ($ArrTrigger) {
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                     $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                    $Libraries += $temp
+                    $Libraries.Add($temp)
                     Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
                 }
@@ -15430,7 +15430,7 @@ Elseif ($ArrTrigger) {
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                     $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                    $Libraries += $temp
+                    $Libraries.Add($temp)
                     Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
                 }
@@ -15512,7 +15512,7 @@ Elseif ($ArrTrigger) {
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Show.ImageTags.Primary
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Show.BackdropImageTags -join ",")
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -15520,7 +15520,7 @@ Elseif ($ArrTrigger) {
         Write-Entry -Subtext "Found '$($Libraries.count)' Items..." -Path $global:configLogging -Color Cyan -log Info
         Write-Entry -Message "Starting episode data query now - This can take a while..." -Path $global:configLogging -Color Cyan -Log Info
 
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         $TempShowLibs = $Libraries | Where-Object { $_."Library Type" -eq 'Series' }
         foreach ($show in $TempShowLibs) {
             # Iterate through all shows
@@ -15565,26 +15565,26 @@ Elseif ($ArrTrigger) {
                 }
 
                 # Add the season object to the array
-                $Episodedata += $seasonObject
+                $Episodedata.Add($seasonObject)
             }
         }
         # Create an empty array to hold the custom objects
-        $FormattedData = @()
+        $FormattedData = [System.Collections.Generic.List[object]]::new()
 
         # Iterate over each item in $OtherEpisodedata
         foreach ($data in $Episodedata) {
             $EpisodeWidths = $data.EpisodeWidths -split ","
             $EpisodeHeights = $data.EpisodeHeights -split ","
             # Initialize an empty array for resolutions
-            $Resolution = @()
+            $Resolution = [System.Collections.Generic.List[object]]::new()
 
             # Loop through each episode and determine resolution
             for ($i = 0; $i -lt $EpisodeWidths.Count; $i++) {
                 $Width = [int]$EpisodeWidths[$i]
-                $Resolution += Get-Resolution -Width $Width
+                $Resolution.Add((Get-Resolution -Width $Width))
             }
             # Create a custom object for each episode using the variables
-            $FormattedData += [PSCustomObject]@{
+            $FormattedData.Add([PSCustomObject]@{
                 'Library Name'                 = $data.'Library Name'
                 'Show Name'                    = $data.'Show Name'
                 'Show Original Name'           = $data.'Show Original Name'
@@ -15603,7 +15603,7 @@ Elseif ($ArrTrigger) {
                 'Title'                        = $data.'Title'
                 'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
                 'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-            }
+            })
         }
 
         # Export the formatted data to CSV
@@ -20247,7 +20247,7 @@ Elseif ($ArrTrigger) {
         $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
         $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
         $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-        $Libraries += $temp
+        $Libraries.Add($temp)
         Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         $AllShows = $Libraries | Where-Object { $_.'Library Type' -eq 'show' }
@@ -20256,7 +20256,7 @@ Elseif ($ArrTrigger) {
         if ($global:TitleCards -eq 'true' -and $mediatype -ne 'movie') {
             Write-Entry -Message "Query episodes data..." -Path $global:configLogging -Color White -log Info
             # Query episode info
-            $Episodedata = @()
+            $Episodedata = [System.Collections.Generic.List[object]]::new()
             foreach ($showentry in $AllShows) {
                 # Getting child entries for each season
                 $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -20271,10 +20271,10 @@ Elseif ($ArrTrigger) {
                     $Resolution = $null
                     # Get Resolution
                     if ($FileMetadata) {
-                        $ResolutionList = @()
+                        $ResolutionList = [System.Collections.Generic.List[object]]::new()
                         $FileMetadata | ForEach-Object {
                             $Resolution = $_.videoResolution
-                            $ResolutionList += $Resolution
+                            $ResolutionList.Add($Resolution)
                         }
                         $Resolution = $ResolutionList -join ","
                     }
@@ -20292,7 +20292,7 @@ Elseif ($ArrTrigger) {
                     if ($FileMetadata) {
                         $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                     }
-                    $Episodedata += $tempseasondata
+                    $Episodedata.Add($tempseasondata)
                     Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 }
             }
@@ -25420,7 +25420,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     }
 
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
-    $Libsoverview = @()
+    $Libsoverview = [System.Collections.Generic.List[object]]::new()
     foreach ($lib in $Libs.MediaContainer.Directory) {
         if ($lib.title -notin $LibstoExclude) {
             $libtemp = New-Object psobject
@@ -25443,7 +25443,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 # Clear Running File
                 HandleScriptExit -Message "Lib contains invalid chars"
             }
-            $Libsoverview += $libtemp
+            $Libsoverview.Add($libtemp)
         }
     }
     if ($($Libsoverview.count) -lt 1) {
@@ -25455,7 +25455,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     $IncludedLibraryNames = $Libsoverview.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     Foreach ($Library in $Libsoverview) {
         if ($Library.Name -notin $LibstoExclude) {
             $PlexHeaders = @{}
@@ -25748,7 +25748,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -25763,7 +25763,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -25778,10 +25778,10 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -25799,7 +25799,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
@@ -25829,9 +25829,9 @@ Elseif ($SyncJelly -or $SyncEmby) {
         Write-Entry -Subtext "--------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
 
-    $OtherAllMovies = @()
-    $OtherAllShows = @()
-    $OtherAllEpisodes = @()
+    $OtherAllMovies = [System.Collections.Generic.List[object]]::new()
+    $OtherAllShows = [System.Collections.Generic.List[object]]::new()
+    $OtherAllEpisodes = [System.Collections.Generic.List[object]]::new()
 
     foreach ($otherlib in $OtherAllLibs) {
         if ($otherlib.Name -notin $LibstoExclude) {
@@ -25839,7 +25839,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 Write-Entry -Subtext "Getting all Itmes from [$($otherlib.Name)] with item id [$($otherlib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
                 $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags&IncludeItemTypes=Movie"
                 $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
-                $OtherAllMovies += $Querytemp
+                $OtherAllMovies.Add($Querytemp)
             }
             if ($otherlib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($otherlib.Name)] with item id [$($otherlib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
@@ -25847,13 +25847,13 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags&IncludeItemTypes=Episode"
                 $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
                 $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
-                $OtherAllShows += $Querytempshow
-                $OtherAllEpisodes += $QuerytempEpisodes
+                $OtherAllShows.Add($Querytempshow)
+                $OtherAllEpisodes.Add($QuerytempEpisodes)
             }
         }
     }
 
-    $OtherLibraries = @()
+    $OtherLibraries = [System.Collections.Generic.List[object]]::new()
     foreach ($Movie in $OtherAllMovies.Items) {
         if ($SyncEmby) {
             $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
@@ -25918,7 +25918,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
             $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-            $OtherLibraries += $temp
+            $OtherLibraries.Add($temp)
             Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
@@ -25984,7 +25984,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
             $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-            $OtherLibraries += $temp
+            $OtherLibraries.Add($temp)
             Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
@@ -26064,12 +26064,12 @@ Elseif ($SyncJelly -or $SyncEmby) {
         $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Show.ImageTags.Primary
         $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Show.BackdropImageTags -join ",")
         $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-        $OtherLibraries += $temp
+        $OtherLibraries.Add($temp)
         Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
     Write-Entry -Subtext "Found '$($OtherLibraries.count)' Items..." -Path $global:configLogging -Color Cyan -log Info
-    $OtherEpisodedata = @()
+    $OtherEpisodedata = [System.Collections.Generic.List[object]]::new()
     $TempShowLibs = $OtherLibraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
         # Iterate through all shows
@@ -26132,7 +26132,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             }
 
             # Add the season object to the array
-            $OtherEpisodedata += $seasonObject
+            $OtherEpisodedata.Add($seasonObject)
         }
     }
     if ($OtherAllEpisodes) {
@@ -26143,12 +26143,12 @@ Elseif ($SyncJelly -or $SyncEmby) {
     $OtherAllMovies = $OtherLibraries | Where-Object { $_.'Library Type' -eq 'Movie' }
 
     # Create an empty array to hold the custom objects
-    $FormattedData = @()
+    $FormattedData = [System.Collections.Generic.List[object]]::new()
 
     # Iterate over each item in $OtherEpisodedata
     foreach ($data in $OtherEpisodedata) {
         # Create a custom object for each episode using the variables
-        $FormattedData += [PSCustomObject]@{
+        $FormattedData.Add([PSCustomObject]@{
             'Library Name'                 = $data.'Library Name'
             'Show Name'                    = $data.'Show Name'
             'Show Original Name'           = $data.'Show Original Name'
@@ -26166,7 +26166,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             'Title'                        = $data.'Title'
             'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
             'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-        }
+        })
     }
 
     # Export the formatted data to CSV
@@ -26792,16 +26792,16 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
         Write-Entry -Subtext "  Lib locations: $($lib.Locations)" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
-    $AllMovies = @()
-    $AllShows = @()
-    $AllEpisodes = @()
+    $AllMovies = [System.Collections.Generic.List[object]]::new()
+    $AllShows = [System.Collections.Generic.List[object]]::new()
+    $AllEpisodes = [System.Collections.Generic.List[object]]::new()
     foreach ($slib in $AllLibs) {
         if ($slib.Name -notin $LibstoExclude) {
             if ($slib.CollectionType -eq 'movies') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
                 $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Movie"
                 $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
-                $AllMovies += $Querytemp
+                $AllMovies.Add($Querytemp)
             }
             if ($slib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
@@ -26809,13 +26809,13 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode"
                 $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
                 $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
-                $AllShows += $Querytempshow
-                $AllEpisodes += $QuerytempEpisodes
+                $AllShows.Add($Querytempshow)
+                $AllEpisodes.Add($QuerytempEpisodes)
             }
         }
     }
 
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     foreach ($Movie in $AllMovies.Items) {
         $Resolution = $null
         if ($UseEmby -eq 'true') {
@@ -26892,7 +26892,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -26971,7 +26971,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -27051,7 +27051,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Show.ImageTags.Primary
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Show.BackdropImageTags -join ",")
             $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-            $Libraries += $temp
+            $Libraries.Add($temp)
             Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
@@ -27062,7 +27062,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
     Write-Entry -Message "Starting episode data query now - This can take a while..." -Path $global:configLogging -Color Cyan -Log Info
 
-    $Episodedata = @()
+    $Episodedata = [System.Collections.Generic.List[object]]::new()
     $TempShowLibs = $Libraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
         # Iterate through all shows
@@ -27129,26 +27129,26 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             }
 
             # Add the season object to the array
-            $Episodedata += $seasonObject
+            $Episodedata.Add($seasonObject)
         }
     }
     # Create an empty array to hold the custom objects
-    $FormattedData = @()
+    $FormattedData = [System.Collections.Generic.List[object]]::new()
 
     # Iterate over each item in $OtherEpisodedata
     foreach ($data in $Episodedata) {
         $EpisodeWidths = $data.EpisodeWidths -split ","
         $EpisodeHeights = $data.EpisodeHeights -split ","
         # Initialize an empty array for resolutions
-        $Resolution = @()
+        $Resolution = [System.Collections.Generic.List[object]]::new()
 
         # Loop through each episode and determine resolution
         for ($i = 0; $i -lt $EpisodeWidths.Count; $i++) {
             $Width = [int]$EpisodeWidths[$i]
-            $Resolution += Get-Resolution -Width $Width
+            $Resolution.Add((Get-Resolution -Width $Width))
         }
         # Create a custom object for each episode using the variables
-        $FormattedData += [PSCustomObject]@{
+        $FormattedData.Add([PSCustomObject]@{
             'Library Name'                 = $data.'Library Name'
             'Show Name'                    = $data.'Show Name'
             'Show Original Name'           = $data.'Show Original Name'
@@ -27167,7 +27167,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             'Title'                        = $data.'Title'
             'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
             'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-        }
+        })
     }
 
     # Export the formatted data to CSV
@@ -27253,7 +27253,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
     Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
-    $checkedItems = @()
+    $checkedItems = [System.Collections.Generic.List[object]]::new()
     # Movie Part
     foreach ($entry in $AllMovies) {
         try {
@@ -27353,7 +27353,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                     $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                     # Now we can start the Poster Part
                     if ($global:Posters -eq 'true') {
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -27953,7 +27953,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                         $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -28642,7 +28642,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                 # Now we can start the Poster Part
                 if ($global:Posters -eq 'true') {
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         foreach ($ext in $allowedExtensions) {
                             $filePath = "$ManualTestPath$ext"
@@ -29204,7 +29204,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
                         $SkippingText = 'false'
@@ -29858,7 +29858,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
                             $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                             Write-Entry -Message "SeasonImage temp path: $SeasonImage" -Path $global:configLogging -Color Cyan -log Debug
-                            $checkedItems += $hashtestpath
+                            $checkedItems.Add($hashtestpath)
                             Write-Entry -Message "Added $hashtestpath to checkedItems" -Path $global:configLogging -Color Cyan -log Debug
                             if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                 foreach ($ext in $allowedExtensions) {
@@ -30526,7 +30526,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile   = "$ManualTestPath$ext"
@@ -31052,7 +31052,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile   = "$ManualTestPath$ext"
@@ -31529,7 +31529,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
         $savedsizestring = 0
         Write-Entry -Subtext "Starting Asset Cleanup, this can take some time..." -Path $global:configLogging -Color Yellow -log Info
         Write-Entry -Subtext "Only removing Artwork with posterizarr exif data" -Path $global:configLogging -Color Cyan -log Info
-        $processedDirectories = @()
+        $processedDirectories = [System.Collections.Generic.List[object]]::new()
         $uncheckedItems = $directoryHashtable.Keys | Where-Object { $_ -notin $checkedItems }
 
         # Perform deletion of unchecked items
@@ -31549,7 +31549,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         # Add the directory to the list if it's not already included
                         if ($parentDir -notin $processedDirectories) {
-                            $processedDirectories += $parentDir
+                            $processedDirectories.Add($parentDir)
                         }
                     }
                 }
@@ -31790,7 +31790,7 @@ else {
         Write-Entry -Message "Normal Mode Started..." -Path $global:configLogging -Color White -log Info
     }
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
-    $Libsoverview = @()
+    $Libsoverview = [System.Collections.Generic.List[object]]::new()
     foreach ($lib in $Libs.MediaContainer.Directory) {
         if ($lib.title -notin $LibstoExclude) {
             $libtemp = New-Object psobject
@@ -31813,7 +31813,7 @@ else {
                 # Clear Running File
                 HandleScriptExit -Message "Invalid chars on lib"
             }
-            $Libsoverview += $libtemp
+            $Libsoverview.Add($libtemp)
         }
     }
     if ($($Libsoverview.count) -lt 1) {
@@ -31825,7 +31825,7 @@ else {
     $IncludedLibraryNames = $Libsoverview.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     Foreach ($Library in $Libsoverview) {
         if ($Library.Name -notin $LibstoExclude) {
             $PlexHeaders = @{}
@@ -32143,7 +32143,7 @@ else {
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -32187,7 +32187,7 @@ else {
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         # Debug Export
         if ($global:logLevel -eq '3') {
             $MasterXml = New-Object System.Xml.XmlDocument
@@ -32228,10 +32228,10 @@ else {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -32249,7 +32249,7 @@ else {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "  Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -32396,7 +32396,7 @@ else {
     Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
 
-    $checkedItems = @()
+    $checkedItems = [System.Collections.Generic.List[object]]::new()
     # Movie Part
     foreach ($entry in $AllMovies) {
         try {
@@ -32499,7 +32499,7 @@ else {
 
                     # Now we can start the Poster Part
                     if ($global:Posters -eq 'true') {
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -33223,7 +33223,7 @@ else {
 
                         $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                         $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -34044,7 +34044,7 @@ else {
 
                 # Now we can start the Poster Part
                 if ($global:Posters -eq 'true') {
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
                         if ($entry.PlexPosterUrl -like "/library/*") {
@@ -34738,7 +34738,7 @@ else {
 
                     $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
@@ -35503,7 +35503,7 @@ else {
 
                         $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
                         $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
 
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             $Arturl = $null
@@ -36374,7 +36374,7 @@ else {
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
 
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $
@@ -37087,7 +37087,7 @@ else {
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
 
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $null
@@ -37749,7 +37749,7 @@ else {
         $savedsizestring = 0
         Write-Entry -Subtext "Starting Asset Cleanup, this can take some time..." -Path $global:configLogging -Color Yellow -log Info
         Write-Entry -Subtext "Only removing Artwork with posterizarr exif data" -Path $global:configLogging -Color Cyan -log Info
-        $processedDirectories = @()
+        $processedDirectories = [System.Collections.Generic.List[object]]::new()
         $uncheckedItems = $directoryHashtable.Keys | Where-Object { $_ -notin $checkedItems }
 
         # Perform deletion of unchecked items
@@ -37769,7 +37769,7 @@ else {
 
                         # Add the directory to the list if it's not already included
                         if ($parentDir -notin $processedDirectories) {
-                            $processedDirectories += $parentDir
+                            $processedDirectories.Add($parentDir)
                         }
                     }
                 }
