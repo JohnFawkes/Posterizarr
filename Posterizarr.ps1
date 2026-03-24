@@ -67,6 +67,31 @@ $ProgressPreference = 'SilentlyContinue'
 
 #### FUNCTION START ####
 #region Functions
+function Test-IsPosterizarrAsset {
+    param ([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+
+    try {
+        $stream = [System.IO.File]::OpenRead($Path)
+        try {
+            $buffer = New-Object byte[] 65536
+            $bytesRead = $stream.Read($buffer, 0, $buffer.Length)
+
+            # Convert to string (Try UTF8 first, then check for typical ASCII)
+            $content = [System.Text.Encoding]::UTF8.GetString($buffer, 0, $bytesRead)
+
+            # Returns True if any keywords match
+            return $content -match 'posterizarr|overlay|titlecard|created with ppm'
+        }
+        finally {
+            $stream.Dispose()
+        }
+    }
+    catch {
+        return $false
+    }
+}
 
 function HandleScriptExit {
     param (
@@ -31513,17 +31538,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 # Full path to the item
                 $uncheckedItemPath = $uncheckedItem + ".jpg"
 
-                # Check if its a asset from Posterizarr
-                $exifmagickcommand = "& `"$magick`" identify -verbose `"$uncheckedItemPath`""
-                $exifmagickcommand | Out-File $magickLog -Append
-
-                $ExifData = (Invoke-Expression $exifmagickcommand | Select-String -Pattern 'created with ppm|created with posterizarr')
-
-                if ($ExifData) {
-                    # Remove unchecked item from filesystem
-                    Remove-Item -LiteralPath $uncheckedItemPath -Force | Out-Null
+                if (Test-IsPosterizarrAsset -Path $uncheckedItemPath) {
+                    Remove-Item -LiteralPath $uncheckedItemPath -Force
                     $ImagesCleared++
                     Write-Entry -Subtext "Artwork Removed: $uncheckedItemPath" -Path $global:configLogging -Color Yellow -log Info
+
                     if ($LibraryFolders -eq 'true') {
                         # Determine the parent directory of the item
                         $parentDir = Split-Path -Path $uncheckedItemPath -Parent
@@ -37739,17 +37758,11 @@ else {
                 # Full path to the item
                 $uncheckedItemPath = $uncheckedItem + ".jpg"
 
-                # Check if its a asset from Posterizarr
-                $exifmagickcommand = "& `"$magick`" identify -verbose `"$uncheckedItemPath`""
-                $exifmagickcommand | Out-File $magickLog -Append
-
-                $ExifData = (Invoke-Expression $exifmagickcommand | Select-String -Pattern 'created with ppm|created with posterizarr')
-
-                if ($ExifData) {
-                    # Remove unchecked item from filesystem
-                    Remove-Item -LiteralPath $uncheckedItemPath -Force | Out-Null
+                if (Test-IsPosterizarrAsset -Path $uncheckedItemPath) {
+                    Remove-Item -LiteralPath $uncheckedItemPath -Force
                     $ImagesCleared++
                     Write-Entry -Subtext "Artwork Removed: $uncheckedItemPath" -Path $global:configLogging -Color Yellow -log Info
+
                     if ($LibraryFolders -eq 'true') {
                         # Determine the parent directory of the item
                         $parentDir = Split-Path -Path $uncheckedItemPath -Parent
