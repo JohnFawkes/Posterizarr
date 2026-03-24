@@ -15036,7 +15036,7 @@ Elseif ($ArrTrigger) {
                 $ServerType = if ($UseJellyfin -eq 'true') { "Jellyfin" } else { "Emby" }
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
                 # Search for all matching series
-                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
+                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true,MediaStreams&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
                 $seriesMatches = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) }
 
                 if (-not $seriesMatches) {
@@ -15086,7 +15086,7 @@ Elseif ($ArrTrigger) {
                 Write-Entry -Message "Proceeding with: $($seriesItem.Name) (ID: $seriesId)" -Path $global:configLogging -Color Green -log Info
 
                 # Get Season
-                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
+                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
                 $seasonItem = $seasons.Items | Where-Object { $_.IndexNumber -eq $seasonIndex }
 
                 if (-not $seasonItem) {
@@ -15095,7 +15095,7 @@ Elseif ($ArrTrigger) {
 
                 # Get Episode
                 $seasonId = $seasonItem.Id
-                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
                 $episodeItem = $episodes.Items | Where-Object { $_.IndexNumber -eq $episodeIndex }
 
                 if (-not $episodeItem) {
@@ -15170,7 +15170,7 @@ Elseif ($ArrTrigger) {
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
 
                 # 1. Search for matching movies
-                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
+                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
                 $movieMatches = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
 
                 if (-not $movieMatches) {
@@ -15324,7 +15324,42 @@ Elseif ($ArrTrigger) {
                     }
                     # Determine resolution category
                     if ($movie.Width -and $movie.Height) {
-                        $Resolution = Get-Resolution -Width $movie.Width
+                        # Get the base resolution
+                        $baseResolution = Get-Resolution -Width $movie.Width
+
+                        # Grab the primary video stream to check for HDR
+                        $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                        if ($videoStream.ExtendedVideoSubTypeDescription){
+                            if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
+                                $hdrType = 'DOVIHDR10'
+                            }
+                        }
+                        Else {
+                            $hdrType = $videoStream.ExtendedVideoType
+                        }
+
+                        # Build the final string
+                        if ($baseResolution -eq "4K" -and $hdrType) {
+
+                            switch -Regex ($hdrType) {
+                                # Check for Dolby Vision combinations
+                                'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                                # Check for standard HDR combinations
+                                '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                                # If it's SDR or something unrecognized, just keep it simple
+                                'SDR'             { $Resolution = "$baseResolution"; break }
+                                default           { $Resolution = "$baseResolution"; break }
+                            }
+
+                        } else {
+                            # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                            $Resolution = $baseResolution
+                        }
                     }
 
                     Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
@@ -15405,7 +15440,35 @@ Elseif ($ArrTrigger) {
                     }
                     # Determine resolution category
                     if ($movie.Width -and $movie.Height) {
-                        $Resolution = Get-Resolution -Width $movie.Width
+                        # Get the base resolution
+                        $baseResolution = Get-Resolution -Width $movie.Width
+
+                        # Grab the primary video stream to check for HDR
+                        $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                        $hdrType = $videoStream.VideoRangeType
+
+                        # Build the final string
+                        if ($baseResolution -eq "4K" -and $hdrType) {
+
+                            switch -Regex ($hdrType) {
+                                # Check for Dolby Vision combinations
+                                'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                                # Check for standard HDR combinations
+                                '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                                # If it's SDR or something unrecognized, just keep it simple
+                                'SDR'             { $Resolution = "$baseResolution"; break }
+                                default           { $Resolution = "$baseResolution"; break }
+                            }
+
+                        } else {
+                            # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                            $Resolution = $baseResolution
+                        }
                     }
                     Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Subtext "ExtractedFolder: $extractedFolder" -Path $global:configLogging -Color Cyan -log Debug
@@ -15536,6 +15599,24 @@ Elseif ($ArrTrigger) {
                 $EpisodeTitles = ($SeasonEpisodes.Name -join ';')
                 $Episodes = ($SeasonEpisodes.IndexNumber -join ',')
                 $Thumbs = ($SeasonEpisodes.ImageTags.Primary -join ',')
+                $VideoRangesArray = foreach ($ep in $SeasonEpisodes) {
+                    $vid = $ep.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+
+                    # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
+                    $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
+
+                    if ($currentRange) {
+                        # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
+                        if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
+                            $currentRange = "DOVIHDR10"
+                        }
+
+                        $currentRange
+                    } else {
+                        "None"
+                    }
+                }
+                $EpisodeVideoRanges = ($VideoRangesArray -join ',')
 
                 # Calculate the ShowID and SeasonId
                 $ShowID = if ($SeasonEpisodes.SeriesId) { $SeasonEpisodes.SeriesId } else { $null }
@@ -15552,6 +15633,7 @@ Elseif ($ArrTrigger) {
                     "EpisodeIds"                   = $EpisodeIds
                     "EpisodeWidths"                = $EpisodeWidths
                     "EpisodeHeights"               = $EpisodeHeights
+                    "EpisodeVideoRanges"           = $EpisodeVideoRanges
                     "tvdbid"                       = $show.tvdbid
                     "imdbid"                       = $show.imdbid
                     "tmdbid"                       = $show.tmdbid
@@ -15575,13 +15657,39 @@ Elseif ($ArrTrigger) {
         foreach ($data in $Episodedata) {
             $EpisodeWidths = $data.EpisodeWidths -split ","
             $EpisodeHeights = $data.EpisodeHeights -split ","
+            $EpisodeVideoRanges = $data.EpisodeVideoRanges -split ","
             # Initialize an empty array for resolutions
             $Resolution = [System.Collections.Generic.List[object]]::new()
 
             # Loop through each episode and determine resolution
             for ($i = 0; $i -lt $EpisodeWidths.Count; $i++) {
                 $Width = [int]$EpisodeWidths[$i]
-                $Resolution.Add((Get-Resolution -Width $Width))
+
+                # Get the base resolution for this episode
+                $baseRes = Get-Resolution -Width $Width
+
+                # Grab the primary video stream for THIS specific episode
+                $hdrType = $EpisodeVideoRanges[$i]
+
+                # Build the final string for this episode
+                if ($baseRes -eq "4K" -and $hdrType -ne "None") {
+
+                    switch -Regex ($hdrType) {
+                        'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
+                        'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
+                        '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
+                        '^HDR10Plus'            { $finalRes = "$baseRes HDR10"; break }
+                        '^HDR10'                { $finalRes = "$baseRes HDR10"; break }
+                        'SDR'                   { $finalRes = "$baseRes"; break }
+                        default                 { $finalRes = "$baseRes"; break }
+                    }
+
+                } else {
+                    # Fallback for 1080p, 720p, etc.
+                    $finalRes = $baseRes
+                }
+
+                $Resolution.Add($finalRes)
             }
             # Create a custom object for each episode using the variables
             $FormattedData.Add([PSCustomObject]@{
@@ -26799,14 +26907,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
         if ($slib.Name -notin $LibstoExclude) {
             if ($slib.CollectionType -eq 'movies') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Movie"
+                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Movie"
                 $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
                 $AllMovies.Add($Querytemp)
             }
             if ($slib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Series"
-                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode"
+                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Series"
+                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode"
                 $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
                 $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
                 $AllShows.Add($Querytempshow)
@@ -26867,7 +26975,42 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 }
                 # Determine resolution category
                 if ($movie.Width -and $movie.Height) {
-                    $Resolution = Get-Resolution -Width $movie.Width
+                    # Get the base resolution
+                    $baseResolution = Get-Resolution -Width $movie.Width
+
+                    # Grab the primary video stream to check for HDR
+                    $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                    if ($videoStream.ExtendedVideoSubTypeDescription){
+                        if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
+                            $hdrType = 'DOVIHDR10'
+                        }
+                    }
+                    Else {
+                        $hdrType = $videoStream.ExtendedVideoType
+                    }
+
+                    # Build the final string
+                    if ($baseResolution -eq "4K" -and $hdrType) {
+
+                        switch -Regex ($hdrType) {
+                            # Check for Dolby Vision combinations
+                            'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                            # Check for standard HDR combinations
+                            '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                            # If it's SDR or something unrecognized, just keep it simple
+                            'SDR'             { $Resolution = "$baseResolution"; break }
+                            default           { $Resolution = "$baseResolution"; break }
+                        }
+
+                    } else {
+                        # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                        $Resolution = $baseResolution
+                    }
                 }
 
                 Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
@@ -26946,7 +27089,35 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 }
                 # Determine resolution category
                 if ($movie.Width -and $movie.Height) {
-                    $Resolution = Get-Resolution -Width $movie.Width
+                    # Get the base resolution
+                    $baseResolution = Get-Resolution -Width $movie.Width
+
+                    # Grab the primary video stream to check for HDR
+                    $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                    $hdrType = $videoStream.VideoRangeType
+
+                    # Build the final string
+                    if ($baseResolution -eq "4K" -and $hdrType) {
+
+                        switch -Regex ($hdrType) {
+                            # Check for Dolby Vision combinations
+                            'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                            # Check for standard HDR combinations
+                            '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                            # If it's SDR or something unrecognized, just keep it simple
+                            'SDR'             { $Resolution = "$baseResolution"; break }
+                            default           { $Resolution = "$baseResolution"; break }
+                        }
+
+                    } else {
+                        # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                        $Resolution = $baseResolution
+                    }
                 }
                 Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "ExtractedFolder: $extractedFolder" -Path $global:configLogging -Color Cyan -log Debug
@@ -27078,6 +27249,24 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             $EpisodeTitles = ($SeasonEpisodes.Name -join ';')
             $Episodes = ($SeasonEpisodes.IndexNumber -join ',')
             $Thumbs = ($SeasonEpisodes.ImageTags.Primary -join ',')
+            $VideoRangesArray = foreach ($ep in $SeasonEpisodes) {
+                $vid = $ep.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+
+                # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
+                $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
+
+                if ($currentRange) {
+                    # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
+                    if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
+                        $currentRange = "DOVIHDR10"
+                    }
+
+                    $currentRange
+                } else {
+                    "None"
+                }
+            }
+            $EpisodeVideoRanges = ($VideoRangesArray -join ',')
 
             # Calculate the ShowID and SeasonId
             if ($null -ne $SeasonEpisodes.SeriesId) {
@@ -27115,7 +27304,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 "SeasonId"                     = $SeasonId
                 "EpisodeIds"                   = $EpisodeIds
                 "EpisodeWidths"                = $EpisodeWidths
-                "EpisodeHeights"               = $EpisodeHeights
+                "EpisodeVideoRanges"           = $EpisodeVideoRanges
                 "tvdbid"                       = $show.tvdbid
                 "imdbid"                       = $show.imdbid
                 "tmdbid"                       = $show.tmdbid
@@ -27139,13 +27328,39 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
     foreach ($data in $Episodedata) {
         $EpisodeWidths = $data.EpisodeWidths -split ","
         $EpisodeHeights = $data.EpisodeHeights -split ","
+        $EpisodeVideoRanges = $data.EpisodeVideoRanges -split ","
         # Initialize an empty array for resolutions
         $Resolution = [System.Collections.Generic.List[object]]::new()
 
         # Loop through each episode and determine resolution
         for ($i = 0; $i -lt $EpisodeWidths.Count; $i++) {
             $Width = [int]$EpisodeWidths[$i]
-            $Resolution.Add((Get-Resolution -Width $Width))
+
+            # Get the base resolution for this episode
+            $baseRes = Get-Resolution -Width $Width
+
+            # Grab the primary video stream for THIS specific episode
+            $hdrType = $EpisodeVideoRanges[$i]
+
+            # Build the final string for this episode
+            if ($baseRes -eq "4K" -and $hdrType -ne "None") {
+
+                switch -Regex ($hdrType) {
+                    'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
+                    'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
+                    '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
+                    '^HDR10Plus'            { $finalRes = "$baseRes HDR10"; break }
+                    '^HDR10'                { $finalRes = "$baseRes HDR10"; break }
+                    'SDR'                   { $finalRes = "$baseRes"; break }
+                    default                 { $finalRes = "$baseRes"; break }
+                }
+
+            } else {
+                # Fallback for 1080p, 720p, etc.
+                $finalRes = $baseRes
+            }
+
+            $Resolution.Add($finalRes)
         }
         # Create a custom object for each episode using the variables
         $FormattedData.Add([PSCustomObject]@{
