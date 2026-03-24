@@ -34,7 +34,7 @@ import requests
 import threading
 from datetime import datetime, timedelta
 import threading
-import xml.etree.ElementTree as ET
+from defusedxml.ElementTree import fromstring
 import sys
 from urllib.parse import quote
 import zipfile
@@ -56,6 +56,12 @@ try:
 except ImportError:
     from queue_manager import QueueManager
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Check if running in Docker
@@ -65,7 +71,7 @@ IS_DOCKER = (
     or os.environ.get("POSTERIZARR_NON_ROOT", "").lower() == "true"
 )
 
-port = int(os.environ.get("APP_PORT", 8000))
+port = int(os.environ.get("PORT", os.environ.get("APP_PORT", 8000)))
 
 if IS_DOCKER:
     BASE_DIR = Path("/config")
@@ -3328,7 +3334,7 @@ async def validate_plex(request: PlexValidationRequest):
 
             if response.status_code == 200:
                 # Parse XML to check for libraries
-                root = ET.fromstring(response.content)
+                root = fromstring(response.content)
                 lib_count = int(root.get("size", 0))
                 server_name = root.get("friendlyName", "Unknown")
 
@@ -4277,7 +4283,7 @@ async def get_plex_libraries(request: PlexValidationRequest):
             response = await client.get(url)
 
             if response.status_code == 200:
-                root = ET.fromstring(response.content)
+                root = fromstring(response.content)
                 libraries = []
                 # excluded_libraries = []
 
@@ -4463,7 +4469,7 @@ async def get_plex_library_items(request: LibraryItemsRequest):
             response = await client.get(url)
 
             if response.status_code == 200:
-                root = ET.fromstring(response.content)
+                root = fromstring(response.content)
                 items = []
 
                 # Parse both Video (movies) and Directory (shows) elements
@@ -11589,7 +11595,7 @@ async def update_asset_db_entry_as_manual(
             # Match patterns like "Movie Name (2024) {tmdb-12345}"
             title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
             final_title_text = title_match.group(1).strip() if title_match else final_folder_name
-        
+
         # Determine asset type from filename
         # Match database Type column values: "Show", "Movie", "Show Background", "Movie Background", "Season", "Episode"
         asset_type = "Poster"  # Default, will be refined below
@@ -13699,5 +13705,12 @@ async def run_queue(background_tasks: BackgroundTasks, request: Optional[RunQueu
 
 if __name__ == "__main__":
     import uvicorn
+    DEFAULT_HOST = "0.0.0.0" if IS_DOCKER else "127.0.0.1"
+    APP_HOST = os.environ.get("APP_HOST", DEFAULT_HOST)
 
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run(
+        app,
+        host=APP_HOST,
+        port=port,
+        log_level="info"
+    )  # nosec B104

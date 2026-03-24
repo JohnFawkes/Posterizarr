@@ -39,6 +39,7 @@ nav:
   - 'Home': 'index.md'
   - 'Getting Started':
     - 'Quick Start': 'installation.md'
+    - 'Networking': 'networking.md'
     - 'Walkthrough': 'walkthrough.md'
     - 'Requirements': 'requirements.md'
   - 'Configuration': 'configuration.md'

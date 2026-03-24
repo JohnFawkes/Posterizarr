@@ -27,17 +27,16 @@ export default defineConfig({
 
           // Split large components
           if (id.includes("/components/")) {
-            if (id.includes("Dashboard")) {
-              return "dashboard";
+            if (id.includes("Dashboard") || id.includes("Settings") || id.includes("Config")) {
+              return "main-ui";
             }
+
             if (id.includes("RuntimeHistory") || id.includes("RuntimeStats")) {
               return "runtime";
             }
+
             if (id.includes("AssetOverview") || id.includes("AssetManager")) {
               return "assets";
-            }
-            if (id.includes("Settings") || id.includes("Config")) {
-              return "settings";
             }
           }
         },

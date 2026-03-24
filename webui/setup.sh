@@ -4,65 +4,61 @@ echo "🚀 Posterizarr Web UI - Quick Setup"
 echo "===================================="
 echo ""
 
-# Check if we're in the right directory
+# Check directory
 if [ ! -f "../Posterizarr.ps1" ]; then
     echo "❌ Error: Posterizarr.ps1 not found in parent directory"
-    echo "Please run this script from the webui directory"
     exit 1
 fi
 
-echo "✅ Found Posterizarr.ps1"
-echo ""
+# Check Requirements
+command -v python3 &> /dev/null || { echo "❌ Python 3 missing"; exit 1; }
+command -v node &> /dev/null || { echo "❌ Node.js missing"; exit 1; }
 
-# Check for Python
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python 3 is not installed"
-    exit 1
-fi
-echo "✅ Python 3 found"
-
-# Check for Node.js
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed"
-    exit 1
-fi
-echo "✅ Node.js found"
-
-# Check for PowerShell
-if ! command -v pwsh &> /dev/null; then
-    echo "⚠️  PowerShell not found - needed to run Posterizarr"
-    echo "Continue anyway? (y/n)"
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
-else
-    echo "✅ PowerShell found"
-fi
-
-echo ""
-echo "📦 Installing Backend Dependencies..."
+echo "📦 Setting up Backend..."
 cd backend
-pip3 install -r requirements.txt
+[ -d "venv" ] || python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 cd ..
 
-echo ""
 echo "📦 Installing Frontend Dependencies..."
 cd frontend
 npm install
 cd ..
 
-echo ""
 echo "✅ Setup Complete!"
+
 echo ""
-echo "🎯 Next Steps:"
+echo "🎯 NEXT STEPS:"
+echo "--------------------------------------------------------"
+echo "1. The Backend will start now in this terminal."
+echo "2. Open a SECOND terminal tab/window for the Frontend:"
+echo "   cd $(pwd)/frontend"
+echo "   npm run dev"
+echo "3. Access the UI at the address provided by the frontend."
+echo "--------------------------------------------------------"
 echo ""
-echo "1. Start Frontend (in another terminal):"
-echo "   cd frontend && npm run build"
+read -n 1 -s -r -p "Press any key to start the Backend server..."
 echo ""
-echo "2. Start Backend (in one terminal):"
-echo "   cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000"
-echo ""
-echo "3. Open browser at: http://localhost:8000"
-echo ""
-echo "Happy Posterizing! 🎉"
+
+# Start Backend with .env Parsing (Bash)
+
+# 1. Set defaults
+FINAL_HOST="127.0.0.1"
+FINAL_PORT="8000"
+
+# 2. Extract values if file exists
+if [ -f "backend/.env" ]; then
+    echo "📝 Parsing .env configuration..."
+    # Extract value after '=', remove carriage returns (\r) for Windows compatibility
+    FILE_HOST=$(grep "^APP_HOST=" backend/.env | cut -d'=' -f2 | tr -d '\r')
+    FILE_PORT=$(grep "^PORT=" backend/.env | cut -d'=' -f2 | tr -d '\r')
+
+    [ -n "$FILE_HOST" ] && FINAL_HOST=$FILE_HOST
+    [ -n "$FILE_PORT" ] && FINAL_PORT=$FILE_PORT
+fi
+
+echo "🔌 Starting Backend Server on $FINAL_HOST:$FINAL_PORT..."
+cd backend
+source venv/bin/activate
+python3 -m uvicorn main:app --host $FINAL_HOST --port $FINAL_PORT

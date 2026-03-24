@@ -30,5 +30,6 @@
 5.  **Access Web UI**
     - Open `http://localhost:8000` in your browser
     - Default credentials: none required
+    - **Troubleshooting**: Cannot access the Web UI from another device? See the [Networking](networking.md) section.
 
 For detailed setup instructions, see the [full walkthrough](walkthrough.md).
