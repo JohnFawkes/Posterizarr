@@ -623,8 +623,6 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         if (response.ok) {
           const data = await response.json();
 
-          console.log("Raw config response:", data);
-
           // Handle both flat and grouped config structures
           let configSource;
           if (data.using_flat_structure) {
@@ -2030,8 +2028,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
                   <div>
                     {activeProviderTab === "tmdb" && (
-                      <div className={useHorizontalLayout 
-                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2" 
+                      <div className={useHorizontalLayout
+                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2"
                         : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
                       }>
                         {previews.tmdb.map((preview, index) => (
@@ -2046,8 +2044,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </div>
                     )}
                     {activeProviderTab === "tvdb" && (
-                      <div className={useHorizontalLayout 
-                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2" 
+                      <div className={useHorizontalLayout
+                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2"
                         : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
                       }>
                         {previews.tvdb.map((preview, index) => (
@@ -2062,8 +2060,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                       </div>
                     )}
                     {activeProviderTab === "fanart" && (
-                      <div className={useHorizontalLayout 
-                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2" 
+                      <div className={useHorizontalLayout
+                        ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2"
                         : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
                       }>
                         {previews.fanart.map((preview, index) => (
