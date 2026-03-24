@@ -53,7 +53,8 @@ npm run build
 cd webui/backend
 
 # Run the Python server
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
+- **Troubleshooting**: Cannot access the Web UI from another device? See the [Networking](networking.md) section.
 
 Once both services are running, you can access the Posterizarr Web UI by opening your browser and navigating to: http://localhost:8000
