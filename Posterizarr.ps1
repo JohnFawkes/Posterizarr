@@ -15345,6 +15345,7 @@ Elseif ($ArrTrigger) {
 
                             switch -Regex ($hdrType) {
                                 # Check for Dolby Vision combinations
+                                'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
                                 'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
                                 'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
                                 '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
@@ -15455,6 +15456,7 @@ Elseif ($ArrTrigger) {
 
                             switch -Regex ($hdrType) {
                                 # Check for Dolby Vision combinations
+                                'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
                                 'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
                                 'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
                                 '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
@@ -15614,7 +15616,7 @@ Elseif ($ArrTrigger) {
                             Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         }
                         # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
-                        if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
+                        if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10' -or $vid.VideoRangeType -match 'HDR10|EL' -or $vid.ExtendedVideoType -match 'HDR10|EL') {
                             $currentRange = "DOVIHDR10"
                         }
 
@@ -15682,6 +15684,7 @@ Elseif ($ArrTrigger) {
                 if ($baseRes -eq "4K" -and $hdrType -ne "None") {
 
                     switch -Regex ($hdrType) {
+                        'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
                         'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
                         'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
                         '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
@@ -27002,6 +27005,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         switch -Regex ($hdrType) {
                             # Check for Dolby Vision combinations
+                            'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
                             'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
                             'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
                             '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
@@ -27110,6 +27114,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         switch -Regex ($hdrType) {
                             # Check for Dolby Vision combinations
+                            'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
                             'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
                             'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
                             '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
@@ -27270,7 +27275,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                         Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                     }
                     # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
-                    if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
+                    if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10' -or $vid.VideoRangeType -match 'HDR10|EL' -or $vid.ExtendedVideoType -match 'HDR10|EL') {
                         $currentRange = "DOVIHDR10"
                     }
 
@@ -27359,6 +27364,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             if ($baseRes -eq "4K" -and $hdrType -ne "None") {
 
                 switch -Regex ($hdrType) {
+                    'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
                     'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
                     'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
                     '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
