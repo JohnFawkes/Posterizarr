@@ -15330,11 +15330,13 @@ Elseif ($ArrTrigger) {
                         # Grab the primary video stream to check for HDR
                         $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
                         if ($videoStream.ExtendedVideoSubTypeDescription){
+                            Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                             if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
                                 $hdrType = 'DOVIHDR10'
                             }
                         }
                         Else {
+                            Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoType)" -Path $global:configLogging -Color Cyan -log Debug
                             $hdrType = $videoStream.ExtendedVideoType
                         }
 
@@ -15445,6 +15447,7 @@ Elseif ($ArrTrigger) {
 
                         # Grab the primary video stream to check for HDR
                         $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                        Write-Entry -Subtext "Raw Video Description: $($videoStream.VideoRangeType)" -Path $global:configLogging -Color Cyan -log Debug
                         $hdrType = $videoStream.VideoRangeType
 
                         # Build the final string
@@ -15606,6 +15609,10 @@ Elseif ($ArrTrigger) {
                     $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
                     if ($currentRange) {
+                        Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
+                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                            Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                        }
                         # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
                         if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
                             $currentRange = "DOVIHDR10"
@@ -19785,7 +19792,6 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                                             if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
-                                                                    Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
                                                                         '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
@@ -26981,11 +26987,13 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
                     if ($videoStream.ExtendedVideoSubTypeDescription){
+                        Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
                             $hdrType = 'DOVIHDR10'
                         }
                     }
                     Else {
+                        Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoType)" -Path $global:configLogging -Color Cyan -log Debug
                         $hdrType = $videoStream.ExtendedVideoType
                     }
 
@@ -27094,6 +27102,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                    Write-Entry -Subtext "Raw Video Description: $($videoStream.VideoRangeType)" -Path $global:configLogging -Color Cyan -log Debug
                     $hdrType = $videoStream.VideoRangeType
 
                     # Build the final string
@@ -27256,6 +27265,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
                 if ($currentRange) {
+                    Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
+                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                        Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                    }
                     # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
                     if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
                         $currentRange = "DOVIHDR10"
@@ -31469,7 +31482,6 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                                         if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
-                                                                Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
                                                                     '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
