@@ -7579,11 +7579,11 @@ $collectionfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config
 $RTLFont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.RTLFont -join $($joinsymbol))
 $backgroundfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundfont -join $($joinsymbol))
 $titlecardfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardfont -join $($joinsymbol))
-$Posteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.overlayfile -join $($joinsymbol))
+$DefaultPosteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.overlayfile -join $($joinsymbol))
 $Seasonoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.seasonoverlayfile -join $($joinsymbol))
 $collectionoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.collectionoverlayfile -join $($joinsymbol))
-$Backgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundoverlayfile -join $($joinsymbol))
-$titlecardoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardoverlayfile -join $($joinsymbol))
+$DefaultBackgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundoverlayfile -join $($joinsymbol))
+$Defaulttitlecardoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardoverlayfile -join $($joinsymbol))
 $testimage = Join-Path -Path $global:ScriptRoot -ChildPath ('test', 'testimage.png' -join $($joinsymbol))
 $backgroundtestimage = Join-Path -Path $global:ScriptRoot -ChildPath ('test', 'backgroundtestimage.png' -join $($joinsymbol))
 $LibraryFolders = $config.PrerequisitePart.LibraryFolders.tolower()
@@ -8067,7 +8067,7 @@ if ($files.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'T
     & fc-cache -fv 1> $null 2> $null
 }
 
-CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$Posteroverlay" -Backgroundoverlay "$Backgroundoverlay" -titlecardoverlay "$titlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$DefaultPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 # Check Plex now:
 if (!$SyncJelly -and !$SyncEmby) {
     if ($UsePlex -eq 'true') {
@@ -8085,7 +8085,7 @@ if (!$SyncJelly -and !$SyncEmby) {
 }
 # Check overlay artwork for poster, background, and titlecard dimensions
 Write-Entry -Message "Checking size of overlay files..." -Path $global:configLogging -Color White -log Info
-CheckOverlayDimensions -Posteroverlay "$Posteroverlay" -Backgroundoverlay "$Backgroundoverlay" -Titlecardoverlay "$titlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+CheckOverlayDimensions -Posteroverlay "$DefaultPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 
 # Check if the FanartTvAPI module is installed
 $module = Get-Module -ListAvailable -Name FanartTvAPI
@@ -10371,10 +10371,12 @@ Elseif ($Tautulli) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
                                         }
-
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
+                                        }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $AddOverlay = 'false'
@@ -11012,8 +11014,11 @@ Elseif ($Tautulli) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -11751,8 +11756,11 @@ Elseif ($Tautulli) {
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $Posteroverlay }
+                                            Default { $Posteroverlay = $DefaultPosteroverlay }
                                         }
+                                    }
+                                    Else {
+                                        $Posteroverlay = $DefaultPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -12400,8 +12408,11 @@ Elseif ($Tautulli) {
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default { $Backgroundoverlay = $Backgroundoverlay }
+                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                         }
+                                    }
+                                    Else {
+                                        $backgroundoverlay = $Defaultbackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -13884,8 +13895,11 @@ Elseif ($Tautulli) {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -14560,8 +14574,11 @@ Elseif ($Tautulli) {
                                                                     '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                     '4K'            { $TitleCardoverlay = $4kTC }
                                                                     '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                    Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                    Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
+                                                            }
+                                                            Else {
+                                                                $TitleCardoverlay = $DefaultTitleCardoverlay
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -16120,8 +16137,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                     '4K'            { $Posteroverlay = $4kposter }
                                                     '1080p'         { $Posteroverlay = $1080pPoster }
-                                                    Default { $Posteroverlay = $Posteroverlay }
+                                                    Default { $Posteroverlay = $DefaultPosteroverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $Posteroverlay = $DefaultPosteroverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -16699,8 +16719,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                     '4K'            { $backgroundoverlay = $4kBackground }
                                                     '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                    Default { $backgroundoverlay = $backgroundoverlay }
+                                                    Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $backgroundoverlay = $Defaultbackgroundoverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -17369,8 +17392,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -17957,8 +17983,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -19247,8 +19276,11 @@ Elseif ($ArrTrigger) {
                                                                             '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                             '4K'            { $TitleCardoverlay = $4kTC }
                                                                             '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                            Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                            Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                         }
+                                                                    }
+                                                                    Else {
+                                                                        $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                     }
                                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -19801,8 +19833,11 @@ Elseif ($ArrTrigger) {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -20837,8 +20872,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                     '4K'            { $Posteroverlay = $4kposter }
                                                     '1080p'         { $Posteroverlay = $1080pPoster }
-                                                    Default { $Posteroverlay = $Posteroverlay }
+                                                    Default { $Posteroverlay = $DefaultPosteroverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $Posteroverlay = $DefaultPosteroverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -21477,8 +21515,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                     '4K'            { $backgroundoverlay = $4kBackground }
                                                     '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                    Default { $backgroundoverlay = $backgroundoverlay }
+                                                    Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $backgroundoverlay = $Defaultbackgroundoverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -22215,8 +22256,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -22866,8 +22910,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $Backgroundoverlay = $Backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -24354,8 +24401,11 @@ Elseif ($ArrTrigger) {
                                                                             '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                             '4K'            { $TitleCardoverlay = $4kTC }
                                                                             '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                            Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                            Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                         }
+                                                                    }
+                                                                    Else {
+                                                                        $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                     }
                                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -25032,8 +25082,11 @@ Elseif ($ArrTrigger) {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -27803,8 +27856,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -28381,8 +28437,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -29047,8 +29106,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $Posteroverlay }
+                                            Default { $Posteroverlay = $DefaultPosteroverlay }
                                         }
+                                    }
+                                    Else {
+                                        $Posteroverlay = $DefaultPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -29636,8 +29698,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default { $backgroundoverlay = $backgroundoverlay }
+                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                         }
+                                    }
+                                    Else {
+                                        $backgroundoverlay = $Defaultbackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -30940,8 +31005,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -31494,8 +31562,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                     '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                     '4K'            { $TitleCardoverlay = $4kTC }
                                                                     '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                    Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                    Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
+                                                            }
+                                                            Else {
+                                                                $TitleCardoverlay = $DefaultTitleCardoverlay
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -32978,8 +33049,11 @@ else {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -33683,8 +33757,11 @@ else {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -34486,8 +34563,11 @@ else {
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $Posteroverlay }
+                                            Default { $Posteroverlay = $DefaultPosteroverlay }
                                         }
+                                    }
+                                    Else {
+                                        $Posteroverlay = $DefaultPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -35205,8 +35285,11 @@ else {
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default { $backgroundoverlay = $backgroundoverlay }
+                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                         }
+                                    }
+                                    Else {
+                                        $backgroundoverlay = $Defaultbackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -36831,8 +36914,11 @@ else {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -37573,8 +37659,11 @@ else {
                                                                     '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                     '4K'            { $TitleCardoverlay = $4kTC }
                                                                     '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                    Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                    Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
+                                                            }
+                                                            Else {
+                                                                $TitleCardoverlay = $DefaultTitleCardoverlay
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
