@@ -11,27 +11,23 @@ Previously, the application listened on `0.0.0.0` by default, which means it was
 
 By default, the app now listens on `127.0.0.1` (localhost) for security. If you are running this on a server and need to access it via your network, set the environment variable `APP_HOST=0.0.0.0` before starting the application.
 
+## Recommended: Using a Reverse Proxy
+
+The most secure and recommended way to expose Posterizarr to your network or the internet is by using a reverse proxy (such as Nginx, Caddy, or Traefik).
+
+When using a reverse proxy, you **do not need to change** `APP_HOST`. You can leave Posterizarr safely running on its default `127.0.0.1` (localhost) and configure your reverse proxy to forward traffic to Posterizarr's internal port. This is the recommended way because the application is still usable with `127.0.0.1` while securely handling external requests through the proxy.
+
 ## How to set the APP_HOST environment variable
 
-How you set the `APP_HOST` environment variable depends entirely on how you are running the application. Since this change specifically affects those not using Docker (who want LAN access), here are the three most common ways to set it:
+If you prefer to expose the application directly without a reverse proxy, how you set the `APP_HOST` environment variable depends entirely on how you are running the application. Since this change specifically affects those not using Docker (who want LAN access), here are the three most common ways to set it:
 
-### 1. Temporary (Command Line)
+### 1. Using a .env file
 
-If you are just testing the app or running it manually from a terminal, you can prepend the variable to the start command.
+Posterizarr supports `.env` files out of the box. This is the easiest way to manage your environment variables if you are not using a reverse proxy. Simply create a file named `.env` in the same folder as `main.py` with the following content:
 
-**Linux / macOS:**
-```bash
-APP_HOST=0.0.0.0 python main.py
-```
-
-**Windows (PowerShell):**
-```powershell
-$env:APP_HOST="0.0.0.0"; python main.py
-```
-
-**Windows (Command Prompt):**
-```cmd
-set APP_HOST=0.0.0.0 && python main.py
+```plaintext
+APP_HOST=0.0.0.0
+PORT=8000
 ```
 
 ### 2. Persistent (System Service / Systemd)
@@ -51,13 +47,23 @@ If you are running your app as a background service on a Linux server (like Ubun
     systemctl daemon-reload && systemctl restart posterizarr
     ```
 
-### 3. Using a .env file (Recommended)
+### 3. Temporary (Command Line)
 
-Posterizarr supports `.env` files out of the box. This is the easiest and recommended way to manage your environment variables. Simply create a file named `.env` in the same folder as `main.py` with the following content:
+If you are just testing the app or running it manually from a terminal, you can prepend the variable to the start command.
 
-```plaintext
-APP_HOST=0.0.0.0
-PORT=8000
+**Linux / macOS:**
+```bash
+APP_HOST=0.0.0.0 python main.py
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:APP_HOST="0.0.0.0"; python main.py
+```
+
+**Windows (Command Prompt):**
+```cmd
+set APP_HOST=0.0.0.0 && python main.py
 ```
 
 ---
