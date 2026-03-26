@@ -72,43 +72,69 @@ public class PosterizarrSyncTask : IScheduledTask
                 progress.Report((double)i / totalItems * 100);
             }
 
-            var item = items[i];
-            bool itemUpdated = false;
-
-            // Define which images to check based on item type
-            var typesToCheck = new List<ImageType> { ImageType.Primary };
-
-            // Checking type via pattern matching (Safe and fast)
-            if (item is Movie || item is Series)
+            try
             {
-                typesToCheck.Add(ImageType.Backdrop);
-            }
+                var item = items[i];
+                bool itemUpdated = false;
 
-            foreach (var type in typesToCheck)
-            {
-                var localPath = provider.FindFile(item, config, type);
-                if (string.IsNullOrEmpty(localPath)) continue;
+                // Define which images to check based on item type
+                var typesToCheck = new List<ImageType> { ImageType.Primary };
 
-                var existingImage = item.GetImageInfo(type, 0);
-
-                // Memory-safe Hash Match
-                if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
+                // Checking type via pattern matching (Safe and fast)
+                if (item is Movie || item is Series)
                 {
-                    item.SetImage(new ItemImageInfo
-                    {
-                        Path = localPath,
-                        Type = type,
-                        DateModified = File.GetLastWriteTimeUtc(localPath)
-                    }, 0);
+                    typesToCheck.Add(ImageType.Backdrop);
+                }
 
-                    itemUpdated = true;
+                foreach (var type in typesToCheck)
+                {
+                    var localPath = provider.FindFile(item, config, type);
+                    if (string.IsNullOrEmpty(localPath)) continue;
+
+                    var existingImage = item.GetImageInfo(type, 0);
+
+                    bool needUpdate = false;
+                    if (existingImage == null)
+                    {
+                        needUpdate = true;
+                    }
+                    else if (string.Equals(localPath, existingImage.Path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Same path: check if the file was modified since Jellyfin last saw it
+                        if (File.GetLastWriteTimeUtc(localPath) > existingImage.DateModified.AddSeconds(2))
+                        {
+                            needUpdate = true;
+                        }
+                    }
+                    else if (!IsHashMatch(localPath, existingImage.Path))
+                    {
+                        // Different paths: compare hashes
+                        needUpdate = true;
+                    }
+
+                    if (needUpdate)
+                    {
+                        item.SetImage(new ItemImageInfo
+                        {
+                            Path = localPath,
+                            Type = type,
+                            DateModified = File.GetLastWriteTimeUtc(localPath)
+                        }, 0);
+
+                        itemUpdated = true;
+                    }
+                }
+
+                if (itemUpdated)
+                {
+                    // Persistence: Only updates the image rows in the database
+                    var parent = item.ParentId != Guid.Empty ? _libraryManager.GetItemById(item.ParentId) : null;
+                    await _libraryManager.UpdateItemAsync(item, parent, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            if (itemUpdated)
+            catch (Exception ex)
             {
-                // Persistence: Only updates the image rows in the database
-                await _libraryManager.UpdateItemAsync(item, item, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
+                _logger.LogError(ex, "[Posterizarr] Error syncing item at index {0}", i);
             }
         }
 
