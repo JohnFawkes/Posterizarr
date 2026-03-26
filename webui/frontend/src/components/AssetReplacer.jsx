@@ -291,21 +291,18 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     // contains extra info (e.g., "Show | Season 01" or "S01E01 | Episode")
     if (dbData?.Title) {
       if (assetType === "season") {
-        // If it's a season and contains "|", grab the right side (e.g., "Season 01")
+        // If it's a season and contains "|", grab the right side (e.g., "Season 1")
         if (dbData.Title.includes("|")) {
-          title = dbData.Title.split("|")[1].trim();
-          console.log(`Extracted Season Title from DB: ${title}`);
+          finalTitle = dbData.Title.split("|")[1].trim();
+          console.log(`Extracted Season Title from DB: ${finalTitle}`);
         } else {
-          // Fallback if no pipe is found: generate from seasonNumber
-          title = seasonNumber === 0 ? "Specials" : `Season ${String(seasonNumber).padStart(2, '0')}`;
+          // Fallback: use "Season" + the raw number (no leading zero)
+          finalTitle = seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`;
         }
-      } else if (assetType === "titlecard") {
-        // For titlecards, prefer the specific EpisodeTitle field if available
-        title = dbData.EpisodeTitle || dbData.Title;
-      } else {
-        // Standard behavior for movies/shows
-        title = dbData.Title;
-        console.log(`Using Title from database: ${title}`);
+      } else if (assetType !== "titlecard") {
+        // Standard override for Movies/Shows, skipping titlecards
+        finalTitle = dbData.Title;
+        console.log(`Using Title from database: ${finalTitle}`);
       }
     }
     if (dbData?.year) {
