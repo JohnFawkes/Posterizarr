@@ -251,17 +251,62 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         }
       }
     }
+    // Extract season/episode numbers
+    // Priority 1: From asset path (absolute truth for specific files like S01E01)
+    // Priority 2: From DB Title field (fallback)
+    let seasonNumber = null;
+    let episodeNumber = null;
 
+    // First try the path
+    const pathSeasonMatch = asset.path?.match(/Season\s*(\d+)/i);
+    const pathEpisodeMatch = asset.path?.match(/S(\d+)E(\d+)/i);
+
+    if (pathSeasonMatch) {
+      seasonNumber = parseInt(pathSeasonMatch[1]);
+    }
+    if (pathEpisodeMatch) {
+      if (seasonNumber === null) seasonNumber = parseInt(pathEpisodeMatch[1]);
+      episodeNumber = parseInt(pathEpisodeMatch[2]);
+    }
+
+    // Fallback: Extract from DB Title field if path didn't have it
+    if (seasonNumber === null || episodeNumber === null) {
+      const dbTitle = dbData?.Title || "";
+      if (dbTitle) {
+        const dbSeasonMatch = dbTitle.match(/Season\s*(\d+)/i);
+        const dbEpisodeMatch = dbTitle.match(/S(\d+)E(\d+)/i);
+
+        if (dbSeasonMatch && seasonNumber === null) {
+          seasonNumber = parseInt(dbSeasonMatch[1]);
+          console.log(`Season number from DB Title '${dbTitle}': ${seasonNumber}`);
+        }
+        if (dbEpisodeMatch) {
+          if (seasonNumber === null) seasonNumber = parseInt(dbEpisodeMatch[1]);
+          if (episodeNumber === null) episodeNumber = parseInt(dbEpisodeMatch[2]);
+          console.log(`Episode info from DB Title '${dbTitle}': S${seasonNumber}E${episodeNumber}`);
+        }
+      }
+    }
     // Only override title if it's NOT a season or titlecard, as their DB Title
     // contains extra info (e.g., "Show | Season 01" or "S01E01 | Episode")
-    if (dbData?.Title && assetType !== "season" && assetType !== "titlecard") {
-      title = dbData.Title;
-    } else if (assetType === "season") {
-      // Default to "Season X" for the overlay text
-      title = metadata.season_number === 0 ? "Specials" : `Season ${metadata.season_number}`;
-    } else if (assetType === "titlecard") {
-      // Titlecards usually use the Episode Title for the overlay text
-      title = dbData?.EpisodeTitle || "";
+    if (dbData?.Title) {
+      if (assetType === "season") {
+        // If it's a season and contains "|", grab the right side (e.g., "Season 01")
+        if (dbData.Title.includes("|")) {
+          title = dbData.Title.split("|")[1].trim();
+          console.log(`Extracted Season Title from DB: ${title}`);
+        } else {
+          // Fallback if no pipe is found: generate from seasonNumber
+          title = seasonNumber === 0 ? "Specials" : `Season ${String(seasonNumber).padStart(2, '0')}`;
+        }
+      } else if (assetType === "titlecard") {
+        // For titlecards, prefer the specific EpisodeTitle field if available
+        title = dbData.EpisodeTitle || dbData.Title;
+      } else {
+        // Standard behavior for movies/shows
+        title = dbData.Title;
+        console.log(`Using Title from database: ${title}`);
+      }
     }
     if (dbData?.year) {
       year = parseInt(dbData.year);
@@ -305,43 +350,6 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     console.log(`DB data Type: '${dbType}'`);
     console.log(`Library Name: '${libName}'`);
     console.log(`Derived mediaType: '${mediaType}'`);
-
-    // Extract season/episode numbers
-    // Priority 1: From asset path (absolute truth for specific files like S01E01)
-    // Priority 2: From DB Title field (fallback)
-    let seasonNumber = null;
-    let episodeNumber = null;
-
-    // First try the path
-    const pathSeasonMatch = asset.path?.match(/Season\s*(\d+)/i);
-    const pathEpisodeMatch = asset.path?.match(/S(\d+)E(\d+)/i);
-
-    if (pathSeasonMatch) {
-      seasonNumber = parseInt(pathSeasonMatch[1]);
-    }
-    if (pathEpisodeMatch) {
-      if (seasonNumber === null) seasonNumber = parseInt(pathEpisodeMatch[1]);
-      episodeNumber = parseInt(pathEpisodeMatch[2]);
-    }
-
-    // Fallback: Extract from DB Title field if path didn't have it
-    if (seasonNumber === null || episodeNumber === null) {
-      const dbTitle = dbData?.Title || "";
-      if (dbTitle) {
-        const dbSeasonMatch = dbTitle.match(/Season\s*(\d+)/i);
-        const dbEpisodeMatch = dbTitle.match(/S(\d+)E(\d+)/i);
-
-        if (dbSeasonMatch && seasonNumber === null) {
-          seasonNumber = parseInt(dbSeasonMatch[1]);
-          console.log(`Season number from DB Title '${dbTitle}': ${seasonNumber}`);
-        }
-        if (dbEpisodeMatch) {
-          if (seasonNumber === null) seasonNumber = parseInt(dbEpisodeMatch[1]);
-          if (episodeNumber === null) episodeNumber = parseInt(dbEpisodeMatch[2]);
-          console.log(`Episode info from DB Title '${dbTitle}': S${seasonNumber}E${episodeNumber}`);
-        }
-      }
-    }
 
     // Priority 1: Use provider IDs from database (most reliable source of truth)
     // Database fields: tmdbid, tvdbid, imdbid (from ImageChoices.db)
