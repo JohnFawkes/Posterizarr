@@ -129,7 +129,7 @@ public class PosterizarrSyncTask : IScheduledTask
                 {
                     // Persistence: Only updates the image rows in the database
                     var parent = item.ParentId != Guid.Empty ? _libraryManager.GetItemById(item.ParentId) : null;
-                    await _libraryManager.UpdateItemAsync(item, parent, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
+                    await _libraryManager.UpdateItemAsync(item, parent ?? item, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
