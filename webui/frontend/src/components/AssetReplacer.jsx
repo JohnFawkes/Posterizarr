@@ -293,16 +293,16 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       if (assetType === "season") {
         // If it's a season and contains "|", grab the right side (e.g., "Season 1")
         if (dbData.Title.includes("|")) {
-          finalTitle = dbData.Title.split("|")[1].trim();
-          console.log(`Extracted Season Title from DB: ${finalTitle}`);
+          title  = dbData.Title.split("|")[1].trim();
+          console.log(`Extracted Season Title from DB: ${title }`);
         } else {
           // Fallback: use "Season" + the raw number (no leading zero)
-          finalTitle = seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`;
+          title  = seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`;
         }
       } else if (assetType !== "titlecard") {
         // Standard override for Movies/Shows, skipping titlecards
-        finalTitle = dbData.Title;
-        console.log(`Using Title from database: ${finalTitle}`);
+        title  = dbData.Title;
+        console.log(`Using Title from database: ${title }`);
       }
     }
     if (dbData?.year) {
