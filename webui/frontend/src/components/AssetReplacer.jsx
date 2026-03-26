@@ -256,7 +256,12 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     // contains extra info (e.g., "Show | Season 01" or "S01E01 | Episode")
     if (dbData?.Title && assetType !== "season" && assetType !== "titlecard") {
       title = dbData.Title;
-      console.log(`Using Title from database: ${title}`);
+    } else if (assetType === "season") {
+      // Default to "Season X" for the overlay text
+      title = metadata.season_number === 0 ? "Specials" : `Season ${metadata.season_number}`;
+    } else if (assetType === "titlecard") {
+      // Titlecards usually use the Episode Title for the overlay text
+      title = dbData?.EpisodeTitle || "";
     }
     if (dbData?.year) {
       year = parseInt(dbData.year);
