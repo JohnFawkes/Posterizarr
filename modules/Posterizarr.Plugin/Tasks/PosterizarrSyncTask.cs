@@ -96,6 +96,7 @@ public class PosterizarrSyncTask : IScheduledTask
                     bool needUpdate = false;
                     if (existingImage == null)
                     {
+                        _logger.LogInformation("[Posterizarr] [{0}] No existing '{1}' image. Need update.", item.Name, type);
                         needUpdate = true;
                     }
                     else if (string.Equals(localPath, existingImage.Path, StringComparison.OrdinalIgnoreCase))
@@ -103,25 +104,35 @@ public class PosterizarrSyncTask : IScheduledTask
                         // Same path: check if the file was modified since Jellyfin last saw it
                         if (File.GetLastWriteTimeUtc(localPath) > existingImage.DateModified.AddSeconds(2))
                         {
+                            _logger.LogInformation("[Posterizarr] [{0}] Target file '{1}' modified. Need update.", item.Name, type);
                             needUpdate = true;
                         }
                     }
                     else if (!IsHashMatch(localPath, existingImage.Path))
                     {
                         // Different paths: compare hashes
+                        _logger.LogInformation("[Posterizarr] [{0}] Hash mismatch for '{1}'. Need update.", item.Name, type);
                         needUpdate = true;
                     }
 
                     if (needUpdate)
                     {
-                        item.SetImage(new ItemImageInfo
+                        _logger.LogInformation("[Posterizarr] [{0}] Saving image for '{1}' from '{2}'", item.Name, type, localPath);
+                        try
                         {
-                            Path = localPath,
-                            Type = type,
-                            DateModified = File.GetLastWriteTimeUtc(localPath)
-                        }, 0);
+                            var ext = Path.GetExtension(localPath).ToLowerInvariant();
+                            string mimeType = ext switch { ".png" => "image/png", ".webp" => "image/webp", ".bmp" => "image/bmp", _ => "image/jpeg" };
 
-                        itemUpdated = true;
+                            using (var stream = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan))
+                            {
+                                await _providerManager.SaveImage(item, stream, mimeType, type, 0, cancellationToken).ConfigureAwait(false);
+                            }
+                            itemUpdated = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "[Posterizarr] Failed to process image update for {0}", item.Name);
+                        }
                     }
                 }
 
