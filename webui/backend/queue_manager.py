@@ -112,7 +112,7 @@ class QueueManager:
         with self.lock:
             conn = self._get_connection()
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM queue_items WHERE id = ?", (item_id,))
+            cursor.execute("DELETE FROM queue_items WHERE id = ?", (int(item_id),))
             conn.commit()
             conn.close()
             logger.info(f"Queue item deleted: {item_id}")
@@ -121,38 +121,57 @@ class QueueManager:
     def delete_items(self, item_ids):
         """Delete multiple items from the queue."""
         if not item_ids: return
+
+        clean_ids = [int(i) for i in item_ids]
+        placeholders = ','.join('?' for _ in clean_ids)
+        query = f"DELETE FROM queue_items WHERE id IN ({placeholders})"
+
         with self.lock:
             conn = self._get_connection()
             cursor = conn.cursor()
-            placeholders = ','.join('?' for _ in item_ids)
-            cursor.execute(f"DELETE FROM queue_items WHERE id IN ({placeholders})", item_ids)
+            cursor.execute(query, clean_ids) # nosec B608
             conn.commit()
             conn.close()
             logger.info(f"Queue items deleted: {item_ids}")
 
     def get_items_by_ids(self, item_ids):
-        """Get specific pending items by IDs."""
-        if not item_ids: return []
-        with self.lock:
-            conn = self._get_connection()
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            placeholders = ','.join('?' for _ in item_ids)
-            # Only select pending items for execution
-            cursor.execute(f"SELECT * FROM queue_items WHERE id IN ({placeholders}) AND status = 'pending' ORDER BY created_at ASC", item_ids)
-            rows = cursor.fetchall()
-            conn.close()
+        """Get specific pending items by IDs safely."""
+        if not item_ids:
+            return []
 
-            items = []
-            for row in rows:
-                item = dict(row)
-                if item['overlay_params']:
-                    try:
-                        item['overlay_params'] = json.loads(item['overlay_params'])
-                    except json.JSONDecodeError:
-                         item['overlay_params'] = {}
-                items.append(item)
-            return items
+        try:
+            clean_ids = [int(i) for i in item_ids]
+        except (ValueError, TypeError):
+            logger.error(f"Invalid item_ids provided to get_items_by_ids: {item_ids}")
+            return []
+
+        placeholders = ','.join('?' for _ in clean_ids)
+
+        query = f"SELECT * FROM queue_items WHERE id IN ({placeholders}) AND status = 'pending' ORDER BY created_at ASC"
+
+        with self.lock:
+            try:
+                conn = self._get_connection()
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+
+                cursor.execute(query, clean_ids)  # nosec B608
+                rows = cursor.fetchall()
+                conn.close()
+
+                items = []
+                for row in rows:
+                    item = dict(row)
+                    if item['overlay_params']:
+                        try:
+                            item['overlay_params'] = json.loads(item['overlay_params'])
+                        except json.JSONDecodeError:
+                            item['overlay_params'] = {}
+                    items.append(item)
+                return items
+            except sqlite3.Error as e:
+                logger.error(f"Database error in get_items_by_ids: {e}")
+                return []
 
     def clear_queue(self):
         """Delete all items from the queue."""

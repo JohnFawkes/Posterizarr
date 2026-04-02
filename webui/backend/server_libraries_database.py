@@ -167,15 +167,13 @@ class ServerLibrariesDB:
 
                 # Set specified to excluded
                 if excluded_libraries:
+                    # Build placeholders safely
                     placeholders = ",".join("?" * len(excluded_libraries))
-                    cursor.execute(
-                        f"""
-                        UPDATE media_server_libraries
-                        SET is_excluded = 1
-                        WHERE server_type = ? AND library_name IN ({placeholders})
-                        """,
-                        [server_type] + excluded_libraries,
-                    )
+                    query = f"UPDATE media_server_libraries SET is_excluded = 1 WHERE server_type = ? AND library_name IN ({placeholders})"
+
+                    # Combine parameters into one flat list
+                    params = [server_type] + list(excluded_libraries)
+                    cursor.execute(query, params) # nosec B608
 
                 conn.commit()
                 conn.close()

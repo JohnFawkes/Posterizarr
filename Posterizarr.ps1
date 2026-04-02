@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.32"
+$CurrentScriptVersion = "2.2.33"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -67,6 +67,31 @@ $ProgressPreference = 'SilentlyContinue'
 
 #### FUNCTION START ####
 #region Functions
+function Test-IsPosterizarrAsset {
+    param ([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+
+    try {
+        $stream = [System.IO.File]::OpenRead($Path)
+        try {
+            $buffer = New-Object byte[] 65536
+            $bytesRead = $stream.Read($buffer, 0, $buffer.Length)
+
+            # Convert to string (Try UTF8 first, then check for typical ASCII)
+            $content = [System.Text.Encoding]::UTF8.GetString($buffer, 0, $bytesRead)
+
+            # Returns True if any keywords match
+            return $content -match 'posterizarr|overlay|titlecard|created with ppm'
+        }
+        finally {
+            $stream.Dispose()
+        }
+    }
+    catch {
+        return $false
+    }
+}
 
 function HandleScriptExit {
     param (
@@ -3988,7 +4013,7 @@ function GetTVDBShowBackground {
 function GetTVDBTitleCard {
     if ($global:tvdbid) {
         Write-Entry -Subtext "Searching on TVDB for: $global:show_name 'Season $global:season_number - Episode $global:episodenumber' Title Card - TVDBID: $global:tvdbid" -Path $global:configLogging -Color Cyan -log Info
-        $allEpisodes = @()
+        $allEpisodes = [System.Collections.Generic.List[object]]::new()
         $page = 0
 
         do {
@@ -3998,7 +4023,7 @@ function GetTVDBTitleCard {
                 $seriesData = $response.data
 
                 if ($episodes) {
-                    $allEpisodes += $seriesData
+                    $allEpisodes.Add($seriesData)
                     $page++
                 }
             }
@@ -4067,44 +4092,66 @@ function GetPlexArtwork {
         [string]$TempImage
     )
 
-    Write-Entry -Subtext "Searching on Plex for $Type" -Path $global:configLogging -Color Cyan -log Info
+    Write-Entry -Subtext "Checking Plex metadata for $Type..." -Path $global:configLogging -Color Cyan -log Info
+
+    $ExifFound = $false
 
     try {
-        Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+        $client = New-Object System.Net.Http.HttpClient
+        # Request only the first 64KB for EXIF/Metadata
+        $client.DefaultRequestHeaders.Range = New-Object System.Net.Http.Headers.RangeHeaderValue(0, 65536)
+
+        # Add Plex Headers
+        foreach ($key in $extraPlexHeaders.Keys) {
+            $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+        }
+
+        $task = $client.GetByteArrayAsync($ArtUrl)
+        $buffer = $task.GetAwaiter().GetResult()
+        $client.Dispose()
+
+        # Check for markers
+        $content = [System.Text.Encoding]::UTF8.GetString($buffer)
+        if ($content -match 'overlay|titlecard|created with ppm|created with posterizarr') {
+            $ExifFound = $true
+        }
     }
     catch {
-        Write-Entry -Subtext "Could not download Artwork from plex, Error Message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-        continue
+        Write-Entry -Subtext "Fast-Scan failed for $Type. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+        try {
+            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
+            if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
+                $ExifFound = $true
+            }
+        } catch {
+            Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount++; return
+        }
     }
 
-    $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
-    $magickcommand | Out-File $magickLog -Append
-
-    # Execute command and get exif data
-    $value = (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr')
-
-    if ($value -and $DisableHashValidation -eq 'false') {
-        $ExifFound = $True
+    if ($ExifFound -and $DisableHashValidation -eq 'false') {
         if ($global:UploadExistingAssets -eq 'true') {
-            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, skip upload..." -Path $global:configLogging -Color Yellow -log Warning
+            Write-Entry -Subtext "Plex artwork already has EXIF (posterizarr/kometa/tcm), skipping..." -Path $global:configLogging -Color Yellow -log Warning
         }
-        Else {
-            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, cant take it..." -Path $global:configLogging -Color Yellow -log Warning
+        else {
+            Write-Entry -Subtext "Plex artwork already processed, cannot use as source..." -Path $global:configLogging -Color Yellow -log Warning
         }
-        Remove-Item -LiteralPath $TempImage | out-null
+        if (Test-Path -LiteralPath $TempImage) {
+            Remove-Item -LiteralPath $TempImage -Force -ErrorAction SilentlyContinue | Out-Null
+        }
     }
-    Else {
-        if ($DisableHashValidation -eq 'false') {
-            Write-Entry -Subtext "No posterizarr/kometa/tcm exif data found, taking Plex artwork..." -Path $global:configLogging -Color Green -log Info
+    else {
+        # Only download the FULL image if needed
+        Write-Entry -Subtext "No EXIF found or validation disabled, downloading full $Type..." -Path $global:configLogging -Color Green -log Info
+        try {
+            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            $global:PlexartworkDownloaded = $true
+            $global:posterurl = $ArtUrl
         }
-        Else {
-            Write-Entry -Subtext "taking Plex artwork..." -Path $global:configLogging -Color Green -log Info
+        catch {
+            Write-Entry -Subtext "Full download failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
         }
-
-        $global:PlexartworkDownloaded = $true
-        $global:posterurl = $ArtUrl
     }
 }
 function Push-ObjectToDiscord {
@@ -4971,36 +5018,59 @@ function MassDownloadPlexArtwork {
             [string]$ArtUrl,
             [string]$TempImage
         )
+
+        Write-Entry -Subtext "Fast-scanning Plex URL for EXIF data..." -Path $global:configLogging -Color Cyan -log Info
+
+        $ExifFound = $false
+
         try {
-            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            # Perform a partial download (64KB) to check for EXIF markers in memory
+            $client = New-Object System.Net.Http.HttpClient
+            $client.DefaultRequestHeaders.Range = New-Object System.Net.Http.Headers.RangeHeaderValue(0, 65536)
+
+            # Add Plex Headers
+            foreach ($key in $extraPlexHeaders.Keys) {
+                $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+            }
+
+            $task = $client.GetByteArrayAsync($ArtUrl)
+            $buffer = $task.GetAwaiter().GetResult()
+            $client.Dispose()
+
+            $content = [System.Text.Encoding]::UTF8.GetString($buffer)
+
+            if ($content -match 'overlay|titlecard|created with ppm|created with posterizarr') {
+                $ExifFound = $true
+            }
         }
         catch {
-            Write-Entry -Subtext "Could not download Artwork from plex, Error Message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Fast-scan failed, falling back to full download. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
 
-            continue
+            try {
+                Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+                $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
+                if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
+                    $ExifFound = $true
+                }
+            } catch {
+                Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount++; return
+            }
         }
 
-        $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
-        $magickcommand | Out-File $magickLog -Append
-
-        # Execute command and get exif data
-        $value = (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr')
-
-        if ($value) {
-            $ExifFound = $True
-            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, downloading it now..." -Path $global:configLogging -Color Green -log Info
+        if ($ExifFound) {
+            Write-Entry -Subtext "Artwork has exif data from posterizarr/kometa/tcm, using URL..." -Path $global:configLogging -Color Green -log Info
             $global:posterurl = $ArtUrl
         }
-        Else {
-            Write-Entry -Subtext "No posterizarr/kometa/tcm exif data found, downloading it now..." -Path $global:configLogging -Color Yellow -log Warning
+        else {
+            Write-Entry -Subtext "No posterizarr/kometa/tcm exif data found, using URL..." -Path $global:configLogging -Color Yellow -log Warning
             $global:posterurl = $ArtUrl
         }
     }
     $Mode = "backup"
     Write-Entry -Message "Backup Mode Started..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
-    $Libsoverview = @()
+    $Libsoverview = [System.Collections.Generic.List[object]]::new()
     foreach ($lib in $Libs.MediaContainer.Directory) {
         if ($lib.title -notin $LibstoExclude) {
             $libtemp = New-Object psobject
@@ -5022,7 +5092,7 @@ function MassDownloadPlexArtwork {
                 Write-Entry -Subtext "Please rename your lib and remove all chars that are listed here: '/, :, *, ?, `", <, >, |, \, or }'" -Path $global:configLogging -Color Yellow -log Warning
                 HandleScriptExit -Message "Invalid lib chars"
             }
-            $Libsoverview += $libtemp
+            $Libsoverview.Add($libtemp)
         }
     }
     if ($($Libsoverview.count) -lt 1) {
@@ -5033,7 +5103,7 @@ function MassDownloadPlexArtwork {
     $IncludedLibraryNames = $Libsoverview.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     Foreach ($Library in $Libsoverview) {
         if ($Library.Name -notin $LibstoExclude) {
             $PlexHeaders = @{}
@@ -5325,7 +5395,7 @@ function MassDownloadPlexArtwork {
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -5350,7 +5420,7 @@ function MassDownloadPlexArtwork {
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -5365,10 +5435,10 @@ function MassDownloadPlexArtwork {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -5386,7 +5456,7 @@ function MassDownloadPlexArtwork {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
@@ -5514,7 +5584,7 @@ function MassDownloadPlexArtwork {
     Write-Entry -Message "Starting asset download now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster/Background download part..." -Path $global:configLogging -Color Green -log Info
 
-    $checkedItems = @()
+    $checkedItems = [System.Collections.Generic.List[object]]::new()
     # Movie Part
     foreach ($entry in $AllMovies) {
         try {
@@ -5590,7 +5660,7 @@ function MassDownloadPlexArtwork {
                 $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                 # Now we can start the Poster Part
                 if ($global:Posters -eq 'true') {
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
@@ -5651,6 +5721,9 @@ function MassDownloadPlexArtwork {
                             # Move file back to original naming with Brackets.
                             if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                 try {
+                                    if ($LibraryFolders -eq 'true' -and !(Test-Path -LiteralPath $EntryDir)) {
+                                        New-Item -ItemType Directory -Path $EntryDir -Force | Out-Null
+                                    }
                                     # Attempt to move the item
                                     Move-Item -LiteralPath $PosterImage -Destination $PosterImageoriginal -Force -ErrorAction Stop
 
@@ -5716,7 +5789,7 @@ function MassDownloadPlexArtwork {
 
                     $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
@@ -5923,7 +5996,7 @@ function MassDownloadPlexArtwork {
 
             # Now we can start the Poster Part
             if ($global:Posters -eq 'true') {
-                $checkedItems += $hashtestpath
+                $checkedItems.Add($hashtestpath)
 
                 if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                     $Arturl = $null
@@ -6041,7 +6114,7 @@ function MassDownloadPlexArtwork {
 
                 $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                 $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                $checkedItems += $hashtestpath
+                $checkedItems.Add($hashtestpath)
 
                 if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                     # Define Global Variables
@@ -6214,7 +6287,7 @@ function MassDownloadPlexArtwork {
 
                     $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
                     $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
@@ -6381,7 +6454,7 @@ function MassDownloadPlexArtwork {
                             $EpisodeImage = $EpisodeImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
 
                             $cjkTitlePattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsThai}]'
-                            $checkedItems += $hashtestpath
+                            $checkedItems.Add($hashtestpath)
 
                             if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                 $Arturl = $null
@@ -7506,11 +7579,11 @@ $collectionfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config
 $RTLFont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.RTLFont -join $($joinsymbol))
 $backgroundfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundfont -join $($joinsymbol))
 $titlecardfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardfont -join $($joinsymbol))
-$Posteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.overlayfile -join $($joinsymbol))
+$DefaultPosteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.overlayfile -join $($joinsymbol))
 $Seasonoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.seasonoverlayfile -join $($joinsymbol))
 $collectionoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.collectionoverlayfile -join $($joinsymbol))
-$Backgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundoverlayfile -join $($joinsymbol))
-$titlecardoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardoverlayfile -join $($joinsymbol))
+$DefaultBackgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundoverlayfile -join $($joinsymbol))
+$Defaulttitlecardoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardoverlayfile -join $($joinsymbol))
 $testimage = Join-Path -Path $global:ScriptRoot -ChildPath ('test', 'testimage.png' -join $($joinsymbol))
 $backgroundtestimage = Join-Path -Path $global:ScriptRoot -ChildPath ('test', 'backgroundtestimage.png' -join $($joinsymbol))
 $LibraryFolders = $config.PrerequisitePart.LibraryFolders.tolower()
@@ -7994,7 +8067,7 @@ if ($files.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'T
     & fc-cache -fv 1> $null 2> $null
 }
 
-CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$Posteroverlay" -Backgroundoverlay "$Backgroundoverlay" -titlecardoverlay "$titlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$DefaultPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 # Check Plex now:
 if (!$SyncJelly -and !$SyncEmby) {
     if ($UsePlex -eq 'true') {
@@ -8012,7 +8085,7 @@ if (!$SyncJelly -and !$SyncEmby) {
 }
 # Check overlay artwork for poster, background, and titlecard dimensions
 Write-Entry -Message "Checking size of overlay files..." -Path $global:configLogging -Color White -log Info
-CheckOverlayDimensions -Posteroverlay "$Posteroverlay" -Backgroundoverlay "$Backgroundoverlay" -Titlecardoverlay "$titlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+CheckOverlayDimensions -Posteroverlay "$DefaultPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 
 # Check if the FanartTvAPI module is installed
 $module = Get-Module -ListAvailable -Name FanartTvAPI
@@ -8942,8 +9015,13 @@ if ($Manual) {
                     if ($isLogo){
                         $colorEffect = ""
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                         }
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -8974,8 +9052,13 @@ if ($Manual) {
                     if ($isLogo){
                         $colorEffect = ""
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                         }
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -9623,7 +9706,7 @@ Elseif ($Tautulli) {
     # {grandparent_rating_key}	The unique identifier for the TV show or artist.
     $Mode = "tautulli"
     Write-Entry -Message "Tautulli Mode Started..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     if (($RatingKey -or $parentratingkey -or $grandparentratingkey) -and $mediatype) {
         if ($mediatype -eq 'movie') {
             $contentquery = "video"
@@ -9812,7 +9895,7 @@ Elseif ($Tautulli) {
         $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
         $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
         $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-        $Libraries += $temp
+        $Libraries.Add($temp)
         Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
@@ -9823,7 +9906,7 @@ Elseif ($Tautulli) {
     if ($global:TitleCards -eq 'true' -and $mediatype -ne 'movie') {
         Write-Entry -Message "Query episodes data..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -9838,10 +9921,10 @@ Elseif ($Tautulli) {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -9859,7 +9942,7 @@ Elseif ($Tautulli) {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
@@ -10288,10 +10371,12 @@ Elseif ($Tautulli) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
                                         }
-
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
+                                        }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $AddOverlay = 'false'
@@ -10400,8 +10485,13 @@ Elseif ($Tautulli) {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -10924,8 +11014,11 @@ Elseif ($Tautulli) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -11036,8 +11129,13 @@ Elseif ($Tautulli) {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -11658,8 +11756,11 @@ Elseif ($Tautulli) {
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $Posteroverlay }
+                                            Default { $Posteroverlay = $DefaultPosteroverlay }
                                         }
+                                    }
+                                    Else {
+                                        $Posteroverlay = $DefaultPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -11769,8 +11870,13 @@ Elseif ($Tautulli) {
                                                 # Only apply color if enabled AND color is defined
                                                 $colorEffect = ""
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                    $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                    else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -12005,9 +12111,7 @@ Elseif ($Tautulli) {
                                 'TVDB' { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                 Default { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                             }
-                            if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                            }
+
                             # Export the array to a CSV file
                             $showtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                         }
@@ -12304,8 +12408,11 @@ Elseif ($Tautulli) {
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default { $Backgroundoverlay = $Backgroundoverlay }
+                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                         }
+                                    }
+                                    Else {
+                                        $backgroundoverlay = $Defaultbackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -12415,8 +12522,13 @@ Elseif ($Tautulli) {
                                                 # Only apply color if enabled AND color is defined
                                                 $colorEffect = ""
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                    $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                    else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -12657,9 +12769,7 @@ Elseif ($Tautulli) {
                                 'TVDB' { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                 Default { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                             }
-                            if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                            }
+
                             # Export the array to a CSV file
                             $showbackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                         }
@@ -13409,9 +13519,7 @@ Elseif ($Tautulli) {
                                     'TVDB' { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $seasontemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -13787,8 +13895,11 @@ Elseif ($Tautulli) {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -14099,9 +14210,7 @@ Elseif ($Tautulli) {
                                                         'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                         Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                     }
-                                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                    }
+
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                 }
@@ -14465,8 +14574,11 @@ Elseif ($Tautulli) {
                                                                     '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                     '4K'            { $TitleCardoverlay = $4kTC }
                                                                     '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                    Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                    Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
+                                                            }
+                                                            Else {
+                                                                $TitleCardoverlay = $DefaultTitleCardoverlay
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -14775,9 +14887,7 @@ Elseif ($Tautulli) {
                                                         'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                         Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                     }
-                                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                    }
+
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                 }
@@ -14943,7 +15053,7 @@ Elseif ($ArrTrigger) {
                 $ServerType = if ($UseJellyfin -eq 'true') { "Jellyfin" } else { "Emby" }
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
                 # Search for all matching series
-                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
+                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true,MediaStreams&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
                 $seriesMatches = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) }
 
                 if (-not $seriesMatches) {
@@ -14993,7 +15103,7 @@ Elseif ($ArrTrigger) {
                 Write-Entry -Message "Proceeding with: $($seriesItem.Name) (ID: $seriesId)" -Path $global:configLogging -Color Green -log Info
 
                 # Get Season
-                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
+                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
                 $seasonItem = $seasons.Items | Where-Object { $_.IndexNumber -eq $seasonIndex }
 
                 if (-not $seasonItem) {
@@ -15002,7 +15112,7 @@ Elseif ($ArrTrigger) {
 
                 # Get Episode
                 $seasonId = $seasonItem.Id
-                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
                 $episodeItem = $episodes.Items | Where-Object { $_.IndexNumber -eq $episodeIndex }
 
                 if (-not $episodeItem) {
@@ -15077,7 +15187,7 @@ Elseif ($ArrTrigger) {
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
 
                 # 1. Search for matching movies
-                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
+                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
                 $movieMatches = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
 
                 if (-not $movieMatches) {
@@ -15175,7 +15285,7 @@ Elseif ($ArrTrigger) {
         }
         default { Write-Entry -Message "Unknown platform: $arrplatform" -Path $global:configLogging -Color Red -log Error }
     }
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
         $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
         foreach ($Movie in $AllMovies.Items) {
@@ -15231,7 +15341,45 @@ Elseif ($ArrTrigger) {
                     }
                     # Determine resolution category
                     if ($movie.Width -and $movie.Height) {
-                        $Resolution = Get-Resolution -Width $movie.Width
+                        # Get the base resolution
+                        $baseResolution = Get-Resolution -Width $movie.Width
+
+                        # Grab the primary video stream to check for HDR
+                        $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                        if ($videoStream.ExtendedVideoSubTypeDescription){
+                            Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                            if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
+                                $hdrType = 'DOVIHDR10'
+                            }
+                        }
+                        Else {
+                            Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoType)" -Path $global:configLogging -Color Cyan -log Debug
+                            $hdrType = $videoStream.ExtendedVideoType
+                        }
+
+                        # Build the final string
+                        if ($baseResolution -eq "4K" -and $hdrType) {
+
+                            switch -Regex ($hdrType) {
+                                # Check for Dolby Vision combinations
+                                'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                                # Check for standard HDR combinations
+                                '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                                # If it's SDR or something unrecognized, just keep it simple
+                                'SDR'             { $Resolution = "$baseResolution"; break }
+                                default           { $Resolution = "$baseResolution"; break }
+                            }
+
+                        } else {
+                            # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                            $Resolution = $baseResolution
+                        }
                     }
 
                     Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
@@ -15256,7 +15404,7 @@ Elseif ($ArrTrigger) {
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                     $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                    $Libraries += $temp
+                    $Libraries.Add($temp)
                     Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
                 }
@@ -15312,7 +15460,37 @@ Elseif ($ArrTrigger) {
                     }
                     # Determine resolution category
                     if ($movie.Width -and $movie.Height) {
-                        $Resolution = Get-Resolution -Width $movie.Width
+                        # Get the base resolution
+                        $baseResolution = Get-Resolution -Width $movie.Width
+
+                        # Grab the primary video stream to check for HDR
+                        $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                        Write-Entry -Subtext "Raw Video Description: $($videoStream.VideoRangeType)" -Path $global:configLogging -Color Cyan -log Debug
+                        $hdrType = $videoStream.VideoRangeType
+
+                        # Build the final string
+                        if ($baseResolution -eq "4K" -and $hdrType) {
+
+                            switch -Regex ($hdrType) {
+                                # Check for Dolby Vision combinations
+                                'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                                # Check for standard HDR combinations
+                                '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                                # If it's SDR or something unrecognized, just keep it simple
+                                'SDR'             { $Resolution = "$baseResolution"; break }
+                                default           { $Resolution = "$baseResolution"; break }
+                            }
+
+                        } else {
+                            # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                            $Resolution = $baseResolution
+                        }
                     }
                     Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Subtext "ExtractedFolder: $extractedFolder" -Path $global:configLogging -Color Cyan -log Debug
@@ -15337,7 +15515,7 @@ Elseif ($ArrTrigger) {
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                     $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                     $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                    $Libraries += $temp
+                    $Libraries.Add($temp)
                     Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
                 }
@@ -15419,7 +15597,7 @@ Elseif ($ArrTrigger) {
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Show.ImageTags.Primary
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Show.BackdropImageTags -join ",")
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -15427,7 +15605,7 @@ Elseif ($ArrTrigger) {
         Write-Entry -Subtext "Found '$($Libraries.count)' Items..." -Path $global:configLogging -Color Cyan -log Info
         Write-Entry -Message "Starting episode data query now - This can take a while..." -Path $global:configLogging -Color Cyan -Log Info
 
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         $TempShowLibs = $Libraries | Where-Object { $_."Library Type" -eq 'Series' }
         foreach ($show in $TempShowLibs) {
             # Iterate through all shows
@@ -15443,6 +15621,28 @@ Elseif ($ArrTrigger) {
                 $EpisodeTitles = ($SeasonEpisodes.Name -join ';')
                 $Episodes = ($SeasonEpisodes.IndexNumber -join ',')
                 $Thumbs = ($SeasonEpisodes.ImageTags.Primary -join ',')
+                $VideoRangesArray = foreach ($ep in $SeasonEpisodes) {
+                    $vid = $ep.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+
+                    # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
+                    $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
+
+                    if ($currentRange) {
+                        Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
+                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                            Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                        }
+                        # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
+                        if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10' -or $vid.VideoRangeType -match 'HDR10|EL' -or $vid.ExtendedVideoType -match 'HDR10|EL') {
+                            $currentRange = "DOVIHDR10"
+                        }
+
+                        $currentRange
+                    } else {
+                        "None"
+                    }
+                }
+                $EpisodeVideoRanges = ($VideoRangesArray -join ',')
 
                 # Calculate the ShowID and SeasonId
                 $ShowID = if ($SeasonEpisodes.SeriesId) { $SeasonEpisodes.SeriesId } else { $null }
@@ -15459,6 +15659,7 @@ Elseif ($ArrTrigger) {
                     "EpisodeIds"                   = $EpisodeIds
                     "EpisodeWidths"                = $EpisodeWidths
                     "EpisodeHeights"               = $EpisodeHeights
+                    "EpisodeVideoRanges"           = $EpisodeVideoRanges
                     "tvdbid"                       = $show.tvdbid
                     "imdbid"                       = $show.imdbid
                     "tmdbid"                       = $show.tmdbid
@@ -15472,26 +15673,53 @@ Elseif ($ArrTrigger) {
                 }
 
                 # Add the season object to the array
-                $Episodedata += $seasonObject
+                $Episodedata.Add($seasonObject)
             }
         }
         # Create an empty array to hold the custom objects
-        $FormattedData = @()
+        $FormattedData = [System.Collections.Generic.List[object]]::new()
 
         # Iterate over each item in $OtherEpisodedata
         foreach ($data in $Episodedata) {
             $EpisodeWidths = $data.EpisodeWidths -split ","
             $EpisodeHeights = $data.EpisodeHeights -split ","
+            $EpisodeVideoRanges = $data.EpisodeVideoRanges -split ","
             # Initialize an empty array for resolutions
-            $Resolution = @()
+            $Resolution = [System.Collections.Generic.List[object]]::new()
 
             # Loop through each episode and determine resolution
             for ($i = 0; $i -lt $EpisodeWidths.Count; $i++) {
                 $Width = [int]$EpisodeWidths[$i]
-                $Resolution += Get-Resolution -Width $Width
+
+                # Get the base resolution for this episode
+                $baseRes = Get-Resolution -Width $Width
+
+                # Grab the primary video stream for THIS specific episode
+                $hdrType = $EpisodeVideoRanges[$i]
+
+                # Build the final string for this episode
+                if ($baseRes -eq "4K" -and $hdrType -ne "None") {
+
+                    switch -Regex ($hdrType) {
+                        'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                        'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
+                        'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
+                        '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
+                        '^HDR10Plus'            { $finalRes = "$baseRes HDR10"; break }
+                        '^HDR10'                { $finalRes = "$baseRes HDR10"; break }
+                        'SDR'                   { $finalRes = "$baseRes"; break }
+                        default                 { $finalRes = "$baseRes"; break }
+                    }
+
+                } else {
+                    # Fallback for 1080p, 720p, etc.
+                    $finalRes = $baseRes
+                }
+
+                $Resolution.Add($finalRes)
             }
             # Create a custom object for each episode using the variables
-            $FormattedData += [PSCustomObject]@{
+            $FormattedData.Add([PSCustomObject]@{
                 'Library Name'                 = $data.'Library Name'
                 'Show Name'                    = $data.'Show Name'
                 'Show Original Name'           = $data.'Show Original Name'
@@ -15510,7 +15738,7 @@ Elseif ($ArrTrigger) {
                 'Title'                        = $data.'Title'
                 'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
                 'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-            }
+            })
         }
 
         # Export the formatted data to CSV
@@ -15909,8 +16137,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                     '4K'            { $Posteroverlay = $4kposter }
                                                     '1080p'         { $Posteroverlay = $1080pPoster }
-                                                    Default { $Posteroverlay = $Posteroverlay }
+                                                    Default { $Posteroverlay = $DefaultPosteroverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $Posteroverlay = $DefaultPosteroverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -16019,8 +16250,13 @@ Elseif ($ArrTrigger) {
                                                         # Only apply color if enabled AND color is defined
                                                         $colorEffect = ""
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -16483,8 +16719,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                     '4K'            { $backgroundoverlay = $4kBackground }
                                                     '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                    Default { $backgroundoverlay = $backgroundoverlay }
+                                                    Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $backgroundoverlay = $Defaultbackgroundoverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -16594,8 +16833,13 @@ Elseif ($ArrTrigger) {
                                                         # Only apply color if enabled AND color is defined
                                                         $colorEffect = ""
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -17148,8 +17392,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -17259,8 +17506,13 @@ Elseif ($ArrTrigger) {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -17455,9 +17707,7 @@ Elseif ($ArrTrigger) {
                                     'TVDB' { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $showtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -17733,8 +17983,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -17844,8 +18097,13 @@ Elseif ($ArrTrigger) {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -18042,9 +18300,7 @@ Elseif ($ArrTrigger) {
                                     'TVDB' { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $showbackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -18679,9 +18935,7 @@ Elseif ($ArrTrigger) {
                                             'TVDB' { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                             Default { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                         }
-                                        if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                            Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                        }
+
                                         # Export the array to a CSV file
                                         $seasontemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                     }
@@ -19022,8 +19276,11 @@ Elseif ($ArrTrigger) {
                                                                             '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                             '4K'            { $TitleCardoverlay = $4kTC }
                                                                             '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                            Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                            Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                         }
+                                                                    }
+                                                                    Else {
+                                                                        $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                     }
                                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -19248,9 +19505,7 @@ Elseif ($ArrTrigger) {
                                                             'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                             Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                         }
-                                                        if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                            Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                        }
+
                                                         # Export the array to a CSV file
                                                         $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                     }
@@ -19572,15 +19827,17 @@ Elseif ($ArrTrigger) {
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                                             if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
-                                                                    Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
                                                                         '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -19804,9 +20061,7 @@ Elseif ($ArrTrigger) {
                                                             'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                             Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                         }
-                                                        if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                            Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                        }
+
                                                         # Export the array to a CSV file
                                                         $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                     }
@@ -20144,7 +20399,7 @@ Elseif ($ArrTrigger) {
         $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
         $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
         $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-        $Libraries += $temp
+        $Libraries.Add($temp)
         Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         $AllShows = $Libraries | Where-Object { $_.'Library Type' -eq 'show' }
@@ -20153,7 +20408,7 @@ Elseif ($ArrTrigger) {
         if ($global:TitleCards -eq 'true' -and $mediatype -ne 'movie') {
             Write-Entry -Message "Query episodes data..." -Path $global:configLogging -Color White -log Info
             # Query episode info
-            $Episodedata = @()
+            $Episodedata = [System.Collections.Generic.List[object]]::new()
             foreach ($showentry in $AllShows) {
                 # Getting child entries for each season
                 $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -20168,10 +20423,10 @@ Elseif ($ArrTrigger) {
                     $Resolution = $null
                     # Get Resolution
                     if ($FileMetadata) {
-                        $ResolutionList = @()
+                        $ResolutionList = [System.Collections.Generic.List[object]]::new()
                         $FileMetadata | ForEach-Object {
                             $Resolution = $_.videoResolution
-                            $ResolutionList += $Resolution
+                            $ResolutionList.Add($Resolution)
                         }
                         $Resolution = $ResolutionList -join ","
                     }
@@ -20189,7 +20444,7 @@ Elseif ($ArrTrigger) {
                     if ($FileMetadata) {
                         $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                     }
-                    $Episodedata += $tempseasondata
+                    $Episodedata.Add($tempseasondata)
                     Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 }
             }
@@ -20617,8 +20872,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                     '4K'            { $Posteroverlay = $4kposter }
                                                     '1080p'         { $Posteroverlay = $1080pPoster }
-                                                    Default { $Posteroverlay = $Posteroverlay }
+                                                    Default { $Posteroverlay = $DefaultPosteroverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $Posteroverlay = $DefaultPosteroverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -20728,8 +20986,13 @@ Elseif ($ArrTrigger) {
                                                         # Only apply color if enabled AND color is defined
                                                         $colorEffect = ""
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -21252,8 +21515,11 @@ Elseif ($ArrTrigger) {
                                                     '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                     '4K'            { $backgroundoverlay = $4kBackground }
                                                     '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                    Default { $backgroundoverlay = $backgroundoverlay }
+                                                    Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                                 }
+                                            }
+                                            Else {
+                                                $backgroundoverlay = $Defaultbackgroundoverlay
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -21363,8 +21629,13 @@ Elseif ($ArrTrigger) {
                                                         # Only apply color if enabled AND color is defined
                                                         $colorEffect = ""
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -21985,8 +22256,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -22096,8 +22370,13 @@ Elseif ($ArrTrigger) {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -22631,8 +22910,11 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $Backgroundoverlay = $Backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -22742,8 +23024,13 @@ Elseif ($ArrTrigger) {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -24114,8 +24401,11 @@ Elseif ($ArrTrigger) {
                                                                             '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                             '4K'            { $TitleCardoverlay = $4kTC }
                                                                             '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                            Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                            Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                         }
+                                                                    }
+                                                                    Else {
+                                                                        $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                     }
                                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -24792,8 +25082,11 @@ Elseif ($ArrTrigger) {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -25297,7 +25590,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     }
 
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
-    $Libsoverview = @()
+    $Libsoverview = [System.Collections.Generic.List[object]]::new()
     foreach ($lib in $Libs.MediaContainer.Directory) {
         if ($lib.title -notin $LibstoExclude) {
             $libtemp = New-Object psobject
@@ -25320,7 +25613,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 # Clear Running File
                 HandleScriptExit -Message "Lib contains invalid chars"
             }
-            $Libsoverview += $libtemp
+            $Libsoverview.Add($libtemp)
         }
     }
     if ($($Libsoverview.count) -lt 1) {
@@ -25332,7 +25625,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     $IncludedLibraryNames = $Libsoverview.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     Foreach ($Library in $Libsoverview) {
         if ($Library.Name -notin $LibstoExclude) {
             $PlexHeaders = @{}
@@ -25625,7 +25918,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -25640,7 +25933,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         foreach ($showentry in $AllShows) {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
@@ -25655,10 +25948,10 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -25676,7 +25969,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
             }
         }
@@ -25706,9 +25999,9 @@ Elseif ($SyncJelly -or $SyncEmby) {
         Write-Entry -Subtext "--------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
 
-    $OtherAllMovies = @()
-    $OtherAllShows = @()
-    $OtherAllEpisodes = @()
+    $OtherAllMovies = [System.Collections.Generic.List[object]]::new()
+    $OtherAllShows = [System.Collections.Generic.List[object]]::new()
+    $OtherAllEpisodes = [System.Collections.Generic.List[object]]::new()
 
     foreach ($otherlib in $OtherAllLibs) {
         if ($otherlib.Name -notin $LibstoExclude) {
@@ -25716,7 +26009,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 Write-Entry -Subtext "Getting all Itmes from [$($otherlib.Name)] with item id [$($otherlib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
                 $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags&IncludeItemTypes=Movie"
                 $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
-                $OtherAllMovies += $Querytemp
+                $OtherAllMovies.Add($Querytemp)
             }
             if ($otherlib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($otherlib.Name)] with item id [$($otherlib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
@@ -25724,13 +26017,13 @@ Elseif ($SyncJelly -or $SyncEmby) {
                 $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags&IncludeItemTypes=Episode"
                 $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
                 $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
-                $OtherAllShows += $Querytempshow
-                $OtherAllEpisodes += $QuerytempEpisodes
+                $OtherAllShows.Add($Querytempshow)
+                $OtherAllEpisodes.Add($QuerytempEpisodes)
             }
         }
     }
 
-    $OtherLibraries = @()
+    $OtherLibraries = [System.Collections.Generic.List[object]]::new()
     foreach ($Movie in $OtherAllMovies.Items) {
         if ($SyncEmby) {
             $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
@@ -25795,7 +26088,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
             $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-            $OtherLibraries += $temp
+            $OtherLibraries.Add($temp)
             Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
@@ -25861,7 +26154,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
             $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-            $OtherLibraries += $temp
+            $OtherLibraries.Add($temp)
             Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
@@ -25941,12 +26234,12 @@ Elseif ($SyncJelly -or $SyncEmby) {
         $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Show.ImageTags.Primary
         $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Show.BackdropImageTags -join ",")
         $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-        $OtherLibraries += $temp
+        $OtherLibraries.Add($temp)
         Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
     Write-Entry -Subtext "Found '$($OtherLibraries.count)' Items..." -Path $global:configLogging -Color Cyan -log Info
-    $OtherEpisodedata = @()
+    $OtherEpisodedata = [System.Collections.Generic.List[object]]::new()
     $TempShowLibs = $OtherLibraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
         # Iterate through all shows
@@ -26009,7 +26302,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             }
 
             # Add the season object to the array
-            $OtherEpisodedata += $seasonObject
+            $OtherEpisodedata.Add($seasonObject)
         }
     }
     if ($OtherAllEpisodes) {
@@ -26020,12 +26313,12 @@ Elseif ($SyncJelly -or $SyncEmby) {
     $OtherAllMovies = $OtherLibraries | Where-Object { $_.'Library Type' -eq 'Movie' }
 
     # Create an empty array to hold the custom objects
-    $FormattedData = @()
+    $FormattedData = [System.Collections.Generic.List[object]]::new()
 
     # Iterate over each item in $OtherEpisodedata
     foreach ($data in $OtherEpisodedata) {
         # Create a custom object for each episode using the variables
-        $FormattedData += [PSCustomObject]@{
+        $FormattedData.Add([PSCustomObject]@{
             'Library Name'                 = $data.'Library Name'
             'Show Name'                    = $data.'Show Name'
             'Show Original Name'           = $data.'Show Original Name'
@@ -26043,7 +26336,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
             'Title'                        = $data.'Title'
             'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
             'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-        }
+        })
     }
 
     # Export the formatted data to CSV
@@ -26669,30 +26962,30 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
         Write-Entry -Subtext "  Lib locations: $($lib.Locations)" -Path $global:configLogging -Color Cyan -log Debug
         Write-Entry -Subtext "--------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
     }
-    $AllMovies = @()
-    $AllShows = @()
-    $AllEpisodes = @()
+    $AllMovies = [System.Collections.Generic.List[object]]::new()
+    $AllShows = [System.Collections.Generic.List[object]]::new()
+    $AllEpisodes = [System.Collections.Generic.List[object]]::new()
     foreach ($slib in $AllLibs) {
         if ($slib.Name -notin $LibstoExclude) {
             if ($slib.CollectionType -eq 'movies') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Movie"
+                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Movie"
                 $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
-                $AllMovies += $Querytemp
+                $AllMovies.Add($Querytemp)
             }
             if ($slib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&IncludeItemTypes=Series"
-                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height&IncludeItemTypes=Episode"
+                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Series"
+                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode"
                 $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
                 $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
-                $AllShows += $Querytempshow
-                $AllEpisodes += $QuerytempEpisodes
+                $AllShows.Add($Querytempshow)
+                $AllEpisodes.Add($QuerytempEpisodes)
             }
         }
     }
 
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     foreach ($Movie in $AllMovies.Items) {
         $Resolution = $null
         if ($UseEmby -eq 'true') {
@@ -26744,7 +27037,45 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 }
                 # Determine resolution category
                 if ($movie.Width -and $movie.Height) {
-                    $Resolution = Get-Resolution -Width $movie.Width
+                    # Get the base resolution
+                    $baseResolution = Get-Resolution -Width $movie.Width
+
+                    # Grab the primary video stream to check for HDR
+                    $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                    if ($videoStream.ExtendedVideoSubTypeDescription){
+                        Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                        if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
+                            $hdrType = 'DOVIHDR10'
+                        }
+                    }
+                    Else {
+                        Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoType)" -Path $global:configLogging -Color Cyan -log Debug
+                        $hdrType = $videoStream.ExtendedVideoType
+                    }
+
+                    # Build the final string
+                    if ($baseResolution -eq "4K" -and $hdrType) {
+
+                        switch -Regex ($hdrType) {
+                            # Check for Dolby Vision combinations
+                            'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                            # Check for standard HDR combinations
+                            '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                            # If it's SDR or something unrecognized, just keep it simple
+                            'SDR'             { $Resolution = "$baseResolution"; break }
+                            default           { $Resolution = "$baseResolution"; break }
+                        }
+
+                    } else {
+                        # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                        $Resolution = $baseResolution
+                    }
                 }
 
                 Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
@@ -26769,7 +27100,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -26823,7 +27154,37 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 }
                 # Determine resolution category
                 if ($movie.Width -and $movie.Height) {
-                    $Resolution = Get-Resolution -Width $movie.Width
+                    # Get the base resolution
+                    $baseResolution = Get-Resolution -Width $movie.Width
+
+                    # Grab the primary video stream to check for HDR
+                    $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+                    Write-Entry -Subtext "Raw Video Description: $($videoStream.VideoRangeType)" -Path $global:configLogging -Color Cyan -log Debug
+                    $hdrType = $videoStream.VideoRangeType
+
+                    # Build the final string
+                    if ($baseResolution -eq "4K" -and $hdrType) {
+
+                        switch -Regex ($hdrType) {
+                            # Check for Dolby Vision combinations
+                            'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+
+                            # Check for standard HDR combinations
+                            '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+
+                            # If it's SDR or something unrecognized, just keep it simple
+                            'SDR'             { $Resolution = "$baseResolution"; break }
+                            default           { $Resolution = "$baseResolution"; break }
+                        }
+
+                    } else {
+                        # For 1080p, 720p, or files without a VideoRangeType, just use the base name
+                        $Resolution = $baseResolution
+                    }
                 }
                 Write-Entry -Subtext "Matchedpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "ExtractedFolder: $extractedFolder" -Path $global:configLogging -Color Cyan -log Debug
@@ -26848,7 +27209,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Movie.ImageTags.Primary
                 $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Movie.BackdropImageTags -join ",")
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -26928,7 +27289,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerPosterUrl" -Value $Show.ImageTags.Primary
             $temp | Add-Member -MemberType NoteProperty -Name "OtherMediaServerBackgroundUrl" -Value $($Show.BackdropImageTags -join ",")
             $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-            $Libraries += $temp
+            $Libraries.Add($temp)
             Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
@@ -26939,7 +27300,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
     Write-Entry -Message "Starting episode data query now - This can take a while..." -Path $global:configLogging -Color Cyan -Log Info
 
-    $Episodedata = @()
+    $Episodedata = [System.Collections.Generic.List[object]]::new()
     $TempShowLibs = $Libraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
         # Iterate through all shows
@@ -26955,6 +27316,28 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             $EpisodeTitles = ($SeasonEpisodes.Name -join ';')
             $Episodes = ($SeasonEpisodes.IndexNumber -join ',')
             $Thumbs = ($SeasonEpisodes.ImageTags.Primary -join ',')
+            $VideoRangesArray = foreach ($ep in $SeasonEpisodes) {
+                $vid = $ep.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
+
+                # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
+                $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
+
+                if ($currentRange) {
+                    Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
+                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                        Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                    }
+                    # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
+                    if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10' -or $vid.VideoRangeType -match 'HDR10|EL' -or $vid.ExtendedVideoType -match 'HDR10|EL') {
+                        $currentRange = "DOVIHDR10"
+                    }
+
+                    $currentRange
+                } else {
+                    "None"
+                }
+            }
+            $EpisodeVideoRanges = ($VideoRangesArray -join ',')
 
             # Calculate the ShowID and SeasonId
             if ($null -ne $SeasonEpisodes.SeriesId) {
@@ -26992,7 +27375,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 "SeasonId"                     = $SeasonId
                 "EpisodeIds"                   = $EpisodeIds
                 "EpisodeWidths"                = $EpisodeWidths
-                "EpisodeHeights"               = $EpisodeHeights
+                "EpisodeVideoRanges"           = $EpisodeVideoRanges
                 "tvdbid"                       = $show.tvdbid
                 "imdbid"                       = $show.imdbid
                 "tmdbid"                       = $show.tmdbid
@@ -27006,26 +27389,53 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             }
 
             # Add the season object to the array
-            $Episodedata += $seasonObject
+            $Episodedata.Add($seasonObject)
         }
     }
     # Create an empty array to hold the custom objects
-    $FormattedData = @()
+    $FormattedData = [System.Collections.Generic.List[object]]::new()
 
     # Iterate over each item in $OtherEpisodedata
     foreach ($data in $Episodedata) {
         $EpisodeWidths = $data.EpisodeWidths -split ","
         $EpisodeHeights = $data.EpisodeHeights -split ","
+        $EpisodeVideoRanges = $data.EpisodeVideoRanges -split ","
         # Initialize an empty array for resolutions
-        $Resolution = @()
+        $Resolution = [System.Collections.Generic.List[object]]::new()
 
         # Loop through each episode and determine resolution
         for ($i = 0; $i -lt $EpisodeWidths.Count; $i++) {
             $Width = [int]$EpisodeWidths[$i]
-            $Resolution += Get-Resolution -Width $Width
+
+            # Get the base resolution for this episode
+            $baseRes = Get-Resolution -Width $Width
+
+            # Grab the primary video stream for THIS specific episode
+            $hdrType = $EpisodeVideoRanges[$i]
+
+            # Build the final string for this episode
+            if ($baseRes -eq "4K" -and $hdrType -ne "None") {
+
+                switch -Regex ($hdrType) {
+                    'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                    'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
+                    'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
+                    '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
+                    '^HDR10Plus'            { $finalRes = "$baseRes HDR10"; break }
+                    '^HDR10'                { $finalRes = "$baseRes HDR10"; break }
+                    'SDR'                   { $finalRes = "$baseRes"; break }
+                    default                 { $finalRes = "$baseRes"; break }
+                }
+
+            } else {
+                # Fallback for 1080p, 720p, etc.
+                $finalRes = $baseRes
+            }
+
+            $Resolution.Add($finalRes)
         }
         # Create a custom object for each episode using the variables
-        $FormattedData += [PSCustomObject]@{
+        $FormattedData.Add([PSCustomObject]@{
             'Library Name'                 = $data.'Library Name'
             'Show Name'                    = $data.'Show Name'
             'Show Original Name'           = $data.'Show Original Name'
@@ -27044,7 +27454,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             'Title'                        = $data.'Title'
             'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
             'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-        }
+        })
     }
 
     # Export the formatted data to CSV
@@ -27130,7 +27540,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
     Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
-    $checkedItems = @()
+    $checkedItems = [System.Collections.Generic.List[object]]::new()
     # Movie Part
     foreach ($entry in $AllMovies) {
         try {
@@ -27230,7 +27640,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                     $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                     # Now we can start the Poster Part
                     if ($global:Posters -eq 'true') {
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -27446,8 +27856,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -27557,8 +27970,13 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -27754,9 +28172,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     'TVDB' { $movietemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $movietemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $movietemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -27827,7 +28243,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                         $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -28021,8 +28437,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -28132,8 +28551,13 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -28329,9 +28753,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     'TVDB' { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -28383,9 +28805,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                     'TVDB' { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                     Default { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                 }
-                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                }
+
                 # Export the array to a CSV file
                 $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
             }
@@ -28515,7 +28935,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                 # Now we can start the Poster Part
                 if ($global:Posters -eq 'true') {
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         foreach ($ext in $allowedExtensions) {
                             $filePath = "$ManualTestPath$ext"
@@ -28686,8 +29106,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $Posteroverlay }
+                                            Default { $Posteroverlay = $DefaultPosteroverlay }
                                         }
+                                    }
+                                    Else {
+                                        $Posteroverlay = $DefaultPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -28797,8 +29220,13 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 # Only apply color if enabled AND color is defined
                                                 $colorEffect = ""
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                    $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                    else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -28993,9 +29421,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 'TVDB' { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                 Default { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                             }
-                            if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                            }
+
                             # Export the array to a CSV file
                             $showtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                         }
@@ -29074,7 +29500,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
                         $SkippingText = 'false'
@@ -29272,8 +29698,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default { $backgroundoverlay = $backgroundoverlay }
+                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                         }
+                                    }
+                                    Else {
+                                        $backgroundoverlay = $Defaultbackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -29383,8 +29812,13 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 # Only apply color if enabled AND color is defined
                                                 $colorEffect = ""
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                    $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                    else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -29580,9 +30014,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 'TVDB' { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                 Default { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                             }
-                            if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                            }
+
                             # Export the array to a CSV file
                             $showbackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                         }
@@ -29725,7 +30157,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
                             $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                             Write-Entry -Message "SeasonImage temp path: $SeasonImage" -Path $global:configLogging -Color Cyan -log Debug
-                            $checkedItems += $hashtestpath
+                            $checkedItems.Add($hashtestpath)
                             Write-Entry -Message "Added $hashtestpath to checkedItems" -Path $global:configLogging -Color Cyan -log Debug
                             if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                 foreach ($ext in $allowedExtensions) {
@@ -30231,9 +30663,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         'TVDB' { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                         Default { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                     }
-                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                    }
+
                                     # Export the array to a CSV file
                                     $seasontemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                 }
@@ -30395,7 +30825,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile   = "$ManualTestPath$ext"
@@ -30575,8 +31005,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -30800,9 +31233,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                         Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                     }
-                                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                    }
+
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                 }
@@ -30923,7 +31354,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile   = "$ManualTestPath$ext"
@@ -31125,15 +31556,17 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                                         if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
-                                                                Write-Entry -Subtext "Queried Overlay Resolution: $global:EPResolution" -Path $global:configLogging -Color Yellow -log Info
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
                                                                     '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
                                                                     '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                     '4K'            { $TitleCardoverlay = $4kTC }
                                                                     '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                    Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                    Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
+                                                            }
+                                                            Else {
+                                                                $TitleCardoverlay = $DefaultTitleCardoverlay
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -31356,9 +31789,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                         Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                     }
-                                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                    }
+
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                 }
@@ -31402,7 +31833,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
         $savedsizestring = 0
         Write-Entry -Subtext "Starting Asset Cleanup, this can take some time..." -Path $global:configLogging -Color Yellow -log Info
         Write-Entry -Subtext "Only removing Artwork with posterizarr exif data" -Path $global:configLogging -Color Cyan -log Info
-        $processedDirectories = @()
+        $processedDirectories = [System.Collections.Generic.List[object]]::new()
         $uncheckedItems = $directoryHashtable.Keys | Where-Object { $_ -notin $checkedItems }
 
         # Perform deletion of unchecked items
@@ -31411,24 +31842,18 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 # Full path to the item
                 $uncheckedItemPath = $uncheckedItem + ".jpg"
 
-                # Check if its a asset from Posterizarr
-                $exifmagickcommand = "& `"$magick`" identify -verbose `"$uncheckedItemPath`""
-                $exifmagickcommand | Out-File $magickLog -Append
-
-                $ExifData = (Invoke-Expression $exifmagickcommand | Select-String -Pattern 'created with ppm|created with posterizarr')
-
-                if ($ExifData) {
-                    # Remove unchecked item from filesystem
-                    Remove-Item -LiteralPath $uncheckedItemPath -Force | Out-Null
+                if (Test-IsPosterizarrAsset -Path $uncheckedItemPath) {
+                    Remove-Item -LiteralPath $uncheckedItemPath -Force
                     $ImagesCleared++
                     Write-Entry -Subtext "Artwork Removed: $uncheckedItemPath" -Path $global:configLogging -Color Yellow -log Info
+
                     if ($LibraryFolders -eq 'true') {
                         # Determine the parent directory of the item
                         $parentDir = Split-Path -Path $uncheckedItemPath -Parent
 
                         # Add the directory to the list if it's not already included
                         if ($parentDir -notin $processedDirectories) {
-                            $processedDirectories += $parentDir
+                            $processedDirectories.Add($parentDir)
                         }
                     }
                 }
@@ -31669,7 +32094,7 @@ else {
         Write-Entry -Message "Normal Mode Started..." -Path $global:configLogging -Color White -log Info
     }
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
-    $Libsoverview = @()
+    $Libsoverview = [System.Collections.Generic.List[object]]::new()
     foreach ($lib in $Libs.MediaContainer.Directory) {
         if ($lib.title -notin $LibstoExclude) {
             $libtemp = New-Object psobject
@@ -31692,7 +32117,7 @@ else {
                 # Clear Running File
                 HandleScriptExit -Message "Invalid chars on lib"
             }
-            $Libsoverview += $libtemp
+            $Libsoverview.Add($libtemp)
         }
     }
     if ($($Libsoverview.count) -lt 1) {
@@ -31704,7 +32129,7 @@ else {
     $IncludedLibraryNames = $Libsoverview.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $Libraries = @()
+    $Libraries = [System.Collections.Generic.List[object]]::new()
     Foreach ($Library in $Libsoverview) {
         if ($Library.Name -notin $LibstoExclude) {
             $PlexHeaders = @{}
@@ -32022,7 +32447,7 @@ else {
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $Metadata.MediaContainer.$contentquery.art
                 $temp | Add-Member -MemberType NoteProperty -Name "PlexSeasonUrls" -Value $SeasonPosterUrl
                 $temp | Add-Member -MemberType NoteProperty -Name "Labels" -Value $Labels
-                $Libraries += $temp
+                $Libraries.Add($temp)
                 Write-Entry -Subtext "Found [$($temp.title)] of type $($temp.{Library Type}) in [$($temp.{Library Name})]" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -32066,7 +32491,7 @@ else {
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = @()
+        $Episodedata = [System.Collections.Generic.List[object]]::new()
         # Debug Export
         if ($global:logLevel -eq '3') {
             $MasterXml = New-Object System.Xml.XmlDocument
@@ -32107,10 +32532,10 @@ else {
                 $Resolution = $null
                 # Get Resolution
                 if ($FileMetadata) {
-                    $ResolutionList = @()
+                    $ResolutionList = [System.Collections.Generic.List[object]]::new()
                     $FileMetadata | ForEach-Object {
                         $Resolution = $_.videoResolution
-                        $ResolutionList += $Resolution
+                        $ResolutionList.Add($Resolution)
                     }
                     $Resolution = $ResolutionList -join ","
                 }
@@ -32128,7 +32553,7 @@ else {
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata += $tempseasondata
+                $Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "  Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -32275,7 +32700,7 @@ else {
     Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
 
-    $checkedItems = @()
+    $checkedItems = [System.Collections.Generic.List[object]]::new()
     # Movie Part
     foreach ($entry in $AllMovies) {
         try {
@@ -32378,7 +32803,7 @@ else {
 
                     # Now we can start the Poster Part
                     if ($global:Posters -eq 'true') {
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -32624,8 +33049,11 @@ else {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $Posteroverlay }
+                                                Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
+                                        }
+                                        Else {
+                                            $Posteroverlay = $DefaultPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -32734,8 +33162,13 @@ else {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -32973,9 +33406,7 @@ else {
                                     'TVDB' { $movietemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $movietemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $movietemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -33099,7 +33530,7 @@ else {
 
                         $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                         $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             # Define Global Variables
                             $SkippingText = 'false'
@@ -33326,8 +33757,11 @@ else {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default { $backgroundoverlay = $backgroundoverlay }
+                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
+                                        }
+                                        Else {
+                                            $backgroundoverlay = $Defaultbackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -33437,8 +33871,13 @@ else {
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                        else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -33675,9 +34114,7 @@ else {
                                     'TVDB' { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -33782,9 +34219,7 @@ else {
                     'TVDB' { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                     Default { $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                 }
-                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                }
+
                 # Export the array to a CSV file
                 $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
             }
@@ -33919,7 +34354,7 @@ else {
 
                 # Now we can start the Poster Part
                 if ($global:Posters -eq 'true') {
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
                         if ($entry.PlexPosterUrl -like "/library/*") {
@@ -34128,8 +34563,11 @@ else {
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $Posteroverlay }
+                                            Default { $Posteroverlay = $DefaultPosteroverlay }
                                         }
+                                    }
+                                    Else {
+                                        $Posteroverlay = $DefaultPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -34239,8 +34677,13 @@ else {
                                                 # Only apply color if enabled AND color is defined
                                                 $colorEffect = ""
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                    $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                    else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -34476,9 +34919,7 @@ else {
                                 'TVDB' { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                 Default { $showtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                             }
-                            if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                            }
+
                             # Export the array to a CSV file
                             $showtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                         }
@@ -34610,7 +35051,7 @@ else {
 
                     $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                    $checkedItems += $hashtestpath
+                    $checkedItems.Add($hashtestpath)
 
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         # Define Global Variables
@@ -34844,8 +35285,11 @@ else {
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default { $backgroundoverlay = $backgroundoverlay }
+                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
                                         }
+                                    }
+                                    Else {
+                                        $backgroundoverlay = $Defaultbackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -34955,8 +35399,13 @@ else {
                                                 # Only apply color if enabled AND color is defined
                                                 $colorEffect = ""
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                                                    $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
-                                                    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+
+                                                    else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
@@ -35193,9 +35642,7 @@ else {
                                 'TVDB' { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                 Default { $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                             }
-                            if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                            }
+
                             # Export the array to a CSV file
                             $showbackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                         }
@@ -35372,7 +35819,7 @@ else {
 
                         $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
                         $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
-                        $checkedItems += $hashtestpath
+                        $checkedItems.Add($hashtestpath)
 
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             $Arturl = $null
@@ -36025,9 +36472,7 @@ else {
                                     'TVDB' { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                     Default { $seasontemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                 }
-                                if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                    Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                }
+
                                 # Export the array to a CSV file
                                 $seasontemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                             }
@@ -36245,7 +36690,7 @@ else {
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
 
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $
@@ -36469,8 +36914,11 @@ else {
                                                                         '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                         '4K'            { $TitleCardoverlay = $4kTC }
                                                                         '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                        Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                        Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
+                                                                }
+                                                                Else {
+                                                                    $TitleCardoverlay = $DefaultTitleCardoverlay
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -36781,9 +37229,7 @@ else {
                                                         'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                         Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                     }
-                                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                    }
+
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                 }
@@ -36960,7 +37406,7 @@ else {
                                         $SkipJapTitleCount++
                                     }
                                     Else {
-                                        $checkedItems += $hashtestpath
+                                        $checkedItems.Add($hashtestpath)
 
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $null
@@ -37213,8 +37659,11 @@ else {
                                                                     '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
                                                                     '4K'            { $TitleCardoverlay = $4kTC }
                                                                     '1080p'         { $TitleCardoverlay = $1080pTC }
-                                                                    Default { $TitleCardoverlay = $TitleCardoverlay }
+                                                                    Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
+                                                            }
+                                                            Else {
+                                                                $TitleCardoverlay = $DefaultTitleCardoverlay
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
@@ -37524,9 +37973,7 @@ else {
                                                         'TVDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TVDBAssetChangeUrl) { $global:TVDBAssetChangeUrl }Else { "false" }) }
                                                         Default { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value 'false' }
                                                     }
-                                                    if ($EntryDir -and (Test-Path -LiteralPath $EntryDir) -and !(Get-ChildItem -LiteralPath $EntryDir)) {
-                                                        Remove-Item -LiteralPath $EntryDir -Force -ErrorAction SilentlyContinue | out-null
-                                                    }
+
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
                                                 }
@@ -37624,7 +38071,7 @@ else {
         $savedsizestring = 0
         Write-Entry -Subtext "Starting Asset Cleanup, this can take some time..." -Path $global:configLogging -Color Yellow -log Info
         Write-Entry -Subtext "Only removing Artwork with posterizarr exif data" -Path $global:configLogging -Color Cyan -log Info
-        $processedDirectories = @()
+        $processedDirectories = [System.Collections.Generic.List[object]]::new()
         $uncheckedItems = $directoryHashtable.Keys | Where-Object { $_ -notin $checkedItems }
 
         # Perform deletion of unchecked items
@@ -37633,24 +38080,18 @@ else {
                 # Full path to the item
                 $uncheckedItemPath = $uncheckedItem + ".jpg"
 
-                # Check if its a asset from Posterizarr
-                $exifmagickcommand = "& `"$magick`" identify -verbose `"$uncheckedItemPath`""
-                $exifmagickcommand | Out-File $magickLog -Append
-
-                $ExifData = (Invoke-Expression $exifmagickcommand | Select-String -Pattern 'created with ppm|created with posterizarr')
-
-                if ($ExifData) {
-                    # Remove unchecked item from filesystem
-                    Remove-Item -LiteralPath $uncheckedItemPath -Force | Out-Null
+                if (Test-IsPosterizarrAsset -Path $uncheckedItemPath) {
+                    Remove-Item -LiteralPath $uncheckedItemPath -Force
                     $ImagesCleared++
                     Write-Entry -Subtext "Artwork Removed: $uncheckedItemPath" -Path $global:configLogging -Color Yellow -log Info
+
                     if ($LibraryFolders -eq 'true') {
                         # Determine the parent directory of the item
                         $parentDir = Split-Path -Path $uncheckedItemPath -Parent
 
                         # Add the directory to the list if it's not already included
                         if ($parentDir -notin $processedDirectories) {
-                            $processedDirectories += $parentDir
+                            $processedDirectories.Add($parentDir)
                         }
                     }
                 }

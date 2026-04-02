@@ -310,26 +310,35 @@ class ImageChoicesDB:
 
     def update_choice(self, record_id: int, **kwargs):
         """Update an existing choice and auto-update 'updated_at'"""
+        allowed_columns = {
+            "Title", "Type", "Rootfolder", "LibraryName", "Language",
+            "Fallback", "TextTruncated", "DownloadSource", "FavProviderLink",
+            "Manual", "tmdbid", "tvdbid", "imdbid", "LogoSource",
+            "LogoLanguage", "LogoTextFallback"
+        }
         with self.lock:
             try:
                 conn = self._get_connection()
                 cursor = conn.cursor()
 
-                # Start SET clause with the automatic updated_at
                 set_clause_parts = ["updated_at = (datetime('now', 'localtime'))"]
                 values = []
 
-                # Add the rest of the kwargs
                 for k, v in kwargs.items():
-                    set_clause_parts.append(f'"{k}" = ?')
-                    values.append(v)
+                    if k in allowed_columns:
+                        set_clause_parts.append(f'"{k}" = ?')
+                        values.append(v)
+                    else:
+                        logger.warning(f"Ignored unauthorized column update attempt: {k}")
+
+                if len(set_clause_parts) == 1:
+                    return
 
                 set_clause = ", ".join(set_clause_parts)
-                values.append(record_id)  # Add the record_id for the WHERE clause
+                values.append(record_id)
 
                 query = f"UPDATE imagechoices SET {set_clause} WHERE id = ?"
-                cursor.execute(query, values)
-
+                cursor.execute(query, values) # nosec B608
                 conn.commit()
                 conn.close()
             except sqlite3.Error as e:

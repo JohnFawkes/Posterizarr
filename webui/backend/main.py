@@ -34,7 +34,7 @@ import requests
 import threading
 from datetime import datetime, timedelta
 import threading
-import xml.etree.ElementTree as ET
+from defusedxml.ElementTree import fromstring
 import sys
 from urllib.parse import quote
 import zipfile
@@ -56,6 +56,12 @@ try:
 except ImportError:
     from queue_manager import QueueManager
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Check if running in Docker
@@ -65,7 +71,7 @@ IS_DOCKER = (
     or os.environ.get("POSTERIZARR_NON_ROOT", "").lower() == "true"
 )
 
-port = int(os.environ.get("APP_PORT", 8000))
+port = int(os.environ.get("PORT", os.environ.get("APP_PORT", 8000)))
 
 if IS_DOCKER:
     BASE_DIR = Path("/config")
@@ -3328,7 +3334,7 @@ async def validate_plex(request: PlexValidationRequest):
 
             if response.status_code == 200:
                 # Parse XML to check for libraries
-                root = ET.fromstring(response.content)
+                root = fromstring(response.content)
                 lib_count = int(root.get("size", 0))
                 server_name = root.get("friendlyName", "Unknown")
 
@@ -4277,7 +4283,7 @@ async def get_plex_libraries(request: PlexValidationRequest):
             response = await client.get(url)
 
             if response.status_code == 200:
-                root = ET.fromstring(response.content)
+                root = fromstring(response.content)
                 libraries = []
                 # excluded_libraries = []
 
@@ -4463,7 +4469,7 @@ async def get_plex_library_items(request: LibraryItemsRequest):
             response = await client.get(url)
 
             if response.status_code == 200:
-                root = ET.fromstring(response.content)
+                root = fromstring(response.content)
                 items = []
 
                 # Parse both Video (movies) and Directory (shows) elements
@@ -9980,7 +9986,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                 result.extend(language_groups[lang])
 
             # Add other languages at the end
-            result.extend(language_groups["other"])
+            #result.extend(language_groups["other"])
 
             return result
 
@@ -11584,14 +11590,11 @@ async def update_asset_db_entry_as_manual(
 
         # Extract title from folder name if not provided
         # Remove year and ID tags like (2024) {tmdb-12345}
-        if not title_text:
+        final_title_text = title_text
+        if not final_title_text:  # This catches both None and "" for DB cleanup purposes
             # Match patterns like "Movie Name (2024) {tmdb-12345}"
             title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
-            if title_match:
-                title_text = title_match.group(1).strip()
-            else:
-                # Fallback: use folder name as-is
-                title_text = final_folder_name
+            final_title_text = title_match.group(1).strip() if title_match else final_folder_name
 
         # Determine asset type from filename
         # Match database Type column values: "Show", "Movie", "Show Background", "Movie Background", "Season", "Episode"
@@ -11618,6 +11621,7 @@ async def update_asset_db_entry_as_manual(
         with db.lock:
             conn = db._get_connection()
             try:
+                conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
 
                 # Extract season/episode info from filename for more specific matching
@@ -11937,14 +11941,11 @@ async def replace_asset_from_url(
                     # Extract title text from folder name if not provided
                     # Remove year and TMDB/TVDB ID from folder name
                     final_title_text = title_text
-                    if not final_title_text:
-                        # Match patterns like "Movie Name (2024) {tmdb-12345}"
+                    if title_text is None:
                         title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
-                        if title_match:
-                            final_title_text = title_match.group(1).strip()
-                        else:
-                            # Fallback: use folder name as-is
-                            final_title_text = final_folder_name
+                        final_title_text = title_match.group(1).strip() if title_match else final_folder_name
+                    else:
+                        final_title_text = title_text
 
                     logger.info(
                         f"Manual Run params - Library: {final_library_name}, Folder: {final_folder_name}, Type: {poster_type}, Title: {final_title_text}"
@@ -13397,8 +13398,7 @@ async def finalize_asset_replacement(
                 final_folder_name = final_folder_name or path_parts[1]
 
                 if not final_title_text:
-                     title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
-                     final_title_text = title_match.group(1).strip() if title_match else final_folder_name
+                     final_title_text = overlay_params.get("title_text", "")
 
             # 6. Poster Type and Regex Extraction Logic
             poster_type = "standard"
@@ -13705,5 +13705,12 @@ async def run_queue(background_tasks: BackgroundTasks, request: Optional[RunQueu
 
 if __name__ == "__main__":
     import uvicorn
+    DEFAULT_HOST = "0.0.0.0" if IS_DOCKER else "127.0.0.1"
+    APP_HOST = os.environ.get("APP_HOST", DEFAULT_HOST)
 
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run(
+        app,
+        host=APP_HOST,
+        port=port,
+        log_level="info"
+    )  # nosec B104

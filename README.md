@@ -62,6 +62,13 @@ All installation instructions, configuration guides, and advanced tutorials have
 [![MacOS](https://img.shields.io/static/v1?style=for-the-badge&logo=apple&logoColor=FFFFFF&message=macOS&color=515151&label=)](https://fscorrupt.github.io/posterizarr/installation)
 [![ARM](https://img.shields.io/static/v1?style=for-the-badge&logo=arm&logoColor=FFFFFF&message=ARM&color=815151&label=)](https://fscorrupt.github.io/posterizarr/installation)
 
+## Sponsors ❤️
+
+Check out our awesome sponsors!
+
+<!-- sponsors -->
+<!-- sponsors -->
+
 ## Enjoy
 
 Feel free to customize the script further to meet your specific preferences or automation requirements.

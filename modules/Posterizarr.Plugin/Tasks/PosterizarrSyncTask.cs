@@ -72,43 +72,80 @@ public class PosterizarrSyncTask : IScheduledTask
                 progress.Report((double)i / totalItems * 100);
             }
 
-            var item = items[i];
-            bool itemUpdated = false;
-
-            // Define which images to check based on item type
-            var typesToCheck = new List<ImageType> { ImageType.Primary };
-
-            // Checking type via pattern matching (Safe and fast)
-            if (item is Movie || item is Series)
+            try
             {
-                typesToCheck.Add(ImageType.Backdrop);
-            }
+                var item = items[i];
+                bool itemUpdated = false;
 
-            foreach (var type in typesToCheck)
-            {
-                var localPath = provider.FindFile(item, config, type);
-                if (string.IsNullOrEmpty(localPath)) continue;
+                // Define which images to check based on item type
+                var typesToCheck = new List<ImageType> { ImageType.Primary };
 
-                var existingImage = item.GetImageInfo(type, 0);
-
-                // Memory-safe Hash Match
-                if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
+                // Checking type via pattern matching (Safe and fast)
+                if (item is Movie || item is Series)
                 {
-                    item.SetImage(new ItemImageInfo
-                    {
-                        Path = localPath,
-                        Type = type,
-                        DateModified = File.GetLastWriteTimeUtc(localPath)
-                    }, 0);
+                    typesToCheck.Add(ImageType.Backdrop);
+                }
 
-                    itemUpdated = true;
+                foreach (var type in typesToCheck)
+                {
+                    var localPath = provider.FindFile(item, config, type);
+                    if (string.IsNullOrEmpty(localPath)) continue;
+
+                    var existingImage = item.GetImageInfo(type, 0);
+
+                    bool needUpdate = false;
+                    if (existingImage == null)
+                    {
+                        _logger.LogInformation("[Posterizarr] [{0}] No existing '{1}' image. Need update.", item.Name, type);
+                        needUpdate = true;
+                    }
+                    else if (string.Equals(localPath, existingImage.Path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Same path: check if the file was modified since Jellyfin last saw it
+                        if (File.GetLastWriteTimeUtc(localPath) > existingImage.DateModified.AddSeconds(2))
+                        {
+                            _logger.LogInformation("[Posterizarr] [{0}] Target file '{1}' modified. Need update.", item.Name, type);
+                            needUpdate = true;
+                        }
+                    }
+                    else if (!IsHashMatch(localPath, existingImage.Path))
+                    {
+                        // Different paths: compare hashes
+                        _logger.LogInformation("[Posterizarr] [{0}] Hash mismatch for '{1}'. Need update.", item.Name, type);
+                        needUpdate = true;
+                    }
+
+                    if (needUpdate)
+                    {
+                        _logger.LogInformation("[Posterizarr] [{0}] Saving image for '{1}' from '{2}'", item.Name, type, localPath);
+                        try
+                        {
+                            var ext = Path.GetExtension(localPath).ToLowerInvariant();
+                            string mimeType = ext switch { ".png" => "image/png", ".webp" => "image/webp", ".bmp" => "image/bmp", _ => "image/jpeg" };
+
+                            using (var stream = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan))
+                            {
+                                await _providerManager.SaveImage(item, stream, mimeType, type, 0, cancellationToken).ConfigureAwait(false);
+                            }
+                            itemUpdated = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "[Posterizarr] Failed to process image update for {0}", item.Name);
+                        }
+                    }
+                }
+
+                if (itemUpdated)
+                {
+                    // Persistence: Only updates the image rows in the database
+                    var parent = item.ParentId != Guid.Empty ? _libraryManager.GetItemById(item.ParentId) : null;
+                    await _libraryManager.UpdateItemAsync(item, parent ?? item, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            if (itemUpdated)
+            catch (Exception ex)
             {
-                // Persistence: Only updates the image rows in the database
-                await _libraryManager.UpdateItemAsync(item, item, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
+                _logger.LogError(ex, "[Posterizarr] Error syncing item at index {0}", i);
             }
         }
 

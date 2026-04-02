@@ -39,12 +39,14 @@ nav:
   - 'Home': 'index.md'
   - 'Getting Started':
     - 'Quick Start': 'installation.md'
+    - 'Networking': 'networking.md'
     - 'Walkthrough': 'walkthrough.md'
     - 'Requirements': 'requirements.md'
   - 'Configuration': 'configuration.md'
   - 'Usage & Guides':
     - 'Usage & Modes': 'modes.md'
     - 'Homepage Custom API': 'homepage.md'
+    - 'Kometa Integration': 'kometaintegration.md'
     - 'Manual UI Installation': 'uiinstallation.md'
     - 'Jellyfin Plugin': 'plugin.md'
   - 'Advanced':

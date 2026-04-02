@@ -8,7 +8,7 @@ Write-Host "🚀 Posterizarr Web UI - Quick Setup"
 Write-Host "===================================="
 Write-Host ""
 
-# --- 0. Administrator Check ---
+# Administrator Check
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
@@ -22,7 +22,7 @@ if (-not $isAdmin) {
     Write-Host "✅ Running as Administrator"
 }
 
-# --- 1. Prerequisite Checks ---
+# Prerequisite Checks
 
 # Check if we're in the right directory
 if (-not (Test-Path "..\Posterizarr.ps1")) {
@@ -33,23 +33,23 @@ if (-not (Test-Path "..\Posterizarr.ps1")) {
 }
 Write-Host "✅ Found Posterizarr.ps1"
 
-# --- Python Check (Python vs Py Launcher vs Winget) ---
+# Python Check (Python vs Py Launcher vs Winget)
 $UsePyLauncher = $false
 $PythonFound = $false
 
 if (Get-Command python -ErrorAction SilentlyContinue) {
     $PythonFound = $true
     Write-Host "✅ Python 3 found (python.exe)"
-} 
+}
 elseif (Get-Command py -ErrorAction SilentlyContinue) {
     $PythonFound = $true
     $UsePyLauncher = $true
     Write-Host "✅ Python 3 found (py.exe launcher)"
-} 
+}
 else {
     Write-Host "❌ Python 3 is not installed." -ForegroundColor Red
     $install = Read-Host "   > Would you like to install Python 3 via Winget now? (Y/N)"
-    
+
     if ($install -eq 'Y' -or $install -eq 'y') {
         if (-not $isAdmin) {
             Write-Host "❌ Error: Administrator privileges are required to install Python." -ForegroundColor Red
@@ -60,7 +60,7 @@ else {
         winget install -e --id Python.Python.3 --accept-package-agreements --accept-source-agreements
         Write-Host "🔄 Refreshing Environment Variables..."
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-        
+
         if (Get-Command python -ErrorAction SilentlyContinue) {
             $PythonFound = $true
             Write-Host "✅ Python 3 installed and detected." -ForegroundColor Green
@@ -75,13 +75,13 @@ else {
     }
 }
 
-# --- Node.js Check ---
+# Node.js Check
 if (Get-Command node -ErrorAction SilentlyContinue) {
     Write-Host "✅ Node.js found"
 } else {
     Write-Host "❌ Node.js is not installed." -ForegroundColor Red
     $installNode = Read-Host "   > Would you like to install Node.js via Winget now? (Y/N)"
-    
+
     if ($installNode -eq 'Y' -or $installNode -eq 'y') {
         if (-not $isAdmin) {
             Write-Host "❌ Error: Administrator privileges are required."
@@ -91,7 +91,7 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
         winget install -e --id OpenJS.NodeJS --accept-package-agreements --accept-source-agreements
         Write-Host "🔄 Refreshing Environment Variables..."
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-        
+
         if (Get-Command node -ErrorAction SilentlyContinue) {
             Write-Host "✅ Node.js installed and detected." -ForegroundColor Green
         } else {
@@ -105,7 +105,7 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
 }
 Write-Host ""
 
-# --- 2. Backend Setup ---
+# Backend Setup
 Write-Host "📦 Setting up Python backend..."
 Push-Location -Path "backend"
 
@@ -134,7 +134,7 @@ catch {
 Pop-Location
 Write-Host ""
 
-# --- 3. Frontend Setup ---
+# Frontend Setup
 Write-Host "📦 Installing Frontend Dependencies..."
 Push-Location -Path "frontend"
 try {
@@ -146,14 +146,14 @@ try {
 Pop-Location
 Write-Host ""
 
-# --- 4. Automation & Launch ---
+# Automation & Launch
 Write-Host "🎉 Setup Complete!" -ForegroundColor Green
 Write-Host ""
 
 $autoRun = Read-Host "🚀 Do you want to build the frontend and start the app now? (Y/N)"
 
 if ($autoRun -eq 'Y' -or $autoRun -eq 'y') {
-    
+
     # Step A: Build Frontend
     Write-Host "🔨 Building Frontend (this may take a moment)..." -ForegroundColor Cyan
     Push-Location -Path "frontend"
@@ -176,26 +176,57 @@ if ($autoRun -eq 'Y' -or $autoRun -eq 'y') {
     # Step B: Start Backend in New Window
     Write-Host "🔌 Starting Backend Server in a new window..." -ForegroundColor Cyan
     $backendPath = Join-Path $PSScriptRoot "backend"
-    
+
     # Determine python command for the new window
     $pyCmd = if ($UsePyLauncher) { "py" } else { "python" }
-    
-    # Construct the command block to run in the new window
-    $commands = "Set-Location '$backendPath'; .\venv\Scripts\Activate.ps1; $pyCmd -m uvicorn main:app --host 0.0.0.0 --port 8000"
-    
+
+    # Start Backend with .env Parsing
+
+    # 1. Set default values
+    $finalHost = "127.0.0.1"
+    $finalPort = "8000"
+    $backendPath = Join-Path $PSScriptRoot "backend"
+    $envPath = Join-Path $backendPath ".env"
+
+    # 2. Check if .env exists and parse values
+    if (Test-Path $envPath) {
+        Write-Host "📝 Found .env file, parsing configuration..." -ForegroundColor Gray
+
+        # Read the file and look for specific keys
+        $envContent = Get-Content $envPath
+        foreach ($line in $envContent) {
+            if ($line -match "^APP_HOST=(.*)") {
+                $finalHost = $matches[1].Trim()
+            }
+            if ($line -match "^PORT=(.*)") {
+                $finalPort = $matches[1].Trim()
+            }
+        }
+    } else {
+        Write-Host "💡 No .env found, using default settings." -ForegroundColor Gray
+    }
+
+    # 3. Start Backend in New Window
+    Write-Host "🔌 Starting Backend Server on $($finalHost):$($finalPort)..." -ForegroundColor Cyan
+
+    # Determine python command
+    $pyCmd = if ($UsePyLauncher) { "py" } else { "python" }
+
+    # Construct the command block with the parsed variables
+    $commands = "Set-Location '$backendPath'; .\venv\Scripts\Activate.ps1; $pyCmd -m uvicorn main:app --host $finalHost --port $finalPort"
+
     # Launch new PowerShell process
     Start-Process pwsh -ArgumentList "-NoExit", "-Command", "& {$commands}"
-
     # Step C: Open Browser
     Write-Host "🌐 Opening Browser..." -ForegroundColor Cyan
     Start-Sleep -Seconds 3 # Give uvicorn a moment to spin up
     Start-Process "http://localhost:8000"
-    
+
 } else {
     # Fallback to manual instructions if they said No
     Write-Host "🎯 Manual Next Steps:" -ForegroundColor Yellow
     Write-Host "1. cd webui\frontend -> npm run build"
-    Write-Host "2. cd webui\backend -> .\venv\Scripts\Activate.ps1 -> python -m uvicorn main:app --host 0.0.0.0 --port 8000"
+    Write-Host "2. cd webui\backend -> .\venv\Scripts\Activate.ps1 -> python -m uvicorn main:app --host 127.0.0.1 --port 8000"
 }
 
 Read-Host "Press Enter to close this setup window..."
