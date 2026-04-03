@@ -8,6 +8,13 @@
     "category": "Metadata",
     "versions": [
       {
+        "version": "2.2.34",
+        "changelog": "Official Release 2.2.34",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/2.2.34/Posterizarr.Plugin_v2.2.34.zip",
+        "checksum": "55CA0D931EDA23F395FC2214CE4873A5"
+      },
+      {
         "version": "2.2.33",
         "changelog": "Official Release 2.2.33",
         "targetAbi": "10.11.0.0",
