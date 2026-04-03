@@ -5,7 +5,7 @@ WORKDIR /app/frontend
 
 # Copy frontend files and install dependencies
 COPY webui/frontend/package*.json ./
-RUN npm install
+RUN npm install --force
 
 COPY webui/frontend/ ./
 RUN npm run build
