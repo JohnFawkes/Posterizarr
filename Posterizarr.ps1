@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.33"
+$CurrentScriptVersion = "2.2.34"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -15053,7 +15053,7 @@ Elseif ($ArrTrigger) {
                 $ServerType = if ($UseJellyfin -eq 'true') { "Jellyfin" } else { "Emby" }
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
                 # Search for all matching series
-                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height&Recursive=true,MediaStreams&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
+                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
                 $seriesMatches = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) }
 
                 if (-not $seriesMatches) {
