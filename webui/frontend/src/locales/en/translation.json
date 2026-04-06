@@ -169,7 +169,7 @@
       "step1": "The source picture is moved (if local) or downloaded (if URL)",
       "step2": "Image is edited with your configured overlays and text",
       "step3": "Final poster is placed in the asset location",
-      "step4": "Poster is synced to your media server",
+      "step4": "Poster is synced to your media server (if enabled)",
       "viewDocs": "View Full Documentation",
       "selectLibraryTitle": "Select from existing libraries",
       "selectLibraryButton": "Select Library",

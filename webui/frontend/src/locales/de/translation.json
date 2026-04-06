@@ -169,7 +169,7 @@
       "step1": "Das Quellbild wird verschoben (falls lokal) oder heruntergeladen (falls URL)",
       "step2": "Bild wird mit deinen konfigurierten Overlays und Text bearbeitet",
       "step3": "Fertiges Poster wird im Asset-Speicherort platziert",
-      "step4": "Poster wird mit deinem Medienserver synchronisiert",
+      "step4": "Poster wird mit deinem Medienserver synchronisiert (falls aktiviert)",
       "viewDocs": "Vollständige Dokumentation ansehen",
       "selectLibraryTitle": "Aus bestehenden Bibliotheken auswählen",
       "selectLibraryButton": "Bibliothek wählen",

@@ -169,7 +169,7 @@
       "step1": "A imagem de origem é movida (se local) ou baixada (se URL)",
       "step2": "A imagem é editada com suas sobreposições e texto configurados",
       "step3": "O cartaz final é colocado no local do ativo",
-      "step4": "O cartaz é sincronizado com o seu servidor de mídia",
+      "step4": "O póster é sincronizado com o seu servidor de media (se ativado)",
       "viewDocs": "Ver documentação completa",
       "selectLibraryTitle": "Selecionar das bibliotecas existentes",
       "selectLibraryButton": "Selecionar Biblioteca",

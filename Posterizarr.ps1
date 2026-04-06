@@ -9114,6 +9114,97 @@ if ($Manual) {
         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
     }
     if ($global:ImageMagickError -ne 'true') {
+        
+        # Only attempt media server update if ImageMagick processing succeeded
+        # This prevents potential issues where a failed image processing might still update the media server with an incomplete or corrupted image
+        # The media server update logic is also wrapped in a check for $UpdateMediaServer to allow users to opt-out of automatic updates if they prefer to handle it manually or through another process
+        # This design choice prioritizes data integrity and gives users control over when and how their media server metadata is updated, especially in scenarios where image processing might be complex or prone to errors
+        # By ensuring that media server updates only occur after successful image processing, we can maintain a more reliable and consistent user experience, reducing the likelihood of issues caused by failed image manipulations while still providing the convenience of automatic updates when desired.
+        # Additionally, the media server update logic is designed to be flexible and adaptable to different server types (Plex, Emby, Jellyfin) and various asset types (movies, shows, seasons, episodes), allowing for a wide range of use cases and configurations while still maintaining a clear and structured approach to updating media metadata based on the processed images.
+        if ($Upload2Plex -eq 'true' -or $UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
+            Write-Entry -Message "Manual Mode: Updating Media Server artwork..." -Path $global:configLogging -Color Cyan -log Info
+            
+            $FinalTargetID = $null
+            # If BackgroundCard is true, we use "Backdrop" for Emby/Jelly and "arts" for Plex
+            $FinalImageType = if ($BackgroundCard) { "Backdrop" } else { "Primary" }
+
+            # 1. IDENTIFY BASE ITEM (MOVIE OR SHOW)
+            if ($UsePlex -eq 'true') {
+                $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($Titletext))"
+                if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
+                [xml]$searchXml = (Invoke-WebRequest $searchUrl -Headers $extraPlexHeaders -ErrorAction SilentlyContinue).content
+                
+                # If it's a Movie Background or Movie Poster, look for 'video' type
+                # If it's a Show Background or Show/Season/Episode asset, look for 'directory' type
+                if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) {
+                    $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
+                } else {
+                    $baseItem = $searchXml.MediaContainer.directory | Where-Object { $_.type -eq 'show' -and $_.librarySectionTitle -eq $LibraryName }
+                }
+                $FinalTargetID = $baseItem.ratingKey
+            }
+            elseif ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
+                $SearchType = if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) { "Movie" } else { "Series" }
+                $searchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=$SearchType&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+                $results = Invoke-RestMethod -Uri $searchUri
+                
+                # Validate against folder name for precision
+                $baseItem = $results.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
+                if (-not $baseItem) { $baseItem = $results.Items[0] } 
+                $FinalTargetID = $baseItem.Id
+            }
+
+            # 2. DRILL DOWN (ONLY FOR SEASONS/EPISODES)
+            # Backgrounds and Standard Posters stay at the "BaseItem" level
+            if ($null -ne $FinalTargetID) {
+                if ($SeasonPoster) {
+                    if ($UsePlex -eq 'true') {
+                        [xml]$children = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
+                    } else {
+                        $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
+                        $FinalTargetID = ($seasons.Items | Where-Object { [int]$_.IndexNumber -eq [int]$global:SeasonNumber }).Id
+                    }
+                }
+                elseif ($TitleCard) {
+                    if ($UsePlex -eq 'true') {
+                        [xml]$seasonsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        $seasonKey = ($seasonsXml.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
+                        [xml]$epsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$seasonKey/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        $FinalTargetID = ($epsXml.MediaContainer.video | Where-Object { [int]$_.index -eq [int]$global:EpisodeNumber }).ratingKey
+                    } else {
+                        $eps = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Recursive=true&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                        $FinalTargetID = ($eps.Items | Where-Object { [int]$_.ParentIndexNumber -eq [int]$global:SeasonNumber -and [int]$_.IndexNumber -eq [int]$global:EpisodeNumber }).Id
+                    }
+                }
+
+                # 3. FINAL UPLOAD
+                if ($null -ne $FinalTargetID) {
+                    if ($UsePlex -eq 'true') {
+                        try {
+                            $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
+                            # Switch endpoint based on Background vs Poster
+                            $plexTargetType = if ($BackgroundCard) { "arts" } else { "posters" }
+                            $uri = "$PlexUrl/library/metadata/$FinalTargetID/$($plexTargetType)"
+                            if ($PlexToken) { $uri += "?X-Plex-Token=$PlexToken" }
+                            
+                            $Upload = Invoke-WebRequest -Uri $uri -Method Post -Headers $extraPlexHeaders -Body $fileContent -ContentType 'application/octet-stream' -ErrorAction Stop
+                            Write-Entry -Subtext "Manual Plex Upload Success: $PosterImage" -Path $global:configLogging -Color Green -log Info
+                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                            $UploadCount++
+                        } catch {
+                            Write-Entry -Subtext "Manual Plex Upload Failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        }
+                    } else {
+                        UploadOtherMediaServerArtwork -itemId $FinalTargetID -imageType $FinalImageType -imagePath $PosterImage
+                        $UploadCount++
+                    }
+                }
+            } else {
+                Write-Entry -Subtext "Could not resolve ID on server for $Titletext" -Path $global:configLogging -Color Red -log Error
+            }
+        }
+
         # Move file back to original naming with Brackets.
         Move-Item -LiteralPath $PosterImage -destination $PosterImageoriginal -Force -ErrorAction SilentlyContinue
         Write-Entry -Subtext "Poster created and moved to: $PosterImageoriginal" -Path $global:configLogging -Color Green -log Info

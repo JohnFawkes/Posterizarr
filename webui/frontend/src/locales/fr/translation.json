@@ -169,7 +169,7 @@
       "step1": "L'image source est déplacée (si locale) ou téléchargée (si URL)",
       "step2": "L'image est modifiée avec vos superpositions et votre texte configurés",
       "step3": "L'affiche finale est placée dans l'emplacement des ressources",
-      "step4": "L'affiche est synchronisée avec votre serveur multimédia",
+      "step4": "L'affiche est synchronisée avec votre serveur multimédia (si activé)",
       "viewDocs": "Voir la documentation complète",
       "selectLibraryTitle": "Sélectionner parmi les bibliothèques existantes",
       "selectLibraryButton": "Choisir Bibliothèque",
