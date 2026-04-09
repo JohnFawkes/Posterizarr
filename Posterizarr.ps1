@@ -14359,6 +14359,7 @@ Elseif ($Tautulli) {
                                     $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
+                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                     $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                     $bullet = [char]0x2022
@@ -19674,6 +19675,7 @@ Elseif ($ArrTrigger) {
                                         $LocalAddOverlay = $AddTitleCardOverlay
                                         $LocalAddBorder  = $AddTitleCardBorder
                                         $global:EPTitle = $($global:titles[$i].Trim())
+                                        $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                         $global:episodeid = $($global:episodeids[$i].Trim())
                                         $global:FileNaming = "S" + $global:season_number.ToString().PadLeft(2, '0') + "E" + $global:episodenumber.ToString().PadLeft(2, '0')
@@ -24897,6 +24899,7 @@ Elseif ($ArrTrigger) {
                                         $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                         $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                         $global:EPTitle = $($global:titles[$i].Trim())
+                                        $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                         $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                         $bullet = [char]0x2022
@@ -31428,6 +31431,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $LocalAddOverlay = $AddTitleCardOverlay
                                     $LocalAddBorder  = $AddTitleCardBorder
                                     $global:EPTitle = $($global:titles[$i].Trim())
+                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                     $global:episodeid = $($global:episodeids[$i].Trim())
                                     $global:FileNaming = "S" + $global:season_number.ToString().PadLeft(2, '0') + "E" + $global:episodenumber.ToString().PadLeft(2, '0')
@@ -37495,6 +37499,7 @@ else {
                                     $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
+                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                     $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                     $bullet = [char]0x2022
