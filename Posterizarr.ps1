@@ -9015,9 +9015,9 @@ if ($Manual) {
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                         }
@@ -9052,9 +9052,9 @@ if ($Manual) {
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                         }
@@ -10578,9 +10578,9 @@ Elseif ($Tautulli) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -11224,9 +11224,9 @@ Elseif ($Tautulli) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -11967,9 +11967,9 @@ Elseif ($Tautulli) {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -12621,9 +12621,9 @@ Elseif ($Tautulli) {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -16358,9 +16358,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -16943,9 +16943,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -17618,9 +17618,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -18211,9 +18211,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -21109,9 +21109,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -21754,9 +21754,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -22497,9 +22497,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -23153,9 +23153,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -28106,9 +28106,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -28689,9 +28689,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -29360,9 +29360,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -29954,9 +29954,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -33313,9 +33313,9 @@ else {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -34024,9 +34024,9 @@ else {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -34832,9 +34832,9 @@ else {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -35556,9 +35556,9 @@ else {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
