@@ -167,7 +167,7 @@ function ConfigEditor() {
 
   // File Field Definitions
   const OVERLAY_FILE_FIELDS = [
-    "overlayfile", "seasonoverlayfile", "backgroundoverlayfile", "titlecardoverlayfile", "collectionoverlayfile",
+    "overlayfile", "showoverlayfile", "seasonoverlayfile", "backgroundoverlayfile", "showbackgroundoverlayfile", "titlecardoverlayfile", "collectionoverlayfile",
     "poster4k", "Poster1080p", "Background4k", "Background1080p", "TC4k", "TC1080p",
     "4KDoVi", "4KHDR10", "4KDoViHDR10", "4KDoViBackground", "4KHDR10Background",
     "4KDoViHDR10Background", "4KDoViTC", "4KHDR10TC", "4KDoViHDR10TC",
@@ -1035,7 +1035,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
 
         // Standard File/Select/Bool rendering
         // File Uploads
-        if (["overlayfile", "seasonoverlayfile", "backgroundoverlayfile", "titlecardoverlayfile", "collectionoverlayfile", "poster4k", "Poster1080p", "Background4k", "Background1080p", "TC4k", "TC1080p", "4KDoVi", "4KHDR10", "4KDoViHDR10", "4KDoViBackground", "4KHDR10Background", "4KDoViHDR10Background", "4KDoViTC", "4KHDR10TC", "4KDoViHDR10TC"].includes(settingKey)) {
+        if (["overlayfile", "showoverlayfile", "seasonoverlayfile", "backgroundoverlayfile", "showbackgroundoverlayfile", "titlecardoverlayfile", "collectionoverlayfile", "poster4k", "Poster1080p", "Background4k", "Background1080p", "TC4k", "TC1080p", "4KDoVi", "4KHDR10", "4KDoViHDR10", "4KDoViBackground", "4KHDR10Background", "4KDoViHDR10Background", "4KDoViTC", "4KHDR10TC", "4KDoViHDR10TC"].includes(settingKey)) {
              return (
                 <div className="space-y-2">
                   <div className="flex gap-2">
