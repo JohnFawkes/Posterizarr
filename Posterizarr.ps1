@@ -36870,7 +36870,7 @@ else {
                                         $checkedItems.Add($hashtestpath)
 
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
-                                            $Arturl = $
+                                            $Arturl = $null
                                             if ($global:PlexTitleCardUrl -like "/library/*") {
                                                 if ($PlexToken) {
                                                     $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
