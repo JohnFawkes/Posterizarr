@@ -85,7 +85,7 @@ const QueueView = () => {
         fetchQueue();
         const interval = setInterval(() => {
             fetchQueue();
-            
+
             if (prevProcessingRef.current === true && processing === false) {
                 // The queue just finished! Trigger the refresh once.
                 window.dispatchEvent(new Event("assetReplaced"));
@@ -94,7 +94,7 @@ const QueueView = () => {
         }, 5000);
         return () => clearInterval(interval);
     }, [processing]);
-    
+
     const handleRunQueue = async () => {
         setProcessing(true);
         try {
@@ -490,7 +490,7 @@ const QueueView = () => {
                                                                     {t("queue.overlays")}
                                                                 </span>
                                                             )}
-                                                            <span>{new Date(item.created_at).toLocaleString()}</span>
+                                                            <span>{item.created_at ? new Date(item.created_at.replace(' ', 'T') + 'Z').toLocaleString() : ''}</span>
                                                         </div>
                                                     </div>
                                                 </td>

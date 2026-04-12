@@ -169,7 +169,7 @@
       "step1": "L'immagine sorgente viene spostata (se locale) o scaricata (se URL)",
       "step2": "L'immagine viene modificata con le sovrapposizioni e il testo configurati",
       "step3": "La locandina finale viene posizionata nella posizione degli asset",
-      "step4": "La locandina viene sincronizzata con il tuo media server",
+      "step4": "Il poster è sincronizzato con il tuo media server (se abilitato)",
       "viewDocs": "Visualizza la documentazione completa",
       "selectLibraryTitle": "Seleziona da librerie esistenti",
       "selectLibraryButton": "Scegli Libreria",

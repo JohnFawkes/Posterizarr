@@ -270,8 +270,10 @@ To use it we need to configure a script in Tautulli, please follow these instruc
    ```yml
    volumes:
      - "/opt/appdata/posterizarr:/posterizarr:rw"
+     # Optional: Add additional mounts if running multiple instances
+     # - "/opt/appdata/posterizarr2:/posterizarr2:rw"
    ```
-   ⚠️ Note: This mount path is case-sensitive and must match exactly /posterizarr.
+   ⚠️ Note: The default mount path is case-sensitive and must match exactly `/posterizarr`. If you use custom paths for multiple instances, ensure they are also mounted here.
 1. Download the [trigger.py](https://github.com/fscorrupt/posterizarr/blob/main/modules/trigger.py) from the GH and place it in the Tautulli Script dir -    [Tautulli-Wiki](https://github.com/Tautulli/Tautulli/wiki/Custom-Scripts)
    - You may have to set `chmod +x` to the file.
 1. Open Tautulli and go to Settings -    `NOTIFICATION AGENTS`
@@ -295,9 +297,20 @@ To use it we need to configure a script in Tautulli, please follow these instruc
 1. Next go to Arguments -    Unfold `Recently Added` Menu and paste the following Argument, after that you can save it.
    - **Please do not change the Argument otherwise the script could fail.**
 
+  **Default Setup (Single Instance):**
+
+  If you are using the default `/posterizarr` mount, paste this:
   ```sh
   <movie>RatingKey "{rating_key}" mediatype "{media_type}"</movie><show>RatingKey "{rating_key}" mediatype "{media_type}"</show><season>parentratingkey "{parent_rating_key}" mediatype "{media_type}"</season><episode>RatingKey "{rating_key}" parentratingkey "{parent_rating_key}" grandparentratingkey "{grandparent_rating_key}" mediatype "{media_type}"</episode>
   ```
+
+   **Custom Path Setup (Multiple Instances):**
+
+   If you are triggering a second Posterizarr instance (e.g., mounted as `/posterizarr2`), you must use the `-p` parameter right after each opening tag to define the target watcher directory:
+   ```sh
+   <movie>-p "/posterizarr2/watcher" RatingKey "{rating_key}" mediatype "{media_type}"</movie><show>-p "/posterizarr2/watcher" RatingKey "{rating_key}" mediatype "{media_type}"</show><season>-p "/posterizarr2/watcher" parentratingkey "{parent_rating_key}" mediatype "{media_type}"</season><episode>-p "/posterizarr2/watcher" RatingKey "{rating_key}" parentratingkey "{parent_rating_key}" grandparentratingkey "{grandparent_rating_key}" mediatype "{media_type}"</episode>
+   ```
+
 
     ![backgroundtesting](images/Tautulli_Step4.png)
 

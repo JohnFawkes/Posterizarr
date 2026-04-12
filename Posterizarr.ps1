@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.35"
+$CurrentScriptVersion = "2.2.36"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -4354,10 +4354,12 @@ function CheckJsonPaths {
         [string]$backgroundfont,
         [string]$titlecardfont,
         [string]$Posteroverlay,
+        [string]$ShowPosteroverlay,
         [string]$Collectionoverlay,
         [string]$titlecardoverlay,
         [string]$Seasonoverlay,
         [string]$Backgroundoverlay,
+        [string]$ShowBackgroundoverlay,
         [string]$Posteroverlay4k,
         [string]$Posteroverlay1080p,
         [string]$Backgroundoverlay4k,
@@ -4376,8 +4378,8 @@ function CheckJsonPaths {
     )
 
     $paths = @(
-        $font, $RTLfont, $backgroundfont, $titlecardfont, $Posteroverlay,
-        $Collectionoverlay, $Backgroundoverlay, $titlecardoverlay, $Seasonoverlay,
+        $font, $RTLfont, $backgroundfont, $titlecardfont, $Posteroverlay, $ShowPosteroverlay,
+        $Collectionoverlay, $Backgroundoverlay, $ShowBackgroundoverlay, $titlecardoverlay, $Seasonoverlay,
         $Posteroverlay4k, $Posteroverlay1080p, $Backgroundoverlay4k,
         $Backgroundoverlay1080p, $TCoverlay4k, $TCoverlay1080p,$Posteroverlay4KDoVi, $Posteroverlay4KHDR10, $Posteroverlay4KDoViHDR10,
         $Backgroundoverlay4KDoVi, $Backgroundoverlay4KHDR10, $Backgroundoverlay4KDoViHDR10,
@@ -4629,8 +4631,10 @@ function CheckImageMagick {
 function CheckOverlayDimensions {
     param (
         [string]$Posteroverlay,
+        [string]$ShowPosteroverlay,
         [string]$Seasonoverlay,
         [string]$Backgroundoverlay,
+        [string]$ShowBackgroundoverlay,
         [string]$Collectionoverlay,
         [string]$Titlecardoverlay,
         [string]$Posteroverlay4k,
@@ -4682,6 +4686,7 @@ function CheckOverlayDimensions {
 
     # Standard Poster Types (expect PosterSize)
     Test-Dimension -OverlayPath $Posteroverlay -ExpectedSize $PosterSize -OverlayName "Poster overlay"
+    Test-Dimension -OverlayPath $ShowPosteroverlay -ExpectedSize $PosterSize -OverlayName "Show Poster overlay"
     Test-Dimension -OverlayPath $Seasonoverlay -ExpectedSize $PosterSize -OverlayName "Season overlay"
     Test-Dimension -OverlayPath $Collectionoverlay -ExpectedSize $PosterSize -OverlayName "Collection overlay"
     Test-Dimension -OverlayPath $Posteroverlay4k -ExpectedSize $PosterSize -OverlayName "4K Poster overlay"
@@ -4689,6 +4694,7 @@ function CheckOverlayDimensions {
 
     # Standard Background/TC Types (expect BackgroundSize)
     Test-Dimension -OverlayPath $Backgroundoverlay -ExpectedSize $BackgroundSize -OverlayName "Background overlay"
+    Test-Dimension -OverlayPath $Show Backgroundoverlay -ExpectedSize $BackgroundSize -OverlayName "Show Background overlay"
     Test-Dimension -OverlayPath $Titlecardoverlay -ExpectedSize $BackgroundSize -OverlayName "TitleCard overlay"
     Test-Dimension -OverlayPath $Backgroundoverlay4k -ExpectedSize $BackgroundSize -OverlayName "4K Background overlay"
     Test-Dimension -OverlayPath $Backgroundoverlay1080p -ExpectedSize $BackgroundSize -OverlayName "1080p Background overlay"
@@ -7580,9 +7586,21 @@ $RTLFont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.Prereq
 $backgroundfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundfont -join $($joinsymbol))
 $titlecardfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardfont -join $($joinsymbol))
 $DefaultPosteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.overlayfile -join $($joinsymbol))
+if (-not $config.PrerequisitePart.showoverlayfile){
+    $DefaultShowPosteroverlay = $DefaultPosteroverlay
+}
+Else {
+    $DefaultShowPosteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.showoverlayfile -join $($joinsymbol))
+}
 $Seasonoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.seasonoverlayfile -join $($joinsymbol))
 $collectionoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.collectionoverlayfile -join $($joinsymbol))
 $DefaultBackgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundoverlayfile -join $($joinsymbol))
+if (-not $config.PrerequisitePart.showbackgroundoverlayfile){
+    $DefaultShowBackgroundoverlay = $DefaultBackgroundoverlay
+}
+Else {
+    $DefaultShowBackgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.showbackgroundoverlayfile -join $($joinsymbol))
+}
 $Defaulttitlecardoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardoverlayfile -join $($joinsymbol))
 $testimage = Join-Path -Path $global:ScriptRoot -ChildPath ('test', 'testimage.png' -join $($joinsymbol))
 $backgroundtestimage = Join-Path -Path $global:ScriptRoot -ChildPath ('test', 'backgroundtestimage.png' -join $($joinsymbol))
@@ -8067,7 +8085,7 @@ if ($files.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'T
     & fc-cache -fv 1> $null 2> $null
 }
 
-CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$DefaultPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$DefaultPosteroverlay" -ShowPosteroverlay "$DefaultShowPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -ShowBackgroundoverlay "$DefaultShowBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 # Check Plex now:
 if (!$SyncJelly -and !$SyncEmby) {
     if ($UsePlex -eq 'true') {
@@ -8085,7 +8103,7 @@ if (!$SyncJelly -and !$SyncEmby) {
 }
 # Check overlay artwork for poster, background, and titlecard dimensions
 Write-Entry -Message "Checking size of overlay files..." -Path $global:configLogging -Color White -log Info
-CheckOverlayDimensions -Posteroverlay "$DefaultPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+CheckOverlayDimensions -Posteroverlay "$DefaultPosteroverlay" -ShowPosteroverlay "$DefaultShowPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -ShowBackgroundoverlay "$DefaultShowBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 
 # Check if the FanartTvAPI module is installed
 $module = Get-Module -ListAvailable -Name FanartTvAPI
@@ -8522,7 +8540,6 @@ if ($Manual) {
     $global:IsTruncated = $null
     if ($global:ImageProcessing -eq 'true') {
         if ($SeasonPoster) {
-            $Posteroverlay = $Seasonoverlay
             if ($AddShowTitletoSeason -eq 'true') {
                 if ($fontAllCaps -eq 'true') {
                     if ($global:ExtractedTitle) {
@@ -8558,7 +8575,6 @@ if ($Manual) {
             }
         }
         elseif ($CollectionCard) {
-            $Posteroverlay = $Collectionoverlay
             if ($AddCollectionTitle -eq 'true') {
                 if ($CollectionTitleAllCaps -eq 'true') {
                     $CollectionjoinedTitle = $CollectionTitle.ToUpper()
@@ -8681,7 +8697,7 @@ if ($Manual) {
             }
             elseif ($TitleCard) {
                 if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$titlecardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Defaulttitlecardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
@@ -8689,7 +8705,7 @@ if ($Manual) {
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$titlecardoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Defaulttitlecardoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
@@ -8701,7 +8717,7 @@ if ($Manual) {
             elseif ($BackgroundCard) {
                 # Resize Image to 2000x3000 and apply Border and overlay
                 if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$DefaultBackgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
@@ -8709,7 +8725,7 @@ if ($Manual) {
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$DefaultBackgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
@@ -8721,7 +8737,7 @@ if ($Manual) {
             Else {
                 # Resize Image to 2000x3000 and apply Border and overlay
                 if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
+                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$DefaultPosteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
@@ -8729,7 +8745,7 @@ if ($Manual) {
                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                 }
                 elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
-                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
+                    $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$DefaultPosteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                 }
                 else {
@@ -9017,9 +9033,9 @@ if ($Manual) {
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                         }
@@ -9054,9 +9070,9 @@ if ($Manual) {
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                         }
@@ -9114,6 +9130,97 @@ if ($Manual) {
         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
     }
     if ($global:ImageMagickError -ne 'true') {
+
+        # Only attempt media server update if ImageMagick processing succeeded
+        # This prevents potential issues where a failed image processing might still update the media server with an incomplete or corrupted image
+        # The media server update logic is also wrapped in a check for $UpdateMediaServer to allow users to opt-out of automatic updates if they prefer to handle it manually or through another process
+        # This design choice prioritizes data integrity and gives users control over when and how their media server metadata is updated, especially in scenarios where image processing might be complex or prone to errors
+        # By ensuring that media server updates only occur after successful image processing, we can maintain a more reliable and consistent user experience, reducing the likelihood of issues caused by failed image manipulations while still providing the convenience of automatic updates when desired.
+        # Additionally, the media server update logic is designed to be flexible and adaptable to different server types (Plex, Emby, Jellyfin) and various asset types (movies, shows, seasons, episodes), allowing for a wide range of use cases and configurations while still maintaining a clear and structured approach to updating media metadata based on the processed images.
+        if ($Upload2Plex -eq 'true' -or $UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
+            Write-Entry -Message "Manual Mode: Updating Media Server artwork..." -Path $global:configLogging -Color Cyan -log Info
+
+            $FinalTargetID = $null
+            # If BackgroundCard is true, we use "Backdrop" for Emby/Jelly and "arts" for Plex
+            $FinalImageType = if ($BackgroundCard) { "Backdrop" } else { "Primary" }
+
+            # 1. IDENTIFY BASE ITEM (MOVIE OR SHOW)
+            if ($UsePlex -eq 'true') {
+                $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($Titletext))"
+                if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
+                [xml]$searchXml = (Invoke-WebRequest $searchUrl -Headers $extraPlexHeaders -ErrorAction SilentlyContinue).content
+
+                # If it's a Movie Background or Movie Poster, look for 'video' type
+                # If it's a Show Background or Show/Season/Episode asset, look for 'directory' type
+                if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) {
+                    $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
+                } else {
+                    $baseItem = $searchXml.MediaContainer.directory | Where-Object { $_.type -eq 'show' -and $_.librarySectionTitle -eq $LibraryName }
+                }
+                $FinalTargetID = $baseItem.ratingKey
+            }
+            elseif ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
+                $SearchType = if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) { "Movie" } else { "Series" }
+                $searchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=$SearchType&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+                $results = Invoke-RestMethod -Uri $searchUri
+
+                # Validate against folder name for precision
+                $baseItem = $results.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
+                if (-not $baseItem) { $baseItem = $results.Items[0] }
+                $FinalTargetID = $baseItem.Id
+            }
+
+            # 2. DRILL DOWN (ONLY FOR SEASONS/EPISODES)
+            # Backgrounds and Standard Posters stay at the "BaseItem" level
+            if ($null -ne $FinalTargetID) {
+                if ($SeasonPoster) {
+                    if ($UsePlex -eq 'true') {
+                        [xml]$children = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
+                    } else {
+                        $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
+                        $FinalTargetID = ($seasons.Items | Where-Object { [int]$_.IndexNumber -eq [int]$global:SeasonNumber }).Id
+                    }
+                }
+                elseif ($TitleCard) {
+                    if ($UsePlex -eq 'true') {
+                        [xml]$seasonsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        $seasonKey = ($seasonsXml.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
+                        [xml]$epsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$seasonKey/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        $FinalTargetID = ($epsXml.MediaContainer.video | Where-Object { [int]$_.index -eq [int]$global:EpisodeNumber }).ratingKey
+                    } else {
+                        $eps = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Recursive=true&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                        $FinalTargetID = ($eps.Items | Where-Object { [int]$_.ParentIndexNumber -eq [int]$global:SeasonNumber -and [int]$_.IndexNumber -eq [int]$global:EpisodeNumber }).Id
+                    }
+                }
+
+                # 3. FINAL UPLOAD
+                if ($null -ne $FinalTargetID) {
+                    if ($UsePlex -eq 'true') {
+                        try {
+                            $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
+                            # Switch endpoint based on Background vs Poster
+                            $plexTargetType = if ($BackgroundCard) { "arts" } else { "posters" }
+                            $uri = "$PlexUrl/library/metadata/$FinalTargetID/$($plexTargetType)"
+                            if ($PlexToken) { $uri += "?X-Plex-Token=$PlexToken" }
+
+                            $Upload = Invoke-WebRequest -Uri $uri -Method Post -Headers $extraPlexHeaders -Body $fileContent -ContentType 'application/octet-stream' -ErrorAction Stop
+                            Write-Entry -Subtext "Manual Plex Upload Success: $PosterImage" -Path $global:configLogging -Color Green -log Info
+                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                            $UploadCount++
+                        } catch {
+                            Write-Entry -Subtext "Manual Plex Upload Failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        }
+                    } else {
+                        UploadOtherMediaServerArtwork -itemId $FinalTargetID -imageType $FinalImageType -imagePath $PosterImage
+                        $UploadCount++
+                    }
+                }
+            } else {
+                Write-Entry -Subtext "Could not resolve ID on server for $Titletext" -Path $global:configLogging -Color Red -log Error
+            }
+        }
+
         # Move file back to original naming with Brackets.
         Move-Item -LiteralPath $PosterImage -destination $PosterImageoriginal -Force -ErrorAction SilentlyContinue
         Write-Entry -Subtext "Poster created and moved to: $PosterImageoriginal" -Path $global:configLogging -Color Green -log Info
@@ -10149,6 +10256,8 @@ Elseif ($Tautulli) {
                             $Arturl = $null
                             $global:LogoUrl = $null
                             $global:LogoLanguage = $null
+                            $LocalAddOverlay = $AddOverlay
+                            $LocalAddBorder  = $AddBorder
 
                             if ($entry.PlexPosterUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -10379,29 +10488,29 @@ Elseif ($Tautulli) {
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
-                                            $AddOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -10487,9 +10596,9 @@ Elseif ($Tautulli) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -10568,8 +10677,8 @@ Elseif ($Tautulli) {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -10817,6 +10926,8 @@ Elseif ($Tautulli) {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $Arturl = $null
+                            $LocalAddOverlay = $AddBackgroundOverlay
+                            $LocalAddBorder  = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -11022,29 +11133,29 @@ Elseif ($Tautulli) {
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -11131,9 +11242,9 @@ Elseif ($Tautulli) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -11212,8 +11323,8 @@ Elseif ($Tautulli) {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -11228,7 +11339,7 @@ Elseif ($Tautulli) {
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
                                                             if ($AddTextStroke -eq 'true') {
-                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                             }
                                                             Else {
                                                                 $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -11469,6 +11580,8 @@ Elseif ($Tautulli) {
                 $global:PlexartworkDownloaded = $null
                 $TakeLocal = $null
                 $LocalAssetMissing = $null
+                $LocalAddOverlay = $AddOverlay
+                $LocalAddBorder  = $AddBorder
 
                 # Determine the language direction
                 $global:langCode = $entry.'Library Language'
@@ -11756,37 +11869,37 @@ Elseif ($Tautulli) {
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $DefaultPosteroverlay }
+                                            Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                         }
                                     }
                                     Else {
-                                        $Posteroverlay = $DefaultPosteroverlay
+                                        $Posteroverlay = $DefaultShowPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                        $AddOverlay = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
 
                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
+                                        $LocalAddBorder = 'false'
                                     }
 
                                     # Logic for "If both are true, only resize"
                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
-                                        $AddOverlay = 'false'
+                                        $LocalAddBorder = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
                                     # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                    if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
@@ -11872,9 +11985,9 @@ Elseif ($Tautulli) {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -11953,8 +12066,8 @@ Elseif ($Tautulli) {
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                             "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -12209,6 +12322,8 @@ Elseif ($Tautulli) {
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
                         $Arturl = $null
+                        $LocalAddOverlay = $AddBackgroundOverlay
+                        $LocalAddBorder  = $AddBackgroundBorder
 
                         if ($entry.PlexBackgroundUrl -like "/library/*") {
                             if ($PlexToken) {
@@ -12408,37 +12523,37 @@ Elseif ($Tautulli) {
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                            Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                         }
                                     }
                                     Else {
-                                        $backgroundoverlay = $Defaultbackgroundoverlay
+                                        $backgroundoverlay = $DefaultShowBackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                        $AddBackgroundOverlay = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
 
                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
+                                        $LocalAddBorder = 'false'
                                     }
 
                                     # Logic for "If both are true, only resize"
                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                        $AddBackgroundBorder = 'false'
-                                        $AddBackgroundOverlay = 'false'
+                                        $LocalAddBorder = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
                                     # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                    if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
@@ -12524,9 +12639,9 @@ Elseif ($Tautulli) {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -12605,8 +12720,8 @@ Elseif ($Tautulli) {
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                             "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -12621,7 +12736,7 @@ Elseif ($Tautulli) {
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
                                                         if ($AddTextStroke -eq 'true') {
-                                                            $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                            $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                         }
                                                         Else {
                                                             $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -12821,6 +12936,8 @@ Elseif ($Tautulli) {
                         $global:FANARTSeasonFallback = $null
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
+                        $LocalAddOverlay = $AddSeasonOverlay
+                        $LocalAddBorder  = $AddSeasonBorder
 
                         if ($SeasonfontAllCaps -eq 'true') {
                             $global:seasonTitle = $global:seasonNames[$i].ToUpper()
@@ -13178,29 +13295,29 @@ Elseif ($Tautulli) {
                                         if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                $AddSeasonOverlay = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
 
                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                $AddSeasonBorder = 'false'
+                                                $LocalAddBorder = 'false'
                                             }
 
                                             # Logic for "If both are true, only resize"
                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                $AddSeasonBorder = 'false'
-                                                $AddSeasonOverlay = 'false'
+                                                $LocalAddBorder = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
                                             # Resize Image to 2000x3000 and apply Border and overlay
-                                            if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
+                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'false') {
+                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                 $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddSeasonBorder -eq 'false' -and $AddSeasonOverlay -eq 'true') {
+                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
@@ -13602,6 +13719,8 @@ Elseif ($Tautulli) {
                                     $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                     $bullet = [char]0x2022
                                     $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
+                                    $LocalAddOverlay = $AddTitleCardOverlay
+                                    $LocalAddBorder  = $AddTitleCardBorder
 
                                     if ($LibraryFolders -eq 'true') {
                                         $EpisodeImageoriginal = "$EntryDir\$global:FileNaming.jpg"
@@ -13903,29 +14022,29 @@ Elseif ($Tautulli) {
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
 
                                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
+                                                                    $LocalAddBorder = 'false'
                                                                 }
 
                                                                 # Logic for "If both are true, only resize"
                                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddBorder = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
                                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                                if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
@@ -14258,10 +14377,13 @@ Elseif ($Tautulli) {
                                     $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
+                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                     $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                     $bullet = [char]0x2022
                                     $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
+                                    $LocalAddOverlay = $AddTitleCardOverlay
+                                    $LocalAddBorder  = $AddTitleCardBorder
 
                                     if ($LibraryFolders -eq 'true') {
                                         $EpisodeImageoriginal = "$EntryDir\$global:FileNaming.jpg"
@@ -14582,29 +14704,29 @@ Elseif ($Tautulli) {
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                $AddTitleCardOverlay = 'false'
+                                                                $LocalAddOverlay = 'false'
                                                             }
 
                                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                $AddTitleCardBorder = 'false'
+                                                                $LocalAddBorder = 'false'
                                                             }
 
                                                             # Logic for "If both are true, only resize"
                                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                $AddTitleCardBorder = 'false'
-                                                                $AddTitleCardOverlay = 'false'
+                                                                $LocalAddBorder = 'false'
+                                                                $LocalAddOverlay = 'false'
                                                             }
                                                             # Resize Image to 2000x3000 and apply Border and overlay
-                                                            if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                             }
-                                                            elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                             }
-                                                            elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                             }
@@ -15943,6 +16065,8 @@ Elseif ($ArrTrigger) {
                                 $global:ImageMagickError = $null
                                 $TakeLocal = $null
                                 $LocalAssetMissing = $null
+                                $LocalAddOverlay = $AddOverlay
+                                $LocalAddBorder  = $AddBorder
                                 foreach ($ext in $allowedExtensions) {
                                     $filePath = "$ManualTestPath$ext"
                                     if (Test-Path -LiteralPath $filePath) {
@@ -16145,29 +16269,29 @@ Elseif ($ArrTrigger) {
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                $AddOverlay = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
 
                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                $AddBorder = 'false'
+                                                $LocalAddBorder = 'false'
                                             }
 
                                             # Logic for "If both are true, only resize"
                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                $AddBorder = 'false'
-                                                $AddOverlay = 'false'
+                                                $LocalAddBorder = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
                                             # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                            if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                 $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
@@ -16252,9 +16376,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -16332,8 +16456,8 @@ Elseif ($ArrTrigger) {
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                     "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -16549,6 +16673,8 @@ Elseif ($ArrTrigger) {
                                 $global:fanartfallbackposterurl = $null
                                 $TakeLocal = $null
                                 $LocalAssetMissing = $null
+                                $LocalAddOverlay = $AddBackgroundOverlay
+                                $LocalAddBorder  = $AddBackgroundBorder
                                 foreach ($ext in $allowedExtensions) {
                                     $filePath = "$ManualTestPath$ext"
                                     if (Test-Path -LiteralPath $filePath) {
@@ -16727,29 +16853,29 @@ Elseif ($ArrTrigger) {
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                $AddBackgroundOverlay = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
 
                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                $AddBackgroundBorder = 'false'
+                                                $LocalAddBorder = 'false'
                                             }
 
                                             # Logic for "If both are true, only resize"
                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                $AddBackgroundBorder = 'false'
-                                                $AddBackgroundOverlay = 'false'
+                                                $LocalAddBorder = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
                                             # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                            if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                 $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
@@ -16835,9 +16961,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -16915,8 +17041,8 @@ Elseif ($ArrTrigger) {
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                     "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -16931,7 +17057,7 @@ Elseif ($ArrTrigger) {
                                                             else {
                                                                 # STANDARD MODE (Normal caption logic)
                                                                 if ($AddTextStroke -eq 'true') {
-                                                                    $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                    $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                                 }
                                                                 Else {
                                                                     $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -17137,6 +17263,8 @@ Elseif ($ArrTrigger) {
                     $global:tvdbalreadysearched = $null
                     $TakeLocal = $null
                     $LocalAssetMissing = $null
+                    $LocalAddOverlay = $AddOverlay
+                    $LocalAddBorder  = $AddBorder
 
                     # Determine the language direction
                     $global:langCode = $entry.'Library Language'
@@ -17392,37 +17520,37 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $DefaultPosteroverlay }
+                                                Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                             }
                                         }
                                         Else {
-                                            $Posteroverlay = $DefaultPosteroverlay
+                                            $Posteroverlay = $DefaultShowPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
-                                            $AddOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -17508,9 +17636,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -17588,8 +17716,8 @@ Elseif ($ArrTrigger) {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -17810,6 +17938,8 @@ Elseif ($ArrTrigger) {
                             $global:fanartfallbackposterurl = $null
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
+                            $LocalAddOverlay = $AddBackgroundOverlay
+                            $LocalAddBorder  = $AddBackgroundBorder
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
@@ -17983,37 +18113,37 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                             }
                                         }
                                         Else {
-                                            $backgroundoverlay = $Defaultbackgroundoverlay
+                                            $backgroundoverlay = $DefaultShowBackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -18099,9 +18229,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -18179,8 +18309,8 @@ Elseif ($ArrTrigger) {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -18195,7 +18325,7 @@ Elseif ($ArrTrigger) {
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
                                                             if ($AddTextStroke -eq 'true') {
-                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                             }
                                                             Else {
                                                                 $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -18359,6 +18489,8 @@ Elseif ($ArrTrigger) {
                             $global:SeasonNumber = $null
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
+                            $LocalAddOverlay = $AddSeasonOverlay
+                            $LocalAddBorder  = $AddSeasonBorder
 
                             if ($season.tmdbid -eq $entry.tmdbid -or $season.tvdbid -eq $entry.tvdbid) {
                                 $global:seasonId = $season.SeasonId
@@ -18693,29 +18825,29 @@ Elseif ($ArrTrigger) {
                                                 if ($global:ImageMagickError -ne 'true') {
                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                        $AddSeasonOverlay = 'false'
+                                                        $LocalAddOverlay = 'false'
                                                     }
 
                                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                        $AddSeasonBorder = 'false'
+                                                        $LocalAddBorder = 'false'
                                                     }
 
                                                     # Logic for "If both are true, only resize"
                                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                        $AddSeasonBorder = 'false'
-                                                        $AddSeasonOverlay = 'false'
+                                                        $LocalAddBorder = 'false'
+                                                        $LocalAddOverlay = 'false'
                                                     }
                                                     # Resize Image to 2000x3000 and apply Border and overlay
-                                                    if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
+                                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                         $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                     }
-                                                    elseif ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'false') {
+                                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                         $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                     }
-                                                    elseif ($AddSeasonBorder -eq 'false' -and $AddSeasonOverlay -eq 'true') {
+                                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                         $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                     }
@@ -19016,6 +19148,8 @@ Elseif ($ArrTrigger) {
                                         $Arturl = $null
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
+                                        $LocalAddOverlay = $AddTitleCardOverlay
+                                        $LocalAddBorder  = $AddTitleCardBorder
                                         $global:EPTitle = $($global:titles[$i].Trim())
                                         $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
@@ -19284,29 +19418,29 @@ Elseif ($ArrTrigger) {
                                                                     }
                                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                        $AddTitleCardOverlay = 'false'
+                                                                        $LocalAddOverlay = 'false'
                                                                     }
 
                                                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                        $AddTitleCardBorder = 'false'
+                                                                        $LocalAddBorder = 'false'
                                                                     }
 
                                                                     # Logic for "If both are true, only resize"
                                                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                        $AddTitleCardBorder = 'false'
-                                                                        $AddTitleCardOverlay = 'false'
+                                                                        $LocalAddBorder = 'false'
+                                                                        $LocalAddOverlay = 'false'
                                                                     }
                                                                     # Resize Image to 2000x3000 and apply Border and overlay
-                                                                    if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                         $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                     }
-                                                                    elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                         $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                     }
-                                                                    elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                         $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                     }
@@ -19556,7 +19690,10 @@ Elseif ($ArrTrigger) {
                                         $Arturl = $null
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
+                                        $LocalAddOverlay = $AddTitleCardOverlay
+                                        $LocalAddBorder  = $AddTitleCardBorder
                                         $global:EPTitle = $($global:titles[$i].Trim())
+                                        $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                         $global:episodeid = $($global:episodeids[$i].Trim())
                                         $global:FileNaming = "S" + $global:season_number.ToString().PadLeft(2, '0') + "E" + $global:episodenumber.ToString().PadLeft(2, '0')
@@ -19841,29 +19978,29 @@ Elseif ($ArrTrigger) {
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
 
                                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
+                                                                    $LocalAddBorder = 'false'
                                                                 }
 
                                                                 # Logic for "If both are true, only resize"
                                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddBorder = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
                                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                                if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
@@ -20649,6 +20786,8 @@ Elseif ($ArrTrigger) {
                                 $TakeLocal = $null
                                 $LocalAssetMissing = $null
                                 $Arturl = $null
+                                $LocalAddOverlay = $AddOverlay
+                                $LocalAddBorder  = $AddBorder
 
                                 if ($entry.PlexPosterUrl -like "/library/*") {
                                     if ($PlexToken) {
@@ -20880,29 +21019,29 @@ Elseif ($ArrTrigger) {
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                $AddOverlay = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
 
                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                $AddBorder = 'false'
+                                                $LocalAddBorder = 'false'
                                             }
 
                                             # Logic for "If both are true, only resize"
                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                $AddBorder = 'false'
-                                                $AddOverlay = 'false'
+                                                $LocalAddBorder = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
                                             # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                            if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                 $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
@@ -20988,9 +21127,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -21069,8 +21208,8 @@ Elseif ($ArrTrigger) {
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                     "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -21318,6 +21457,8 @@ Elseif ($ArrTrigger) {
                                 $TakeLocal = $null
                                 $LocalAssetMissing = $null
                                 $Arturl = $null
+                                $LocalAddOverlay = $AddBackgroundOverlay
+                                $LocalAddBorder  = $AddBackgroundBorder
 
                                 if ($entry.PlexBackgroundUrl -like "/library/*") {
                                     if ($PlexToken) {
@@ -21523,29 +21664,29 @@ Elseif ($ArrTrigger) {
                                             }
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                $AddBackgroundOverlay = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
 
                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                $AddBackgroundBorder = 'false'
+                                                $LocalAddBorder = 'false'
                                             }
 
                                             # Logic for "If both are true, only resize"
                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                $AddBackgroundBorder = 'false'
-                                                $AddBackgroundOverlay = 'false'
+                                                $LocalAddBorder = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
                                             # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                            if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                 $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
@@ -21631,9 +21772,9 @@ Elseif ($ArrTrigger) {
                                                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                            if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                             else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                         }
@@ -21712,8 +21853,8 @@ Elseif ($ArrTrigger) {
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                     "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                     "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -21728,7 +21869,7 @@ Elseif ($ArrTrigger) {
                                                             else {
                                                                 # STANDARD MODE (Normal caption logic)
                                                                 if ($AddTextStroke -eq 'true') {
-                                                                    $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                    $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                                 }
                                                                 Else {
                                                                     $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -21969,6 +22110,8 @@ Elseif ($ArrTrigger) {
                     $global:PlexartworkDownloaded = $null
                     $TakeLocal = $null
                     $LocalAssetMissing = $null
+                    $LocalAddOverlay = $AddOverlay
+                    $LocalAddBorder  = $AddBorder
 
                     # Determine the language direction
                     $global:langCode = $entry.'Library Language'
@@ -22256,37 +22399,37 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                                 '4K'            { $Posteroverlay = $4kposter }
                                                 '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $DefaultPosteroverlay }
+                                                Default { $Posteroverlay = $DefaultShowPosteroverlay  }
                                             }
                                         }
                                         Else {
-                                            $Posteroverlay = $DefaultPosteroverlay
+                                            $Posteroverlay = $DefaultShowPosteroverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
-                                            $AddOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -22372,9 +22515,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -22453,8 +22596,8 @@ Elseif ($ArrTrigger) {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -22711,6 +22854,8 @@ Elseif ($ArrTrigger) {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $Arturl = $null
+                            $LocalAddOverlay = $AddBackgroundOverlay
+                            $LocalAddBorder  = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -22910,37 +23055,37 @@ Elseif ($ArrTrigger) {
                                                 '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                                 '4K'            { $backgroundoverlay = $4kBackground }
                                                 '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                             }
                                         }
                                         Else {
-                                            $backgroundoverlay = $Defaultbackgroundoverlay
+                                            $backgroundoverlay = $DefaultShowBackgroundoverlay
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -23026,9 +23171,9 @@ Elseif ($ArrTrigger) {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -23107,8 +23252,8 @@ Elseif ($ArrTrigger) {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -23123,7 +23268,7 @@ Elseif ($ArrTrigger) {
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
                                                             if ($AddTextStroke -eq 'true') {
-                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                             }
                                                             Else {
                                                                 $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -23325,6 +23470,8 @@ Elseif ($ArrTrigger) {
                             $global:FANARTSeasonFallback = $null
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
+                            $LocalAddOverlay = $AddSeasonOverlay
+                            $LocalAddBorder  = $AddSeasonBorder
 
                             if ($SeasonfontAllCaps -eq 'true') {
                                 $global:seasonTitle = $global:seasonNames[$i].ToUpper()
@@ -23682,29 +23829,29 @@ Elseif ($ArrTrigger) {
                                             if ($global:ImageMagickError -ne 'true') {
                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                    $AddSeasonOverlay = 'false'
+                                                    $LocalAddOverlay = 'false'
                                                 }
 
                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                    $AddSeasonBorder = 'false'
+                                                    $LocalAddBorder = 'false'
                                                 }
 
                                                 # Logic for "If both are true, only resize"
                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                    $AddSeasonBorder = 'false'
-                                                    $AddSeasonOverlay = 'false'
+                                                    $LocalAddBorder = 'false'
+                                                    $LocalAddOverlay = 'false'
                                                 }
                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
+                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                     $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                 }
-                                                elseif ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'false') {
+                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                     $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                 }
-                                                elseif ($AddSeasonBorder -eq 'false' -and $AddSeasonOverlay -eq 'true') {
+                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                     $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                 }
@@ -24099,6 +24246,8 @@ Elseif ($ArrTrigger) {
                                         $Arturl = $null
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
+                                        $LocalAddOverlay = $AddTitleCardOverlay
+                                        $LocalAddBorder  = $AddTitleCardBorder
                                         $global:PlexTitleCardUrl = $entry.PlexBackgroundUrl
                                         $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                         $global:EPTitle = $($global:titles[$i].Trim())
@@ -24409,29 +24558,29 @@ Elseif ($ArrTrigger) {
                                                                     }
                                                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                        $AddTitleCardOverlay = 'false'
+                                                                        $LocalAddOverlay = 'false'
                                                                     }
 
                                                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                        $AddTitleCardBorder = 'false'
+                                                                        $LocalAddBorder = 'false'
                                                                     }
 
                                                                     # Logic for "If both are true, only resize"
                                                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                        $AddTitleCardBorder = 'false'
-                                                                        $AddTitleCardOverlay = 'false'
+                                                                        $LocalAddBorder = 'false'
+                                                                        $LocalAddOverlay = 'false'
                                                                     }
                                                                     # Resize Image to 2000x3000 and apply Border and overlay
-                                                                    if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                         $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                     }
-                                                                    elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                         $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                     }
-                                                                    elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                         $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                     }
@@ -24763,9 +24912,12 @@ Elseif ($ArrTrigger) {
                                         $Arturl = $null
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
+                                        $LocalAddOverlay = $AddTitleCardOverlay
+                                        $LocalAddBorder  = $AddTitleCardBorder
                                         $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                         $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                         $global:EPTitle = $($global:titles[$i].Trim())
+                                        $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                         $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                         $bullet = [char]0x2022
@@ -25090,29 +25242,29 @@ Elseif ($ArrTrigger) {
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
 
                                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
+                                                                    $LocalAddBorder = 'false'
                                                                 }
 
                                                                 # Logic for "If both are true, only resize"
                                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddBorder = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
                                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                                if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
@@ -27864,29 +28016,29 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
-                                            $AddOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -27972,9 +28124,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -28052,8 +28204,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -28267,6 +28419,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $global:fanartfallbackposterurl = $null
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
+                            $LocalAddOverlay = $AddBackgroundOverlay
+                            $LocalAddBorder  = $AddBackgroundBorder
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
@@ -28445,29 +28599,29 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -28553,9 +28707,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -28633,8 +28787,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -28649,7 +28803,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
                                                             if ($AddTextStroke -eq 'true') {
-                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                             }
                                                             Else {
                                                                 $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -28850,6 +29004,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $global:tvdbalreadysearched = $null
                 $TakeLocal = $null
                 $LocalAssetMissing = $null
+                $LocalAddOverlay = $AddOverlay
+                $LocalAddBorder  = $AddBorder
 
                 # Determine the language direction
                 $global:langCode = $entry.'Library Language'
@@ -29106,37 +29262,37 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $DefaultPosteroverlay }
+                                            Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                         }
                                     }
                                     Else {
-                                        $Posteroverlay = $DefaultPosteroverlay
+                                        $Posteroverlay = $DefaultShowPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                        $AddOverlay = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
 
                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
+                                        $LocalAddBorder = 'false'
                                     }
 
                                     # Logic for "If both are true, only resize"
                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
-                                        $AddOverlay = 'false'
+                                        $LocalAddBorder = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
                                     # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                    if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
@@ -29222,9 +29378,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -29302,8 +29458,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                             "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -29525,6 +29681,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                         $global:fanartfallbackposterurl = $null
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
+                        $LocalAddOverlay = $AddBackgroundOverlay
+                        $LocalAddBorder  = $AddBackgroundBorder
                         foreach ($ext in $allowedExtensions) {
                             $filePath = "$ManualTestPath$ext"
                             if (Test-Path -LiteralPath $filePath) {
@@ -29698,37 +29856,37 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                            Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                         }
                                     }
                                     Else {
-                                        $backgroundoverlay = $Defaultbackgroundoverlay
+                                        $backgroundoverlay = $DefaultShowBackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                        $AddBackgroundOverlay = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
 
                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                        $AddBackgroundBorder = 'false'
+                                        $LocalAddBorder = 'false'
                                     }
 
                                     # Logic for "If both are true, only resize"
                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                        $AddBackgroundBorder = 'false'
-                                        $AddBackgroundOverlay = 'false'
+                                        $LocalAddBorder = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
                                     # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                    if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
@@ -29814,9 +29972,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -29894,8 +30052,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                             "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -29910,7 +30068,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
                                                         if ($AddTextStroke -eq 'true') {
-                                                            $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                            $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                         }
                                                         Else {
                                                             $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -30073,6 +30231,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                         $global:SeasonNumber = $null
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
+                        $LocalAddOverlay = $AddSeasonOverlay
+                        $LocalAddBorder  = $AddSeasonBorder
 
                         if ($season.tmdbid -eq $entry.tmdbid -or $season.tvdbid -eq $entry.tvdbid) {
                             $global:seasonId = $season.SeasonId
@@ -30422,29 +30582,29 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             if ($global:ImageMagickError -ne 'true') {
                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                    $AddSeasonOverlay = 'false'
+                                                    $LocalAddOverlay = 'false'
                                                 }
 
                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                    $AddSeasonBorder = 'false'
+                                                    $LocalAddBorder = 'false'
                                                 }
 
                                                 # Logic for "If both are true, only resize"
                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                    $AddSeasonBorder = 'false'
-                                                    $AddSeasonOverlay = 'false'
+                                                    $LocalAddBorder = 'false'
+                                                    $LocalAddOverlay = 'false'
                                                 }
                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
+                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                     $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                 }
-                                                elseif ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'false') {
+                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                     $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                 }
-                                                elseif ($AddSeasonBorder -eq 'false' -and $AddSeasonOverlay -eq 'true') {
+                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                     $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                 }
@@ -30744,6 +30904,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $Arturl = $null
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
+                                    $LocalAddOverlay = $AddTitleCardOverlay
+                                    $LocalAddBorder  = $AddTitleCardBorder
                                     $global:EPTitle = $($global:titles[$i].Trim())
                                     $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
@@ -31013,29 +31175,29 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
 
                                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
+                                                                    $LocalAddBorder = 'false'
                                                                 }
 
                                                                 # Logic for "If both are true, only resize"
                                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddBorder = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
                                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                                if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
@@ -31284,7 +31446,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $Arturl = $null
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
+                                    $LocalAddOverlay = $AddTitleCardOverlay
+                                    $LocalAddBorder  = $AddTitleCardBorder
                                     $global:EPTitle = $($global:titles[$i].Trim())
+                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                     $global:episodeid = $($global:episodeids[$i].Trim())
                                     $global:FileNaming = "S" + $global:season_number.ToString().PadLeft(2, '0') + "E" + $global:episodenumber.ToString().PadLeft(2, '0')
@@ -31570,29 +31735,29 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                $AddTitleCardOverlay = 'false'
+                                                                $LocalAddOverlay = 'false'
                                                             }
 
                                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                $AddTitleCardBorder = 'false'
+                                                                $LocalAddBorder = 'false'
                                                             }
 
                                                             # Logic for "If both are true, only resize"
                                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                $AddTitleCardBorder = 'false'
-                                                                $AddTitleCardOverlay = 'false'
+                                                                $LocalAddBorder = 'false'
+                                                                $LocalAddOverlay = 'false'
                                                             }
                                                             # Resize Image to 2000x3000 and apply Border and overlay
-                                                            if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                             }
-                                                            elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                             }
-                                                            elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                             }
@@ -32826,6 +32991,8 @@ else {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $Arturl = $null
+                            $LocalAddOverlay = $AddOverlay
+                            $LocalAddBorder  = $AddBorder
 
                             if ($entry.PlexPosterUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -33057,29 +33224,29 @@ else {
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBorder = 'false'
-                                            $AddOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -33164,9 +33331,9 @@ else {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -33246,8 +33413,8 @@ else {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -33555,6 +33722,8 @@ else {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $Arturl = $null
+                            $LocalAddOverlay = $AddBackgroundOverlay
+                            $LocalAddBorder  = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -33765,29 +33934,29 @@ else {
                                         }
                                         # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                         if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
 
                                         # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                         if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
+                                            $LocalAddBorder = 'false'
                                         }
 
                                         # Logic for "If both are true, only resize"
                                         if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                            $AddBackgroundBorder = 'false'
-                                            $AddBackgroundOverlay = 'false'
+                                            $LocalAddBorder = 'false'
+                                            $LocalAddOverlay = 'false'
                                         }
                                         # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                        if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                        if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                        elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                         }
-                                        elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                        elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                             $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                             Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                         }
@@ -33873,9 +34042,9 @@ else {
                                                     if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                         $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                        if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                        if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                         else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                     }
@@ -33954,8 +34123,8 @@ else {
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                                 "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                                 "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -33970,7 +34139,7 @@ else {
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
                                                             if ($AddTextStroke -eq 'true') {
-                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                                $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                             }
                                                             Else {
                                                                 $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -34268,6 +34437,8 @@ else {
                 $global:direction = $null
                 $TakeLocal = $null
                 $LocalAssetMissing = $null
+                $LocalAddOverlay = $AddOverlay
+                $LocalAddBorder  = $AddBorder
 
                 # Determine the language direction
                 $global:langCode = $entry.'Library Language'
@@ -34563,37 +34734,37 @@ else {
                                             '4K HDR10'      { $Posteroverlay = $4KHDR10 }
                                             '4K'            { $Posteroverlay = $4kposter }
                                             '1080p'         { $Posteroverlay = $1080pPoster }
-                                            Default { $Posteroverlay = $DefaultPosteroverlay }
+                                            Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                         }
                                     }
                                     Else {
-                                        $Posteroverlay = $DefaultPosteroverlay
+                                        $Posteroverlay = $DefaultShowPosteroverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                        $AddOverlay = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
 
                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
+                                        $LocalAddBorder = 'false'
                                     }
 
                                     # Logic for "If both are true, only resize"
                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                        $AddBorder = 'false'
-                                        $AddOverlay = 'false'
+                                        $LocalAddBorder = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
                                     # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                    if ($AddBorder -eq 'true' -and $AddOverlay -eq 'true') {
+                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBorder -eq 'true' -and $AddOverlay -eq 'false') {
+                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$borderwidthsecond`"  -bordercolor `"$bordercolor`" -border `"$borderwidth`" `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBorder -eq 'false' -and $AddOverlay -eq 'true') {
+                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$PosterImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
@@ -34679,9 +34850,9 @@ else {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -34760,8 +34931,8 @@ else {
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth $strokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                             "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
@@ -35078,6 +35249,8 @@ else {
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
                         $Arturl = $null
+                        $LocalAddOverlay = $AddBackgroundOverlay
+                        $LocalAddBorder  = $AddBackgroundBorder
 
                         if ($entry.PlexBackgroundUrl -like "/library/*") {
                             if ($PlexToken) {
@@ -35285,37 +35458,37 @@ else {
                                             '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
                                             '4K'            { $backgroundoverlay = $4kBackground }
                                             '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                            Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                         }
                                     }
                                     Else {
-                                        $backgroundoverlay = $Defaultbackgroundoverlay
+                                        $backgroundoverlay = $DefaultShowBackgroundoverlay
                                     }
                                     # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                     if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                        $AddBackgroundOverlay = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
 
                                     # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                     if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                        $AddBackgroundBorder = 'false'
+                                        $LocalAddBorder = 'false'
                                     }
 
                                     # Logic for "If both are true, only resize"
                                     if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                        $AddBackgroundBorder = 'false'
-                                        $AddBackgroundOverlay = 'false'
+                                        $LocalAddBorder = 'false'
+                                        $LocalAddOverlay = 'false'
                                     }
                                     # Calculate the height to maintain the aspect ratio with a width of 1000 pixels
-                                    if ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'true') {
+                                    if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBackgroundBorder -eq 'true' -and $AddBackgroundOverlay -eq 'false') {
+                                    elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$Backgroundborderwidthsecond`"  -bordercolor `"$Backgroundbordercolor`" -border `"$Backgroundborderwidth`" `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                     }
-                                    elseif ($AddBackgroundBorder -eq 'false' -and $AddBackgroundOverlay -eq 'true') {
+                                    elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                         $Arguments = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$Backgroundoverlay`" -gravity south -quality $global:outputQuality -composite `"$backgroundImage`""
                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                     }
@@ -35401,9 +35574,9 @@ else {
                                                 if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                                                     $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
 
-                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -background black -alpha remove -colorspace LAB -channel GB -separate -evaluate-sequence Add -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
 
-                                                    if ([double]$_chromaStd -lt 0.15) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
+                                                    if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
 
                                                     else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
                                                 }
@@ -35482,8 +35655,8 @@ else {
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth $Backgroundstrokewidth label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
                                                             "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
                                                             "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
@@ -35498,7 +35671,7 @@ else {
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
                                                         if ($AddTextStroke -eq 'true') {
-                                                            $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -Backgroundstrokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
+                                                            $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten `( -size `"$Backgroundboxsize`" -background none `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) `( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -stroke none -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Backgroundboxsize`" `) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                         }
                                                         Else {
                                                             $Arguments = "`"$backgroundImage`" -gravity center -background None -layers Flatten ( -font `"$backgroundfontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Backgroundfontcolor`" -size `"$Backgroundboxsize`" -background none -interline-spacing `"$BackgroundlineSpacing`" -gravity `"$Backgroundtextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Backgroundboxsize`" ) -gravity south -geometry +0`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
@@ -35756,6 +35929,8 @@ else {
                         $global:FANARTSeasonFallback = $null
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
+                        $LocalAddOverlay = $AddSeasonOverlay
+                        $LocalAddBorder  = $AddSeasonBorder
                         if ($SeasonfontAllCaps -eq 'true') {
                             $global:seasonTitle = $global:seasonNames[$i].ToUpper()
                         }
@@ -36130,29 +36305,29 @@ else {
                                         if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                $AddSeasonOverlay = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
 
                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                $AddSeasonBorder = 'false'
+                                                $LocalAddBorder = 'false'
                                             }
 
                                             # Logic for "If both are true, only resize"
                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                $AddSeasonBorder = 'false'
-                                                $AddSeasonOverlay = 'false'
+                                                $LocalAddBorder = 'false'
+                                                $LocalAddOverlay = 'false'
                                             }
                                             # Resize Image to 2000x3000 and apply Border and overlay
-                                            if ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'true') {
+                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddSeasonBorder -eq 'true' -and $AddSeasonOverlay -eq 'false') {
+                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                 $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                             }
-                                            elseif ($AddSeasonBorder -eq 'false' -and $AddSeasonOverlay -eq 'true') {
+                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                 $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                             }
@@ -36608,6 +36783,8 @@ else {
                                     $Arturl = $null
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
+                                    $LocalAddOverlay = $AddTitleCardOverlay
+                                    $LocalAddBorder  = $AddTitleCardBorder
                                     $global:PlexTitleCardUrl = $entry.PlexBackgroundUrl
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
@@ -36693,7 +36870,7 @@ else {
                                         $checkedItems.Add($hashtestpath)
 
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
-                                            $Arturl = $
+                                            $Arturl = $null
                                             if ($global:PlexTitleCardUrl -like "/library/*") {
                                                 if ($PlexToken) {
                                                     $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
@@ -36922,29 +37099,29 @@ else {
                                                                 }
                                                                 # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                                 if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
 
                                                                 # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                                 if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
+                                                                    $LocalAddBorder = 'false'
                                                                 }
 
                                                                 # Logic for "If both are true, only resize"
                                                                 if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                    $AddTitleCardBorder = 'false'
-                                                                    $AddTitleCardOverlay = 'false'
+                                                                    $LocalAddBorder = 'false'
+                                                                    $LocalAddOverlay = 'false'
                                                                 }
                                                                 # Resize Image to 2000x3000 and apply Border and overlay
-                                                                if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                                if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                                elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                                 }
-                                                                elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                                elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                     $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                                 }
@@ -37335,9 +37512,12 @@ else {
                                     $Arturl = $null
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
+                                    $LocalAddOverlay = $AddTitleCardOverlay
+                                    $LocalAddBorder  = $AddTitleCardBorder
                                     $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
+                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
                                     $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
                                     $bullet = [char]0x2022
@@ -37667,29 +37847,29 @@ else {
                                                             }
                                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
                                                             if (($SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
-                                                                $AddTitleCardOverlay = 'false'
+                                                                $LocalAddOverlay = 'false'
                                                             }
 
                                                             # Logic for SkipAddTextAndBorder (Skip Border, keep Overlay)
                                                             if (($SkipAddTextAndBorder -eq 'true') -and $global:PosterWithText) {
-                                                                $AddTitleCardBorder = 'false'
+                                                                $LocalAddBorder = 'false'
                                                             }
 
                                                             # Logic for "If both are true, only resize"
                                                             if ($SkipAddTextAndOverlay -eq 'true' -and $SkipAddTextAndBorder -eq 'true' -and $global:PosterWithText) {
-                                                                $AddTitleCardBorder = 'false'
-                                                                $AddTitleCardOverlay = 'false'
+                                                                $LocalAddBorder = 'false'
+                                                                $LocalAddOverlay = 'false'
                                                             }
                                                             # Resize Image to 2000x3000 and apply Border and overlay
-                                                            if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
+                                                            if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                             }
-                                                            elseif ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'false') {
+                                                            elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" -shave `"$TitleCardborderwidthsecond`"  -bordercolor `"$TitleCardbordercolor`" -border `"$TitleCardborderwidth`" `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                             }
-                                                            elseif ($AddTitleCardBorder -eq 'false' -and $AddTitleCardOverlay -eq 'true') {
+                                                            elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
                                                                 $Arguments = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$TitleCardoverlay`" -gravity south -quality $global:outputQuality -composite `"$EpisodeImage`""
                                                                 Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                             }

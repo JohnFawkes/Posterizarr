@@ -106,8 +106,10 @@
     - `RTLfont`: RTL Font file name.
     - `backgroundfont`: Background font file name.
     - `overlayfile`: Overlay file name.
+    - `showoverlayfile`: Show Overlay file name.
     - `seasonoverlayfile`: Season overlay file name.
     - `backgroundoverlayfile`: Background overlay file name.
+    - `showbackgroundoverlayfile`: Show Background overlay file name.
     - `titlecardoverlayfile` : Title Card overlay file name.
     - `poster4k`: 4K Poster overlay file name. (overlay has to match the Poster dimensions 2000x3000)
     - `Poster1080p` : 1080p Poster overlay file name. (overlay has to match the Poster dimensions 2000x3000)
