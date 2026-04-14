@@ -15472,7 +15472,7 @@ Elseif ($ArrTrigger) {
 
                         # Grab the primary video stream to check for HDR
                         $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                        if ($videoStream.ExtendedVideoSubTypeDescription){
+                        if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None'){
                             Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                             if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
                                 $hdrType = 'DOVIHDR10'
@@ -15753,9 +15753,9 @@ Elseif ($ArrTrigger) {
                     # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
                     $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
-                    if ($currentRange) {
+                    if ($currentRange -and $currentRange -ne 'None') {
                         Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
-                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None'){
                             Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         }
                         # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
@@ -27198,7 +27198,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                    if ($videoStream.ExtendedVideoSubTypeDescription){
+                    if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None'){
                         Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
                             $hdrType = 'DOVIHDR10'
@@ -27478,9 +27478,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
                 $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
-                if ($currentRange) {
+                if ($currentRange -and $currentRange -ne 'None') {
                     Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
-                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None'){
                         Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                     }
                     # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
