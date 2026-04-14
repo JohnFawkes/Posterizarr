@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.36"
+$CurrentScriptVersion = "2.2.37"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -4877,7 +4877,8 @@ function UploadOtherMediaServerArtwork {
     param (
         [string]$itemId,
         [string]$imageType,
-        [string]$imagePath
+        [string]$imagePath,
+        [switch]$SkipExifCheck # Added optional parameter
     )
 
     # Check if current image already has exif data
@@ -4889,28 +4890,31 @@ function UploadOtherMediaServerArtwork {
     # Clear value to ensure no old data causes a false skip
     $value = $null
 
-    # Set the API endpoint URL for magick exif check
-    if (($imageinfotemp.Height) -and ($imageinfotemp.width)) {
-        try {
-            $ImageUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/?api_key=$OtherMediaServerApiKey&width=$($imageinfotemp.width)&height=$($imageinfotemp.Height)"
-            $tempFile = Join-Path -Path $global:ScriptRoot -ChildPath "temp\hashcompare.jpg"
+    # Only run the EXIF check if the switch was NOT provided
+    if (-not $SkipExifCheck) {
+        # Set the API endpoint URL for magick exif check
+        if (($imageinfotemp.Height) -and ($imageinfotemp.width)) {
+            try {
+                $ImageUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/?api_key=$OtherMediaServerApiKey&width=$($imageinfotemp.width)&height=$($imageinfotemp.Height)"
+                $tempFile = Join-Path -Path $global:ScriptRoot -ChildPath "temp\hashcompare.jpg"
 
-            # Try to download the image
-            $response = Invoke-WebRequest -Uri $ImageUrl -OutFile $tempFile -ErrorAction Stop
+                # Try to download the image
+                $response = Invoke-WebRequest -Uri $ImageUrl -OutFile $tempFile -ErrorAction Stop
 
-            $magickcommand = "& `"$magick`" identify -verbose `"$tempFile`""
-            $magickcommand | Out-File $magickLog -Append
-            $value = Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr'
+                $magickcommand = "& `"$magick`" identify -verbose `"$tempFile`""
+                $magickcommand | Out-File $magickLog -Append
+                $value = Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr'
 
-            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue | out-null
-        }
-        catch {
-            # Log as a warning (not error) so we know why the check failed, but don't stop the script
-            Write-Entry -Subtext "Exif check skipped (Image 404 or missing). Proceeding to upload. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
-
-            # Ensure temp file cleanup happens if the download partially succeeded or failed
-            if (Test-Path $tempFile) {
                 Remove-Item $tempFile -Force -ErrorAction SilentlyContinue | out-null
+            }
+            catch {
+                # Log as a warning (not error) so we know why the check failed, but don't stop the script
+                Write-Entry -Subtext "Exif check skipped (Image 404 or missing). Proceeding to upload. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+
+                # Ensure temp file cleanup happens if the download partially succeeded or failed
+                if (Test-Path $tempFile) {
+                    Remove-Item $tempFile -Force -ErrorAction SilentlyContinue | out-null
+                }
             }
         }
     }
@@ -15409,7 +15413,7 @@ Elseif ($ArrTrigger) {
     }
     $Libraries = [System.Collections.Generic.List[object]]::new()
     if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
-        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
+        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
         foreach ($Movie in $AllMovies.Items) {
             $Resolution = $null
             if ($UseEmby -eq 'true') {
@@ -15468,7 +15472,7 @@ Elseif ($ArrTrigger) {
 
                         # Grab the primary video stream to check for HDR
                         $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                        if ($videoStream.ExtendedVideoSubTypeDescription){
+                        if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None'){
                             Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                             if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
                                 $hdrType = 'DOVIHDR10'
@@ -15749,9 +15753,9 @@ Elseif ($ArrTrigger) {
                     # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
                     $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
-                    if ($currentRange) {
+                    if ($currentRange -and $currentRange -ne 'None') {
                         Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
-                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None'){
                             Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         }
                         # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
@@ -26133,7 +26137,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     # Query Jellyfin/Emby
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
     $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
     $OtherAllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery
 
@@ -27097,7 +27101,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
     $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
     $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery
 
@@ -27194,7 +27198,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                    if ($videoStream.ExtendedVideoSubTypeDescription){
+                    if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None'){
                         Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
                             $hdrType = 'DOVIHDR10'
@@ -27474,9 +27478,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 # Determine the base HDR string (Emby uses ExtendedVideoType, Jellyfin uses VideoRangeType)
                 $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
-                if ($currentRange) {
+                if ($currentRange -and $currentRange -ne 'None') {
                     Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
-                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription){
+                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None'){
                         Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                     }
                     # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)

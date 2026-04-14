@@ -79,6 +79,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
     // Extract metadata from path including provider IDs if present
     let title = null;
+    let showTitle = null;
     let year = null;
     let folderName = null;
     let libraryName = null;
@@ -164,6 +165,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           const showMatch = cleanFolder.match(/^(.+?)\s*\((\d{4})\)\s*$/);
           if (showMatch) {
             title = showMatch[1].trim();
+            showTitle = title;
             year = parseInt(showMatch[2]);
           } else {
             // Fallback: try to extract year separately
@@ -171,8 +173,10 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
             if (yearMatch) {
               year = parseInt(yearMatch[1]);
               title = cleanFolder.replace(/\s*\(\d{4}\)\s*/, "").trim();
+              showTitle = title;
             } else {
               title = cleanFolder;
+              showTitle = title;
             }
           }
         }
@@ -293,11 +297,16 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       if (assetType === "season") {
         // If it's a season and contains "|", grab the right side (e.g., "Season 1")
         if (dbData.Title.includes("|")) {
-          title  = dbData.Title.split("|")[1].trim();
+          showTitle = dbData.Title.split("|")[0].trim();
+          title = dbData.Title.split("|")[1].trim();
           console.log(`Extracted Season Title from DB: ${title }`);
         } else {
           // Fallback: use "Season" + the raw number (no leading zero)
-          title  = seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`;
+          title = seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`;
+        }
+      } else if (assetType === "titlecard") {
+        if (dbData.Title.includes("|")) {
+          showTitle = dbData.Title.split("|")[0].trim();
         }
       } else if (assetType !== "titlecard") {
         // Standard override for Movies/Shows, skipping titlecards
@@ -401,6 +410,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       tvdb_id: tvdb_id,
       imdb_id: imdb_id,
       title: title,
+      show_title: showTitle,
       year: year,
       folder_name: folderName,
       library_name: libraryName,
@@ -968,6 +978,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       metadata = {
         ...metadata,
         title: searchTitle.trim(),
+        show_title: searchTitle.trim(),
         year: searchYear ? parseInt(searchYear) : null,
         tmdb_id: null,
         tvdb_id: null,
