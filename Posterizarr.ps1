@@ -15413,7 +15413,7 @@ Elseif ($ArrTrigger) {
     }
     $Libraries = [System.Collections.Generic.List[object]]::new()
     if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
-        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
+        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
         foreach ($Movie in $AllMovies.Items) {
             $Resolution = $null
             if ($UseEmby -eq 'true') {
@@ -26137,7 +26137,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
     # Query Jellyfin/Emby
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
     $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
     $OtherAllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery
 
@@ -27101,7 +27101,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
     $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
     $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery
 
