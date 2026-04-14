@@ -9650,6 +9650,7 @@ class AssetReplaceRequest(BaseModel):
     tvdb_id: Optional[str] = None
     imdb_id: Optional[str] = None
     title: Optional[str] = None  # Movie/show title for fallback search
+    show_title: Optional[str] = None
     year: Optional[int] = None  # Release year for fallback search
     season_number: Optional[int] = None
     episode_number: Optional[int] = None
@@ -9737,11 +9738,11 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                                 db_record = cursor.fetchone()
                             finally:
                                 conn.close()
-
+                search_query_title = request.show_title if request.show_title else request.title
                 # Method 2: Search by title + year (for Manual Mode)
-                if not db_record and request.title:
+                if not db_record and search_query_title:
                     logger.info(
-                        f"Searching database by title for: '{request.title}' (year: {request.year})"
+                        f"Searching database by title for: '{search_query_title}' (year: {request.year})"
                     )
                     search_method = "title"
 
@@ -9757,7 +9758,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                                     WHERE Rootfolder LIKE ?
                                     LIMIT 1
                                 """,
-                                    (f"%{request.title}%({request.year})%",),
+                                    (f"%{search_query_title}%({request.year})%",),
                                 )
                             else:
                                 cursor.execute(
@@ -9767,7 +9768,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                                     WHERE Rootfolder LIKE ?
                                     LIMIT 1
                                 """,
-                                    (f"%{request.title}%",),
+                                    (f"%{search_query_title}%",),
                                 )
                             db_record = cursor.fetchone()
                         finally:
@@ -10128,8 +10129,8 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
         potential_imdb_id = None
         detected_provider = None  # Track which provider prefix was used
 
-        if not tmdb_ids_to_use and request.title:
-            title_lower = request.title.strip().lower()
+        if not tmdb_ids_to_use and search_query_title:
+            title_lower = search_query_title.strip().lower()
 
             # Check for TMDB ID: tmdb-123 or tmdb:123
             tmdb_match = re.match(r"tmdb[-:](\d+)", title_lower)
@@ -10167,21 +10168,21 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
         # Only search by title if we don't have any TMDB ID yet AND no ID prefix was detected
         if (
             not tmdb_ids_to_use
-            and request.title
+            and search_query_title
             and not (potential_tmdb_id or potential_tvdb_id or potential_imdb_id)
             and tmdb_token
         ):
             logger.info(
-                f"No TMDB ID available - searching TMDB by title: '{request.title}' (year: {request.year})"
+                f"No TMDB ID available - searching TMDB by title: '{search_query_title}' (year: {request.year})"
             )
             found_id = await search_tmdb_id(
-                request.title, request.year, request.media_type
+                search_query_title, request.year, request.media_type
             )
             if found_id:
                 tmdb_ids_to_use.append(("title_search", found_id))
                 logger.info(f"Found TMDB ID from title search: {found_id}")
             else:
-                logger.warning(f"No TMDB ID found for title: '{request.title}'")
+                logger.warning(f"No TMDB ID found for title: '{search_query_title}'")
 
         # Determine TVDB ID(s) - collect multiple IDs for dual search
         tvdb_ids_to_use = []
@@ -10204,21 +10205,21 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
         # TVDB API v4 supports both TV shows and movies
         if (
             not tvdb_ids_to_use
-            and request.title
+            and search_query_title
             and not (potential_tmdb_id or potential_tvdb_id or potential_imdb_id)
             and tvdb_api_key
         ):
             logger.info(
-                f"No TVDB ID available - searching TVDB by title: '{request.title}' (year: {request.year}, media_type: {request.media_type})"
+                f"No TVDB ID available - searching TVDB by title: '{search_query_title}' (year: {request.year}, media_type: {request.media_type})"
             )
             found_id = await search_tvdb_id(
-                request.title, request.year, request.media_type
+                search_query_title, request.year, request.media_type
             )
             if found_id:
                 tvdb_ids_to_use.append(("title_search", found_id))
                 logger.info(f"Found TVDB ID from title search: {found_id}")
             else:
-                logger.warning(f"No TVDB ID found for title: '{request.title}'")
+                logger.warning(f"No TVDB ID found for title: '{search_query_title}'")
 
         # Create async tasks for parallel fetching - AFTER IDs are resolved
         async def fetch_tmdb():
