@@ -10487,13 +10487,25 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                                                         img = art.get("image")
                                                         if img and img not in seen_urls:
                                                             seen_urls.add(img)
+
+                                                            raw_lang = art.get("language")
+                                                            # 1. Map textless (null, None, or empty) to "xx"
+                                                            if raw_lang is None or str(raw_lang).lower() == "null" or str(raw_lang).strip() == "":
+                                                                final_lang = "xx"
+                                                            # 2. Convert 3-letter codes to 2-letter (eng -> en)
+                                                            elif isinstance(raw_lang, str) and len(raw_lang) >= 2:
+                                                                final_lang = raw_lang[:2].lower()
+                                                            # 3. Fallback
+                                                            else:
+                                                                final_lang = raw_lang
+
                                                             all_results.append({
                                                                 "url": img,
                                                                 "original_url": img,
                                                                 "source": "TVDB",
                                                                 "source_type": source,
                                                                 "type": "season",
-                                                                "language": art.get("language"),
+                                                                "language": final_lang,
                                                                 "width": art.get("width", 0),
                                                                 "height": art.get("height", 0),
                                                             })
@@ -10615,10 +10627,15 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                                             # This allows 'eng' to match 'en' and 'deu' to match 'de', mimicking the
                                             # PowerShell logic: $_.language -like "$lang*"
                                             raw_lang = artwork.get("language")
-                                            final_lang = raw_lang
-
-                                            if raw_lang and isinstance(raw_lang, str) and len(raw_lang) >= 2:
+                                            # 1. Map textless (null, None, or empty) to "xx"
+                                            if raw_lang is None or str(raw_lang).lower() == "null" or str(raw_lang).strip() == "":
+                                                final_lang = "xx"
+                                            # 2. Convert 3-letter codes to 2-letter (eng -> en)
+                                            elif isinstance(raw_lang, str) and len(raw_lang) >= 2:
                                                 final_lang = raw_lang[:2].lower()
+                                            # 3. Fallback
+                                            else:
+                                                final_lang = raw_lang
 
                                             all_results.append({
                                                 "url": image_url,
