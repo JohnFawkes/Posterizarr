@@ -635,21 +635,27 @@ function RunModes() {
   // Handle folder selection
   const handleFolderSelect = (folderName, title) => {
     setManualForm((prevForm) => {
-      let finalTitleText = prevForm.titletext;
+      let textToUse = prevForm.titletext;
+      const isSeason = prevForm.posterType === "season" || prevForm.asset_type === "season";
 
-      // 1. If it's a Season poster and we have a season number, prioritize "Season X"
-      if (prevForm.posterType === "season" && tmdbSearch.seasonNumber) {
-        finalTitleText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
+      if (isSeason) {
+        const seasonNum = prevForm.seasonNumber || prevForm.season_number || (typeof tmdbSearch !== 'undefined' ? tmdbSearch.seasonNumber : null);
+
+        if (seasonNum) {
+          textToUse = `${t("runModes.manual.types.season")} ${seasonNum}`;
+        }
+        else if (!textToUse || textToUse.trim() === "") {
+          textToUse = t("runModes.manual.types.season");
+        }
       }
-      // 2. Otherwise, only fallback to the extracted title if the field is currently empty
-      else if (!finalTitleText || finalTitleText.trim() === "") {
-        finalTitleText = title;
+      else if (!textToUse || textToUse.trim() === "") {
+        textToUse = title;
       }
 
       return {
         ...prevForm,
         folderName,
-        titletext: finalTitleText
+        titletext: textToUse
       };
     });
 
