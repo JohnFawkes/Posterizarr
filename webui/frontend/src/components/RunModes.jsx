@@ -520,7 +520,6 @@ function RunModes() {
     searching: false,
     results: { tmdb: [], tvdb: [], fanart: [] }, // Changed to object with providers
     showModal: false,
-    // NEU: Season und Episode Felder
     seasonNumber: "",
     episodeNumber: "",
     // Pagination
@@ -635,18 +634,24 @@ function RunModes() {
 
   // Handle folder selection
   const handleFolderSelect = (folderName, title) => {
-    setManualForm((prevForm) => ({
-      ...prevForm,
-      folderName,
-      titletext: prevForm.titletext && prevForm.titletext.trim() !== ""
-        ? prevForm.titletext
-        : title
-    }));
+    setManualForm((prevForm) => {
+      let newTitleText = prevForm.titletext;
 
-    setShowFolderSelector(false);
-    setFolderSearchQuery("");
-    showSuccess(`Folder "${folderName}" selected`);
-  };
+      // Logic: If it's a Season poster and we have a season number, use "Season X"
+      if (prevForm.posterType === "season" && tmdbSearch.seasonNumber) {
+        newTitleText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
+      }
+      // Otherwise, only use the folder's title if the field is currently empty
+      else if (!newTitleText || newTitleText.trim() === "") {
+        newTitleText = title;
+      }
+
+      return {
+        ...prevForm,
+        folderName,
+        titletext: newTitleText
+      };
+    });
 
   const loadLibraryItems = async () => {
     setLoadingLibraries(true);
