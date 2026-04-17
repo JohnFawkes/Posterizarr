@@ -635,23 +635,28 @@ function RunModes() {
   // Handle folder selection
   const handleFolderSelect = (folderName, title) => {
     setManualForm((prevForm) => {
-      let newTitleText = prevForm.titletext;
+      let finalTitleText = prevForm.titletext;
 
-      // Logic: If it's a Season poster and we have a season number, use "Season X"
+      // 1. If it's a Season poster and we have a season number, prioritize "Season X"
       if (prevForm.posterType === "season" && tmdbSearch.seasonNumber) {
-        newTitleText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
+        finalTitleText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
       }
-      // Otherwise, only use the folder's title if the field is currently empty
-      else if (!newTitleText || newTitleText.trim() === "") {
-        newTitleText = title;
+      // 2. Otherwise, only fallback to the extracted title if the field is currently empty
+      else if (!finalTitleText || finalTitleText.trim() === "") {
+        finalTitleText = title;
       }
 
       return {
         ...prevForm,
         folderName,
-        titletext: newTitleText
+        titletext: finalTitleText
       };
     });
+
+    setShowFolderSelector(false);
+    setFolderSearchQuery("");
+    showSuccess(`Folder "${folderName}" selected`);
+  };
 
   const loadLibraryItems = async () => {
     setLoadingLibraries(true);
