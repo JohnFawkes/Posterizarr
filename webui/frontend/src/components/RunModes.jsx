@@ -1259,9 +1259,14 @@ function RunModes() {
         requestBody.episode_number = parseInt(tmdbSearch.episodeNumber);
       }
       if (manualForm.posterType === "season" && tmdbSearch.seasonNumber) {
+        // 1. Create the text once
+        const seasonText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
+
+        // 2. Apply it to both fields
         setManualForm(prev => ({
           ...prev,
-          titletext: `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`
+          titletext: seasonText,
+          seasonPosterName: seasonText
         }));
       }
       // Use the multi-provider endpoint
