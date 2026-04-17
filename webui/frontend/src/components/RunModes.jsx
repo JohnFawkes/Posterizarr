@@ -634,34 +634,19 @@ function RunModes() {
 
   // Handle folder selection
   const handleFolderSelect = (folderName, title) => {
-    // Capture the season number directly from your tmdbSearch state BEFORE the updater
-    const currentSeasonNum = tmdbSearch.seasonNumber;
-
     setManualForm((prevForm) => {
-      let textToUse = prevForm.titletext;
+      let finalTitle = prevForm.titletext;
 
-      // 1. Determine if this is a season poster
-      const isSeason = prevForm.posterType === "season" || prevForm.asset_type === "season";
-
-      if (isSeason) {
-        // 2. We are in Season mode. Use the captured season number.
-        if (currentSeasonNum) {
-          textToUse = `${t("runModes.manual.types.season")} ${currentSeasonNum}`;
-        }
-        // Fallback if the number is somehow blank, to prevent the show name from sneaking in
-        else if (!textToUse || textToUse.trim() === "") {
-          textToUse = t("runModes.manual.types.season");
-        }
-      }
-      // 3. ONLY if it's NOT a season poster, fall back to the extracted show title
-      else if (!textToUse || textToUse.trim() === "") {
-        textToUse = title;
+      // ONLY populate the extracted folder title if we are NOT in season mode,
+      // AND the text box is currently empty.
+      if (prevForm.posterType !== "season" && (!finalTitle || finalTitle.trim() === "")) {
+        finalTitle = title;
       }
 
       return {
         ...prevForm,
         folderName,
-        titletext: textToUse
+        titletext: finalTitle
       };
     });
 
@@ -1273,7 +1258,12 @@ function RunModes() {
       if (tmdbSearch.episodeNumber) {
         requestBody.episode_number = parseInt(tmdbSearch.episodeNumber);
       }
-
+      if (manualForm.posterType === "season" && tmdbSearch.seasonNumber) {
+        setManualForm(prev => ({
+          ...prev,
+          titletext: `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`
+        }));
+      }
       // Use the multi-provider endpoint
       const response = await fetch(`${API_URL}/assets/fetch-replacements`, {
         method: "POST",
