@@ -634,20 +634,26 @@ function RunModes() {
 
   // Handle folder selection
   const handleFolderSelect = (folderName, title) => {
+    // Capture the season number directly from your tmdbSearch state BEFORE the updater
+    const currentSeasonNum = tmdbSearch.seasonNumber;
+
     setManualForm((prevForm) => {
       let textToUse = prevForm.titletext;
+
+      // 1. Determine if this is a season poster
       const isSeason = prevForm.posterType === "season" || prevForm.asset_type === "season";
 
       if (isSeason) {
-        const seasonNum = prevForm.seasonNumber || prevForm.season_number || (typeof tmdbSearch !== 'undefined' ? tmdbSearch.seasonNumber : null);
-
-        if (seasonNum) {
-          textToUse = `${t("runModes.manual.types.season")} ${seasonNum}`;
+        // 2. We are in Season mode. Use the captured season number.
+        if (currentSeasonNum) {
+          textToUse = `${t("runModes.manual.types.season")} ${currentSeasonNum}`;
         }
+        // Fallback if the number is somehow blank, to prevent the show name from sneaking in
         else if (!textToUse || textToUse.trim() === "") {
           textToUse = t("runModes.manual.types.season");
         }
       }
+      // 3. ONLY if it's NOT a season poster, fall back to the extracted show title
       else if (!textToUse || textToUse.trim() === "") {
         textToUse = title;
       }
