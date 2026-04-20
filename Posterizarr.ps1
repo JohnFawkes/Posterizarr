@@ -51,7 +51,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.38"
+$CurrentScriptVersion = "2.2.39"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -137,7 +137,7 @@ function GetTMDBLogo {
         if ($response) {
             if ($response.images.logos) {
                 foreach ($lang in $global:LogoLanguageOrder) {
-                    if ($lang -ne 'null' -or $lang -ne 'xx') {
+                    if ($lang -ne 'null' -and $lang -ne 'xx') {
                         if ($global:UseClearlogo -eq 'true'){
                             $FavPoster = ($response.images.logos | Where-Object iso_639_1 -eq $lang)
                         }
@@ -151,7 +151,7 @@ function GetTMDBLogo {
                             $posterpath = (($FavPoster | Sort-Object $global:TMDBVoteSorting -Descending)[0]).file_path
                         }
                         $global:LogoUrl = "https://image.tmdb.org/t/p/original$posterpath"
-                        if ($lang -ne 'null' -or $lang -ne 'xx') {
+                        if ($lang -ne 'null' -and $lang -ne 'xx') {
                             Write-Entry -Subtext "Found Logo with Language '$lang' on TMDB" -Path $global:configLogging -Color Blue -log Info
                         }
                         $global:LogoLanguage = $lang
@@ -9145,77 +9145,117 @@ if ($Manual) {
             Write-Entry -Message "Manual Mode: Updating Media Server artwork..." -Path $global:configLogging -Color Cyan -log Info
 
             $FinalTargetID = $null
-            # If BackgroundCard is true, we use "Backdrop" for Emby/Jelly and "arts" for Plex
             $FinalImageType = if ($BackgroundCard) { "Backdrop" } else { "Primary" }
 
-            # 1. IDENTIFY BASE ITEM (MOVIE OR SHOW)
+            Write-Entry -Subtext "Target Image Type: $FinalImageType | PosterType: $PosterType" -Path $global:configLogging -Color Cyan -log Debug
+
             if ($UsePlex -eq 'true') {
                 $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($Titletext))"
                 if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
+
+                Write-Entry -Subtext "Plex Search URI: $(RedactMediaServerUrl -url $searchUrl)" -Path $global:configLogging -Color Cyan -log Debug
+
                 [xml]$searchXml = (Invoke-WebRequest $searchUrl -Headers $extraPlexHeaders -ErrorAction SilentlyContinue).content
 
-                # If it's a Movie Background or Movie Poster, look for 'video' type
-                # If it's a Show Background or Show/Season/Episode asset, look for 'directory' type
                 if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) {
                     $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
                 } else {
                     $baseItem = $searchXml.MediaContainer.directory | Where-Object { $_.type -eq 'show' -and $_.librarySectionTitle -eq $LibraryName }
                 }
-                $FinalTargetID = $baseItem.ratingKey
+
+                if (-not $baseItem -and -not ($MoviePosterCard)) {
+                    Write-Entry -Subtext "Plex match failed for Show '$Titletext'. Retrying search as 'movie' type..." -Path $global:configLogging -Color Yellow -log Info
+                    $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
+                }
+
+                if ($baseItem) {
+                    $FinalTargetID = $baseItem.ratingKey
+                    Write-Entry -Subtext "Base Item Found: $($baseItem.title) (RatingKey: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
+                } else {
+                    Write-Entry -Message "No Plex match found for '$Titletext' in library '$LibraryName'." -Path $global:configLogging -Color Red -log Error
+                    $FinalTargetID = $null
+                }
             }
             elseif ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
                 $SearchType = if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) { "Movie" } else { "Series" }
-                $searchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=$SearchType&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+                $searchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=$SearchType&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+
+                Write-Entry -Subtext "JF/Emby Search URI: $(RedactMediaServerUrl -url $searchUri)" -Path $global:configLogging -Color Cyan -log Debug
                 $results = Invoke-RestMethod -Uri $searchUri
 
-                # Validate against folder name for precision
                 $baseItem = $results.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
-                if (-not $baseItem) { $baseItem = $results.Items[0] }
-                $FinalTargetID = $baseItem.Id
-            }
 
-            # 2. DRILL DOWN (ONLY FOR SEASONS/EPISODES)
-            # Backgrounds and Standard Posters stay at the "BaseItem" level
-            if ($null -ne $FinalTargetID) {
-                if ($SeasonPoster) {
-                    if ($UsePlex -eq 'true') {
-                        [xml]$children = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
-                        $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
-                    } else {
-                        $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
-                        $FinalTargetID = ($seasons.Items | Where-Object { [int]$_.IndexNumber -eq [int]$global:SeasonNumber }).Id
+                if (-not $baseItem -and $SearchType -eq "Series") {
+                    Write-Entry -Subtext "Precision match failed for Series '$FolderName'. Retrying search as 'Movie' type..." -Path $global:configLogging -Color Yellow -log Info
+
+                    $retrySearchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Fields=Path&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+                    $retryResults = Invoke-RestMethod -Uri $retrySearchUri
+                    $baseItem = $retryResults.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
+
+                    if ($baseItem) {
+                        Write-Entry -Subtext "Successfully recovered! Found precise Movie match: $($baseItem.Name)" -Path $global:configLogging -Color Green -log Info
+                        $SearchType = "Movie"
                     }
                 }
+                if (-not $baseItem) {
+                    Write-Entry -Message "No precise path match found for '$FolderName' as Series or Movie." -Path $global:configLogging -Color Red -log Error
+                    Write-Entry -Subtext "Aborting upload to prevent applying artwork to incorrect media item." -Path $global:configLogging -Color Yellow -log Warning
+
+                    $FinalTargetID = $null
+                } else {
+                    $FinalTargetID = $baseItem.Id
+                    Write-Entry -Subtext "Base Item Found: $($baseItem.Name) (ID: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
+                }
+            }
+
+            if ($null -ne $FinalTargetID) {
+                if ($SeasonPoster) {
+                    Write-Entry -Subtext "Drilling down to Season $global:SeasonNumber" -Path $global:configLogging -Color Cyan -log Debug
+                    if ($UsePlex -eq 'true') {
+                        $drillUri = "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken"
+                        [xml]$children = (Invoke-WebRequest $drillUri -Headers $extraPlexHeaders).content
+                        $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
+                    } else {
+                        $drillUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&api_key=$OtherMediaServerApiKey"
+                        $seasons = Invoke-RestMethod -Uri $drillUri
+                        $FinalTargetID = ($seasons.Items | Where-Object { [int]$_.IndexNumber -eq [int]$global:SeasonNumber }).Id
+                    }
+                    Write-Entry -Subtext "Resolved Season ID: $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
+                }
                 elseif ($TitleCard) {
+                    Write-Entry -Subtext "Drilling down to Episode S$($global:SeasonNumber)E$($global:EpisodeNumber)" -Path $global:configLogging -Color Cyan -log Debug
                     if ($UsePlex -eq 'true') {
                         [xml]$seasonsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
                         $seasonKey = ($seasonsXml.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
+
                         [xml]$epsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$seasonKey/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
                         $FinalTargetID = ($epsXml.MediaContainer.video | Where-Object { [int]$_.index -eq [int]$global:EpisodeNumber }).ratingKey
                     } else {
-                        $eps = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Recursive=true&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                        $epsUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                        $eps = Invoke-RestMethod -Uri $epsUri
                         $FinalTargetID = ($eps.Items | Where-Object { [int]$_.ParentIndexNumber -eq [int]$global:SeasonNumber -and [int]$_.IndexNumber -eq [int]$global:EpisodeNumber }).Id
                     }
+                    Write-Entry -Subtext "Resolved Episode ID: $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
                 }
 
-                # 3. FINAL UPLOAD
                 if ($null -ne $FinalTargetID) {
                     if ($UsePlex -eq 'true') {
                         try {
                             $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
-                            # Switch endpoint based on Background vs Poster
                             $plexTargetType = if ($BackgroundCard) { "arts" } else { "posters" }
                             $uri = "$PlexUrl/library/metadata/$FinalTargetID/$($plexTargetType)"
                             if ($PlexToken) { $uri += "?X-Plex-Token=$PlexToken" }
 
+                            Write-Entry -Subtext "Attempting Plex Post to: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                             $Upload = Invoke-WebRequest -Uri $uri -Method Post -Headers $extraPlexHeaders -Body $fileContent -ContentType 'application/octet-stream' -ErrorAction Stop
+
                             Write-Entry -Subtext "Manual Plex Upload Success: $PosterImage" -Path $global:configLogging -Color Green -log Info
-                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                             $UploadCount++
                         } catch {
                             Write-Entry -Subtext "Manual Plex Upload Failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                         }
                     } else {
+                        Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
                         UploadOtherMediaServerArtwork -itemId $FinalTargetID -imageType $FinalImageType -imagePath $PosterImage
                         $UploadCount++
                     }
@@ -18844,7 +18884,7 @@ Elseif ($ArrTrigger) {
                                                     }
                                                     # Resize Image to 2000x3000 and apply Border and overlay
                                                     if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
-                                                        $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
+                                                        $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                         Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                     }
                                                     elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
@@ -18852,7 +18892,7 @@ Elseif ($ArrTrigger) {
                                                         Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                     }
                                                     elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
-                                                        $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                         Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                     }
                                                     else {
@@ -30601,7 +30641,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 }
                                                 # Resize Image to 2000x3000 and apply Border and overlay
                                                 if ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'true') {
-                                                    $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
+                                                    $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite -shave `"$Seasonborderwidthsecond`"  -bordercolor `"$Seasonbordercolor`" -border `"$Seasonborderwidth`" `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Borders | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                 }
                                                 elseif ($LocalAddBorder -eq 'true' -and $LocalAddOverlay -eq 'false') {
@@ -30609,7 +30649,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     Write-Entry -Subtext "Resizing it | Adding Borders" -Path $global:configLogging -Color White -log Info
                                                 }
                                                 elseif ($LocalAddBorder -eq 'false' -and $LocalAddOverlay -eq 'true') {
-                                                    $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Posteroverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                    $Arguments = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$Seasonoverlay`" -gravity south -quality $global:outputQuality -composite `"$SeasonImage`""
                                                     Write-Entry -Subtext "Resizing it | Adding Overlay" -Path $global:configLogging -Color White -log Info
                                                 }
                                                 else {

@@ -2153,6 +2153,7 @@ class ManualModeRequest(BaseModel):
     seasonPosterName: str = ""
     epTitleName: str = ""
     episodeNumber: str = ""
+    mediaType: str = ""
     add_to_queue: bool = False
 
 
@@ -10999,6 +11000,7 @@ async def upload_asset_replacement(
     episode_number: Optional[str] = Query(None),
     episode_title: Optional[str] = Query(None),
     asset_type: Optional[str] = Query(None),
+    mediaType: Optional[str] = Query(None),
 ):
     """
     Replace an asset with an uploaded image
@@ -11086,6 +11088,7 @@ async def upload_asset_replacement(
                     "episode_number": episode_number,
                     "episode_title": episode_title,
                     "asset_type": asset_type,
+                    "mediaType": mediaType,
                     "process_with_overlays": process_with_overlays
                 }
 
@@ -11385,8 +11388,11 @@ async def upload_asset_replacement(
                     elif "background" in filename or "backdrop" in filename:
                         command.extend(["-BackgroundCard"])
 
-                    # Default: Standard poster
-                    # No additional flags needed
+                    elif mediaType == "movie":
+                        command.extend(["-MoviePosterCard"])
+
+                    elif mediaType == "show":
+                        command.extend(["-ShowPosterCard"])
 
                     logger.info(
                         f"Starting Manual Run for overlay processing: {' '.join(command)}"
@@ -11745,6 +11751,7 @@ async def replace_asset_from_url(
     episode_number: Optional[str] = Query(None),
     episode_title: Optional[str] = Query(None),
     asset_type: Optional[str] = Query(None),
+    mediaType: Optional[str] = Query(None),
 ):
     """
     Replace an asset by downloading from a URL
@@ -11775,6 +11782,7 @@ async def replace_asset_from_url(
                     "episode_number": episode_number,
                     "episode_title": episode_title,
                     "asset_type": asset_type,
+                    "mediaType": mediaType,
                     "process_with_overlays": process_with_overlays
                 }
 
@@ -11984,6 +11992,7 @@ async def replace_asset_from_url(
                         folderName=final_folder_name,
                         libraryName=final_library_name,
                         posterType=poster_type,
+                        mediaType=mediaType,
                         seasonPosterName=season_poster_name or "",
                         epTitleName=ep_title_name or "",
                         episodeNumber=ep_number or "",
@@ -12121,6 +12130,11 @@ async def trigger_manual_run_internal(request: ManualModeRequest):
                 request.libraryName.strip(),
             ]
         )
+        if request.mediaType == "movie":
+            command.extend(["-MoviePosterCard"])
+
+        elif request.mediaType == "show":
+            command.extend(["-ShowPosterCard"])
 
     logger.info(f"Starting Manual Run: {' '.join(command)}")
 
