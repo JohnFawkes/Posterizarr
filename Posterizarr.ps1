@@ -9145,12 +9145,10 @@ if ($Manual) {
             Write-Entry -Message "Manual Mode: Updating Media Server artwork..." -Path $global:configLogging -Color Cyan -log Info
 
             $FinalTargetID = $null
-            # If BackgroundCard is true, we use "Backdrop" for Emby/Jelly and "arts" for Plex
             $FinalImageType = if ($BackgroundCard) { "Backdrop" } else { "Primary" }
 
             Write-Entry -Subtext "Target Image Type: $FinalImageType | PosterType: $PosterType" -Path $global:configLogging -Color Cyan -log Debug
 
-            # 1. IDENTIFY BASE ITEM (MOVIE OR SHOW)
             if ($UsePlex -eq 'true') {
                 $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($Titletext))"
                 if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
@@ -9159,17 +9157,24 @@ if ($Manual) {
 
                 [xml]$searchXml = (Invoke-WebRequest $searchUrl -Headers $extraPlexHeaders -ErrorAction SilentlyContinue).content
 
-                # If it's a Movie Background or Movie Poster, look for 'video' type
-                # If it's a Show Background or Show/Season/Episode asset, look for 'directory' type
                 if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) {
-                    Write-Entry -Subtext "Searching Plex for 'movie' type in library '$LibraryName'" -Path $global:configLogging -Color Cyan -log Debug
                     $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
                 } else {
-                    Write-Entry -Subtext "Searching Plex for 'show' type in library '$LibraryName'" -Path $global:configLogging -Color Cyan -log Debug
                     $baseItem = $searchXml.MediaContainer.directory | Where-Object { $_.type -eq 'show' -and $_.librarySectionTitle -eq $LibraryName }
                 }
-                $FinalTargetID = $baseItem.ratingKey
-                Write-Entry -Subtext "Base Item Found: $($baseItem.title) (RatingKey: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
+
+                if (-not $baseItem -and -not ($MoviePosterCard)) {
+                    Write-Entry -Subtext "Plex match failed for Show '$Titletext'. Retrying search as 'movie' type..." -Path $global:configLogging -Color Yellow -log Info
+                    $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
+                }
+
+                if ($baseItem) {
+                    $FinalTargetID = $baseItem.ratingKey
+                    Write-Entry -Subtext "Base Item Found: $($baseItem.title) (RatingKey: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
+                } else {
+                    Write-Entry -Message "No Plex match found for '$Titletext' in library '$LibraryName'." -Path $global:configLogging -Color Red -log Error
+                    $FinalTargetID = $null
+                }
             }
             elseif ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
                 $SearchType = if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) { "Movie" } else { "Series" }
@@ -9178,19 +9183,31 @@ if ($Manual) {
                 Write-Entry -Subtext "JF/Emby Search URI: $(RedactMediaServerUrl -url $searchUri)" -Path $global:configLogging -Color Cyan -log Debug
                 $results = Invoke-RestMethod -Uri $searchUri
 
-                # Validate against folder name for precision
                 $baseItem = $results.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
 
-                if (-not $baseItem) {
-                    Write-Entry -Subtext "Precision match failed for '$FolderName', falling back to first search result." -Path $global:configLogging -Color Cyan -log Debug
-                    $baseItem = $results.Items[0]
-                }
+                if (-not $baseItem -and $SearchType -eq "Series") {
+                    Write-Entry -Subtext "Precision match failed for Series '$FolderName'. Retrying search as 'Movie' type..." -Path $global:configLogging -Color Yellow -log Info
 
-                $FinalTargetID = $baseItem.Id
-                Write-Entry -Subtext "Base Item Found: $($baseItem.Name) (ID: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
+                    $retrySearchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Fields=Path&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+                    $retryResults = Invoke-RestMethod -Uri $retrySearchUri
+                    $baseItem = $retryResults.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
+
+                    if ($baseItem) {
+                        Write-Entry -Subtext "Successfully recovered! Found precise Movie match: $($baseItem.Name)" -Path $global:configLogging -Color Green -log Info
+                        $SearchType = "Movie"
+                    }
+                }
+                if (-not $baseItem) {
+                    Write-Entry -Message "No precise path match found for '$FolderName' as Series or Movie." -Path $global:configLogging -Color Red -log Error
+                    Write-Entry -Subtext "Aborting upload to prevent applying artwork to incorrect media item." -Path $global:configLogging -Color Yellow -log Warning
+
+                    $FinalTargetID = $null
+                } else {
+                    $FinalTargetID = $baseItem.Id
+                    Write-Entry -Subtext "Base Item Found: $($baseItem.Name) (ID: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
+                }
             }
 
-            # 2. DRILL DOWN (ONLY FOR SEASONS/EPISODES)
             if ($null -ne $FinalTargetID) {
                 if ($SeasonPoster) {
                     Write-Entry -Subtext "Drilling down to Season $global:SeasonNumber" -Path $global:configLogging -Color Cyan -log Debug
@@ -9221,7 +9238,6 @@ if ($Manual) {
                     Write-Entry -Subtext "Resolved Episode ID: $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
                 }
 
-                # 3. FINAL UPLOAD
                 if ($null -ne $FinalTargetID) {
                     if ($UsePlex -eq 'true') {
                         try {

@@ -11385,8 +11385,11 @@ async def upload_asset_replacement(
                     elif "background" in filename or "backdrop" in filename:
                         command.extend(["-BackgroundCard"])
 
-                    # Default: Standard poster
-                    # No additional flags needed
+                    elif asset_type == "movie":
+                        command.extend(["-MoviePosterCard"])
+
+                    elif asset_type == "show":
+                        command.extend(["-ShowPosterCard"])
 
                     logger.info(
                         f"Starting Manual Run for overlay processing: {' '.join(command)}"
