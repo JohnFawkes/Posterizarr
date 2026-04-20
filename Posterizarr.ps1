@@ -137,7 +137,7 @@ function GetTMDBLogo {
         if ($response) {
             if ($response.images.logos) {
                 foreach ($lang in $global:LogoLanguageOrder) {
-                    if ($lang -ne 'null' -or $lang -ne 'xx') {
+                    if ($lang -ne 'null' -and $lang -ne 'xx') {
                         if ($global:UseClearlogo -eq 'true'){
                             $FavPoster = ($response.images.logos | Where-Object iso_639_1 -eq $lang)
                         }
@@ -151,7 +151,7 @@ function GetTMDBLogo {
                             $posterpath = (($FavPoster | Sort-Object $global:TMDBVoteSorting -Descending)[0]).file_path
                         }
                         $global:LogoUrl = "https://image.tmdb.org/t/p/original$posterpath"
-                        if ($lang -ne 'null' -or $lang -ne 'xx') {
+                        if ($lang -ne 'null' -and $lang -ne 'xx') {
                             Write-Entry -Subtext "Found Logo with Language '$lang' on TMDB" -Path $global:configLogging -Color Blue -log Info
                         }
                         $global:LogoLanguage = $lang
