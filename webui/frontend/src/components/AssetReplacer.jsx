@@ -1156,9 +1156,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     try {
       let url = `${API_URL}/assets/upload-replacement?asset_path=${encodeURIComponent(
         asset.path
-      )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(
-        metadata.asset_type
-      )}`;
+      )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(metadata.asset_type)}&mediaType=${encodeURIComponent(metadata.mediaType)}`;
 
       if (processWithOverlays) {
         const titleText = manualForm?.titletext || metadata.title;
@@ -1376,9 +1374,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         asset.path
       )}&image_url=${encodeURIComponent(
         preview.original_url
-      )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(
-        metadata.asset_type
-      )}`;
+      )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(metadata.asset_type)}&mediaType=${encodeURIComponent(metadata.mediaType)}`;
 
       if (processWithOverlays && metadata.asset_type !== "titlecard") {
         const titleText = manualForm?.titletext || metadata.title;
