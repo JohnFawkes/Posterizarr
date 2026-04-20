@@ -2153,6 +2153,7 @@ class ManualModeRequest(BaseModel):
     seasonPosterName: str = ""
     epTitleName: str = ""
     episodeNumber: str = ""
+    mediaType: str = ""
     add_to_queue: bool = False
 
 
