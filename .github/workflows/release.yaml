@@ -1,10 +1,5 @@
 name: Release Posterizarr
 
-env:
-  # This silences the warning for softprops/action-gh-release,
-  # actions/checkout, and others by forcing the runner to use Node 24.
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 on:
   # Production releases
   release:
@@ -213,7 +208,7 @@ jobs:
 
       - name: Upload to GitHub Release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: release_package/Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip
           token: ${{ secrets.GITHUB_TOKEN }}

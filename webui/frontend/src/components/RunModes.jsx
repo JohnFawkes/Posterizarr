@@ -520,7 +520,6 @@ function RunModes() {
     searching: false,
     results: { tmdb: [], tvdb: [], fanart: [] }, // Changed to object with providers
     showModal: false,
-    // NEU: Season und Episode Felder
     seasonNumber: "",
     episodeNumber: "",
     // Pagination
@@ -635,13 +634,21 @@ function RunModes() {
 
   // Handle folder selection
   const handleFolderSelect = (folderName, title) => {
-    setManualForm((prevForm) => ({
-      ...prevForm,
-      folderName,
-      titletext: prevForm.titletext && prevForm.titletext.trim() !== ""
-        ? prevForm.titletext
-        : title
-    }));
+    setManualForm((prevForm) => {
+      let finalTitle = prevForm.titletext;
+
+      // ONLY populate the extracted folder title if we are NOT in season mode,
+      // AND the text box is currently empty.
+      if (prevForm.posterType !== "season" && (!finalTitle || finalTitle.trim() === "")) {
+        finalTitle = title;
+      }
+
+      return {
+        ...prevForm,
+        folderName,
+        titletext: finalTitle
+      };
+    });
 
     setShowFolderSelector(false);
     setFolderSearchQuery("");
@@ -1251,7 +1258,17 @@ function RunModes() {
       if (tmdbSearch.episodeNumber) {
         requestBody.episode_number = parseInt(tmdbSearch.episodeNumber);
       }
+      if (manualForm.posterType === "season" && tmdbSearch.seasonNumber) {
+        // 1. Create the text once
+        const seasonText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
 
+        // 2. Apply it to both fields
+        setManualForm(prev => ({
+          ...prev,
+          titletext: seasonText,
+          seasonPosterName: seasonText
+        }));
+      }
       // Use the multi-provider endpoint
       const response = await fetch(`${API_URL}/assets/fetch-replacements`, {
         method: "POST",
