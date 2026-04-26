@@ -66,7 +66,7 @@ All installation instructions, configuration guides, and advanced tutorials have
 
 Check out our awesome sponsors!
 
-<!-- sponsors --><a href="https://github.com/mlo-Tek"><img src="https:&#x2F;&#x2F;github.com&#x2F;mlo-Tek.png" width="60px" alt="User avatar: " /></a><!-- sponsors -->
+<!-- sponsors --><!-- sponsors -->
 
 ## Enjoy
 
