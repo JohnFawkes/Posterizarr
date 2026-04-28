@@ -7056,7 +7056,8 @@ function Send-SummaryNotification {
         [int]$PathsCleared,
         [string]$SavedSizeString,
         [int]$UploadCount,
-        [int]$MatchedCount
+        [int]$MatchedCount,
+        [string]$LibName
     )
 
     if (-not ($global:NotifyUrl -and $global:SendNotification -eq 'true')) {
@@ -7102,7 +7103,7 @@ function Send-SummaryNotification {
             $desc = "Recently added Run took: $FormattedTimespawn"
         }
         if ($ScriptMode -eq 'logoupdater') {
-            $desc = "Logo Updater Run took: $FormattedTimespawn"
+            $desc = "Logo Updater Run took: $FormattedTimespawn`nOn Lib - $LibName"
         }
 
         if ($ErrorCount -ge '1') {
@@ -32607,7 +32608,7 @@ Elseif ($LogoUpdater) {
     Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
 
     # Send Notification
-    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -matchedcount $matched -uploadcount $UploadCount
+    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -matchedcount $matched -uploadcount $UploadCount -LibName $LibraryName
 
     # Clear Running File
     if (Test-Path $CurrentlyRunning) {
