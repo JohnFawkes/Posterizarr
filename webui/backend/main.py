@@ -2139,6 +2139,9 @@ class ConfigUpdate(BaseModel):
 class ResetPostersRequest(BaseModel):
     library: str
 
+class LogoUpdaterRequest(BaseModel):
+    library: str
+    force_replace: bool = False
 
 class ManualModeRequest(BaseModel):
     model_config = {"extra": "ignore"}  # Ignore extra fields from frontend
@@ -7344,6 +7347,65 @@ async def reset_posters(request: ResetPostersRequest):
             raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             logger.error(f"Error resetting posters: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/run-logoupdater")
+async def run_logoupdater(request: LogoUpdaterRequest):
+    """Run LogoUpdater mode for a specific Plex library"""
+    global current_process, current_mode, current_start_time
+    with process_lock:
+        if current_process and current_process.poll() is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot run LogoUpdater while script is already running.",
+            )
+
+        if not SCRIPT_PATH.exists():
+            raise HTTPException(status_code=404, detail="Posterizarr.ps1 not found")
+
+        if not request.library or not request.library.strip():
+            raise HTTPException(status_code=400, detail="Library name is required")
+
+        import platform
+        if platform.system() == "Windows":
+            ps_command = "pwsh"
+            try:
+                subprocess.run([ps_command, "-v"], capture_output=True, check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                ps_command = "powershell"
+        else:
+            ps_command = "pwsh"
+
+        command = [
+            ps_command,
+            "-File",
+            str(SCRIPT_PATH),
+            "-LogoUpdater",
+            "-LibraryName",
+            request.library.strip(),
+        ]
+        
+        if request.force_replace:
+            command.append("-ForceReplace")
+
+        try:
+            logger.info(f"Running LogoUpdater for library: {request.library}")
+            current_process = subprocess.Popen(
+                command,
+                cwd=str(BASE_DIR),
+                stdout=None,
+                stderr=None,
+                text=True,
+            )
+            current_mode = "logoupdater"
+            current_start_time = datetime.now().isoformat()
+            return {
+                "success": True,
+                "message": f"Started LogoUpdater for library: {request.library}",
+                "pid": current_process.pid,
+            }
+        except Exception as e:
+            logger.error(f"Error running LogoUpdater: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
 

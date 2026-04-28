@@ -14,6 +14,8 @@ param (
     [switch]$MoviePosterCard, # Required for Manual Trigger
     [switch]$ShowPosterCard, # Required for Manual Trigger
     [switch]$BackgroundCard, # Required for Manual Trigger
+    [switch]$LogoUpdater, # Required for LogoUpdater Mode
+    [switch]$ForceReplace, # Force replace existing logos
     [switch]$UISchedule, # Required for UI Schedule trigger
     [switch]$ContainerSchedule, # Required for Container Schedule trigger
     [string]$PicturePath, # Required for Manual Trigger
@@ -51,7 +53,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.39"
+$CurrentScriptVersion = "2.2.40"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -7053,7 +7055,8 @@ function Send-SummaryNotification {
         [int]$ImagesCleared,
         [int]$PathsCleared,
         [string]$SavedSizeString,
-        [int]$UploadCount
+        [int]$UploadCount,
+        [int]$MatchedCount
     )
 
     if (-not ($global:NotifyUrl -and $global:SendNotification -eq 'true')) {
@@ -7063,11 +7066,15 @@ function Send-SummaryNotification {
     # 1. Handle Apprise (Docker)
     if ($global:NotifyUrl -notlike '*discord*' -and $env:POWERSHELL_DISTRIBUTION_CHANNEL -like 'PSDocker*') {
         $body = "Run took: $FormattedTimespawn`nIt Created '$PosterCount' Images"
+
         if ($ScriptMode -eq 'backup') {
             $body = "Run took: $FormattedTimespawn`nIt Downloaded '$PosterCount' Images"
         }
         if ($ScriptMode -eq 'syncjelly' -or $ScriptMode -eq 'syncemby') {
             $body = "Run took: $FormattedTimespawn`nIt Synced '$UploadCount' Images"
+        }
+        if ($ScriptMode -eq 'logoupdater') {
+            $body = "Run took: $FormattedTimespawn`nIt Matched '$MatchedCount' and Updated '$UploadCount' Logos"
         }
 
         if ($ErrorCount -ge '1') {
@@ -7094,6 +7101,9 @@ function Send-SummaryNotification {
         if ($ScriptMode -eq 'tautulli' -or $ScriptMode -eq 'arr') {
             $desc = "Recently added Run took: $FormattedTimespawn"
         }
+        if ($ScriptMode -eq 'logoupdater') {
+            $desc = "Logo Updater Run took: $FormattedTimespawn"
+        }
 
         if ($ErrorCount -ge '1') {
             $desc += "`nDuring execution Errors occurred, please check log."
@@ -7102,23 +7112,27 @@ function Send-SummaryNotification {
         # Build Fields
         $fieldList = [System.Collections.Generic.List[object]]::new()
 
-        # --- Stats Section ---
+        # Stats Section
         $fieldList.Add([PSCustomObject]@{ name = ""; value = ":bar_chart:"; inline = $false })
         if ($ScriptMode -eq 'testing') {
             $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $TruncatedCount; inline = $false })
         } else {
-            $fieldList.Add([PSCustomObject]@{ name = "Errors"; value = $ErrorCount; inline = $false })
-            $fieldList.Add([PSCustomObject]@{ name = "Fallbacks"; value = $FallbackCount; inline = $true })
-            $fieldList.Add([PSCustomObject]@{ name = "Textless"; value = $TextlessCount; inline = $true })
-            $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $TruncatedCount; inline = $true })
-            $fieldList.Add([PSCustomObject]@{ name = "Unknown"; value = $PosterUnknownCount; inline = $true })
-            if ($SkipTBA -eq 'true' -or $SkipJapTitle -eq 'true') {
-                $fieldList.Add([PSCustomObject]@{ name = "TBA Skipped"; value = $SkipTBACount; inline = $true })
-                $fieldList.Add([PSCustomObject]@{ name = "Jap/Chinese Skipped"; value = $SkipJapTitleCount; inline = $true })
+            if ($ScriptMode -eq 'logoupdater') {
+                $fieldList.Add([PSCustomObject]@{ name = "Errors"; value = $ErrorCount; inline = $false })
+            }Else {
+                $fieldList.Add([PSCustomObject]@{ name = "Errors"; value = $ErrorCount; inline = $false })
+                $fieldList.Add([PSCustomObject]@{ name = "Fallbacks"; value = $FallbackCount; inline = $true })
+                $fieldList.Add([PSCustomObject]@{ name = "Textless"; value = $TextlessCount; inline = $true })
+                $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $TruncatedCount; inline = $true })
+                $fieldList.Add([PSCustomObject]@{ name = "Unknown"; value = $PosterUnknownCount; inline = $true })
+                if ($SkipTBA -eq 'true' -or $SkipJapTitle -eq 'true') {
+                    $fieldList.Add([PSCustomObject]@{ name = "TBA Skipped"; value = $SkipTBACount; inline = $true })
+                    $fieldList.Add([PSCustomObject]@{ name = "Jap/Chinese Skipped"; value = $SkipJapTitleCount; inline = $true })
+                }
             }
         }
 
-        # --- Images Section ---
+        # Images / Logos Section
         $fieldList.Add([PSCustomObject]@{ name = ""; value = ":frame_photo:"; inline = $false })
         if ($ScriptMode -eq 'backup') {
             $fieldList.Add([PSCustomObject]@{ name = "Posters Downloaded"; value = ($PosterCount - $SeasonCount - $BackgroundCount - $EpisodeCount); inline = $false })
@@ -7130,6 +7144,9 @@ function Send-SummaryNotification {
             $fieldList.Add([PSCustomObject]@{ name = "Backgrounds Uploaded"; value = $BackgroundCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Seasons Uploaded"; value = $SeasonCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "TitleCards Uploaded"; value = $EpisodeCount; inline = $true })
+        } elseif ($ScriptMode -eq 'logoupdater') {
+            $fieldList.Add([PSCustomObject]@{ name = "Logos Matched"; value = $MatchedCount; inline = $true })
+            $fieldList.Add([PSCustomObject]@{ name = "Logos Updated"; value = $UploadCount; inline = $true })
         } else {
             if ($ScriptMode -eq 'testing') {
                 $fieldList.Add([PSCustomObject]@{ name = "Posters"; value = $posterscount; inline = $false })
@@ -7142,8 +7159,8 @@ function Send-SummaryNotification {
             $fieldList.Add([PSCustomObject]@{ name = "TitleCards"; value = $EpisodeCount; inline = $true })
         }
 
-        # --- Cleanup Section ---
-        if ($AssetCleanup -eq 'true' -and $ScriptMode -ne 'testing' -and $ScriptMode -ne 'backup' -and $ScriptMode -ne 'syncjelly' -and $ScriptMode -ne 'syncemby') {
+        # Cleanup Section
+        if ($AssetCleanup -eq 'true' -and $ScriptMode -ne 'testing' -and $ScriptMode -ne 'backup' -and $ScriptMode -ne 'syncjelly' -and $ScriptMode -ne 'syncemby' -and $ScriptMode -ne 'logoupdater') {
             $fieldList.Add([PSCustomObject]@{ name = ""; value = ":recycle:"; inline = $false })
             $fieldList.Add([PSCustomObject]@{ name = "Images cleared"; value = $ImagesCleared; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Folders Cleared"; value = $PathsCleared; inline = $true })
@@ -32290,6 +32307,321 @@ ElseIf ($PosterReset) {
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
             $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
+    }
+}
+#region LogoUpdater Mode
+Elseif ($LogoUpdater) {
+    $UploadCount = 0
+    $Mode = "logoupdater"
+    Write-Entry -Message "LogoUpdater Mode Started..." -Path $global:configLogging -Color White -log Info
+
+    if (-not $LibraryName) {
+        # Prompt for library
+        Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
+        $Libsoverview = [System.Collections.Generic.List[object]]::new()
+        foreach ($lib in $Libs.MediaContainer.Directory) {
+            if ($lib.title -notin $LibstoExclude -and ($lib.type -eq 'movie' -or $lib.type -eq 'show')) {
+                $libtemp = New-Object psobject
+                $libtemp | Add-Member -MemberType NoteProperty -Name "ID" -Value $lib.key
+                $libtemp | Add-Member -MemberType NoteProperty -Name "Name" -Value $lib.title
+                $libtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value $lib.type
+                $Libsoverview.Add($libtemp)
+            }
+        }
+
+        if ($Libsoverview.Count -eq 0) {
+            Write-Entry -Message "No suitable Movie or TV Show libraries found." -Path $global:configLogging -Color Red -log Error
+            HandleScriptExit -Message "No libs found for LogoUpdater"
+        }
+
+        Write-Host "Available Libraries:" -ForegroundColor Cyan
+        for ($i = 0; $i -lt $Libsoverview.Count; $i++) {
+            Write-Host "[$($i + 1)] $($Libsoverview[$i].Name) ($($Libsoverview[$i].Type))"
+        }
+
+        $selection = Read-Host "Please select a library number to scan (or press Enter to exit)"
+        if ([string]::IsNullOrWhiteSpace($selection)) {
+            Write-Entry -Message "Operation cancelled by user." -Path $global:configLogging -Color Yellow -log Info
+            HandleScriptExit -Message "Cancelled by user"
+        }
+
+        try {
+            $selInt = [int]$selection
+            if ($selInt -lt 1 -or $selInt -gt $Libsoverview.Count) { throw }
+            $LibraryName = $Libsoverview[$selInt - 1].Name
+        }
+        catch {
+            Write-Entry -Message "Invalid selection." -Path $global:configLogging -Color Red -log Error
+            HandleScriptExit -Message "Invalid library selection"
+        }
+    }
+
+    $SelectedLib = $Libs.MediaContainer.Directory | Where-Object { $_.title -eq $LibraryName }
+    if (-not $SelectedLib) {
+        Write-Entry -Message "Library '$LibraryName' not found." -Path $global:configLogging -Color Red -log Error
+        HandleScriptExit -Message "Library not found"
+    }
+
+    Write-Entry -Message "Processing library: $LibraryName ($($SelectedLib.type))" -Path $global:configLogging -Color Cyan -log Info
+
+    $PlexHeaders = @{}
+    if ($PlexToken) {
+        $PlexHeaders['X-Plex-Token'] = $PlexToken
+    }
+
+    # Fetch all items in library
+    $searchsize = 0
+    $totalContentSize = 1
+    $allItems = [System.Collections.Generic.List[object]]::new()
+
+    Write-Entry -Subtext "Fetching items from Plex..." -Path $global:configLogging -Color White -log Info
+    do {
+        $PlexHeaders['X-Plex-Container-Start'] = $searchsize
+        $PlexHeaders['X-Plex-Container-Size'] = '1000'
+
+        $response = Invoke-WebRequest -Uri "$PlexUrl/library/sections/$($SelectedLib.key)/all" -Headers $PlexHeaders
+        [xml]$additionalContent = $response.Content
+
+        if ($totalContentSize -eq 1) {
+            $totalContentSize = $additionalContent.MediaContainer.totalSize
+        }
+
+        $contentquery = if ($additionalContent.MediaContainer.video) { 'video' } else { 'Directory' }
+        foreach ($item in $additionalContent.MediaContainer.$contentquery) {
+            $allItems.Add($item)
+        }
+
+        $searchsize += [int]$additionalContent.MediaContainer.Size
+    } until ($searchsize -ge $totalContentSize)
+
+    Write-Entry -Subtext "Found $($allItems.Count) items. Checking for missing logos..." -Path $global:configLogging -Color Cyan -log Info
+
+    $matched = 0
+    $UploadCount = 0
+
+    foreach ($item in $allItems) {
+        $ratingKey = $item.ratingKey
+        $title = $item.title
+
+        # Check if item already has a clearLogo
+        $metadataResponse = Invoke-WebRequest -Uri "$PlexUrl/library/metadata/$ratingKey" -Headers $PlexHeaders
+        [xml]$metadataXml = $metadataResponse.Content
+
+        $hasLogo = $false
+
+        $mediaItem = if ($metadataXml.MediaContainer.Video) { $metadataXml.MediaContainer.Video } else { $metadataXml.MediaContainer.Directory }
+
+        if ($mediaItem.Image) {
+            foreach ($img in $mediaItem.Image) {
+                if ($img.type -eq 'clearLogo') {
+                    $hasLogo = $true
+                    break
+                }
+            }
+        }
+
+        if ($hasLogo) {
+            if ($ForceReplace) {
+                Write-Entry -Message "[$title] Logo exists but ForceReplace is enabled. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
+            } else {
+                Write-Entry -Subtext "[$title] Logo already exists. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+                continue
+            }
+        } else {
+            Write-Entry -Message "[$title] Missing Logo. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
+        }
+
+        # Reset IDs
+        $global:tmdbid = $null
+        $global:tvdbid = $null
+        $global:imdbid = $null
+        $global:LogoUrl = $null
+        $global:UseClearlogo = 'true'
+        $global:UseClearart = 'false'
+
+        # Extract IDs from GUIDs
+        if ($mediaItem.Guid) {
+            foreach ($guidNode in $mediaItem.Guid) {
+                $guid = $guidNode.id
+                if ($guid -match 'tmdb://(\d+)') { $global:tmdbid = $matches[1] }
+                if ($guid -match 'tvdb://(\d+)') { $global:tvdbid = $matches[1] }
+                if ($guid -match 'imdb://(tt\d+)') { $global:imdbid = $matches[1] }
+            }
+        }
+
+        if (-not $global:tmdbid -and -not $global:tvdbid -and -not $global:imdbid) {
+            Write-Entry -Subtext "[$title] Could not extract any IDs from Plex GUIDs." -Path $global:configLogging -Color Yellow -log Warning
+            continue
+        }
+
+        $mediaType = if ($SelectedLib.type -eq 'movie') { 'movie' } else { 'tv' }
+        $tvdbType = if ($SelectedLib.type -eq 'movie') { 'movies' } else { 'series' }
+        $fanartType = if ($SelectedLib.type -eq 'movie') { 'movies' } else { 'tv' }
+
+        # Try fetching logo
+        GetTMDBLogo -Type $mediaType | Out-Null
+        if (-not $global:LogoUrl) { GetTVDBLogo -Type $tvdbType | Out-Null }
+        if (-not $global:LogoUrl) { GetFanartLogo -Type $fanartType | Out-Null }
+
+        if ($global:LogoUrl) {
+            Write-Entry -Subtext "[$title] Found Logo URL: $global:LogoUrl" -Path $global:configLogging -Color Green -log Info
+            $matched++
+
+            # Download temporarily
+            $tempLogo = Join-Path $global:ScriptRoot -ChildPath "temp\logo_$ratingKey.png"
+            try {
+                # Download temporarily with fallback for SSL issues
+                try {
+                    Invoke-WebRequest -Uri $global:LogoUrl -OutFile $tempLogo -ErrorAction Stop
+                }
+                catch {
+                    if ($_.Exception.Message -like "*SSL*" -or $_.Exception.InnerException.Message -like "*SSL*") {
+                        Write-Entry -Subtext "[$title] Logo download SSL error. Retrying with explicit HttpClient..." -Path $global:configLogging -Color Yellow -log Warning
+                        try {
+                            # Ensure TLS is set for this thread
+                            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
+                            $handler = New-Object System.Net.Http.HttpClientHandler
+                            $handler.ServerCertificateCustomValidationCallback = { $true }
+                            $client = New-Object System.Net.Http.HttpClient($handler)
+                            $client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                            $response = $client.GetAsync($global:LogoUrl).GetAwaiter().GetResult()
+                            if ($response.IsSuccessStatusCode) {
+                                $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+                                [System.IO.File]::WriteAllBytes($tempLogo, $bytes)
+                            } else {
+                                throw "HttpClient download failed with status $($response.StatusCode)"
+                            }
+                        }
+                        catch {
+                            throw "Download fallback failed: $($_.Exception.Message)"
+                        }
+                        finally {
+                            if ($client) { $client.Dispose() }
+                        }
+                    }
+                    else {
+                        throw $_
+                    }
+                }
+
+                # Upload to Plex ClearLogo endpoint
+                $fileContent = [System.IO.File]::ReadAllBytes($tempLogo)
+                $uploadUri = if ($PlexToken) {
+                    "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
+                }
+                Else {
+                    "$PlexUrl/library/metadata/$ratingKey/clearLogos"
+                }
+
+                Write-Entry -Subtext "[$title] Uploading Logo to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
+
+                $UploadSuccess = $false
+                try {
+                    $Upload = Invoke-WebRequest -Uri $uploadUri `
+                        -Method Post `
+                        -Headers $extraPlexHeaders `
+                        -Body $fileContent `
+                        -ContentType 'application/octet-stream' `
+                        -SkipHttpErrorCheck `
+                        -ErrorAction Stop
+
+                    if ($Upload.StatusCode -eq 200 -or $Upload.StatusCode -eq 201) {
+                        $UploadSuccess = $true
+                    } else {
+                        Write-Entry -Subtext "[$title] Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan -log Debug
+                    }
+                }
+                catch {
+                    if ($_.Exception.Message -like "*SSL*" -or $_.Exception.InnerException.Message -like "*SSL*") {
+                        Write-Entry -Subtext "[$title] Upload SSL error. Retrying with explicit HttpClient..." -Path $global:configLogging -Color Yellow -log Warning
+                        try {
+                            # Ensure TLS is set for this thread
+                            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
+                            $handler = New-Object System.Net.Http.HttpClientHandler
+                            $handler.ServerCertificateCustomValidationCallback = { $true }
+                            $client = New-Object System.Net.Http.HttpClient($handler)
+                            $client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+                            if ($extraPlexHeaders) {
+                                foreach ($key in $extraPlexHeaders.Keys) {
+                                    if ($key -ne "Content-Type" -and $key -ne "User-Agent") {
+                                        $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+                                    }
+                                }
+                            }
+
+                            $content = New-Object System.Net.Http.ByteArrayContent($fileContent)
+                            $content.Headers.ContentType = New-Object System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream")
+
+                            $response = $client.PostAsync($uploadUri, $content).GetAwaiter().GetResult()
+                            if ($response.IsSuccessStatusCode) {
+                                $UploadSuccess = $true
+                            } else {
+                                $respBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+                                Write-Entry -Subtext "[$title] HttpClient upload failed: $($response.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                Write-Entry -Subtext "Response: $respBody" -Path $global:configLogging -Color Cyan -log Debug
+                            }
+                        }
+                        catch {
+                            Write-Entry -Subtext "[$title] HttpClient upload fallback failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        }
+                        finally {
+                            if ($client) { $client.Dispose() }
+                        }
+                    }
+                    else {
+                        throw $_
+                    }
+                }
+
+                if ($UploadSuccess) {
+                    Write-Entry -Subtext "[$title] Logo uploaded successfully!" -Path $global:configLogging -Color Green -log Info
+                    $UploadCount++
+                }
+            }
+            catch {
+                Write-Entry -Subtext "[$title] Processing failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            }
+            finally {
+                if (Test-Path $tempLogo) {
+                    Remove-Item -LiteralPath $tempLogo -Force
+                }
+            }
+        }
+        else {
+            Write-Entry -Subtext "[$title] No Logo found online." -Path $global:configLogging -Color Yellow -log Warning
+        }
+    }
+    $endTime = Get-Date
+    $executionTime = New-TimeSpan -Start $startTime -End $endTime
+    # Format the execution time
+    $hours = [math]::Floor($executionTime.TotalHours)
+    $minutes = $executionTime.Minutes
+    $seconds = $executionTime.Seconds
+    $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
+
+    Write-Entry -Message "LogoUpdater Finished!" -Path $global:configLogging -Color Green -log Info
+    Write-Entry -Subtext "Matched items: $matched | Uploaded logos: $UploadCount | Errors: $errorCount" -Path $global:configLogging -Color White -log Info
+    Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
+
+    # Send Notification
+    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -matchedcount $matched -uploadcount $UploadCount
+
+    # Clear Running File
+    if (Test-Path $CurrentlyRunning) {
+        try {
+            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+        }
+    }
+    if ($global:UptimeKumaUrl) {
+        Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
     }
 }
 #region Normal Mode

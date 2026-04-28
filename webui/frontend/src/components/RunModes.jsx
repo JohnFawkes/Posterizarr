@@ -44,6 +44,7 @@ const getLogFileForMode = (mode) => {
     syncemby: "Scriptlog.log",
     reset: "Scriptlog.log",
     scheduled: "Scriptlog.log",
+    logoupdater: "Scriptlog.log",
   };
   return logMapping[mode] || "Scriptlog.log";
 };
@@ -511,6 +512,9 @@ function RunModes() {
   const [showJellyfinSyncModal, setShowJellyfinSyncModal] = useState(false);
   const [showEmbySyncModal, setShowEmbySyncModal] = useState(false);
   const [showBackupModeModal, setShowBackupModeModal] = useState(false);
+  const [showLogoUpdaterModal, setShowLogoUpdaterModal] = useState(false);
+  const [logoUpdaterLibrary, setLogoUpdaterLibrary] = useState("");
+  const [forceLogoReplace, setForceLogoReplace] = useState(false);
 
   // TMDB Poster Search State (now multi-provider)
   const [tmdbSearch, setTmdbSearch] = useState({
@@ -694,7 +698,11 @@ function RunModes() {
 
   // Handle library selection
   const handleLibrarySelect = (libraryName) => {
-    setManualForm({ ...manualForm, libraryName, folderName: "" });
+    if (showLogoUpdaterModal) {
+      setLogoUpdaterLibrary(libraryName);
+    } else {
+      setManualForm({ ...manualForm, libraryName, folderName: "" });
+    }
     setShowLibrarySelector(false);
     setLibrarySearchQuery("");
     showSuccess(`Library "${libraryName}" selected`);
@@ -1852,6 +1860,154 @@ function RunModes() {
     }
   };
 
+  // Logo Updater Modal Component
+  const LogoUpdaterModal = () => {
+    if (!showLogoUpdaterModal) return null;
+
+    const startLogoUpdater = async () => {
+      if (!logoUpdaterLibrary.trim()) {
+        showError("Please select a library first");
+        return;
+      }
+
+      if (status.running) {
+        showError("Script is already running");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/run-logoupdater`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            library: logoUpdaterLibrary,
+            force_replace: forceLogoReplace 
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          showSuccess(data.message);
+          setShowLogoUpdaterModal(false);
+          setLogoUpdaterLibrary("");
+          fetchStatus();
+
+          const logFile = getLogFileForMode("logoupdater");
+          const logExists = await waitForLogFile(logFile);
+          navigate("/logs", { state: { logFile: logFile } });
+        } else {
+          showError(`Error: ${data.detail || data.message || "Failed to start Logo Updater"}`);
+        }
+      } catch (error) {
+        showError(`Error: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-theme-card border border-theme-primary rounded-xl max-w-lg w-full shadow-2xl animate-in fade-in duration-200">
+          <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
+            <div className="flex items-center">
+              <ImageIcon className="w-6 h-6 mr-3 text-white" />
+              <h3 className="text-xl font-bold text-white">Logo Updater Mode</h3>
+            </div>
+            <button
+              onClick={() => setShowLogoUpdaterModal(false)}
+              className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded">
+              <p className="text-blue-200 font-medium mb-2">
+                {t("runModes.logoUpdater.info")}
+              </p>
+              <p className="text-blue-100 text-sm">
+                {t("runModes.logoUpdater.subtitle")}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-theme-text mb-2">
+                {t("runModes.logoUpdater.selectLibrary")} <span className="text-red-400">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={logoUpdaterLibrary}
+                  onChange={(e) => setLogoUpdaterLibrary(e.target.value)}
+                  placeholder="e.g. Movies, TV Shows"
+                  disabled={loading || status.running}
+                  className="flex-1 px-3 py-2 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50"
+                />
+                <button
+                  onClick={loadLibraryItems}
+                  disabled={loadingLibraries || loading || status.running}
+                  className="px-4 py-2 bg-theme-hover hover:bg-theme-primary/20 text-theme-text border border-theme hover:border-theme-primary rounded-lg transition-all flex items-center gap-2"
+                >
+                  {loadingLibraries ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FolderOpen className="w-4 h-4" />
+                  )}
+                  {t("runModes.logoUpdater.browse")}
+                </button>
+              </div>
+            </div>
+
+            {/* Force Replace Toggle */}
+            <div className="flex items-center justify-between p-4 bg-theme-bg/50 border border-theme rounded-lg group hover:border-theme-primary/50 transition-all cursor-pointer" onClick={() => !loading && !status.running && setForceLogoReplace(!forceLogoReplace)}>
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg transition-colors ${forceLogoReplace ? 'bg-orange-500/10 text-orange-500' : 'bg-theme-primary/10 text-theme-muted'}`}>
+                  <RefreshCw className={`w-5 h-5 ${forceLogoReplace ? 'animate-spin-slow' : ''}`} />
+                </div>
+                <div>
+                  <p className="font-medium text-theme-text">{t("runModes.logoUpdater.forceReplace")}</p>
+                  <p className="text-xs text-theme-muted">{t("runModes.logoUpdater.forceReplaceDesc")}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${forceLogoReplace ? 'bg-orange-600' : 'bg-gray-700'}`}
+                disabled={loading || status.running}
+              >
+                <span
+                  className={`${forceLogoReplace ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                />
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowLogoUpdaterModal(false)}
+                className="px-4 py-2 bg-theme-hover hover:bg-theme-bg text-theme-text border border-theme rounded-lg transition-all"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={startLogoUpdater}
+                disabled={!logoUpdaterLibrary.trim() || loading || status.running}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+                {t("runModes.logoUpdater.start")}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const hints = getHints(manualForm.posterType);
 
   return (
@@ -1869,6 +2025,7 @@ function RunModes() {
       <JellyfinSyncModal />
       <EmbySyncModal />
       <BackupModeModal />
+      <LogoUpdaterModal />
 
       {/* TMDB Modal - Now with stable props */}
       <TMDBPosterSearchModal
@@ -1935,7 +2092,7 @@ function RunModes() {
           {t("runModes.quickRun.title")}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {/* Normal Mode */}
           <button
             onClick={() => runScript("normal")}
@@ -2008,6 +2165,21 @@ function RunModes() {
             </h3>
             <p className="text-sm text-theme-muted text-center">
               {t("runModes.quickRun.syncEmby.description")}
+            </p>
+          </button>
+
+          {/* Logo Updater Mode */}
+          <button
+            onClick={() => setShowLogoUpdaterModal(true)}
+            disabled={loading || status.running}
+            className="flex flex-col items-center justify-center p-6 bg-theme-hover hover:bg-theme-primary/20 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 rounded-lg border border-theme-primary/30 hover:border-theme-primary transition-all group"
+          >
+            <ImageIcon className="w-8 h-8 text-blue-500 mb-3 group-hover:scale-110 transition-transform" />
+            <h3 className="font-semibold text-theme-text mb-1">
+              {t("runModes.quickRun.logoUpdater.title")}
+            </h3>
+            <p className="text-sm text-theme-muted text-center">
+              {t("runModes.quickRun.logoUpdater.description")}
             </p>
           </button>
         </div>
