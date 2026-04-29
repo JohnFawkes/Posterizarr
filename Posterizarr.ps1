@@ -1089,6 +1089,103 @@ function Reset-PlexLibraryPictures {
         Start-Sleep -Seconds 1  # Avoid hammering server
     }
 }
+function Reset-PlexLibraryLogos {
+    param (
+        [string]$LibraryName
+    )
+
+    # Fetch the sections of the Plex library
+    try {
+        if ($PlexToken) {
+            $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections?X-Plex-Token=$PlexToken"
+        }
+        Else {
+            $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections"
+        }
+    }
+    catch {
+        Write-Entry -Subtext "Error fetching sections: $_" -Path "$global:configLogging" -Color Red -log Error
+        return
+    }
+
+    $section = $sections.MediaContainer.Directory | Where-Object { $_.title -eq $LibraryName }
+
+    if (-not $section) {
+        Write-Entry -Subtext "Library not found: $LibraryName" -Path "$global:configLogging" -Color Red -log Error
+        return
+    }
+
+    # Determine Container URL
+    if ($section.type -eq "show") {
+        $ContainerUrl = "directory"
+    }
+    Else {
+        $ContainerUrl = "video"
+    }
+
+    $PlexHeaders = @{}
+    $PlexHeaders['X-Plex-Container-Size'] = '1000'
+    if ($PlexToken) { $PlexHeaders['X-Plex-Token'] = $PlexToken }
+
+    # Fetch all items in the library
+    try {
+        $url = "$PlexUrl/library/sections/$($section.key)/all"
+        $items = Invoke-RestMethod -Uri $url -Headers $PlexHeaders
+    }
+    catch {
+        Write-Entry -Subtext "Error fetching library items: $_" -Path "$global:configLogging" -Color Red -log Error
+        return
+    }
+
+    foreach ($item in $items.MediaContainer.$ContainerUrl) {
+        $title = $item.title
+        $ratingKey = $item.ratingKey
+        Write-Entry -Message "Current Show/Movie: $title [$ratingKey]" -Path "$global:configLogging" -Color Cyan -log Debug
+        # Get logos for the main show/movie
+        try {
+            $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos?"
+            $logos = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
+        }
+        catch {
+            Write-Entry -Subtext "Error fetching logos for [$title]: $_" -Path "$global:configLogging" -Color Red -log Error
+            continue
+        }
+
+        if ($logos.MediaContainer.Photo.Count -gt 0) {
+
+            $defaultLogoKey = $null
+
+            # Find the first official metadata/http logo (avoids re-selecting an upload:// logo)
+            foreach ($logo in $logos.MediaContainer.Photo) {
+                if ($logo.ratingKey -match "^metadata://" -or $logo.ratingKey -match "^https?://") {
+                    # Strip the prefix just like the poster script does
+                    $defaultLogoKey = $logo.ratingKey -replace "^metadata://clearLogos/", ""
+                    break
+                }
+            }
+
+            if ($defaultLogoKey) {
+                # Note: The PUT endpoint uses the singular "clearLogo", not "clearLogos"
+                $setLogoUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogo?url=$defaultLogoKey"
+
+                try {
+                    $response = Invoke-RestMethod -Uri $setLogoUrl -Method PUT -Headers $PlexHeaders
+                    Write-Entry -Subtext "Logo was reset for: $title" -Path "$global:configLogging" -Color Green -log Info
+                }
+                catch {
+                    Write-Entry -Subtext "Error setting logo for [$title]: $_" -Path "$global:configLogging" -Color Red -log Error
+                }
+            } else {
+                Write-Entry -Subtext "No default fallback logo found for: $title" -Path "$global:configLogging" -Color Yellow -log Warning
+            }
+        }
+        else {
+            Write-Entry -Subtext "No logos exist at all for: $title" -Path "$global:configLogging" -Color Yellow -log Warning
+        }
+
+        Start-Sleep -Seconds 1  # Avoid hammering server
+    }
+}
 function Get-Resolution {
     param ($Width)
     switch ($true) {
@@ -32444,41 +32541,78 @@ Elseif ($LogoUpdater -or $LogoRevert) {
                 Write-Entry -Message "[$title] Logo exists. Checking if it's a Posterizarr asset for removal..." -Path $global:configLogging -Color Yellow -log Info
 
                 # Fetch logos list to find the one to check/delete
-                $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
+                $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos"
                 try {
                     $logosResponse = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
+
+                    $posterizarrLogo = $null
+                    $defaultLogo = $null
+
                     foreach ($logo in $logosResponse.MediaContainer.Photo) {
-                        # Download logo to temp to check metadata
-                        # Sanitize rating key to ensure valid Windows file paths
-                        $safeFileName = $logo.ratingKey -replace '[^a-zA-Z0-9]', '_'
-                        $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
-
-                        # Conditionally construct URL to prevent http://plex:32400https://...
-                        $logoKey = $logo.key
-                        if ($logoKey -match "^https?://") {
-                            $logoDownloadUrl = $logoKey
-                        } else {
-                            # Ensure clean relative path concatenation
-                            $logoKey = "/" + $logoKey.TrimStart("/")
-                            $logoDownloadUrl = "$PlexUrl$logoKey"
+                        # Capture default fallback logo
+                        if ($logo.ratingKey -match "^metadata://" -or $logo.ratingKey -match "^https?://") {
+                            if (-not $defaultLogo) { $defaultLogo = $logo }
                         }
-                        try {
-                            Invoke-WebRequest -Uri $logoDownloadUrl -Headers $PlexHeaders -OutFile $checkLogoPath -ErrorAction Stop
-                            if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
-                                Write-Entry -Message "[$title] Found Posterizarr Logo ($($logo.ratingKey)). Deleting..." -Path $global:configLogging -Color Red -log Info
 
-                                # URL Encode the ratingKey for the Delete command so upload:// schemas don't break the path routing
-                                $safeLogoRatingKey = [uri]::EscapeDataString($logo.ratingKey)
-                                $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$safeLogoRatingKey"
+                        # Check if uploaded logo is from Posterizarr
+                        if ($logo.ratingKey -match "^upload://") {
+                            # Sanitize rating key to ensure valid Windows file paths
+                            $safeFileName = $logo.ratingKey -replace '[^a-zA-Z0-9]', '_'
+                            $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
 
-                                Invoke-RestMethod -Method Delete -Uri $deleteUrl -Headers $PlexHeaders
-                                $UploadCount++
+                            # Conditionally construct URL to prevent http://plex:32400https://...
+                            $logoKey = $logo.key
+                            if ($logoKey -match "^https?://") {
+                                $logoDownloadUrl = $logoKey
+                            } else {
+                                # Ensure clean relative path concatenation
+                                $logoKey = "/" + $logoKey.TrimStart("/")
+                                $logoDownloadUrl = "$PlexUrl$logoKey"
                             }
-                            Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue
-                        } catch {
-                            Write-Entry -Subtext "[$title] Error checking logo $($logo.ratingKey): $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+
+                            try {
+                                Invoke-WebRequest -Uri $logoDownloadUrl -Headers $PlexHeaders -OutFile $checkLogoPath -ErrorAction Stop
+                                if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
+                                    $posterizarrLogo = $logo
+                                }
+                                Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue
+                            } catch {
+                                Write-Entry -Subtext "[$title] Error checking logo $($logo.ratingKey): $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+                            }
                         }
                     }
+
+                    if ($posterizarrLogo) {
+                        Write-Entry -Message "[$title] Found Posterizarr Logo. Attempting Revert..." -Path $global:configLogging -Color Yellow -log Info
+
+                        # Reset UI to Default Logo
+                        if ($defaultLogo) {
+                            Write-Entry -Subtext "[$title] Reverting UI selection to default Plex logo..." -Path $global:configLogging -Color Cyan -log Info
+                            $safeDefaultKey = [uri]::EscapeDataString($defaultLogo.ratingKey)
+                            $selectUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogo?url=$safeDefaultKey"
+                            Invoke-RestMethod -Method Put -Uri $selectUrl -Headers $PlexHeaders
+                        }
+
+                        # Attempt API Deletion (and handle the 404 for upload:// schemas gracefully)
+                        $safeLogoRatingKey = [uri]::EscapeDataString($posterizarrLogo.ratingKey)
+                        $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$safeLogoRatingKey"
+
+                        try {
+                            Invoke-RestMethod -Method Delete -Uri $deleteUrl -Headers $PlexHeaders
+                            Write-Entry -Subtext "[$title] Successfully deleted via API." -Path $global:configLogging -Color Green -log Info
+                            $UploadCount++
+                        } catch {
+                            if ($_.Exception.Response.StatusCode.value__ -eq 404) {
+                                Write-Entry -Subtext "[$title] Asset unlinked from UI. Orphaned file ready for ImageMaid cleanup." -Path $global:configLogging -Color Green -log Info
+                                $UploadCount++
+                            } else {
+                                Write-Entry -Subtext "[$title] Unexpected error during deletion: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            }
+                        }
+                    } else {
+                        Write-Entry -Subtext "[$title] No Posterizarr logo found to revert." -Path $global:configLogging -Color Cyan -log Debug
+                    }
+
                 } catch {
                     Write-Entry -Subtext "[$title] Error fetching logos list: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                 }
