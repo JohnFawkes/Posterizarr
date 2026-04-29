@@ -444,3 +444,39 @@ On [docker](platformandtools.md#docker) this way:
 ```sh
 docker exec -it posterizarr pwsh /app/Posterizarr.ps1 -GatherLogs
 ```
+
+### Logo Updater Mode
+
+Run the script with the `-LogoUpdater` or `-LogoRevert` flag. This mode automatically scans your Plex libraries for missing ClearLogos, fetches them from online sources (TMDB, TVDB, Fanart.tv), and uploads them directly to Plex.
+
+**Standard Update**
+
+```powershell
+.\Posterizarr.ps1 -LogoUpdater -LibraryName "Movies"
+```
+
+**Revert Mode (Delete Posterizarr-added logos)**
+
+```powershell
+.\Posterizarr.ps1 -LogoRevert -LibraryName "Movies"
+```
+
+**Parameters:**
+
+- `-LogoUpdater`: Enable the logo search and upload process.
+- `-LogoRevert`: Search for logos previously added by Posterizarr and remove them from Plex.
+- `-ForceReplace`: Overwrite existing logos even if they already exist in Plex.
+- `-LibraryName`: Specify a single library name or use `"all"` to process all suitable Movie and TV libraries.
+
+!!! tip
+    In the WebUI, you can access this mode via the "Run Modes" tab. It provides a user-friendly interface to select libraries and toggle "Force Replace" or "Revert" settings.
+
+### Manual Mode Logo Search
+
+In the WebUI's **Manual Mode**, you can use the **"Browse Logos"** button to search for ClearLogos/ClearArt directly from online providers.
+
+1.  Open **Manual Mode** in the WebUI.
+2.  Click **"Browse Logos"**.
+3.  Search for a movie or show.
+4.  Select a logo to automatically use its URL as the title source.
+5.  When you run the manual mode with a URL in the "Title Text" field, Posterizarr will download and use that image as a logo overlay on your poster.

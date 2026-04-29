@@ -32314,8 +32314,12 @@ ElseIf ($PosterReset) {
 #region LogoUpdater Mode
 Elseif ($LogoUpdater -or $LogoRevert) {
     $UploadCount = 0
+    $matched = 0
+    $OriginalLibraryName = $LibraryName
     $Mode = "logoupdater"
     Write-Entry -Message "LogoUpdater Mode Started..." -Path $global:configLogging -Color White -log Info
+
+
 
     if (-not $LibraryName) {
         # Prompt for library
@@ -32414,9 +32418,6 @@ Elseif ($LogoUpdater -or $LogoRevert) {
 
     Write-Entry -Subtext "Found $($allItems.Count) items. Checking for missing logos..." -Path $global:configLogging -Color Cyan -log Info
 
-    $matched = 0
-    $UploadCount = 0
-
     foreach ($item in $allItems) {
         $ratingKey = $item.ratingKey
         $title = $item.title
@@ -32441,22 +32442,36 @@ Elseif ($LogoUpdater -or $LogoRevert) {
         if ($hasLogo) {
             if ($LogoRevert) {
                 Write-Entry -Message "[$title] Logo exists. Checking if it's a Posterizarr asset for removal..." -Path $global:configLogging -Color Yellow -log Info
-                
+
                 # Fetch logos list to find the one to check/delete
                 $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
                 try {
                     $logosResponse = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
                     foreach ($logo in $logosResponse.MediaContainer.Photo) {
                         # Download logo to temp to check metadata
-                        $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$($logo.ratingKey).png"
-                        $logoDownloadUrl = "$PlexUrl$($logo.key)?X-Plex-Token=$PlexToken"
-                        
+                        # Sanitize rating key to ensure valid Windows file paths
+                        $safeFileName = $logo.ratingKey -replace '[^a-zA-Z0-9]', '_'
+                        $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
+
+                        # Conditionally construct URL to prevent http://plex:32400https://...
+                        $logoKey = $logo.key
+                        if ($logoKey -match "^https?://") {
+                            $logoDownloadUrl = $logoKey
+                        } else {
+                            # Ensure clean relative path concatenation
+                            $logoKey = "/" + $logoKey.TrimStart("/")
+                            $logoDownloadUrl = "$PlexUrl$logoKey"
+                        }
                         try {
-                            Invoke-WebRequest -Uri $logoDownloadUrl -OutFile $checkLogoPath -ErrorAction SilentlyContinue
+                            Invoke-WebRequest -Uri $logoDownloadUrl -Headers $PlexHeaders -OutFile $checkLogoPath -ErrorAction Stop
                             if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
                                 Write-Entry -Message "[$title] Found Posterizarr Logo ($($logo.ratingKey)). Deleting..." -Path $global:configLogging -Color Red -log Info
-                                $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$($logo.ratingKey)?X-Plex-Token=$PlexToken"
-                                Invoke-RestMethod -Method Delete -Uri $deleteUrl
+
+                                # URL Encode the ratingKey for the Delete command so upload:// schemas don't break the path routing
+                                $safeLogoRatingKey = [uri]::EscapeDataString($logo.ratingKey)
+                                $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$safeLogoRatingKey"
+
+                                Invoke-RestMethod -Method Delete -Uri $deleteUrl -Headers $PlexHeaders
                                 $UploadCount++
                             }
                             Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue
@@ -32667,11 +32682,13 @@ $seconds = $executionTime.Seconds
 $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
 
 Write-Entry -Message "LogoUpdater/Revert Mode Finished!" -Path $global:configLogging -Color Green -log Info
-Write-Entry -Subtext "Matched items: $matched | Actions taken: $UploadCount | Errors: $errorCount" -Path $global:configLogging -Color White -log Info
+Write-Entry -Subtext "Matched items: $matched | Actions taken: $UploadCount | Errors: $global:errorCount" -Path $global:configLogging -Color White -log Info
 Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
 
 # Send Notification
-Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -matchedcount $matched -uploadcount $UploadCount -LibName "All Libraries"
+$summaryLibName = if ($OriginalLibraryName -eq "all") { "All Libraries" } else { $LibraryName }
+Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $global:errorCount -matchedcount $matched -uploadcount $UploadCount -LibName $summaryLibName
+
 
 # Clear Running File
 if (Test-Path $CurrentlyRunning) {
