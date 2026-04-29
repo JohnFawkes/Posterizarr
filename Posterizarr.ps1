@@ -32603,7 +32603,7 @@ Elseif ($LogoUpdater -or $LogoRevert) {
                             $UploadCount++
                         } catch {
                             if ($_.Exception.Response.StatusCode.value__ -eq 404) {
-                                Write-Entry -Subtext "[$title] Asset unlinked from UI. Orphaned file ready for ImageMaid cleanup." -Path $global:configLogging -Color Green -log Info
+                                Write-Entry -Subtext "[$title] Asset unlinked from UI." -Path $global:configLogging -Color Green -log Info
                                 $UploadCount++
                             } else {
                                 Write-Entry -Subtext "[$title] Unexpected error during deletion: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
