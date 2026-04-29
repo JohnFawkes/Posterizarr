@@ -1453,22 +1453,7 @@ const JellyfinSyncModal = React.memo(({ show, onClose, onStart, loading, status,
     </div>
   );
 });
-            >
-              {t("runModes.jellyfin.cancel")}
-            </button>
-            <button
-              onClick={startJellyfinSync}
-              disabled={loading || status.running}
-              className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {t("runModes.jellyfin.start")}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+
 
   // Emby Sync Modal Component
 // ============================================================================
@@ -1544,22 +1529,7 @@ const EmbySyncModal = React.memo(({ show, onClose, onStart, loading, status, t }
     </div>
   );
 });
-            >
-              {t("runModes.emby.cancel")}
-            </button>
-            <button
-              onClick={startEmbySync}
-              disabled={loading || status.running}
-              className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {t("runModes.emby.start")}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+
 
   // Backup Mode Modal Component
 // ============================================================================
@@ -1622,22 +1592,7 @@ const BackupModeModal = React.memo(({ show, onClose, onStart, loading, status, t
     </div>
   );
 });
-            >
-              {t("runModes.backup.cancel")}
-            </button>
-            <button
-              onClick={startBackup}
-              disabled={loading || status.running}
-              className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {t("runModes.backup.start")}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+
 
   // Dynamic hints based on poster type
   const getHints = (type) => {
