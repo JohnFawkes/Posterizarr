@@ -15,6 +15,7 @@ param (
     [switch]$ShowPosterCard, # Required for Manual Trigger
     [switch]$BackgroundCard, # Required for Manual Trigger
     [switch]$LogoUpdater, # Required for LogoUpdater Mode
+    [switch]$LogoRevert, # Required for LogoRevert Mode
     [switch]$ForceReplace, # Force replace existing logos
     [switch]$UISchedule, # Required for UI Schedule trigger
     [switch]$ContainerSchedule, # Required for Container Schedule trigger
@@ -84,7 +85,7 @@ function Test-IsPosterizarrAsset {
             $content = [System.Text.Encoding]::UTF8.GetString($buffer, 0, $bytesRead)
 
             # Returns True if any keywords match
-            return $content -match 'posterizarr|overlay|titlecard|created with ppm'
+            return $content -match 'posterizarr|overlay|titlecard|created with posterizarr|created with ppm'
         }
         finally {
             $stream.Dispose()
@@ -32311,7 +32312,7 @@ ElseIf ($PosterReset) {
     }
 }
 #region LogoUpdater Mode
-Elseif ($LogoUpdater) {
+Elseif ($LogoUpdater -or $LogoRevert) {
     $UploadCount = 0
     $Mode = "logoupdater"
     Write-Entry -Message "LogoUpdater Mode Started..." -Path $global:configLogging -Color White -log Info
@@ -32357,13 +32358,29 @@ Elseif ($LogoUpdater) {
         }
     }
 
-    $SelectedLib = $Libs.MediaContainer.Directory | Where-Object { $_.title -eq $LibraryName }
-    if (-not $SelectedLib) {
-        Write-Entry -Message "Library '$LibraryName' not found." -Path $global:configLogging -Color Red -log Error
-        HandleScriptExit -Message "Library not found"
+    $LibrariesToProcess = @()
+    if ($LibraryName -eq "all") {
+        foreach ($lib in $Libs.MediaContainer.Directory) {
+            if ($lib.title -notin $LibstoExclude -and ($lib.type -eq 'movie' -or $lib.type -eq 'show')) {
+                $LibrariesToProcess += $lib
+            }
+        }
+    }
+    else {
+        $SelectedLib = $Libs.MediaContainer.Directory | Where-Object { $_.title -eq $LibraryName }
+        if ($SelectedLib) {
+            $LibrariesToProcess += $SelectedLib
+        }
     }
 
-    Write-Entry -Message "Processing library: $LibraryName ($($SelectedLib.type))" -Path $global:configLogging -Color Cyan -log Info
+    if ($LibrariesToProcess.Count -eq 0) {
+        Write-Entry -Message "No suitable libraries found to process." -Path $global:configLogging -Color Red -log Error
+        HandleScriptExit -Message "No libraries found"
+    }
+
+    foreach ($SelectedLib in $LibrariesToProcess) {
+        $LibraryName = $SelectedLib.title
+        Write-Entry -Message "Processing library: $LibraryName ($($SelectedLib.type))" -Path $global:configLogging -Color Cyan -log Info
 
     $PlexHeaders = @{}
     if ($PlexToken) {
@@ -32422,6 +32439,37 @@ Elseif ($LogoUpdater) {
         }
 
         if ($hasLogo) {
+            if ($LogoRevert) {
+                Write-Entry -Message "[$title] Logo exists. Checking if it's a Posterizarr asset for removal..." -Path $global:configLogging -Color Yellow -log Info
+                
+                # Fetch logos list to find the one to check/delete
+                $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
+                try {
+                    $logosResponse = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
+                    foreach ($logo in $logosResponse.MediaContainer.Photo) {
+                        # Download logo to temp to check metadata
+                        $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$($logo.ratingKey).png"
+                        $logoDownloadUrl = "$PlexUrl$($logo.key)?X-Plex-Token=$PlexToken"
+                        
+                        try {
+                            Invoke-WebRequest -Uri $logoDownloadUrl -OutFile $checkLogoPath -ErrorAction SilentlyContinue
+                            if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
+                                Write-Entry -Message "[$title] Found Posterizarr Logo ($($logo.ratingKey)). Deleting..." -Path $global:configLogging -Color Red -log Info
+                                $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$($logo.ratingKey)?X-Plex-Token=$PlexToken"
+                                Invoke-RestMethod -Method Delete -Uri $deleteUrl
+                                $UploadCount++
+                            }
+                            Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue
+                        } catch {
+                            Write-Entry -Subtext "[$title] Error checking logo $($logo.ratingKey): $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+                        }
+                    }
+                } catch {
+                    Write-Entry -Subtext "[$title] Error fetching logos list: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                }
+                continue # Move to next item
+            }
+
             if ($ForceReplace) {
                 Write-Entry -Message "[$title] Logo exists but ForceReplace is enabled. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
             } else {
@@ -32429,6 +32477,10 @@ Elseif ($LogoUpdater) {
                 continue
             }
         } else {
+            if ($LogoRevert) {
+                Write-Entry -Subtext "[$title] No Logo found to revert. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+                continue
+            }
             Write-Entry -Message "[$title] Missing Logo. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
         }
 
@@ -32503,6 +32555,14 @@ Elseif ($LogoUpdater) {
                     else {
                         throw $_
                     }
+                }
+
+                # Tag image with Posterizarr metadata
+                if ($magick) {
+                    $CommentArguments = "`"$tempLogo`" -set `"comment`" `"created with posterizarr`" `"$tempLogo`""
+                    $CommentlogEntry = "`"$magick`" $CommentArguments"
+                    $CommentlogEntry | Out-File $magickLog -Append
+                    InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                 }
 
                 # Upload to Plex ClearLogo endpoint
@@ -32595,35 +32655,38 @@ Elseif ($LogoUpdater) {
             Write-Entry -Subtext "[$title] No Logo found online." -Path $global:configLogging -Color Yellow -log Warning
         }
     }
-    $endTime = Get-Date
-    $executionTime = New-TimeSpan -Start $startTime -End $endTime
-    # Format the execution time
-    $hours = [math]::Floor($executionTime.TotalHours)
-    $minutes = $executionTime.Minutes
-    $seconds = $executionTime.Seconds
-    $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
+    Write-Entry -Message "Finished processing library: $LibraryName. Logos processed: $UploadCount" -Path $global:configLogging -Color Green -log Info
+}
 
-    Write-Entry -Message "LogoUpdater Finished!" -Path $global:configLogging -Color Green -log Info
-    Write-Entry -Subtext "Matched items: $matched | Uploaded logos: $UploadCount | Errors: $errorCount" -Path $global:configLogging -Color White -log Info
-    Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
+$endTime = Get-Date
+$executionTime = New-TimeSpan -Start $startTime -End $endTime
+# Format the execution time
+$hours = [math]::Floor($executionTime.TotalHours)
+$minutes = $executionTime.Minutes
+$seconds = $executionTime.Seconds
+$FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
 
-    # Send Notification
-    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -matchedcount $matched -uploadcount $UploadCount -LibName $LibraryName
+Write-Entry -Message "LogoUpdater/Revert Mode Finished!" -Path $global:configLogging -Color Green -log Info
+Write-Entry -Subtext "Matched items: $matched | Actions taken: $UploadCount | Errors: $errorCount" -Path $global:configLogging -Color White -log Info
+Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
 
-    # Clear Running File
-    if (Test-Path $CurrentlyRunning) {
-        try {
-            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
-        }
-        catch {
-            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
-            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-        }
+# Send Notification
+Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -matchedcount $matched -uploadcount $UploadCount -LibName "All Libraries"
+
+# Clear Running File
+if (Test-Path $CurrentlyRunning) {
+    try {
+        Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
     }
-    if ($global:UptimeKumaUrl) {
-        Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
+    catch {
+        Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
     }
+}
+if ($global:UptimeKumaUrl) {
+    Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
+}
 }
 #region Normal Mode
 else {

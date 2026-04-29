@@ -2142,6 +2142,7 @@ class ResetPostersRequest(BaseModel):
 class LogoUpdaterRequest(BaseModel):
     library: str
     force_replace: bool = False
+    revert: bool = False
 
 class ManualModeRequest(BaseModel):
     model_config = {"extra": "ignore"}  # Ignore extra fields from frontend
@@ -7380,10 +7381,17 @@ async def run_logoupdater(request: LogoUpdaterRequest):
             ps_command,
             "-File",
             str(SCRIPT_PATH),
-            "-LogoUpdater",
+        ]
+
+        if request.revert:
+            command.append("-LogoRevert")
+        else:
+            command.append("-LogoUpdater")
+
+        command.extend([
             "-LibraryName",
             request.library.strip(),
-        ]
+        ])
         
         if request.force_replace:
             command.append("-ForceReplace")
