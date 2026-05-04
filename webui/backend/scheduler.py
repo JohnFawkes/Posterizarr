@@ -200,7 +200,7 @@ class PosterizarrScheduler:
             logger.error(f"Error checking for running processes: {e}")
             return True
 
-    async def run_script(self, mode: str = "normal", force_run: bool = False):
+    async def run_script(self, mode: str = "normal", schedule_config: dict = None, force_run: bool = False):
         """Execute Posterizarr script in normal mode (non-blocking)"""
         with self._lock:
             config = self.load_config()
@@ -238,10 +238,27 @@ class PosterizarrScheduler:
                 "normal": ["-UISchedule"],
                 "syncjelly": ["-UISchedule", "-SyncJelly"],
                 "syncemby": ["-UISchedule", "-SyncEmby"],
-                "backup": ["-UISchedule", "-Backup"]
+                "backup": ["-UISchedule", "-Backup"],
+                "logoupdater": ["-UISchedule", "-LogoUpdater"]
             }
 
-            switches = mode_switches.get(mode.lower(), ["-UISchedule"])
+            switches = mode_switches.get(mode.lower(), ["-UISchedule"]).copy()
+
+            # Handle dynamic parameters for Logo Updater
+            if mode.lower() == "logoupdater" and schedule_config:
+                library = schedule_config.get("library", "all")
+                switches.extend(["-LibraryName", library])
+                
+                if schedule_config.get("force_replace"):
+                    switches.append("-ForceReplace")
+                
+                if schedule_config.get("revert"):
+                    # Swap LogoUpdater for LogoRevert if revert is requested
+                    if "-LogoUpdater" in switches:
+                        switches.remove("-LogoUpdater")
+                    if "-LogoRevert" not in switches:
+                        switches.append("-LogoRevert")
+
             command = [ps_command, "-File", str(self.script_path)] + switches
 
             logger.info(f"Executing scheduled run ({mode}): {' '.join(command)}")
@@ -341,7 +358,7 @@ class PosterizarrScheduler:
                     trigger=trigger,
                     id=job_id,
                     name=job_name,
-                    args=[mode],
+                    args=[mode, schedule],
                     replace_existing=True,
                 )
                 logger.info(f"Added job: {job_name}")

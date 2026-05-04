@@ -88,6 +88,11 @@ const SchedulerSettings = () => {
   const [intervalValue, setIntervalValue] = useState(1);
   const [intervalUnit, setIntervalUnit] = useState("hours");
 
+  // --- LOGO UPDATER OPTIONS ---
+  const [logoLibrary, setLogoLibrary] = useState("all");
+  const [logoForceReplace, setLogoForceReplace] = useState(false);
+  const [logoRevert, setLogoRevert] = useState(false);
+
   const frequencies = [
     { id: "daily", label: t("schedulerSettings.frequencies.daily") || "Daily" },
     { id: "weekly", label: t("schedulerSettings.frequencies.weekly") || "Weekly" },
@@ -179,13 +184,15 @@ const SchedulerSettings = () => {
     { id: "syncjelly", label: t("schedulerSettings.modes.syncjelly") || "Sync Jellyfin" },
     { id: "syncemby", label: t("schedulerSettings.modes.syncemby") || "Sync Emby" },
     { id: "backup", label: t("schedulerSettings.modes.backup") || "System Backup" },
+    { id: "logoupdater", label: "Logo Updater" },
   ];
 
   const modeConfigs = {
     normal: { icon: Clock, color: "text-theme-primary", bgColor: "bg-theme-primary/10", label: t("schedulerSettings.modes.normal") },
     syncjelly: { icon: RefreshCw, color: "text-blue-400", bgColor: "bg-blue-400/10", label: "Jellyfin Sync" },
     syncemby: { icon: RefreshCw, color: "text-green-500", bgColor: "bg-green-500/10", label: "Emby Sync" },
-    backup: { icon: Database, color: "text-amber-500", bgColor: "bg-amber-500/10", label: "Backup" }
+    backup: { icon: Database, color: "text-amber-500", bgColor: "bg-amber-500/10", label: "Backup" },
+    logoupdater: { icon: Grid, color: "text-purple-400", bgColor: "bg-purple-400/10", label: "Logo Updater" }
   };
 
   useEffect(() => {
@@ -303,6 +310,12 @@ const SchedulerSettings = () => {
         frequency: frequency,
         month: newMonth,
       };
+
+      if (newMode === "logoupdater") {
+        payload.library = logoLibrary;
+        payload.force_replace = logoForceReplace;
+        payload.revert = logoRevert;
+      }
 
       if (frequency === "weekly") {
         payload.day_of_week = dayOfWeek;
@@ -733,6 +746,43 @@ const SchedulerSettings = () => {
             </button>
           </div>
 
+          {/* Logo Updater Options */}
+          {newMode === "logoupdater" && (
+            <div className="flex flex-col md:flex-row gap-4 p-4 bg-purple-500/5 border border-purple-500/20 rounded-lg">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-purple-300 mb-1">Plex Library</label>
+                <input
+                  type="text"
+                  value={logoLibrary}
+                  onChange={(e) => setLogoLibrary(e.target.value)}
+                  placeholder="Library name or 'all'"
+                  className="w-full px-3 py-2 bg-theme-bg border border-theme rounded-md text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-purple-400"
+                />
+              </div>
+              <div className="flex items-center gap-6 pt-5">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={logoForceReplace}
+                    onChange={(e) => setLogoForceReplace(e.target.checked)}
+                    disabled={logoRevert}
+                    className="w-4 h-4 rounded border-theme bg-theme-bg text-purple-500 focus:ring-purple-500"
+                  />
+                  <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-theme-text group-hover:text-purple-300'} transition-colors`}>Force Replace</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={logoRevert}
+                    onChange={(e) => setLogoRevert(e.target.checked)}
+                    className="w-4 h-4 rounded border-theme bg-theme-bg text-purple-500 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-theme-text group-hover:text-purple-300 transition-colors">Revert Mode</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Calendar Day Picker for Monthly selection */}
           {frequency === "monthly" && (
             <div className="p-4 bg-theme-bg border border-theme rounded-lg">
@@ -795,6 +845,13 @@ const SchedulerSettings = () => {
                         <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded border border-theme-muted/30 text-theme-muted">{freqLabel}{detailText ? `, ${detailText}` : ""}</span>
                       </div>
                       {schedule.description && <div className="text-sm text-theme-muted mt-0.5">{schedule.description}</div>}
+                      {mode === "logoupdater" && (
+                        <div className="flex gap-3 mt-1 text-[10px] text-purple-300/70 font-medium">
+                          <span>Library: {schedule.library || "all"}</span>
+                          {schedule.force_replace && <span>• Force Replace</span>}
+                          {schedule.revert && <span className="text-red-400">•• REVERT MODE</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <button onClick={() => removeSchedule(schedule.time)} disabled={isUpdating} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-all"><Trash2 className="w-5 h-5" /></button>

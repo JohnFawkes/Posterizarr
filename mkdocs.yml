@@ -42,6 +42,7 @@ nav:
     - 'Networking': 'networking.md'
     - 'Walkthrough': 'walkthrough.md'
     - 'Requirements': 'requirements.md'
+    - 'FAQs': 'faqs.md'
   - 'Configuration': 'configuration.md'
   - 'Usage & Guides':
     - 'Usage & Modes': 'modes.md'

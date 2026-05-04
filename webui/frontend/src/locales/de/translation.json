@@ -101,7 +101,21 @@
       "syncEmby": {
         "title": "Emby Sync",
         "description": "Plex Poster zu Emby synchronisieren"
+      },
+      "logoUpdater": {
+        "title": "Logo-Updater",
+        "description": "Plex ClearLogos automatisch abrufen"
       }
+    },
+    "logoUpdater": {
+      "title": "Logo-Updater-Modus",
+      "info": "Plex ClearLogo Auto-Updater",
+      "subtitle": "Dieser Modus scannt die ausgewählte Plex-Bibliothek nach Elementen, denen ein ClearLogo fehlt, ruft diese automatisch ab und lädt sie in Plex hoch.",
+      "selectLibrary": "Bibliothek auswählen",
+      "forceReplace": "Vorhandene ersetzen erzwingen",
+      "forceReplaceDesc": "Logos überschreiben, auch wenn sie bereits in Plex vorhanden sind",
+      "start": "Logo-Updater starten",
+      "browse": "Durchsuchen"
     },
     "manual": {
       "title": "Manueller Modus (Halbautomatisch)",

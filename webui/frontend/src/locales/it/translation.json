@@ -101,7 +101,21 @@
       "syncEmby": {
         "title": "Sincronizza Emby",
         "description": "Sincronizza i poster di Plex su Emby"
+      },
+      "logoUpdater": {
+        "title": "Aggiornatore Logo",
+        "description": "Recupera automaticamente i ClearLogo di Plex"
       }
+    },
+    "logoUpdater": {
+      "title": "Modalità Aggiornatore Logo",
+      "info": "Auto-Updater ClearLogo per Plex",
+      "subtitle": "Questa modalità esegue la scansione della libreria Plex selezionata alla ricerca di elementi privi di ClearLogo, li recupera automaticamente e li carica su Plex.",
+      "selectLibrary": "Seleziona Libreria",
+      "forceReplace": "Forza sostituzione",
+      "forceReplaceDesc": "Sovrascrivi i logo anche se sono già presenti in Plex",
+      "start": "Avvia Aggiornatore Logo",
+      "browse": "Sfoglia"
     },
     "manual": {
       "title": "Modalità manuale (semi-automatica)",

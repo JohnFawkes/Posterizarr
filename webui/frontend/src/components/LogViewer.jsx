@@ -297,7 +297,14 @@ function LogViewer() {
     showInfo(t("logViewer.loadingFullLog", { name: logName }));
     setAutoScroll(false); // Disable auto-scroll when loading full log
     try {
-      const response = await fetch(`${API_URL}/logs/${logName}?tail=0`); // tail=0
+      // Validate log file name exists in available logs
+      if (!availableLogs.some(log => log.name === logName)) {
+        showError("Invalid log file selected");
+        setIsLoadingFullLog(false);
+        return;
+      }
+      
+      const response = await fetch(`${API_URL}/logs/${encodeURIComponent(logName)}?tail=0`); // tail=0
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

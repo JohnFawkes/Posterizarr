@@ -44,6 +44,7 @@ const getLogFileForMode = (mode) => {
     syncemby: "Scriptlog.log",
     reset: "Scriptlog.log",
     scheduled: "Scriptlog.log",
+    logoupdater: "Scriptlog.log",
   };
   return logMapping[mode] || "Scriptlog.log";
 };
@@ -511,6 +512,11 @@ function RunModes() {
   const [showJellyfinSyncModal, setShowJellyfinSyncModal] = useState(false);
   const [showEmbySyncModal, setShowEmbySyncModal] = useState(false);
   const [showBackupModeModal, setShowBackupModeModal] = useState(false);
+  const [showLogoUpdaterModal, setShowLogoUpdaterModal] = useState(false);
+  const [logoUpdaterLibrary, setLogoUpdaterLibrary] = useState("");
+  const [forceLogoReplace, setForceLogoReplace] = useState(false);
+  const [logoRevert, setLogoRevert] = useState(false);
+  const [processAllLibraries, setProcessAllLibraries] = useState(false);
 
   // TMDB Poster Search State (now multi-provider)
   const [tmdbSearch, setTmdbSearch] = useState({
@@ -694,7 +700,11 @@ function RunModes() {
 
   // Handle library selection
   const handleLibrarySelect = (libraryName) => {
-    setManualForm({ ...manualForm, libraryName, folderName: "" });
+    if (showLogoUpdaterModal) {
+      setLogoUpdaterLibrary(libraryName);
+    } else {
+      setManualForm({ ...manualForm, libraryName, folderName: "" });
+    }
     setShowLibrarySelector(false);
     setLibrarySearchQuery("");
     showSuccess(`Library "${libraryName}" selected`);
@@ -1370,390 +1380,219 @@ function RunModes() {
     }
   };
 
-  // Jellyfin Sync Modal Component
-  const JellyfinSyncModal = () => {
-    if (!showJellyfinSyncModal) return null;
+// ============================================================================
+// JELLYFIN SYNC MODAL
+// ============================================================================
+const JellyfinSyncModal = React.memo(({ show, onClose, onStart, loading, status, t }) => {
+  if (!show) return null;
 
-    const startJellyfinSync = () => {
-      setShowJellyfinSyncModal(false);
-      runScript("syncjelly");
-    };
-
-    return (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-theme-card border border-theme-primary rounded-xl max-w-2xl w-full shadow-2xl animate-in fade-in duration-200">
-          {/* Header */}
-          <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
-            <div className="flex items-center">
-              <Cloud className="w-6 h-6 mr-3 text-white" />
-              <h3 className="text-xl font-bold text-white">
-                {t("runModes.jellyfin.title")}
-              </h3>
-            </div>
-            <button
-              onClick={() => setShowJellyfinSyncModal(false)}
-              className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded"
-            >
-              <X className="w-6 h-6" />
-            </button>
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-theme-card border border-theme-primary rounded-xl max-w-2xl w-full shadow-2xl animate-in fade-in duration-200">
+        <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
+          <div className="flex items-center">
+            <Cloud className="w-6 h-6 mr-3 text-white" />
+            <h3 className="text-xl font-bold text-white">{t("runModes.jellyfin.title")}</h3>
           </div>
-
-          {/* Content */}
-          <div className="p-6 space-y-4">
-            <div className="bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded">
-              <p className="text-orange-200 font-medium mb-2">
-                {t("runModes.jellyfin.syncInfo")}
-              </p>
-              <p className="text-orange-100 text-sm">
-                {t("runModes.jellyfin.description")}
-              </p>
+          <button onClick={onClose} className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded">
+            <p className="text-orange-200 font-medium mb-2">{t("runModes.jellyfin.syncInfo")}</p>
+            <p className="text-orange-100 text-sm">{t("runModes.jellyfin.description")}</p>
+          </div>
+          <div className="space-y-3">
+            <h4 className="font-semibold text-theme-primary text-lg">{t("runModes.jellyfin.howItWorks")}</h4>
+            <ul className="space-y-3 text-theme-text">
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">1</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.jellyfin.step1Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.jellyfin.step1Text")}</p>
+                </div>
+              </li>
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">2</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.jellyfin.step2Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.jellyfin.step2Text")}</p>
+                </div>
+              </li>
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">3</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.jellyfin.step3Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.jellyfin.step3Text")}</p>
+                </div>
+              </li>
+            </ul>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded mt-4">
+              <p className="text-blue-200 text-sm">{t("runModes.jellyfin.tip")}</p>
             </div>
-
-            <div className="space-y-3">
-              <h4 className="font-semibold text-theme-primary text-lg">
-                {t("runModes.jellyfin.howItWorks")}
-              </h4>
-
-              <ul className="space-y-3 text-theme-text">
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    1
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.jellyfin.step1Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.jellyfin.step1Text")}
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    2
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.jellyfin.step2Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.jellyfin.step2Text")}
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    3
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.jellyfin.step3Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.jellyfin.step3Text")}
-                    </p>
-                  </div>
-                </li>
-              </ul>
-
-              <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded mt-4">
-                <p className="text-blue-200 text-sm">
-                  {t("runModes.jellyfin.tip")}
-                </p>
-              </div>
-
-              <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded mt-4">
-                <p className="text-yellow-200 text-sm">
-                  {t("runModes.jellyfin.important")}
-                </p>
-              </div>
-            </div>
-
-            {/* Documentation Link */}
-            <div className="pt-4 border-t-2 border-theme">
-              <a
-                href="https://fscorrupt.github.io/posterizarr/modes/#sync-modessync-modes"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center px-6 py-3 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text shadow-lg"
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                {t("runModes.viewDocumentation")}
-              </a>
+            <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded mt-4">
+              <p className="text-yellow-200 text-sm">{t("runModes.jellyfin.important")}</p>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className="bg-theme-bg px-6 py-4 rounded-b-xl flex justify-between border-t-2 border-theme">
-            <button
-              onClick={() => setShowJellyfinSyncModal(false)}
-              className="px-6 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all"
-            >
-              {t("runModes.jellyfin.cancel")}
-            </button>
-            <button
-              onClick={startJellyfinSync}
-              disabled={loading || status.running}
-              className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {t("runModes.jellyfin.start")}
-            </button>
+          <div className="pt-4 border-t-2 border-theme">
+            <a href="https://fscorrupt.github.io/posterizarr/modes/#sync-modessync-modes" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center px-6 py-3 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text shadow-lg">
+              <ExternalLink className="w-5 h-5 mr-2" />
+              {t("runModes.viewDocumentation")}
+            </a>
           </div>
         </div>
+        <div className="bg-theme-bg px-6 py-4 rounded-b-xl flex justify-between border-t-2 border-theme">
+          <button onClick={onClose} className="px-6 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all">{t("runModes.jellyfin.cancel")}</button>
+          <button onClick={onStart} disabled={loading || status.running} className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg">
+            <RefreshCw className="w-5 h-5 mr-2" />
+            {t("runModes.jellyfin.start")}
+          </button>
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
+});
+
 
   // Emby Sync Modal Component
-  const EmbySyncModal = () => {
-    if (!showEmbySyncModal) return null;
+// ============================================================================
+// EMBY SYNC MODAL
+// ============================================================================
+const EmbySyncModal = React.memo(({ show, onClose, onStart, loading, status, t }) => {
+  if (!show) return null;
 
-    const startEmbySync = () => {
-      setShowEmbySyncModal(false);
-      runScript("syncemby");
-    };
-
-    return (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-theme-card border border-theme-primary rounded-xl max-w-2xl w-full shadow-2xl animate-in fade-in duration-200">
-          {/* Header */}
-          <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
-            <div className="flex items-center">
-              <Cloud className="w-6 h-6 mr-3 text-white" />
-              <h3 className="text-xl font-bold text-white">
-                {t("runModes.emby.title")}
-              </h3>
-            </div>
-            <button
-              onClick={() => setShowEmbySyncModal(false)}
-              className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded"
-            >
-              <X className="w-6 h-6" />
-            </button>
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-theme-card border border-theme-primary rounded-xl max-w-2xl w-full shadow-2xl animate-in fade-in duration-200">
+        <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
+          <div className="flex items-center">
+            <Cloud className="w-6 h-6 mr-3 text-white" />
+            <h3 className="text-xl font-bold text-white">{t("runModes.emby.title")}</h3>
           </div>
-
-          {/* Content */}
-          <div className="p-6 space-y-4">
-            <div className="bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded">
-              <p className="text-orange-200 font-medium mb-2">
-                {t("runModes.emby.syncInfo")}
-              </p>
-              <p className="text-orange-100 text-sm">
-                {t("runModes.emby.description")}
-              </p>
+          <button onClick={onClose} className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded">
+            <p className="text-orange-200 font-medium mb-2">{t("runModes.emby.syncInfo")}</p>
+            <p className="text-orange-100 text-sm">{t("runModes.emby.description")}</p>
+          </div>
+          <div className="space-y-3">
+            <h4 className="font-semibold text-theme-primary text-lg">{t("runModes.emby.howItWorks")}</h4>
+            <ul className="space-y-3 text-theme-text">
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">1</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.emby.step1Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.emby.step1Text")}</p>
+                </div>
+              </li>
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">2</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.emby.step2Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.emby.step2Text")}</p>
+                </div>
+              </li>
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">3</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.emby.step3Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.emby.step3Text")}</p>
+                </div>
+              </li>
+            </ul>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded mt-4">
+              <p className="text-blue-200 text-sm">{t("runModes.emby.tip")}</p>
             </div>
-
-            <div className="space-y-3">
-              <h4 className="font-semibold text-theme-primary text-lg">
-                {t("runModes.emby.howItWorks")}
-              </h4>
-
-              <ul className="space-y-3 text-theme-text">
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    1
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.emby.step1Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.emby.step1Text")}
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    2
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.emby.step2Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.emby.step2Text")}
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    3
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.emby.step3Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.emby.step3Text")}
-                    </p>
-                  </div>
-                </li>
-              </ul>
-
-              <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded mt-4">
-                <p className="text-blue-200 text-sm">
-                  {t("runModes.emby.tip")}
-                </p>
-              </div>
-
-              <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded mt-4">
-                <p className="text-yellow-200 text-sm">
-                  {t("runModes.emby.important")}
-                </p>
-              </div>
-            </div>
-
-            {/* Documentation Link */}
-            <div className="pt-4 border-t-2 border-theme">
-              <a
-                href="https://fscorrupt.github.io/posterizarr/modes/#sync-modessync-modes"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center px-6 py-3 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text shadow-lg"
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                {t("runModes.viewDocumentation")}
-              </a>
+            <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded mt-4">
+              <p className="text-yellow-200 text-sm">{t("runModes.emby.important")}</p>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className="bg-theme-bg px-6 py-4 rounded-b-xl flex justify-between border-t-2 border-theme">
-            <button
-              onClick={() => setShowEmbySyncModal(false)}
-              className="px-6 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all"
-            >
-              {t("runModes.emby.cancel")}
-            </button>
-            <button
-              onClick={startEmbySync}
-              disabled={loading || status.running}
-              className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {t("runModes.emby.start")}
-            </button>
+          <div className="pt-4 border-t-2 border-theme">
+            <a href="https://fscorrupt.github.io/posterizarr/modes/#sync-modessync-modes" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center px-6 py-3 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text shadow-lg">
+              <ExternalLink className="w-5 h-5 mr-2" />
+              {t("runModes.viewDocumentation")}
+            </a>
           </div>
         </div>
+        <div className="bg-theme-bg px-6 py-4 rounded-b-xl flex justify-between border-t-2 border-theme">
+          <button onClick={onClose} className="px-6 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all">{t("runModes.emby.cancel")}</button>
+          <button onClick={onStart} disabled={loading || status.running} className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg">
+            <RefreshCw className="w-5 h-5 mr-2" />
+            {t("runModes.emby.start")}
+          </button>
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
+});
+
 
   // Backup Mode Modal Component
-  const BackupModeModal = () => {
-    if (!showBackupModeModal) return null;
+// ============================================================================
+// BACKUP MODE MODAL
+// ============================================================================
+const BackupModeModal = React.memo(({ show, onClose, onStart, loading, status, t }) => {
+  if (!show) return null;
 
-    const startBackup = () => {
-      setShowBackupModeModal(false);
-      runScript("backup");
-    };
-
-    return (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-theme-card border border-theme-primary rounded-xl max-w-2xl w-full shadow-2xl animate-in fade-in duration-200">
-          {/* Header */}
-          <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
-            <div className="flex items-center">
-              <Save className="w-6 h-6 mr-3 text-white" />
-              <h3 className="text-xl font-bold text-white">
-                {t("runModes.backup.title")}
-              </h3>
-            </div>
-            <button
-              onClick={() => setShowBackupModeModal(false)}
-              className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded"
-            >
-              <X className="w-6 h-6" />
-            </button>
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-theme-card border border-theme-primary rounded-xl max-w-2xl w-full shadow-2xl animate-in fade-in duration-200">
+        <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
+          <div className="flex items-center">
+            <Save className="w-6 h-6 mr-3 text-white" />
+            <h3 className="text-xl font-bold text-white">{t("runModes.backup.title")}</h3>
           </div>
-
-          {/* Content */}
-          <div className="p-6 space-y-4">
-            <div className="bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded">
-              <p className="text-orange-200 font-medium mb-2">
-                {t("runModes.backup.info")}
-              </p>
-              <p className="text-orange-100 text-sm">
-                {t("runModes.backup.description")}
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="font-semibold text-theme-primary text-lg">
-                {t("runModes.backup.benefitsTitle")}
-              </h4>
-
-              <ul className="space-y-3 text-theme-text">
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    1
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.backup.step1Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.backup.step1Text")}
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex">
-                  <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">
-                    2
-                  </span>
-                  <div>
-                    <strong className="text-theme-primary">
-                      {t("runModes.backup.step2Title")}
-                    </strong>
-                    <p className="text-sm text-theme-muted mt-1">
-                      {t("runModes.backup.step2Text")}
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            {/* Documentation Link */}
-            <div className="pt-4 border-t-2 border-theme">
-              <a
-                href="https://fscorrupt.github.io/posterizarr/modes/#backup-mode"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center px-6 py-3 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text shadow-lg"
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                {t("runModes.viewDocumentation")}
-              </a>
-            </div>
+          <button onClick={onClose} className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded">
+            <p className="text-orange-200 font-medium mb-2">{t("runModes.backup.info")}</p>
+            <p className="text-orange-100 text-sm">{t("runModes.backup.description")}</p>
           </div>
-
-          {/* Footer */}
-          <div className="bg-theme-bg px-6 py-4 rounded-b-xl flex justify-between border-t-2 border-theme">
-            <button
-              onClick={() => setShowBackupModeModal(false)}
-              className="px-6 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all"
-            >
-              {t("runModes.backup.cancel")}
-            </button>
-            <button
-              onClick={startBackup}
-              disabled={loading || status.running}
-              className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {t("runModes.backup.start")}
-            </button>
+          <div className="space-y-3">
+            <h4 className="font-semibold text-theme-primary text-lg">{t("runModes.backup.benefitsTitle")}</h4>
+            <ul className="space-y-3 text-theme-text">
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">1</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.backup.step1Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.backup.step1Text")}</p>
+                </div>
+              </li>
+              <li className="flex">
+                <span className="bg-theme-primary text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-sm font-bold">2</span>
+                <div>
+                  <strong className="text-theme-primary">{t("runModes.backup.step2Title")}</strong>
+                  <p className="text-sm text-theme-muted mt-1">{t("runModes.backup.step2Text")}</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div className="pt-4 border-t-2 border-theme">
+            <a href="https://fscorrupt.github.io/posterizarr/modes/#backup-mode" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center px-6 py-3 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text shadow-lg">
+              <ExternalLink className="w-5 h-5 mr-2" />
+              {t("runModes.viewDocumentation")}
+            </a>
           </div>
         </div>
+        <div className="bg-theme-bg px-6 py-4 rounded-b-xl flex justify-between border-t-2 border-theme">
+          <button onClick={onClose} className="px-6 py-2 bg-theme-card hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all">{t("runModes.backup.cancel")}</button>
+          <button onClick={onStart} disabled={loading || status.running} className="px-6 py-2 bg-theme-primary hover:bg-theme-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-all text-white flex items-center shadow-lg">
+            <RefreshCw className="w-5 h-5 mr-2" />
+            {t("runModes.backup.start")}
+          </button>
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
+});
+
 
   // Dynamic hints based on poster type
   const getHints = (type) => {
@@ -1852,6 +1691,141 @@ function RunModes() {
     }
   };
 
+// ============================================================================
+// LOGO UPDATER MODAL
+// ============================================================================
+const LogoUpdaterModal = React.memo(({
+  show,
+  onClose,
+  onStart,
+  library,
+  setLibrary,
+  forceReplace,
+  setForceReplace,
+  revert,
+  setRevert,
+  processAll,
+  setProcessAll,
+  loading,
+  loadingLibraries,
+  status,
+  onBrowse,
+  t
+}) => {
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-theme-card border border-theme-primary rounded-xl max-w-lg w-full shadow-2xl animate-in fade-in duration-200">
+        <div className="bg-theme-primary px-6 py-4 rounded-t-xl flex items-center justify-between">
+          <div className="flex items-center">
+            <ImageIcon className="w-6 h-6 mr-3 text-white" />
+            <h3 className="text-xl font-bold text-white">Logo Updater Mode</h3>
+          </div>
+          <button onClick={onClose} className="text-white/80 hover:text-white transition-all p-1 hover:bg-white/10 rounded">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded">
+            <p className="text-blue-200 font-medium mb-2">{t("runModes.logoUpdater.info")}</p>
+            <p className="text-blue-100 text-sm">{t("runModes.logoUpdater.subtitle")}</p>
+          </div>
+
+          {/* Process All Libraries Toggle */}
+          <div className="flex items-center justify-between p-3 bg-theme-bg/50 border border-theme rounded-lg transition-all cursor-pointer" onClick={() => setProcessAll(!processAll)}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg transition-colors ${processAll ? 'bg-theme-primary text-white' : 'bg-theme-primary/10 text-theme-muted'}`}>
+                <RefreshCw className={`w-5 h-5 ${processAll ? 'animate-spin-slow' : ''}`} />
+              </div>
+              <div>
+                <p className="font-medium text-theme-text">Process All Libraries</p>
+                <p className="text-xs text-theme-muted">Loop through all compatible Plex libraries</p>
+              </div>
+            </div>
+            <button type="button" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${processAll ? 'bg-theme-primary' : 'bg-gray-700'}`}>
+              <span className={`${processAll ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
+            </button>
+          </div>
+
+          {!processAll && (
+            <div>
+              <label className="block text-sm font-medium text-theme-text mb-2">
+                {t("runModes.logoUpdater.selectLibrary")} <span className="text-red-400">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={library}
+                  onChange={(e) => setLibrary(e.target.value)}
+                  placeholder="e.g. Movies, TV Shows"
+                  disabled={loading || status.running}
+                  className="flex-1 px-3 py-2 bg-theme-bg border border-theme rounded-lg text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary disabled:opacity-50"
+                />
+                <button
+                  onClick={onBrowse}
+                  disabled={loadingLibraries || loading || status.running}
+                  className="px-4 py-2 bg-theme-hover hover:bg-theme-primary/20 text-theme-text border border-theme hover:border-theme-primary rounded-lg transition-all flex items-center gap-2"
+                >
+                  {loadingLibraries ? <Loader2 className="w-4 h-4 animate-spin" /> : <FolderOpen className="w-4 h-4" />}
+                  {t("runModes.logoUpdater.browse")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Revert Mode Toggle */}
+          <div className="flex items-center justify-between p-3 bg-red-900/10 border border-red-500/20 rounded-lg group hover:border-red-500/50 transition-all cursor-pointer" onClick={() => setRevert(!revert)}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg transition-colors ${revert ? 'bg-red-600 text-white' : 'bg-red-600/10 text-red-400'}`}>
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-medium text-theme-text">Revert Mode</p>
+                <p className="text-xs text-theme-muted">Remove logos uploaded by Posterizarr</p>
+              </div>
+            </div>
+            <button type="button" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${revert ? 'bg-red-600' : 'bg-gray-700'}`}>
+              <span className={`${revert ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
+            </button>
+          </div>
+
+          {/* Force Replace Toggle (only if not revert) */}
+          {!revert && (
+            <div className="flex items-center justify-between p-3 bg-theme-bg/50 border border-theme rounded-lg group hover:border-theme-primary/50 transition-all cursor-pointer" onClick={() => setForceReplace(!forceReplace)}>
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg transition-colors ${forceReplace ? 'bg-orange-500/10 text-orange-500' : 'bg-theme-primary/10 text-theme-muted'}`}>
+                  <RefreshCw className={`w-5 h-5 ${forceReplace ? 'animate-spin-slow' : ''}`} />
+                </div>
+                <div>
+                  <p className="font-medium text-theme-text">{t("runModes.logoUpdater.forceReplace")}</p>
+                  <p className="text-xs text-theme-muted">{t("runModes.logoUpdater.forceReplaceDesc")}</p>
+                </div>
+              </div>
+              <button type="button" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${forceReplace ? 'bg-orange-600' : 'bg-gray-700'}`}>
+                <span className={`${forceReplace ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
+              </button>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 mt-6">
+            <button onClick={onClose} className="px-4 py-2 bg-theme-hover hover:bg-theme-bg text-theme-text border border-theme rounded-lg transition-all">{t("common.cancel")}</button>
+            <button
+              onClick={onStart}
+              disabled={(!processAll && !library.trim()) || loading || status.running}
+              className={`flex items-center gap-2 px-4 py-2 ${revert ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all shadow-lg`}
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+              {revert ? "Start Revert" : t("runModes.logoUpdater.start")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
   const hints = getHints(manualForm.posterType);
 
   return (
@@ -1866,9 +1840,98 @@ function RunModes() {
         type="danger"
       />
 
-      <JellyfinSyncModal />
-      <EmbySyncModal />
-      <BackupModeModal />
+      <JellyfinSyncModal
+        show={showJellyfinSyncModal}
+        onClose={() => setShowJellyfinSyncModal(false)}
+        onStart={() => {
+          setShowJellyfinSyncModal(false);
+          runScript("syncjelly");
+        }}
+        loading={loading}
+        status={status}
+        t={t}
+      />
+      <EmbySyncModal
+        show={showEmbySyncModal}
+        onClose={() => setShowEmbySyncModal(false)}
+        onStart={() => {
+          setShowEmbySyncModal(false);
+          runScript("syncemby");
+        }}
+        loading={loading}
+        status={status}
+        t={t}
+      />
+      <BackupModeModal
+        show={showBackupModeModal}
+        onClose={() => setShowBackupModeModal(false)}
+        onStart={() => {
+          setShowBackupModeModal(false);
+          runScript("backup");
+        }}
+        loading={loading}
+        status={status}
+        t={t}
+      />
+      <LogoUpdaterModal
+        show={showLogoUpdaterModal}
+        onClose={() => setShowLogoUpdaterModal(false)}
+        onStart={async () => {
+          if (!processAllLibraries && !logoUpdaterLibrary.trim()) {
+            showError("Please select a library first");
+            return;
+          }
+
+          if (status.running) {
+            showError("Script is already running");
+            return;
+          }
+
+          setLoading(true);
+          try {
+            const response = await fetch(`${API_URL}/run-logoupdater`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                library: processAllLibraries ? "all" : logoUpdaterLibrary,
+                force_replace: forceLogoReplace,
+                revert: logoRevert
+              }),
+            });
+
+            const data = await response.json();
+            if (response.ok && data.success) {
+              showSuccess(data.message);
+              setShowLogoUpdaterModal(false);
+              setLogoUpdaterLibrary("");
+              fetchStatus();
+
+              const logFile = getLogFileForMode("logoupdater");
+              const logExists = await waitForLogFile(logFile);
+              navigate("/logs", { state: { logFile: logFile } });
+            } else {
+              showError(`Error: ${data.detail || data.message || "Failed to start Logo Updater"}`);
+            }
+          } catch (error) {
+            showError(`Error: ${error.message}`);
+          } finally {
+            setLoading(false);
+          }
+        }}
+        library={logoUpdaterLibrary}
+        setLibrary={setLogoUpdaterLibrary}
+        forceReplace={forceLogoReplace}
+        setForceReplace={setForceLogoReplace}
+        revert={logoRevert}
+        setRevert={setLogoRevert}
+        processAll={processAllLibraries}
+        setProcessAll={setProcessAllLibraries}
+        loading={loading}
+        loadingLibraries={loadingLibraries}
+        status={status}
+        onBrowse={loadLibraryItems}
+        t={t}
+      />
 
       {/* TMDB Modal - Now with stable props */}
       <TMDBPosterSearchModal
@@ -1935,7 +1998,7 @@ function RunModes() {
           {t("runModes.quickRun.title")}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {/* Normal Mode */}
           <button
             onClick={() => runScript("normal")}
@@ -2008,6 +2071,21 @@ function RunModes() {
             </h3>
             <p className="text-sm text-theme-muted text-center">
               {t("runModes.quickRun.syncEmby.description")}
+            </p>
+          </button>
+
+          {/* Logo Updater Mode */}
+          <button
+            onClick={() => setShowLogoUpdaterModal(true)}
+            disabled={loading || status.running}
+            className="flex flex-col items-center justify-center p-6 bg-theme-hover hover:bg-theme-primary/20 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 rounded-lg border border-theme-primary/30 hover:border-theme-primary transition-all group"
+          >
+            <ImageIcon className="w-8 h-8 text-blue-500 mb-3 group-hover:scale-110 transition-transform" />
+            <h3 className="font-semibold text-theme-text mb-1">
+              {t("runModes.quickRun.logoUpdater.title")}
+            </h3>
+            <p className="text-sm text-theme-muted text-center">
+              {t("runModes.quickRun.logoUpdater.description")}
             </p>
           </button>
         </div>
