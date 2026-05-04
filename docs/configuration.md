@@ -145,6 +145,17 @@
     - `SkipTBA` : If set to `true`, TitleCard creation will be skipped when TitleText contains any word from `SkipWords`.
     - `SkipJapTitle` : Set to `true` to skip TitleCard creation if the Titletext is `Jap or Chinese`.
     - `AssetCleanup` : Set to `true` to cleanup Assets that are no longer in Plex.
+        ```diff
+        - !! IMPORTANT !! -
+
+        Risk of Data Loss from excluded Libraries:
+
+        When you exclude libraries, any assets within these locations may be inadvertently deleted.
+
+        This happens because the script interprets these assets as "not needed anymore" during its execution since they are not found or listed as part of the active scan.
+
+        Ensure that all active asset libraries are included when using that setting on true to prevent unintended deletions.
+        ```
     - `UseLogo` : Set to `true` to apply logos instead of title text to Posters.
     - `UseBGLogo` : Set to `true` to apply logos instead of title text to Backgrounds.
     - `UseOriginalTitle`: Set to `true` to use the original title instead of the localized version.
@@ -157,19 +168,6 @@
         - `Example:` https://artworks.thetvdb.com/banners/v4/movie/165/clearart/61249caa0924f.png
         - `What the setting does:` When set to `true`, the system will use the Clearart image instead of the standard title text.
     - `LogoTextFallback` : Set to `true` to fallback to `Text` if no logos are found.
-
-        ```diff
-        - !! IMPORTANT !! -
-
-        Risk of Data Loss from excluded Libraries:
-
-        When you exclude libraries, any assets within these locations may be inadvertently deleted.
-
-        This happens because the script interprets these assets as "not needed anymore" during its execution since they are not found or listed as part of the active scan.
-
-        Ensure that all active asset libraries are included when using that setting on true to prevent unintended deletions.
-        ```
-
     - `AutoUpdateIM` : Set to `true` to AutoUpdate Imagemagick Portable Version (Does not work with Docker/Unraid).
         - Doing this could break things, cause you then uses IM Versions that are not tested with Posterizarr.
     - `DisableHashValidation` : Set to `true` to skip hash validation (Default value is: false).

@@ -9511,6 +9511,11 @@ Elseif ($Testing) {
             $logMessage = "Adding Overlay"
             $arguments = "`"$SourceImage`" `"$OverlayImage`" -gravity south -quality $global:outputQuality -composite `"$OutputPath`""
         }
+        else {
+            # If no borders or overlays, just copy/convert the source to the output path
+            $logMessage = "No Border/Overlay - Creating base textless image"
+            $arguments = "`"$SourceImage`" `"$OutputPath`""
+        }
 
         Write-Entry -Subtext $logMessage -Path $LogPath -Color White -log Info
         return $arguments
@@ -9616,6 +9621,9 @@ Elseif ($Testing) {
     $titleCardPaths = @{}
 
     $testDir = Join-Path -Path $global:ScriptRoot -ChildPath "test"
+    if (!(Test-Path $testDir)) {
+        New-Item -ItemType Directory -Path $testDir -Force | Out-Null
+    }
 
     if ($AddText -eq 'true') {
         $testCases | ForEach-Object { $posterPaths[$_.ID] = Join-Path $testDir "poster$($_.VarSuffix).jpg" }
