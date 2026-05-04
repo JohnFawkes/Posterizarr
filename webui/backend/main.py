@@ -41,6 +41,9 @@ import zipfile
 import tempfile
 import shutil
 import sqlite3
+import socket
+import ipaddress
+import urllib.parse
 import bcrypt
 import secrets
 from starlette.responses import FileResponse
@@ -114,6 +117,78 @@ else:
                         BACKUP_DIR = Path(backup_path)
         except Exception as e:
             pass  # Use defaults if config can't be read
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++ SECURITY UTILITY FUNCTIONS
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def is_safe_url(url: str) -> bool:
+    """
+    Validate that the URL is using a safe scheme (http/https) and that the
+    target host is not a private, local, or reserved IP address.
+    """
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in ["http", "https"]:
+            return False
+
+        # Resolve hostname to IP
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        # Basic protection against loopback/localhost strings before DNS resolution
+        if hostname.lower() in ["localhost", "127.0.0.1", "::1"]:
+            logger.warning(f"Blocked SSRF attempt to localhost: {hostname}")
+            return False
+
+        ip_addr = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(ip_addr)
+
+        # Block private, loopback, and link-local ranges
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
+            logger.warning(f"Blocked SSRF attempt to internal/private IP: {ip_addr} (hostname: {hostname})")
+            return False
+
+        return True
+    except Exception as e:
+        logger.error(f"Error validating URL '{url}': {e}")
+        return False
+
+
+def get_safe_path(base_dir: Path, user_path: str) -> Path:
+    """
+    Safely joins a base directory with a user-provided path, ensuring that
+    the resulting path remains within the base directory (preventing Path Traversal).
+    """
+    # Normalize paths
+    safe_base = Path(os.path.abspath(base_dir))
+    
+    # Handle both absolute and relative user paths safely
+    # If user_path starts with a slash, it's "drive-relative" on Windows 
+    # and would anchor to the drive root (e.g. C:\etc\passwd instead of C:\assets\etc\passwd)
+    user_path = user_path.lstrip("/\\")
+    
+    if os.path.isabs(user_path):
+        # Strip drive letter to force it to be relative to base_dir
+        parts = Path(user_path).parts
+        if parts[0].endswith(":") or parts[0].startswith("\\\\"):
+            user_path = str(Path(*parts[1:]))
+
+    requested_path = Path(os.path.abspath(os.path.join(safe_base, user_path)))
+
+    # Check if requested_path is still inside safe_base
+    if not str(requested_path).startswith(str(safe_base)):
+        logger.warning(f"Path traversal attempt detected: {user_path} tried to exit {base_dir}")
+        raise HTTPException(status_code=403, detail="Path traversal attempt detected")
+    
+    return requested_path
+
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++ END OF SECURITY UTILITY FUNCTIONS
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ASSETS_DIR.mkdir(exist_ok=True)
     MANUAL_ASSETS_DIR.mkdir(exist_ok=True)
@@ -2420,7 +2495,7 @@ async def get_config(request: Request):
         raise
     except Exception as e:
         logger.error(f"Error reading config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/config")
 async def update_config(data: ConfigUpdate):
@@ -2535,7 +2610,7 @@ async def update_config(data: ConfigUpdate):
         logger.error(f"Error updating config: {e}")
         logger.exception("Full traceback:")
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # ============================================================================
 # CONFIG DATABASE ENDPOINTS
@@ -2566,7 +2641,7 @@ async def get_config_db_status():
         }
     except Exception as e:
         logger.error(f"Error getting config database status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/config-db/section/{section}")
 async def get_config_db_section(section: str):
@@ -2582,7 +2657,7 @@ async def get_config_db_section(section: str):
         raise
     except Exception as e:
         logger.error(f"Error getting config section: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/config-db/value/{section}/{key}")
@@ -2604,7 +2679,7 @@ async def get_config_db_value(section: str, key: str):
         raise
     except Exception as e:
         logger.error(f"Error getting config value: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/config-db/sync")
@@ -2630,7 +2705,7 @@ async def sync_config_db():
         raise
     except Exception as e:
         logger.error(f"Error syncing config database: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/config-db/export")
@@ -2647,7 +2722,7 @@ async def export_config_db():
         raise
     except Exception as e:
         logger.error(f"Error exporting config database: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -2702,7 +2777,7 @@ async def get_overlay_files():
 
     except Exception as e:
         logger.error(f"Error getting overlay files: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # 2. Update the preview endpoint to disable caching headers
@@ -2738,7 +2813,7 @@ async def preview_overlay_file(filename: str):
         raise
     except Exception as e:
         logger.error(f"Error serving overlay file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/overlayfiles/upload")
@@ -2880,7 +2955,7 @@ async def upload_overlay_file(file: UploadFile = File(...)):
         import traceback
 
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.delete("/api/overlayfiles/{filename}")
@@ -2917,7 +2992,7 @@ async def delete_overlay_file(filename: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting overlay file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/overlayfiles/preview/{filename}")
@@ -2948,7 +3023,7 @@ async def preview_overlay_file(filename: str):
         raise
     except Exception as e:
         logger.error(f"Error serving overlay file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -2980,7 +3055,7 @@ async def get_font_files():
 
     except Exception as e:
         logger.error(f"Error getting font files: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/fonts/upload")
@@ -3080,7 +3155,7 @@ async def upload_font_file(file: UploadFile = File(...)):
         import traceback
 
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.delete("/api/fonts/{filename}")
@@ -3114,7 +3189,7 @@ async def delete_font_file(filename: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting font file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/fonts/preview/{filename}")
@@ -3305,7 +3380,7 @@ async def preview_font_file(filename: str, text: str = "Aa"):
         raise
     except Exception as e:
         logger.error(f"Error generating font preview: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -4963,7 +5038,7 @@ async def get_webui_settings():
         logger.error(f"Error getting WebUI settings: {e}")
         logger.exception("Full traceback:")
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/webui-settings")
@@ -5042,7 +5117,7 @@ async def update_webui_settings(data: dict):
         logger.error(f"Error updating WebUI settings: {e}")
         logger.exception("Full traceback:")
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/upload-diagnostics")
@@ -5305,7 +5380,7 @@ async def delete_running_file():
             return {"success": False, "message": "Running file does not exist"}
     except Exception as e:
         logger.error(f"Error deleting running file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/runtime-stats")
@@ -5471,7 +5546,7 @@ async def get_runtime_history(
 
     except Exception as e:
         logger.error(f"Error getting runtime history: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/runtime-summary")
@@ -5499,7 +5574,7 @@ async def get_runtime_summary(days: int = Query(30, ge=1, le=365)):
 
     except Exception as e:
         logger.error(f"Error getting runtime summary: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.delete("/api/runtime-history/cleanup")
@@ -5527,7 +5602,7 @@ async def cleanup_old_runtime_entries(days: int = Query(90, ge=30, le=365)):
 
     except Exception as e:
         logger.error(f"Error cleaning up runtime history: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/runtime-history/migrate")
@@ -5614,7 +5689,7 @@ async def migrate_runtime_data_from_logs():
 
     except Exception as e:
         logger.error(f"Error migrating runtime data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/runtime-history/migration-status")
@@ -5646,7 +5721,7 @@ async def get_migration_status():
 
     except Exception as e:
         logger.error(f"Error getting migration status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/runtime-history/migrate-format")
 async def migrate_runtime_format():
@@ -5670,7 +5745,7 @@ async def migrate_runtime_format():
 
     except Exception as e:
         logger.error(f"Error migrating runtime format: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/runtime-history/import-json")
@@ -5708,7 +5783,7 @@ async def import_json_runtime_data():
 
     except Exception as e:
         logger.error(f"Error importing JSON runtime data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/analytics/providers")
 async def get_provider_stats(days: int = Query(30, ge=7, le=365)):
@@ -5750,7 +5825,7 @@ async def get_plex_export_statistics():
 
     except Exception as e:
         logger.error(f"Error getting Plex export statistics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/plex-export/runs")
@@ -5775,7 +5850,7 @@ async def get_plex_export_runs():
 
     except Exception as e:
         logger.error(f"Error getting Plex export runs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/plex-export/library")
@@ -5807,7 +5882,7 @@ async def get_plex_library_data(
 
     except Exception as e:
         logger.error(f"Error getting Plex library data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/plex-export/episodes")
@@ -5839,7 +5914,7 @@ async def get_plex_episode_data(
 
     except Exception as e:
         logger.error(f"Error getting Plex episode data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/plex-export/import")
@@ -5864,7 +5939,7 @@ async def import_plex_csvs():
 
     except Exception as e:
         logger.error(f"Error importing Plex CSVs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # =========================================================================
@@ -5888,7 +5963,7 @@ async def get_other_media_statistics():
 
     except Exception as e:
         logger.error(f"Error getting OtherMedia statistics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/other-media-export/runs")
@@ -5907,7 +5982,7 @@ async def get_other_media_runs():
 
     except Exception as e:
         logger.error(f"Error getting OtherMedia runs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/other-media-export/library")
@@ -5942,7 +6017,7 @@ async def get_other_media_library_data(
 
     except Exception as e:
         logger.error(f"Error getting OtherMedia library data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/other-media-export/episodes")
@@ -5974,7 +6049,7 @@ async def get_other_media_episode_data(
 
     except Exception as e:
         logger.error(f"Error getting OtherMedia episode data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/other-media-export/import")
@@ -5999,14 +6074,14 @@ async def import_other_media_csvs():
 
     except Exception as e:
         logger.error(f"Error importing OtherMedia CSVs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
         # =========================================================================
         # Admin Endpoints
         # =========================================================================
 
         logger.error(f"Error getting migration status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/tmdb/search-posters")
@@ -6532,7 +6607,7 @@ async def search_tmdb_posters(request: TMDBSearchRequest):
         import traceback
 
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -6780,7 +6855,7 @@ async def run_manual_mode(request: ManualModeRequest):
             raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             logger.error(f"Error running manual mode: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/run-manual-upload")
@@ -7204,7 +7279,7 @@ async def run_manual_mode_upload(
             error_msg = f"Error running manual mode with uploaded file: {str(e)}"
             logger.error(error_msg)
             logger.exception("Full traceback:")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -7274,7 +7349,7 @@ async def run_script(mode: str):
             raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             logger.error(f"Error starting script: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/reset-posters")
@@ -7348,7 +7423,7 @@ async def reset_posters(request: ResetPostersRequest):
             raise HTTPException(status_code=500, detail=error_msg)
         except Exception as e:
             logger.error(f"Error resetting posters: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/run-logoupdater")
 async def run_logoupdater(request: LogoUpdaterRequest):
@@ -7414,7 +7489,7 @@ async def run_logoupdater(request: LogoUpdaterRequest):
             }
         except Exception as e:
             logger.error(f"Error running LogoUpdater: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/stop")
@@ -7478,7 +7553,7 @@ async def stop_script():
 
         except Exception as e:
             logger.error(f"Error stopping script: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/force-kill")
@@ -7605,7 +7680,7 @@ async def get_log_content(log_name: str, tail: int = 100):
             return {"content": lines[-tail:] if tail else lines}
     except Exception as e:
         logger.error(f"Error reading log: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/logs/ui/unified")
@@ -7708,7 +7783,7 @@ async def get_unified_ui_logs(tail: int = 500):
 
     except Exception as e:
         logger.error(f"Error reading unified UI logs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/logs/{log_name}/exists")
@@ -7937,7 +8012,7 @@ async def delete_poster(path: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting poster {path}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 class BulkDeleteRequest(BaseModel):
@@ -8237,7 +8312,7 @@ async def bulk_delete_posters(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/backgrounds-gallery")
@@ -8288,7 +8363,7 @@ async def delete_background(path: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting background {path}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/backgrounds/bulk-delete")
@@ -8345,7 +8420,7 @@ async def bulk_delete_backgrounds(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete backgrounds: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/seasons-gallery")
@@ -8396,7 +8471,7 @@ async def delete_season(path: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting season {path}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/seasons/bulk-delete")
@@ -8453,7 +8528,7 @@ async def bulk_delete_seasons(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete seasons: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/titlecards-gallery")
@@ -8504,7 +8579,7 @@ async def delete_titlecard(path: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting titlecard {path}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/titlecards/bulk-delete")
@@ -8561,7 +8636,7 @@ async def bulk_delete_titlecards(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete titlecards: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -8587,7 +8662,7 @@ async def get_manual_assets_gallery():
         logger.error(f"Error getting manual assets gallery from cache: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/manual-assets/{path:path}")
 async def delete_manual_asset(path: str):
@@ -8623,7 +8698,7 @@ async def delete_manual_asset(path: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting manual asset {path}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/manual-assets/bulk-delete")
@@ -8674,7 +8749,7 @@ async def bulk_delete_manual_assets(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete manual assets: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -8690,7 +8765,7 @@ async def get_backup_assets_gallery():
         return cache.get("backup_gallery", {"libraries": [], "total_assets": 0})
     except Exception as e:
         logger.error(f"Error getting backup gallery: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/backup-assets/{path:path}")
 async def delete_backup_asset(path: str):
@@ -8720,7 +8795,7 @@ async def delete_backup_asset(path: str):
         raise
     except Exception as e:
         logger.error(f"Error deleting backup asset {path}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/backup-assets/bulk-delete")
 async def bulk_delete_backup_assets(request: BulkDeleteRequest):
@@ -8760,7 +8835,7 @@ async def bulk_delete_backup_assets(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete backups: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # Mount Static Files for Backups
 if BACKUP_DIR.exists():
@@ -9329,7 +9404,7 @@ async def refresh_cache():
         }
     except Exception as e:
         logger.error(f"Error refreshing cache: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/cache/status")
@@ -9452,7 +9527,7 @@ async def get_scheduler_status():
         return {"success": True, **status}
     except Exception as e:
         logger.error(f"Error getting scheduler status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/scheduler/config")
 async def get_scheduler_config():
@@ -9465,7 +9540,7 @@ async def get_scheduler_config():
         return {"success": True, "config": config}
     except Exception as e:
         logger.error(f"Error loading scheduler config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/scheduler/config")
 async def update_scheduler_config(data: ScheduleUpdate):
@@ -9499,7 +9574,7 @@ async def update_scheduler_config(data: ScheduleUpdate):
         }
     except Exception as e:
         logger.error(f"Error updating scheduler config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/scheduler/schedule")
 async def add_schedule(request: Request):
@@ -9545,7 +9620,7 @@ async def add_schedule(request: Request):
 
     except Exception as e:
         logger.error(f"Error adding schedule: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/scheduler/schedule/{time}")
 async def remove_schedule(time: str):
@@ -9572,7 +9647,7 @@ async def remove_schedule(time: str):
         raise
     except Exception as e:
         logger.error(f"Error removing schedule: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/scheduler/schedules")
 async def clear_all_schedules():
@@ -9587,7 +9662,7 @@ async def clear_all_schedules():
         return {"success": True, "message": "All schedules cleared", **status}
     except Exception as e:
         logger.error(f"Error clearing schedules: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/scheduler/enable")
 async def enable_scheduler():
@@ -9601,7 +9676,7 @@ async def enable_scheduler():
         return {"success": True, "message": "Scheduler enabled", "config": config}
     except Exception as e:
         logger.error(f"Error enabling scheduler: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/scheduler/disable")
 async def disable_scheduler():
@@ -9615,7 +9690,7 @@ async def disable_scheduler():
         return {"success": True, "message": "Scheduler disabled", "config": config}
     except Exception as e:
         logger.error(f"Error disabling scheduler: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/scheduler/restart")
 async def restart_scheduler():
@@ -9629,7 +9704,7 @@ async def restart_scheduler():
         return {"success": True, "message": "Scheduler restarted", **status}
     except Exception as e:
         logger.error(f"Error restarting scheduler: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/scheduler/run-now")
 async def run_scheduler_now():
@@ -9648,7 +9723,7 @@ async def run_scheduler_now():
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error triggering scheduled run: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # ============================================================================
 # LOGS WATCHER API
@@ -9703,7 +9778,7 @@ async def get_logs_watcher_status():
 
     except Exception as e:
         logger.error(f"Error getting logs watcher status: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
@@ -11055,7 +11130,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
 
     except Exception as e:
         logger.error(f"Error fetching asset replacements: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/assets/upload-replacement")
 async def upload_asset_replacement(
@@ -11182,7 +11257,7 @@ async def upload_asset_replacement(
 
             except Exception as e:
                 logger.error(f"Error adding to queue: {e}")
-                raise HTTPException(status_code=500, detail=f"Failed to add to queue: {str(e)}")
+                raise HTTPException(status_code=500, detail="Failed to add to queue")
         # ==========================================
 
         # ==========================================
@@ -11438,9 +11513,8 @@ async def upload_asset_replacement(
                         final_title_text,
                         "-FolderName",
                         final_folder_name,
-                        "-LibraryName",
-                        final_library_name,
-                    ]
+                    if final_library_name:
+                        command.extend(["-LibraryName", final_library_name])
 
                     # Handle Season posters (Season01.jpg, Season 01.jpg, etc.)
                     if season_number or "season" in filename:
@@ -11513,7 +11587,7 @@ async def upload_asset_replacement(
         error_details = traceback.format_exc()
         logger.error(f"Unexpected error uploading asset replacement: {e}")
         logger.error(f"Traceback:\n{error_details}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 def delete_db_entries_for_asset(asset_path: str):
@@ -11829,6 +11903,10 @@ async def replace_asset_from_url(
     Optionally add to queue instead of immediate processing
     """
     try:
+        # SSRF Validation for image_url
+        if not is_safe_url(image_url):
+            raise HTTPException(status_code=400, detail="Invalid or unsafe image URL")
+
         # Check if Posterizarr is currently running (only if processing immediately)
         if not add_to_queue and RUNNING_FILE.exists():
             logger.warning(
@@ -11848,7 +11926,6 @@ async def replace_asset_from_url(
                     "folder_name": folder_name,
                     "library_name": library_name,
                     "season_number": season_number,
-                    "episode_number": episode_number,
                     "episode_number": episode_number,
                     "episode_title": episode_title,
                     "asset_type": asset_type,
@@ -11875,29 +11952,29 @@ async def replace_asset_from_url(
                 }
             except Exception as e:
                 logger.error(f"Error adding to queue: {e}")
-                raise HTTPException(status_code=500, detail=f"Failed to add to queue: {str(e)}")
+                raise HTTPException(status_code=500, detail="Failed to add to queue")
 
         # Validate asset path exists
         # Determine target directory based on process_with_overlays flag
-        if not process_with_overlays:
-            target_base_dir = MANUAL_ASSETS_DIR
-            logger.info(f"Saving to manual assets directory (no overlay processing)")
-        else:
-            target_base_dir = ASSETS_DIR
-            logger.info(f"Saving to assets directory (with overlay processing)")
+        target_base_dir = ASSETS_DIR if process_with_overlays else MANUAL_ASSETS_DIR
+        logger.info(f"Target directory for asset: {target_base_dir.name}")
 
-        full_asset_path = target_base_dir / asset_path
+        # Path Traversal protection
+        full_asset_path = get_safe_path(target_base_dir, asset_path)
 
         # Check if asset exists in either location (for replacement)
         # First check target location, then check alternate location
         asset_exists_in_target = full_asset_path.exists()
 
         # Also check the alternate location (in case user is moving between folders)
-        alternate_base_dir = (
-            ASSETS_DIR if not process_with_overlays else MANUAL_ASSETS_DIR
-        )
-        alternate_asset_path = alternate_base_dir / asset_path
-        asset_exists_in_alternate = alternate_asset_path.exists()
+        alternate_base_dir = ASSETS_DIR if not process_with_overlays else MANUAL_ASSETS_DIR
+        try:
+            alternate_asset_path = get_safe_path(alternate_base_dir, asset_path)
+            asset_exists_in_alternate = alternate_asset_path.exists()
+        except HTTPException:
+            # If get_safe_path fails for alternate, we just assume it doesn't exist there
+            asset_exists_in_alternate = False
+            alternate_asset_path = None
 
         if not asset_exists_in_target and not asset_exists_in_alternate:
             logger.warning(
@@ -12097,7 +12174,7 @@ async def replace_asset_from_url(
         raise
     except Exception as e:
         logger.error(f"Error replacing asset from URL: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 async def trigger_manual_run_internal(request: ManualModeRequest):
@@ -12343,7 +12420,7 @@ async def delete_asset_and_record(record_id: int):
     except Exception as e:
         logger.error(f"Unexpected error deleting asset ID {record_id}: {e}", exc_info=True)
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/assets/bulk-delete-assets")
 async def bulk_delete_assets_and_records(request: BulkDeleteAssetsRequest):
@@ -12633,7 +12710,7 @@ async def get_assets_overview():
         }
     except Exception as e:
         logger.error(f"Error fetching assets overview: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/imagechoices")
 async def get_all_imagechoices():
@@ -12647,7 +12724,7 @@ async def get_all_imagechoices():
         return [dict(record) for record in records]
     except Exception as e:
         logger.error(f"Error fetching image choices: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/imagechoices/{title}")
@@ -12665,7 +12742,7 @@ async def get_imagechoice_by_title(title: str):
         raise
     except Exception as e:
         logger.error(f"Error fetching image choice: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/imagechoices")
@@ -12690,7 +12767,7 @@ async def create_imagechoice(record: ImageChoiceRecord):
         return {"id": record_id, "message": "Record created successfully"}
     except Exception as e:
         logger.error(f"Error creating image choice: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.put("/api/imagechoices/{record_id}")
@@ -12706,7 +12783,7 @@ async def update_imagechoice(record_id: int, record: ImageChoiceRecord):
         return {"message": "Record updated successfully"}
     except Exception as e:
         logger.error(f"Error updating image choice: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.delete("/api/imagechoices/{record_id}")
@@ -12720,7 +12797,7 @@ async def delete_imagechoice(record_id: int):
         return {"message": "Record deleted successfully"}
     except Exception as e:
         logger.error(f"Error deleting image choice: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/imagechoices/{record_id}/find-asset")
@@ -12835,7 +12912,7 @@ async def find_asset_for_imagechoice(record_id: int):
         raise
     except Exception as e:
         logger.error(f"Error finding asset for record {record_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/imagechoices/import")
@@ -12864,7 +12941,7 @@ async def import_imagechoices_csv():
         }
     except Exception as e:
         logger.error(f"Error importing CSV: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # ============================================================================
 # SUPPORT & TROUBLESHOOTING
@@ -13265,7 +13342,7 @@ async def arr_webhook(request: Request):
 
     except Exception as e:
         logger.error(f"Error processing Arr webhook: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/api/webhook/tautulli")
@@ -13308,7 +13385,7 @@ async def tautulli_webhook(request: Request):
 
     except Exception as e:
         logger.error(f"Error processing Tautulli webhook: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # ============================================================================
 # OVERLAY CREATOR ENDPOINTS
@@ -13365,7 +13442,7 @@ async def preview_created_overlay(options: OverlayCreatorRequest):
         return {"success": True, "image_base64": img_str}
     except Exception as e:
         logger.error(f"Error generating preview: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/overlay-creator/save")
 async def save_created_overlay(options: OverlayCreatorRequest):
@@ -13393,7 +13470,7 @@ async def save_created_overlay(options: OverlayCreatorRequest):
         raise
     except Exception as e:
         logger.error(f"Error saving created overlay: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # ============================================
 # STATIC FILE MOUNTS
