@@ -447,7 +447,7 @@ docker exec -it posterizarr pwsh /app/Posterizarr.ps1 -GatherLogs
 
 ### Logo Updater Mode
 
-Run the script with the `-LogoUpdater` or `-LogoRevert` flag. This mode automatically scans your Plex libraries for missing ClearLogos, fetches them from online sources (TMDB, TVDB, Fanart.tv), and uploads them directly to Plex.
+The **Logo Updater Mode** automatically scans your Plex libraries for missing ClearLogos (text-based title images), fetches them from online sources (TMDB, TVDB, Fanart.tv), and uploads them directly to your Plex server metadata.
 
 **Standard Update**
 
@@ -464,12 +464,15 @@ Run the script with the `-LogoUpdater` or `-LogoRevert` flag. This mode automati
 **Parameters:**
 
 - `-LogoUpdater`: Enable the logo search and upload process.
-- `-LogoRevert`: Search for logos previously added by Posterizarr and remove them from Plex.
+- `-LogoRevert`: Search for logos previously added by Posterizarr (verified via fingerprinting) and unlinks them from Plex.
 - `-ForceReplace`: Overwrite existing logos even if they already exist in Plex.
 - `-LibraryName`: Specify a single library name or use `"all"` to process all suitable Movie and TV libraries.
 
 !!! tip
-    In the WebUI, you can access this mode via the "Run Modes" tab. It provides a user-friendly interface to select libraries and toggle "Force Replace" or "Revert" settings.
+    **Fingerprinting**: When running in **Revert** mode, Posterizarr checks the current logo for a hidden "fingerprint" added during upload. This ensures it only unlinks images it originally provided, leaving your manual uploads untouched.
+
+    In the WebUI, you can access this mode via the **"Run Modes"** tab. It provides a user-friendly interface to select libraries and toggle "Force Replace" or "Revert" settings.
+
 
 ### Manual Mode Logo Search
 
