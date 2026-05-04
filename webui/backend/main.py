@@ -11513,6 +11513,7 @@ async def upload_asset_replacement(
                         final_title_text,
                         "-FolderName",
                         final_folder_name,
+                    ]
                     if final_library_name:
                         command.extend(["-LibraryName", final_library_name])
 
