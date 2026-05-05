@@ -20,3 +20,18 @@ To fix this, you must use your server's exact, secure domain name. This is a lon
 
 !!! tip "Finding your Plex Token"
     If you don't know how to find your Plex token, refer to the [official Plex documentation](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/).
+
+## UI: Action Center Alerts
+
+**Question:** I just setup Posterizarr and I'm getting a lot of errors/alerts in my Action Center. What do I do with these?
+
+**Answer:** 
+Don't worry! These aren't system errors. The **Action Center** is simply a list of assets (posters, backgrounds, etc.) that Posterizarr thinks you might want to review. 
+
+Common reasons for alerts include:
+*   A poster was found but in a different language than your preferred one.
+*   An image was sourced from a secondary provider (like Fanart.tv) instead of your primary one (like TMDB).
+*   The text on a logo might be truncated.
+
+You can read more about how to manage these in the [Action Center Guide](action_center.md).
+
