@@ -46,6 +46,7 @@ nav:
   - 'Configuration': 'configuration.md'
   - 'Usage & Guides':
     - 'Usage & Modes': 'modes.md'
+    - 'Action Center Guide': 'action_center.md'
     - 'Homepage Custom API': 'homepage.md'
     - 'Kometa Integration': 'kometaintegration.md'
     - 'Manual UI Installation': 'uiinstallation.md'
