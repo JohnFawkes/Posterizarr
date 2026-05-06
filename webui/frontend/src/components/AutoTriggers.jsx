@@ -556,14 +556,28 @@ function AutoTriggers() {
   return (
     <div className="px-4 py-6 space-y-8">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-10">
         <div className="flex justify-center gap-4 mb-4">
           <img src="/sonarr.png" alt="Sonarr" className="h-16 w-auto" />
           <img src="/radarr.png" alt="Radarr" className="h-16 w-auto" />
           <img src="/tautulli.png" alt="Tautulli" className="h-16 w-auto" />
         </div>
-        <h1 className="text-4xl font-bold text-theme-text mb-4">{t("autoTriggers.header.title")}</h1>
-        <p className="text-xl text-theme-muted max-w-3xl mx-auto">{t("autoTriggers.header.subtitle")}</p>
+        <h1 className="text-4xl font-bold text-theme-text mb-3">{t("autoTriggers.header.title")}</h1>
+        <p className="text-lg text-theme-muted max-w-2xl mx-auto mb-5">{t("autoTriggers.header.subtitle")}</p>
+
+        {/* Compact Info Box */}
+        <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-4 text-left inline-block max-w-2xl">
+          <ul className="space-y-2 text-sm text-theme-text">
+            <li className="flex items-start gap-2">
+              <Zap className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <span><strong>How it works:</strong> {t("autoTriggers.header.bullet1")}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span><strong>Plex Recommendation:</strong> {t("autoTriggers.header.bullet2")}</span>
+            </li>
+          </ul>
+        </div>
       </div>
 
       {/* Tabs */}

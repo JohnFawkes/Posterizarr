@@ -2038,8 +2038,10 @@
       }
     },
     "header": {
-      "title": "Auto Trigger",
-      "subtitle": "Richte automatische Poster-Erstellung ein, wenn neue Medien zu deiner Bibliothek hinzugefügt werden"
+      "title": "Automatische Trigger",
+      "subtitle": "Erstelle und sende automatisch Poster an deinen Mediaserver, wenn neue Medien hinzugefügt werden.",
+      "bullet1": "Verarbeitet nur neu hinzugefügte Elemente und lädt Assets sofort hoch. Vorhandene Medien werden ignoriert.",
+      "bullet2": "Plex-Nutzer: Verwende Tautulli für exakte Übereinstimmungen. Arr-Trigger sind hauptsächlich für Jellyfin/Emby gedacht und erfordern einen manuellen Abgleich."
     },
     "tabs": {
       "tautulli": {

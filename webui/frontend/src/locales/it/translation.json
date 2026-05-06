@@ -1986,7 +1986,9 @@
     },
     "header": {
       "title": "Trigger automatici",
-      "subtitle": "Configura la creazione automatica di locandine quando vengono aggiunti nuovi media alla tua libreria"
+      "subtitle": "Crea e invia automaticamente le locandine al tuo server multimediale quando vengono aggiunti nuovi contenuti.",
+      "bullet1": "Elabora solo gli elementi appena aggiunti e carica immediatamente gli asset. I contenuti esistenti vengono ignorati.",
+      "bullet2": "Utenti Plex: Utilizza Tautulli per una corrispondenza esatta. I trigger Arr sono pensati principalmente per Jellyfin/Emby e richiedono una corrispondenza manuale."
     },
     "tabs": {
       "tautulli": {
