@@ -517,7 +517,7 @@ function TautulliContent() {
                         </div>
                     </div>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <StepTitle step={step} onDownload={handleDownloadScript} />
                     <p className="text-theme-muted text-sm mb-3 leading-relaxed">{step.description}</p>
                     {step.code?.map((cb, ci) => (
