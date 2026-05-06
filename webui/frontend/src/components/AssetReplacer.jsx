@@ -1159,11 +1159,11 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(metadata.asset_type)}&mediaType=${encodeURIComponent(metadata.mediaType)}`;
 
       if (processWithOverlays) {
-        const titleText = manualForm?.titletext || metadata.title;
+        const titleText = manualForm?.titletext ?? metadata.title;
         const folderName = manualForm?.foldername || metadata.folder_name;
         const libraryName = manualForm?.libraryname || metadata.library_name;
 
-        if (!titleText || !titleText.trim()) {
+        if (titleText === undefined || titleText === null) {
           showError(t("assetReplacer.enterTitleTextError"));
           setUploading(false);
           return;
@@ -1284,11 +1284,11 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       processWithOverlays &&
       (metadata.asset_type === "poster" || metadata.asset_type === "background")
     ) {
-      const titleText = manualForm?.titletext || metadata.title;
+      const titleText = manualForm?.titletext ?? metadata.title;
       const folderName = manualForm?.foldername || metadata.folder_name;
       const libraryName = manualForm?.libraryname || metadata.library_name;
 
-      if (!titleText || !titleText.trim()) {
+      if (titleText === undefined || titleText === null) {
         showError(t("assetReplacer.enterTitleTextError"));
         setUploading(false);
         return;
@@ -1307,12 +1307,12 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
 
     // Validation for season posters
     if (processWithOverlays && metadata.asset_type === "season") {
-      const titleText = manualForm?.titletext || metadata.title;
+      const titleText = manualForm?.titletext ?? metadata.title;
       const folderName = manualForm?.foldername || metadata.folder_name;
       const libraryName = manualForm?.libraryname || metadata.library_name;
       const seasonPosterName = manualForm?.seasonPosterName;
 
-      if (!titleText || !titleText.trim()) {
+      if (titleText === undefined || titleText === null) {
         showError(t("assetReplacer.enterTitleTextError"));
         setUploading(false);
         return;
@@ -1377,11 +1377,11 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       )}&process_with_overlays=${processWithOverlays}&add_to_queue=${addToQueue}&asset_type=${encodeURIComponent(metadata.asset_type)}&mediaType=${encodeURIComponent(metadata.mediaType)}`;
 
       if (processWithOverlays && metadata.asset_type !== "titlecard") {
-        const titleText = manualForm?.titletext || metadata.title;
+        const titleText = manualForm?.titletext ?? metadata.title;
         const folderName = manualForm?.foldername || metadata.folder_name;
         const libraryName = manualForm?.libraryname || metadata.library_name;
 
-        if (titleText) url += `&title_text=${encodeURIComponent(titleText)}`;
+        if (titleText !== undefined && titleText !== null) url += `&title_text=${encodeURIComponent(titleText)}`;
         if (folderName) url += `&folder_name=${encodeURIComponent(folderName)}`;
         if (libraryName) url += `&library_name=${encodeURIComponent(libraryName)}`;
       }
@@ -1597,7 +1597,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
                         {metadata.asset_type !== "titlecard" && (
                           <div>
                             <label className="block text-xs font-medium text-theme-text mb-1">
-                              Title Text *
+                              Title Text
                             </label>
                             <div className="flex gap-2">
                               <input

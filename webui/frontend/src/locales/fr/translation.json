@@ -1987,7 +1987,9 @@
     },
     "header": {
       "title": "Déclencheurs automatiques",
-      "subtitle": "Configurez la création automatique d'affiches lorsque de nouveaux médias sont ajoutés à votre bibliothèque"
+      "subtitle": "Créez et envoyez automatiquement des affiches à votre serveur multimédia lorsque de nouveaux médias sont ajoutés.",
+      "bullet1": "Traite uniquement les éléments nouvellement ajoutés et téléverse les ressources immédiatement. Les médias existants sont ignorés.",
+      "bullet2": "Utilisateurs de Plex : Utilisez Tautulli pour une correspondance exacte. Les déclencheurs Arr sont principalement destinés à Jellyfin/Emby et nécessitent une correspondance manuelle."
     },
     "tabs": {
       "tautulli": {

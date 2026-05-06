@@ -1981,8 +1981,10 @@
       }
     },
     "header": {
-      "title": "Gatilhos automáticos",
-      "subtitle": "Configure a criação automática de cartazes quando novos conteúdos forem adicionados à sua biblioteca"
+      "title": "Triggers Automáticos",
+      "subtitle": "Crie e envie pôsteres automaticamente para o seu servidor de mídia quando novas mídias forem adicionadas.",
+      "bullet1": "Processa apenas os itens recém-adicionados e faz o upload dos recursos imediatamente. As mídias existentes são ignoradas.",
+      "bullet2": "Usuários do Plex: Use o Tautulli para uma correspondência exata. Os triggers do Arr são principalmente para o Jellyfin/Emby e exigem correspondência manual."
     },
     "tabs": {
       "tautulli": {
