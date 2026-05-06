@@ -1988,7 +1988,9 @@
     },
     "header": {
       "title": "Auto Triggers",
-      "subtitle": "Set up automatic poster creation when new media is added to your library"
+      "subtitle": "Automatically create and push posters to your media server when new media is added.",
+      "bullet1": "Processes only newly added items and uploads assets immediately. Existing media is ignored.",
+      "bullet2": "Plex Users: Use Tautulli for exact matching. Arr triggers are primarily for Jellyfin/Emby and require manual matching."
     },
     "tabs": {
       "tautulli": {
