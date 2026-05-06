@@ -11492,7 +11492,7 @@ async def upload_asset_replacement(
 
                     final_library_name = library_name or extracted_library_name
                     final_folder_name = folder_name or extracted_folder_name
-                    final_title_text = title_text or extracted_folder_name
+                    final_title_text = title_text if title_text is not None else extracted_folder_name
 
                     logger.info(
                         f"Overlay parameters - Library: {final_library_name}, Folder: {final_folder_name}, Title: {final_title_text}"
