@@ -3415,7 +3415,7 @@ async def validate_plex(request: PlexValidationRequest):
     logger.info(
         f"[KEY] Token: {request.token[:10]}...{request.token[-4:] if len(request.token) > 14 else ''}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -3491,7 +3491,7 @@ async def validate_jellyfin(request: JellyfinValidationRequest):
     logger.info(
         f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -3566,7 +3566,7 @@ async def validate_emby(request: EmbyValidationRequest):
     logger.info(
         f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -3638,7 +3638,7 @@ async def validate_tmdb(request: TMDBValidationRequest):
     logger.info(
         f"[KEY] Token: {request.token[:15]}...{request.token[-8:] if len(request.token) > 23 else ''}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -3701,8 +3701,8 @@ async def validate_tvdb(request: TVDBValidationRequest):
         f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
     )
     if request.pin:
-        logger.info(f" PIN provided: {request.pin}")
-    logger.debug(f"Full request object: {request.model_dump()}")
+        logger.info(f" PIN provided: {'*' * len(request.pin) if request.pin else 'None'}")
+
 
     max_retries = 6
     retry_count = 0
@@ -3899,7 +3899,7 @@ async def validate_discord(request: DiscordValidationRequest):
                 "username": "Posterizarr",
             }
             if not is_safe_url(request.webhook_url):
-                logger.warning(f"SSRF attempt blocked for Discord webhook: {request.webhook_url}")
+                logger.warning(f"SSRF attempt blocked for Discord webhook: {request.webhook_url[:20]}...")
                 raise HTTPException(status_code=400, detail="Invalid or unsafe webhook URL")
 
             response = await client.post(request.webhook_url, json=payload)
@@ -4015,7 +4015,7 @@ async def validate_uptimekuma(request: UptimeKumaValidationRequest):
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             if not is_safe_url(request.url):
-                logger.warning(f"SSRF attempt blocked for Uptime Kuma: {request.url}")
+                logger.warning(f"SSRF attempt blocked for Uptime Kuma: {request.url[:20]}...")
                 raise HTTPException(status_code=400, detail="Invalid or unsafe URL")
 
             response = await client.get(
@@ -6684,7 +6684,7 @@ async def run_manual_mode(request: ManualModeRequest):
 
     with process_lock:
         # Debug logging
-        logger.info(f"Manual mode request received: {request.model_dump()}")
+        logger.info(f"Manual mode request received for: {request.titletext} in {request.libraryName}")
 
         # Check if already running
         if current_process and current_process.poll() is None:
