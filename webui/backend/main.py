@@ -11784,7 +11784,7 @@ async def update_asset_db_entry_as_manual(
         final_title_text = title_text
         if not final_title_text:  # This catches both None and "" for DB cleanup purposes
             # Match patterns like "Movie Name (2024) {tmdb-12345}"
-            title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
+            title_match = re.match(r"^([^()]+)\s*\(\d{4}\)", final_folder_name)
             final_title_text = title_match.group(1).strip() if title_match else final_folder_name
 
         # Determine asset type from filename
@@ -12142,7 +12142,7 @@ async def replace_asset_from_url(
                     # Remove year and TMDB/TVDB ID from folder name
                     final_title_text = title_text
                     if title_text is None:
-                        title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
+                        title_match = re.match(r"^([^()]+)\s*\(\d{4}\)", final_folder_name)
                         final_title_text = title_match.group(1).strip() if title_match else final_folder_name
                     else:
                         final_title_text = title_text
@@ -13146,18 +13146,18 @@ def _create_support_zip_blocking(staging_dir_path: Path, zip_file_path: Path) ->
                                 if not is_allowed:
                                     sanitized_download_source = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_download_source, count=1)
 
-                                sanitized_download_source = re.sub(r"([?&][^=]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_download_source, flags=re.IGNORECASE)
-                                sanitized_download_source = re.sub(r"([?&][^=]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_download_source, flags=re.IGNORECASE)
-                                sanitized_download_source = re.sub(r"([?&][^=]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_download_source, flags=re.IGNORECASE)
+                                sanitized_download_source = re.sub(r"([?&][^=&]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_download_source, flags=re.IGNORECASE)
+                                sanitized_download_source = re.sub(r"([?&][^=&]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_download_source, flags=re.IGNORECASE)
+                                sanitized_download_source = re.sub(r"([?&][^=&]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_download_source, flags=re.IGNORECASE)
 
                             if original_fav_link and original_fav_link.startswith("http"):
                                 is_allowed = any(original_fav_link.startswith(prefix) for prefix in ALLOWED_PREFIXES)
                                 if not is_allowed:
                                     sanitized_fav_link = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_fav_link, count=1)
 
-                                sanitized_fav_link = re.sub(r"([?&][^=]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_fav_link, flags=re.IGNORECASE)
-                                sanitized_fav_link = re.sub(r"([?&][^=]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_fav_link, flags=re.IGNORECASE)
-                                sanitized_fav_link = re.sub(r"([?&][^=]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_fav_link, flags=re.IGNORECASE)
+                                sanitized_fav_link = re.sub(r"([?&][^=&]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_fav_link, flags=re.IGNORECASE)
+                                sanitized_fav_link = re.sub(r"([?&][^=&]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_fav_link, flags=re.IGNORECASE)
+                                sanitized_fav_link = re.sub(r"([?&][^=&]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_fav_link, flags=re.IGNORECASE)
 
                             if (sanitized_download_source != original_download_source) or (sanitized_fav_link != original_fav_link):
                                 sanitized_count_in_file += 1
