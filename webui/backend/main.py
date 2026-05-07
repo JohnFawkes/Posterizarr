@@ -123,10 +123,12 @@ else:
 # ++ SECURITY UTILITY FUNCTIONS
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def is_safe_url(url: str) -> bool:
+def is_safe_url(url: str, allow_private: bool = False) -> bool:
     """
     Validate that the URL is using a safe scheme (http/https) and that the
-    target host is not a private, local, or reserved IP address.
+    target host is not a loopback or reserved IP address.
+    
+    If allow_private is False (default), private network ranges (LAN/Docker) are also blocked.
     """
     try:
         parsed = urllib.parse.urlparse(url)
@@ -138,7 +140,7 @@ def is_safe_url(url: str) -> bool:
         if not hostname:
             return False
 
-        # Basic protection against loopback/localhost strings before DNS resolution
+        # ALWAYS block loopback/localhost to prevent server-side recursion/management bypass
         if hostname.lower() in ["localhost", "127.0.0.1", "::1"]:
             logger.warning(f"Blocked SSRF attempt to localhost: {hostname}")
             return False
@@ -146,11 +148,17 @@ def is_safe_url(url: str) -> bool:
         ip_addr = socket.gethostbyname(hostname)
         ip = ipaddress.ip_address(ip_addr)
 
-        # Block private, loopback, and link-local ranges
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
-            logger.warning(f"Blocked SSRF attempt to internal/private IP: {ip_addr} (hostname: {hostname})")
+        # Always block loopback IPs resolved via DNS
+        if ip.is_loopback:
+            logger.warning(f"Blocked SSRF attempt to loopback IP: {ip_addr}")
             return False
 
+        # Block private, link-local, and multicast ranges unless explicitly allowed
+        if not allow_private:
+            if ip.is_private or ip.is_link_local or ip.is_multicast:
+                logger.warning(f"Blocked SSRF attempt to internal/private IP: {ip_addr} (hostname: {hostname})")
+                return False
+        
         return True
     except Exception as e:
         logger.error(f"Error validating URL '{url}': {e}")
@@ -3417,15 +3425,20 @@ async def validate_plex(request: PlexValidationRequest):
     )
 
 
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Plex URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Plex URL")
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/library/sections/?X-Plex-Token={request.token}"
+            # Use params for safe token passing instead of f-string URL building
+            base_url = f"{request.url.rstrip('/')}/library/sections/"
+            params = {"X-Plex-Token": request.token}
+            
             logger.info(f"[REQUEST] Sending request to Plex API...")
-            logger.debug(
-                f"Full request URL (without token): {request.url}/library/sections/"
-            )
+            logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(url)
+            response = await client.get(base_url, params=params)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3493,13 +3506,19 @@ async def validate_jellyfin(request: JellyfinValidationRequest):
     )
 
 
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Jellyfin URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Jellyfin URL")
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/System/Info?api_key={request.api_key}"
+            base_url = f"{request.url.rstrip('/')}/System/Info"
+            params = {"api_key": request.api_key}
+            
             logger.info(f"[REQUEST] Sending request to Jellyfin API...")
-            logger.debug(f"Full request URL (without key): {request.url}/System/Info")
+            logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(url)
+            response = await client.get(base_url, params=params)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3568,13 +3587,19 @@ async def validate_emby(request: EmbyValidationRequest):
     )
 
 
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Emby URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Emby URL")
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/System/Info?api_key={request.api_key}"
+            base_url = f"{request.url.rstrip('/')}/System/Info"
+            params = {"api_key": request.api_key}
+            
             logger.info(f"[REQUEST] Sending request to Emby API...")
-            logger.debug(f"Full request URL (without key): {request.url}/System/Info")
+            logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(url)
+            response = await client.get(base_url, params=params)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3722,7 +3747,7 @@ async def validate_tvdb(request: TVDBValidationRequest):
                         f"[REQUEST] Attempting TVDB login with API Key + PIN (Attempt {retry_count + 1}/{max_retries})..."
                     )
                     logger.debug(
-                        f"Request body includes: apikey (hidden), pin={request.pin}"
+                        f"Request body includes: apikey (hidden), pin={'*' * len(request.pin) if request.pin else 'None'}"
                     )
                 else:
                     body = {"apikey": request.api_key}
@@ -3751,7 +3776,7 @@ async def validate_tvdb(request: TVDBValidationRequest):
 
                     if token:
                         success = True
-                        pin_msg = f" (with PIN: {request.pin})" if request.pin else ""
+                        pin_msg = " (with PIN: ****)" if request.pin else ""
                         logger.info(
                             f"[TOKEN]  Successfully received TVDB token: {token[:15]}...{token[-8:]}"
                         )
@@ -3951,7 +3976,11 @@ async def validate_apprise(request: AppriseValidationRequest):
     """Validate Apprise URL dynamically and send a test message"""
     logger.info("=" * 60)
     logger.info("APPRISE VALIDATION & TEST MESSAGE STARTED")
-    logger.info(f"[URL] URL: {request.url}")
+    logger.info(f"[URL] URL: {request.url[:20]}...")
+    
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Apprise URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Apprise URL")
 
     try:
         # Local import to prevent startup crashes if library is missing
