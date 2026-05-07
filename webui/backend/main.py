@@ -3880,7 +3880,9 @@ async def validate_discord(request: DiscordValidationRequest):
                 "content": "[SUCCESS] Posterizarr WebUI - Discord webhook validation successful!",
                 "username": "Posterizarr",
             }
-            logger.info(f"[REQUEST] Sending test message to Discord webhook...")
+            if not is_safe_url(request.webhook_url):
+                logger.warning(f"SSRF attempt blocked for Discord webhook: {request.webhook_url}")
+                raise HTTPException(status_code=400, detail="Invalid or unsafe webhook URL")
 
             response = await client.post(request.webhook_url, json=payload)
             logger.info(f"Response received - Status: {response.status_code}")
@@ -3994,7 +3996,9 @@ async def validate_uptimekuma(request: UptimeKumaValidationRequest):
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            logger.info(f"[REQUEST] Sending test push to Uptime Kuma...")
+            if not is_safe_url(request.url):
+                logger.warning(f"SSRF attempt blocked for Uptime Kuma: {request.url}")
+                raise HTTPException(status_code=400, detail="Invalid or unsafe URL")
 
             response = await client.get(
                 request.url,
@@ -11984,6 +11988,10 @@ async def replace_asset_from_url(
             # Don't fail - just create new asset
 
         # Download image from URL
+        if not is_safe_url(image_url):
+            logger.warning(f"SSRF attempt blocked for image download: {image_url}")
+            raise HTTPException(status_code=400, detail="Invalid or unsafe image URL")
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(image_url)
             if response.status_code != 200:
