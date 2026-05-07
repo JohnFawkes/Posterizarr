@@ -22,11 +22,12 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import json
 import subprocess
+import shlex
 import asyncio
 import os
 import httpx
 from pathlib import Path
-from typing import Optional, List, Literal, Dict
+from typing import Optional, List, Literal, Dict, Any
 import logging
 import re
 import time
@@ -122,14 +123,17 @@ else:
 # ++ SECURITY UTILITY FUNCTIONS
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def is_safe_url(url: str) -> bool:
+def is_safe_url(url: str, allow_private: bool = False) -> bool:
     """
     Validate that the URL is using a safe scheme (http/https) and that the
-    target host is not a private, local, or reserved IP address.
+    target host is not a loopback or reserved IP address.
+    
+    If allow_private is False (default), private network ranges (LAN/Docker) are also blocked.
     """
     try:
         parsed = urllib.parse.urlparse(url)
         if parsed.scheme not in ["http", "https"]:
+            logger.warning(f"Blocked URL with unsafe scheme: {parsed.scheme}")
             return False
 
         # Resolve hostname to IP
@@ -137,23 +141,70 @@ def is_safe_url(url: str) -> bool:
         if not hostname:
             return False
 
-        # Basic protection against loopback/localhost strings before DNS resolution
+        # ALWAYS block loopback/localhost
         if hostname.lower() in ["localhost", "127.0.0.1", "::1"]:
             logger.warning(f"Blocked SSRF attempt to localhost: {hostname}")
             return False
 
-        ip_addr = socket.gethostbyname(hostname)
-        ip = ipaddress.ip_address(ip_addr)
-
-        # Block private, loopback, and link-local ranges
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
-            logger.warning(f"Blocked SSRF attempt to internal/private IP: {ip_addr} (hostname: {hostname})")
+        try:
+            ip_addr = socket.gethostbyname(hostname)
+            ip = ipaddress.ip_address(ip_addr)
+            logger.debug(f"URL Validation: {hostname} resolved to {ip_addr}")
+        except Exception as res_err:
+            logger.error(f"URL Validation: Failed to resolve hostname '{hostname}': {res_err}")
             return False
+
+        # Always block loopback IPs resolved via DNS
+        if ip.is_loopback:
+            logger.warning(f"Blocked SSRF attempt to loopback IP: {ip_addr}")
+            return False
+
+        # Block private, link-local, and multicast ranges unless explicitly allowed
+        if not allow_private:
+            if ip.is_private or ip.is_link_local or ip.is_multicast:
+                logger.warning(f"Blocked SSRF attempt to internal/private IP: {ip_addr} (hostname: {hostname})")
+                return False
+        else:
+            if ip.is_private:
+                logger.debug(f"URL Validation: Allowing private IP {ip_addr} for hostname {hostname}")
 
         return True
     except Exception as e:
-        logger.error(f"Error validating URL '{url}': {e}")
+        logger.error(f"Error validating URL '{url}': {e}", exc_info=True)
         return False
+
+
+
+def sanitize_command_arg(arg: str) -> str:
+    """
+    Sanitize an argument for a command line to prevent argument injection
+    and null-byte issues, while preserving legitimate special characters.
+    Also ensures the argument doesn't start with a hyphen to prevent flag injection.
+    """
+    if not arg:
+        return ""
+    # Remove null bytes and non-printable control characters
+    sanitized = "".join(c for c in arg if c.isprintable()).strip()
+    
+    # Prevent flag injection by prefixing with a space if it starts with -
+    # (PowerShell handles this well, but it's an extra layer of safety)
+    if sanitized.startswith("-"):
+        sanitized = " " + sanitized
+        
+    return sanitized
+
+
+def mask_secret(secret: Any) -> str:
+    """
+    Mask a sensitive string (API Key, Token, Password) for logging.
+    Example: 'abcdef123456789' -> 'abcde...56789'
+    """
+    if not secret:
+        return "None"
+    s = str(secret)
+    if len(s) <= 8:
+        return "***"
+    return f"{s[:5]}...{s[-4:]}"
 
 
 def get_safe_path(base_dir: Path, user_path: str) -> Path:
@@ -3320,6 +3371,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
 
             logger.info(f"Using temporary font copy: {temp_font_path}")
 
+            # Prevent ImageMagick from interpreting leading '@' as a file reference
+            magick_text = safe_text
+            if magick_text.startswith("@"):
+                magick_text = "\\" + magick_text
+
             # Generate preview using ImageMagick with temp font copy
             cmd = [
                 magick_cmd,
@@ -3335,11 +3391,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
                 "400x200",
                 "-gravity",
                 "center",
-                f"label:{safe_text}",
+                f"label:{magick_text}",
                 absolute_output_path,
             ]
 
-            logger.info(f"ImageMagick command: {' '.join(cmd)}")
+            logger.info(f"ImageMagick command: {shlex.join(cmd)}")
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
 
@@ -3395,19 +3451,24 @@ async def validate_plex(request: PlexValidationRequest):
     logger.info("PLEX VALIDATION STARTED")
     logger.info(f"[URL] URL: {request.url}")
     logger.info(
-        f"[KEY] Token: {request.token[:10]}...{request.token[-4:] if len(request.token) > 14 else ''}"
+        f"[KEY] Token: {mask_secret(request.token)}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
+
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Plex URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Plex URL")
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/library/sections/?X-Plex-Token={request.token}"
+            # Use params for safe token passing instead of f-string URL building
+            base_url = f"{request.url.rstrip('/')}/library/sections/"
+            params = {"X-Plex-Token": request.token}
+            
             logger.info(f"[REQUEST] Sending request to Plex API...")
-            logger.debug(
-                f"Full request URL (without token): {request.url}/library/sections/"
-            )
+            logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(url)
+            response = await client.get(base_url, params=params)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3471,17 +3532,23 @@ async def validate_jellyfin(request: JellyfinValidationRequest):
     logger.info("JELLYFIN VALIDATION STARTED")
     logger.info(f"[URL] URL: {request.url}")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
+
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Jellyfin URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Jellyfin URL")
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/System/Info?api_key={request.api_key}"
+            base_url = f"{request.url.rstrip('/')}/System/Info"
+            params = {"api_key": request.api_key}
+            
             logger.info(f"[REQUEST] Sending request to Jellyfin API...")
-            logger.debug(f"Full request URL (without key): {request.url}/System/Info")
+            logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(url)
+            response = await client.get(base_url, params=params)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3546,17 +3613,23 @@ async def validate_emby(request: EmbyValidationRequest):
     logger.info("EMBY VALIDATION STARTED")
     logger.info(f"[URL] URL: {request.url}")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
+
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Emby URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Emby URL")
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/System/Info?api_key={request.api_key}"
+            base_url = f"{request.url.rstrip('/')}/System/Info"
+            params = {"api_key": request.api_key}
+            
             logger.info(f"[REQUEST] Sending request to Emby API...")
-            logger.debug(f"Full request URL (without key): {request.url}/System/Info")
+            logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(url)
+            response = await client.get(base_url, params=params)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3607,8 +3680,8 @@ async def validate_emby(request: EmbyValidationRequest):
         logger.info("=" * 60)
         return {
             "valid": False,
-            "message": f" Error connecting to Emby: {str(e)}",
-            "details": {"error": str(e)},
+            "message": "Error connecting to Emby. Please check your configuration and logs.",
+            "details": {"status": "error"},
         }
 
 
@@ -3618,9 +3691,9 @@ async def validate_tmdb(request: TMDBValidationRequest):
     logger.info("=" * 60)
     logger.info("TMDB VALIDATION STARTED")
     logger.info(
-        f"[KEY] Token: {request.token[:15]}...{request.token[-8:] if len(request.token) > 23 else ''}"
+        f"[KEY] Token: {mask_secret(request.token)}"
     )
-    logger.debug(f"Full request object: {request.model_dump()}")
+
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -3680,11 +3753,11 @@ async def validate_tvdb(request: TVDBValidationRequest):
     logger.info("=" * 60)
     logger.info("TVDB VALIDATION STARTED")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
     if request.pin:
-        logger.info(f" PIN provided: {request.pin}")
-    logger.debug(f"Full request object: {request.model_dump()}")
+        logger.info(f" PIN provided: {'*' * len(request.pin) if request.pin else 'None'}")
+
 
     max_retries = 6
     retry_count = 0
@@ -3704,7 +3777,7 @@ async def validate_tvdb(request: TVDBValidationRequest):
                         f"[REQUEST] Attempting TVDB login with API Key + PIN (Attempt {retry_count + 1}/{max_retries})..."
                     )
                     logger.debug(
-                        f"Request body includes: apikey (hidden), pin={request.pin}"
+                        f"Request body includes: apikey (hidden), pin={'*' * len(request.pin) if request.pin else 'None'}"
                     )
                 else:
                     body = {"apikey": request.api_key}
@@ -3733,9 +3806,9 @@ async def validate_tvdb(request: TVDBValidationRequest):
 
                     if token:
                         success = True
-                        pin_msg = f" (with PIN: {request.pin})" if request.pin else ""
+                        pin_msg = " (with PIN: ****)" if request.pin else ""
                         logger.info(
-                            f"[TOKEN]  Successfully received TVDB token: {token[:15]}...{token[-8:]}"
+                            f"[TOKEN]  Successfully received TVDB token: {mask_secret(token)}"
                         )
                         logger.info(f"TVDB validation successful!{pin_msg}")
                         logger.info(f"   Token is valid and working")
@@ -3815,7 +3888,7 @@ async def validate_fanart(request: FanartValidationRequest):
     logger.info("=" * 60)
     logger.info("FANART.TV VALIDATION STARTED")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
 
     try:
@@ -3880,7 +3953,9 @@ async def validate_discord(request: DiscordValidationRequest):
                 "content": "[SUCCESS] Posterizarr WebUI - Discord webhook validation successful!",
                 "username": "Posterizarr",
             }
-            logger.info(f"[REQUEST] Sending test message to Discord webhook...")
+            if not is_safe_url(request.webhook_url):
+                logger.warning(f"SSRF attempt blocked for Discord webhook: {request.webhook_url[:20]}...")
+                raise HTTPException(status_code=400, detail="Invalid or unsafe webhook URL")
 
             response = await client.post(request.webhook_url, json=payload)
             logger.info(f"Response received - Status: {response.status_code}")
@@ -3931,7 +4006,11 @@ async def validate_apprise(request: AppriseValidationRequest):
     """Validate Apprise URL dynamically and send a test message"""
     logger.info("=" * 60)
     logger.info("APPRISE VALIDATION & TEST MESSAGE STARTED")
-    logger.info(f"[URL] URL: {request.url}")
+    logger.info(f"[URL] URL: {request.url[:20]}...")
+    
+    if not is_safe_url(request.url, allow_private=True):
+        logger.warning(f"SSRF attempt blocked for Apprise URL: {request.url[:20]}...")
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Apprise URL")
 
     try:
         # Local import to prevent startup crashes if library is missing
@@ -3994,7 +4073,9 @@ async def validate_uptimekuma(request: UptimeKumaValidationRequest):
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            logger.info(f"[REQUEST] Sending test push to Uptime Kuma...")
+            if not is_safe_url(request.url):
+                logger.warning(f"SSRF attempt blocked for Uptime Kuma: {request.url[:20]}...")
+                raise HTTPException(status_code=400, detail="Invalid or unsafe URL")
 
             response = await client.get(
                 request.url,
@@ -4099,11 +4180,11 @@ async def perform_plex_action(request: PlexActionRequest):
         plex_url = plex_url.rstrip("/")
 
     except Exception as e:
-        logger.error(f"Error loading Plex config: {e}")
+        logger.error(f"Error loading Plex config: {e}", exc_info=True)
         # Only return detailed error if it wasn't the HTTPException raised above
         if isinstance(e, HTTPException):
             raise e
-        raise HTTPException(status_code=500, detail=f"Failed to load configuration: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error while loading Plex configuration")
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         headers = {"X-Plex-Token": plex_token, "Accept": "application/json"}
@@ -4543,10 +4624,16 @@ async def get_plex_library_items(request: LibraryItemsRequest):
     """Fetch items from a specific Plex library"""
     logger.info(f"Fetching items from Plex library key: {request.library_key}")
 
+    # SSRF Validation
+    if not is_safe_url(request.url, allow_private=True):
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Plex URL")
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{request.url}/library/sections/{request.library_key}/all?X-Plex-Token={request.token}"
-            response = await client.get(url)
+            # Use params for safety
+            url = f"{request.url.rstrip('/')}/library/sections/{request.library_key}/all"
+            params = {"X-Plex-Token": request.token}
+            response = await client.get(url, params=params)
 
             if response.status_code == 200:
                 root = fromstring(response.content)
@@ -4591,10 +4678,11 @@ async def get_plex_library_items(request: LibraryItemsRequest):
                     "success": False,
                     "error": f"Failed to fetch items (Status: {response.status_code})",
                 }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"[ERROR] Error fetching Plex library items: {str(e)}")
-        logger.exception("Full traceback:")
-        return {"success": False, "error": str(e)}
+        logger.error(f"Error fetching Plex library items: {e}", exc_info=True)
+        return {"success": False, "error": "Internal error fetching library items"}
 
 
 @app.get("/api/assets/folders")
@@ -4612,9 +4700,13 @@ async def get_assets_folders(library_name: Optional[str] = None):
         logger.info(f"Scanning assets directory: {ASSETS_DIR}")
 
         if library_name:
-            # Get items from specific library folder
-            library_path = ASSETS_DIR / library_name
-            if not library_path.exists() or not library_path.is_dir():
+            # Get items from specific library folder - Path Traversal protection
+            try:
+                library_path = get_safe_path(ASSETS_DIR, library_name)
+            except HTTPException as e:
+                return {"success": False, "error": e.detail}
+
+            if not library_path.is_dir():
                 logger.warning(f"Library folder not found: {library_path}")
                 return {
                     "success": False,
@@ -6598,8 +6690,8 @@ async def search_tmdb_posters(request: TMDBSearchRequest):
         return {"success": True, "posters": results, "count": len(results)}
 
     except requests.RequestException as e:
-        logger.error(f"TMDB API error: {e}")
-        raise HTTPException(status_code=500, detail=f"TMDB API error: {str(e)}")
+        logger.error(f"TMDB API error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error communicating with TMDB API")
     except HTTPException:
         raise
     except Exception as e:
@@ -6657,12 +6749,12 @@ async def run_manual_mode(request: ManualModeRequest):
             )
             return {"success": True, "message": "Manual run added to queue"}
         except Exception as e:
-            logger.error(f"Failed to add to queue: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to queue: {str(e)}")
+            logger.error(f"Failed to queue asset: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Failed to add item to processing queue")
 
     with process_lock:
         # Debug logging
-        logger.info(f"Manual mode request received: {request.model_dump()}")
+        logger.info(f"Manual mode request received for: {request.titletext} in {request.libraryName}")
 
         # Check if already running
         if current_process and current_process.poll() is None:
@@ -6736,13 +6828,13 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-SeasonPoster",
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                     "-SeasonPosterName",
-                    request.seasonPosterName.strip(),
+                    sanitize_command_arg(request.seasonPosterName),
                 ]
             )
         elif request.posterType == "collection":
@@ -6750,11 +6842,11 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-CollectionCard",
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                 ]
             )
         elif request.posterType == "background":
@@ -6762,11 +6854,11 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-BackgroundCard",
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                 ]
             )
         elif request.posterType == "titlecard":
@@ -6774,28 +6866,28 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-TitleCard",
                     "-Titletext",
-                    request.epTitleName.strip(),  # Use episode title as the main title
+                    sanitize_command_arg(request.epTitleName),  # Use episode title as the main title
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                     "-EPTitleName",
-                    request.epTitleName.strip(),
+                    sanitize_command_arg(request.epTitleName),
                     "-SeasonPosterName",
-                    request.seasonPosterName.strip(),
+                    sanitize_command_arg(request.seasonPosterName),
                     "-EpisodeNumber",
-                    request.episodeNumber.strip(),
+                    sanitize_command_arg(request.episodeNumber),
                 ]
             )
         else:  # standard
             command.extend(
                 [
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                 ]
             )
 
@@ -6822,7 +6914,7 @@ async def run_manual_mode(request: ManualModeRequest):
                 logger.info(f"  Title: {request.titletext}")
                 logger.info(f"  Folder: {request.folderName}")
                 logger.info(f"  Library: {request.libraryName}")
-            logger.info(f"Running command: {' '.join(command)}")
+            logger.info(f"Running command: {shlex.join(command)}")
 
             # Run the manual mode command
             current_process = subprocess.Popen(
@@ -7114,8 +7206,8 @@ async def run_manual_mode_upload(
                          "upload_path": str(upload_path)
                     }
                 except Exception as e:
-                    logger.error(f"Failed to add to queue: {e}")
-                    raise HTTPException(status_code=500, detail=f"Failed to queue: {str(e)}")
+                    logger.error(f"Failed to queue background: {e}", exc_info=True)
+                    raise HTTPException(status_code=500, detail="Failed to add background to processing queue")
             # ==========================================
 
             # ==========================================
@@ -7390,12 +7482,12 @@ async def reset_posters(request: ResetPostersRequest):
             str(SCRIPT_PATH),
             "-PosterReset",
             "-LibraryToReset",
-            request.library.strip(),
+            sanitize_command_arg(request.library),
         ]
 
         try:
             logger.info(f"Resetting posters for library: {request.library}")
-            logger.info(f"Running command: {' '.join(command)}")
+            logger.info(f"Running command: {shlex.join(command)}")
 
             # Run the reset command
             current_process = subprocess.Popen(
@@ -8903,22 +8995,14 @@ async def get_folder_view_browse(path: Optional[str] = Query(None)):
         relative_path_str = ""
 
         if path:
-            # Sanitize path to prevent traversal
-            # This is a simple sanitization; a more robust one might be needed
-            if ".." in path:
-                raise HTTPException(status_code=400, detail="Invalid path")
+            # Safely resolve path within ASSETS_DIR
+            current_dir = get_safe_path(ASSETS_DIR, path)
 
-            full_path = (ASSETS_DIR / path).resolve()
+            if not current_dir.is_dir():
+                raise HTTPException(status_code=400, detail="Path is not a directory")
 
-            # Ensure the path is within ASSETS_DIR
-            if not str(full_path).startswith(str(ASSETS_DIR.resolve())):
-                raise HTTPException(status_code=403, detail="Access denied: Invalid path")
+            relative_path_str = str(current_dir.relative_to(ASSETS_DIR)).replace("\\", "/")
 
-            if not full_path.exists() or not full_path.is_dir():
-                raise HTTPException(status_code=404, detail="Path not found")
-
-            current_dir = full_path
-            relative_path_str = str(full_path.relative_to(ASSETS_DIR)).replace("\\", "/")
 
         logger.info(f"Browsing folder view: {current_dir}")
 
@@ -9715,12 +9799,11 @@ async def run_scheduler_now():
     try:
         # Use asyncio.create_task to run it asynchronously
         asyncio.create_task(scheduler.run_script(force_run=True))
-
         return {"success": True, "message": "Manual run triggered successfully"}
     except RuntimeError as e:
-        # Runtime errors from run_script (e.g., already running, file issues)
         logger.warning(f"Cannot trigger run: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="A script execution is already in progress or the scheduler is busy.")
+
     except Exception as e:
         logger.error(f"Error triggering scheduled run: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -11196,8 +11279,8 @@ async def upload_asset_replacement(
             contents = await file.read()
             logger.info(f"File read successfully: {len(contents)} bytes")
         except Exception as e:
-            logger.error(f"Error reading uploaded file: {e}")
-            raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+            logger.error(f"Error reading uploaded file: {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Error reading uploaded file contents")
 
         # Validate file size
         if len(contents) == 0:
@@ -11262,41 +11345,25 @@ async def upload_asset_replacement(
 
         # ==========================================
         # OLD MANUAL EXECUTION LOGIC (runs if not queued)
-        # ==========================================
-
-        # Validate and sanitize asset path
+        # ==========================================        # Validate and sanitize asset path
         try:
-            # Normalize the path to handle different path separators (Windows/Linux/Docker)
-            normalized_path = Path(asset_path)
-
             # Determine target directory based on process_with_overlays flag
-            # If NOT processing with overlays, save to manualassets folder
-            if not process_with_overlays:
-                target_base_dir = MANUAL_ASSETS_DIR
-                logger.info(
-                    f"Saving to manual assets directory (no overlay processing)"
-                )
-            else:
-                target_base_dir = ASSETS_DIR
-                logger.info(f"Saving to assets directory (with overlay processing)")
+            target_base_dir = ASSETS_DIR if process_with_overlays else MANUAL_ASSETS_DIR
+            logger.info(f"Target directory for upload: {target_base_dir.name}")
 
-            # Handle absolute paths (for assets outside app root)
-            if normalized_path.is_absolute():
-                full_asset_path = normalized_path.resolve()
-                logger.info(f"Using absolute asset path: {full_asset_path}")
-            else:
-                full_asset_path = (target_base_dir / normalized_path).resolve()
-                logger.info(f"Using relative asset path: {full_asset_path}")
+            # Safely resolve path
+            full_asset_path = get_safe_path(target_base_dir, asset_path)
+            logger.info(f"Resolved safe upload path: {full_asset_path}")
 
-            # Security: For relative paths, ensure they don't escape target directory
-            if not normalized_path.is_absolute():
-                if not str(full_asset_path).startswith(str(target_base_dir.resolve())):
-                    logger.error(f"Path traversal attempt detected: {asset_path}")
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Invalid asset path - path traversal not allowed",
-                    )
+        except HTTPException:
+            raise  # Re-raise path traversal 403
+        except Exception as e:
+            logger.error(f"Error determining asset path: {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Invalid asset path format")
 
+        try:
+            # Check if directory exists
+            full_asset_path.parent.mkdir(parents=True, exist_ok=True)
             # Log whether this is a new asset or replacement
             if full_asset_path.exists():
                 logger.info(f"Replacing existing asset: {full_asset_path}")
@@ -11307,8 +11374,8 @@ async def upload_asset_replacement(
             logger.info(f"Is Docker: {IS_DOCKER}, Target Dir: {target_base_dir}")
 
         except (ValueError, OSError) as e:
-            logger.error(f"Invalid asset path '{asset_path}': {e}")
-            raise HTTPException(status_code=400, detail=f"Invalid asset path: {str(e)}")
+            logger.error(f"Invalid asset path '{asset_path}': {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Invalid asset path or filename")
 
         # Ensure parent directory exists with permission check
         try:
@@ -11458,14 +11525,12 @@ async def upload_asset_replacement(
             logger.error(f"OS error writing to {full_asset_path}: {e}")
             raise HTTPException(
                 status_code=500,
-                detail=f"File system error: {str(e)}. Check disk space, mount points, and file system health (especially on NAS/RAID systems).",
+                detail=f"File system error. Check disk space and permissions.",
             )
         except Exception as e:
-            logger.error(f"Unexpected error writing file: {e}")
-            import traceback
+            logger.error(f"Unexpected error writing file: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="An internal error occurred while saving the file.")
 
-            logger.error(traceback.format_exc())
-            raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
 
         result = {
             "success": True,
@@ -11510,24 +11575,24 @@ async def upload_asset_replacement(
                         "-PicturePath",
                         str(full_asset_path),
                         "-Titletext",
-                        final_title_text,
+                        sanitize_command_arg(final_title_text),
                         "-FolderName",
-                        final_folder_name,
+                        sanitize_command_arg(final_folder_name),
                     ]
                     if final_library_name:
-                        command.extend(["-LibraryName", final_library_name])
+                        command.extend(["-LibraryName", sanitize_command_arg(final_library_name)])
 
                     # Handle Season posters (Season01.jpg, Season 01.jpg, etc.)
                     if season_number or "season" in filename:
                         command.extend(["-SeasonPoster"])
                         if season_number:
-                            command.extend(["-SeasonPosterName", season_number])
+                            command.extend(["-SeasonPosterName", sanitize_command_arg(season_number)])
 
                     # Handle TitleCards (S01E01.jpg, etc.)
                     elif episode_number and episode_title:
                         command.extend(["-TitleCards"])
-                        command.extend(["-EpisodeNumber", episode_number])
-                        command.extend(["-EpisodeTitleName", episode_title])
+                        command.extend(["-EpisodeNumber", sanitize_command_arg(episode_number)])
+                        command.extend(["-EpisodeTitleName", sanitize_command_arg(episode_title)])
 
                     # Handle Background cards (background.jpg, backdrop.jpg, etc.)
                     elif "background" in filename or "backdrop" in filename:
@@ -11540,7 +11605,7 @@ async def upload_asset_replacement(
                         command.extend(["-ShowPosterCard"])
 
                     logger.info(
-                        f"Starting Manual Run for overlay processing: {' '.join(command)}"
+                        f"Starting Manual Run for overlay processing: {shlex.join(command)}"
                     )
 
                     # Start the Manual Run process
@@ -11576,7 +11641,7 @@ async def upload_asset_replacement(
             except Exception as e:
                 logger.error(f"Error triggering Manual Run: {e}")
                 result["manual_run_triggered"] = False
-                result["error"] = str(e)
+                result["error"] = "An error occurred while triggering overlay processing."
 
         return result
 
@@ -11588,7 +11653,7 @@ async def upload_asset_replacement(
         error_details = traceback.format_exc()
         logger.error(f"Unexpected error uploading asset replacement: {e}")
         logger.error(f"Traceback:\n{error_details}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 
 def delete_db_entries_for_asset(asset_path: str):
@@ -11762,7 +11827,7 @@ async def update_asset_db_entry_as_manual(
         final_title_text = title_text
         if not final_title_text:  # This catches both None and "" for DB cleanup purposes
             # Match patterns like "Movie Name (2024) {tmdb-12345}"
-            title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
+            title_match = re.match(r"^([^()]+)\s*\(\d{4}\)", final_folder_name)
             final_title_text = title_match.group(1).strip() if title_match else final_folder_name
 
         # Determine asset type from filename
@@ -11814,7 +11879,7 @@ async def update_asset_db_entry_as_manual(
                             asset_type,
                             f"%Season{season_num}%",
                             f"%Season {season_num}%",
-                            f"%Season {season_num_int}%",
+                            f"%Season{season_num_int}%",
                             f"%Season{season_num_int}%",
                         ),
                     )
@@ -11905,7 +11970,7 @@ async def replace_asset_from_url(
     """
     try:
         # SSRF Validation for image_url
-        if not is_safe_url(image_url):
+        if not is_safe_url(image_url, allow_private=True):
             raise HTTPException(status_code=400, detail="Invalid or unsafe image URL")
 
         # Check if Posterizarr is currently running (only if processing immediately)
@@ -11984,6 +12049,10 @@ async def replace_asset_from_url(
             # Don't fail - just create new asset
 
         # Download image from URL
+        if not is_safe_url(image_url, allow_private=True):
+            logger.warning(f"SSRF attempt blocked for image download: {image_url}")
+            raise HTTPException(status_code=400, detail="Invalid or unsafe image URL")
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(image_url)
             if response.status_code != 200:
@@ -12116,7 +12185,7 @@ async def replace_asset_from_url(
                     # Remove year and TMDB/TVDB ID from folder name
                     final_title_text = title_text
                     if title_text is None:
-                        title_match = re.match(r"^(.+?)\s*\(\d{4}\)", final_folder_name)
+                        title_match = re.match(r"^([^()]+)\s*\(\d{4}\)", final_folder_name)
                         final_title_text = title_match.group(1).strip() if title_match else final_folder_name
                     else:
                         final_title_text = title_text
@@ -12166,7 +12235,7 @@ async def replace_asset_from_url(
             except Exception as e:
                 logger.error(f"Failed to trigger Manual Run: {e}")
                 result["manual_run_triggered"] = False
-                result["manual_run_error"] = str(e)
+                result["manual_run_error"] = "An error occurred while triggering overlay processing."
                 # Don't fail the whole request, asset is already replaced
 
         return result
@@ -12175,7 +12244,7 @@ async def replace_asset_from_url(
         raise
     except Exception as e:
         logger.error(f"Error replacing asset from URL: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="An internal error occurred.")
 
 
 async def trigger_manual_run_internal(request: ManualModeRequest):
@@ -12365,7 +12434,14 @@ async def _find_and_delete_asset(record_id: int) -> Dict[str, any]:
         return {"success": True, "file_deleted": False, "db_deleted": True, "asset_info": asset_info}
 
     # Step 3: Construct file path
-    file_path = ASSETS_DIR / library / rootfolder / asset_filename
+    try:
+        file_path = get_safe_path(ASSETS_DIR / library / rootfolder, asset_filename)
+        logger.debug(f"[DeleteAsset] Resolved safe delete path: {file_path}")
+    except HTTPException as e:
+        logger.warning(f"[DeleteAsset] Path traversal blocked or invalid path for {asset_info}: {e.detail}")
+        # Delete DB record anyway since it's "orphan" or dangerous
+        db.delete_choice(record_id)
+        return {"success": True, "file_deleted": False, "db_deleted": True, "asset_info": asset_info}
     file_deleted = False
 
     # Step 4: Delete the file
@@ -12415,13 +12491,13 @@ async def delete_asset_and_record(record_id: int):
         else:
             logger.error(f"Delete failed for ID {record_id}: {result['error']}")
             logger.info("=" * 60)
-            raise HTTPException(status_code=500, detail=result.get("error", "Failed to delete asset"))
+            raise HTTPException(status_code=500, detail="Failed to delete asset.")
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error deleting asset ID {record_id}: {e}", exc_info=True)
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 @app.post("/api/assets/bulk-delete-assets")
 async def bulk_delete_assets_and_records(request: BulkDeleteAssetsRequest):
@@ -13120,18 +13196,18 @@ def _create_support_zip_blocking(staging_dir_path: Path, zip_file_path: Path) ->
                                 if not is_allowed:
                                     sanitized_download_source = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_download_source, count=1)
 
-                                sanitized_download_source = re.sub(r"([?&][^=]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_download_source, flags=re.IGNORECASE)
-                                sanitized_download_source = re.sub(r"([?&][^=]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_download_source, flags=re.IGNORECASE)
-                                sanitized_download_source = re.sub(r"([?&][^=]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_download_source, flags=re.IGNORECASE)
+                                sanitized_download_source = re.sub(r"([?&][^=&]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_download_source, flags=re.IGNORECASE)
+                                sanitized_download_source = re.sub(r"([?&][^=&]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_download_source, flags=re.IGNORECASE)
+                                sanitized_download_source = re.sub(r"([?&][^=&]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_download_source, flags=re.IGNORECASE)
 
                             if original_fav_link and original_fav_link.startswith("http"):
                                 is_allowed = any(original_fav_link.startswith(prefix) for prefix in ALLOWED_PREFIXES)
                                 if not is_allowed:
                                     sanitized_fav_link = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_fav_link, count=1)
 
-                                sanitized_fav_link = re.sub(r"([?&][^=]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_fav_link, flags=re.IGNORECASE)
-                                sanitized_fav_link = re.sub(r"([?&][^=]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_fav_link, flags=re.IGNORECASE)
-                                sanitized_fav_link = re.sub(r"([?&][^=]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_fav_link, flags=re.IGNORECASE)
+                                sanitized_fav_link = re.sub(r"([?&][^=&]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_fav_link, flags=re.IGNORECASE)
+                                sanitized_fav_link = re.sub(r"([?&][^=&]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_fav_link, flags=re.IGNORECASE)
+                                sanitized_fav_link = re.sub(r"([?&][^=&]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_fav_link, flags=re.IGNORECASE)
 
                             if (sanitized_download_source != original_download_source) or (sanitized_fav_link != original_fav_link):
                                 sanitized_count_in_file += 1
@@ -13233,9 +13309,9 @@ async def get_support_zip(background_tasks: BackgroundTasks):
         )
 
     except Exception as e:
-        logger.error(f"[SupportZip] Error during support zip endpoint execution: {e}")
+        logger.error(f"Failed to create support ZIP: {e}", exc_info=True)
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail=f"Failed to create support ZIP: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal error while creating support package")
 
 # ============================================================================
 # WEBHOOK ENDPOINTS (ARR & TAUTULLI)
@@ -13538,10 +13614,18 @@ async def finalize_asset_replacement(
             target_base_dir = ASSETS_DIR
 
         # 2. Path Logic: Prepend 'Collections' ONLY if type is collection
-        if explicit_asset_type == "collection":
-            full_asset_path = target_base_dir / "Collections" / Path(asset_path)
-        else:
-            full_asset_path = target_base_dir / asset_path
+        try:
+            if explicit_asset_type == "collection":
+                full_asset_path = get_safe_path(target_base_dir / "Collections", asset_path)
+            else:
+                full_asset_path = get_safe_path(target_base_dir, asset_path)
+            
+            logger.info(f"Queue Processor: Resolved safe path {full_asset_path}")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Queue Processor: Path resolution error: {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Invalid asset path in queue")
 
         # Ensure directory exists
         full_asset_path.parent.mkdir(parents=True, exist_ok=True)
@@ -13550,7 +13634,8 @@ async def finalize_asset_replacement(
         with open(full_asset_path, "wb") as f:
             f.write(file_content)
 
-        logger.info(f"Queue Processor: Saved asset to {full_asset_path}")
+        logger.info(f"Queue Processor: Saved asset successfully")
+
 
         # 4. Update Database
         try:
