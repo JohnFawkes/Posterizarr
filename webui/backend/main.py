@@ -22,6 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import json
 import subprocess
+import shlex
 import asyncio
 import os
 import httpx
@@ -154,6 +155,18 @@ def is_safe_url(url: str) -> bool:
     except Exception as e:
         logger.error(f"Error validating URL '{url}': {e}")
         return False
+
+
+def sanitize_command_arg(arg: str) -> str:
+    """
+    Sanitize an argument for a command line to prevent argument injection
+    and null-byte issues, while preserving legitimate special characters.
+    """
+    if not arg:
+        return ""
+    # Remove null bytes and non-printable control characters
+    # Preserve symbols like !, $, #, ;, @, etc.
+    return "".join(c for c in arg if c.isprintable()).strip()
 
 
 def get_safe_path(base_dir: Path, user_path: str) -> Path:
@@ -3320,6 +3333,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
 
             logger.info(f"Using temporary font copy: {temp_font_path}")
 
+            # Prevent ImageMagick from interpreting leading '@' as a file reference
+            magick_text = safe_text
+            if magick_text.startswith("@"):
+                magick_text = "\\" + magick_text
+
             # Generate preview using ImageMagick with temp font copy
             cmd = [
                 magick_cmd,
@@ -3335,11 +3353,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
                 "400x200",
                 "-gravity",
                 "center",
-                f"label:{safe_text}",
+                f"label:{magick_text}",
                 absolute_output_path,
             ]
 
-            logger.info(f"ImageMagick command: {' '.join(cmd)}")
+            logger.info(f"ImageMagick command: {shlex.join(cmd)}")
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
 
@@ -6740,13 +6758,13 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-SeasonPoster",
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                     "-SeasonPosterName",
-                    request.seasonPosterName.strip(),
+                    sanitize_command_arg(request.seasonPosterName),
                 ]
             )
         elif request.posterType == "collection":
@@ -6754,11 +6772,11 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-CollectionCard",
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                 ]
             )
         elif request.posterType == "background":
@@ -6766,11 +6784,11 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-BackgroundCard",
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                 ]
             )
         elif request.posterType == "titlecard":
@@ -6778,28 +6796,28 @@ async def run_manual_mode(request: ManualModeRequest):
                 [
                     "-TitleCard",
                     "-Titletext",
-                    request.epTitleName.strip(),  # Use episode title as the main title
+                    sanitize_command_arg(request.epTitleName),  # Use episode title as the main title
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                     "-EPTitleName",
-                    request.epTitleName.strip(),
+                    sanitize_command_arg(request.epTitleName),
                     "-SeasonPosterName",
-                    request.seasonPosterName.strip(),
+                    sanitize_command_arg(request.seasonPosterName),
                     "-EpisodeNumber",
-                    request.episodeNumber.strip(),
+                    sanitize_command_arg(request.episodeNumber),
                 ]
             )
         else:  # standard
             command.extend(
                 [
                     "-Titletext",
-                    request.titletext.strip(),
+                    sanitize_command_arg(request.titletext),
                     "-FolderName",
-                    request.folderName.strip(),
+                    sanitize_command_arg(request.folderName),
                     "-LibraryName",
-                    request.libraryName.strip(),
+                    sanitize_command_arg(request.libraryName),
                 ]
             )
 
@@ -6826,7 +6844,7 @@ async def run_manual_mode(request: ManualModeRequest):
                 logger.info(f"  Title: {request.titletext}")
                 logger.info(f"  Folder: {request.folderName}")
                 logger.info(f"  Library: {request.libraryName}")
-            logger.info(f"Running command: {' '.join(command)}")
+            logger.info(f"Running command: {shlex.join(command)}")
 
             # Run the manual mode command
             current_process = subprocess.Popen(
@@ -7394,12 +7412,12 @@ async def reset_posters(request: ResetPostersRequest):
             str(SCRIPT_PATH),
             "-PosterReset",
             "-LibraryToReset",
-            request.library.strip(),
+            sanitize_command_arg(request.library),
         ]
 
         try:
             logger.info(f"Resetting posters for library: {request.library}")
-            logger.info(f"Running command: {' '.join(command)}")
+            logger.info(f"Running command: {shlex.join(command)}")
 
             # Run the reset command
             current_process = subprocess.Popen(
@@ -11514,24 +11532,24 @@ async def upload_asset_replacement(
                         "-PicturePath",
                         str(full_asset_path),
                         "-Titletext",
-                        final_title_text,
+                        sanitize_command_arg(final_title_text),
                         "-FolderName",
-                        final_folder_name,
+                        sanitize_command_arg(final_folder_name),
                     ]
                     if final_library_name:
-                        command.extend(["-LibraryName", final_library_name])
+                        command.extend(["-LibraryName", sanitize_command_arg(final_library_name)])
 
                     # Handle Season posters (Season01.jpg, Season 01.jpg, etc.)
                     if season_number or "season" in filename:
                         command.extend(["-SeasonPoster"])
                         if season_number:
-                            command.extend(["-SeasonPosterName", season_number])
+                            command.extend(["-SeasonPosterName", sanitize_command_arg(season_number)])
 
                     # Handle TitleCards (S01E01.jpg, etc.)
                     elif episode_number and episode_title:
                         command.extend(["-TitleCards"])
-                        command.extend(["-EpisodeNumber", episode_number])
-                        command.extend(["-EpisodeTitleName", episode_title])
+                        command.extend(["-EpisodeNumber", sanitize_command_arg(episode_number)])
+                        command.extend(["-EpisodeTitleName", sanitize_command_arg(episode_title)])
 
                     # Handle Background cards (background.jpg, backdrop.jpg, etc.)
                     elif "background" in filename or "backdrop" in filename:
@@ -11544,7 +11562,7 @@ async def upload_asset_replacement(
                         command.extend(["-ShowPosterCard"])
 
                     logger.info(
-                        f"Starting Manual Run for overlay processing: {' '.join(command)}"
+                        f"Starting Manual Run for overlay processing: {shlex.join(command)}"
                     )
 
                     # Start the Manual Run process
