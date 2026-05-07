@@ -179,12 +179,32 @@ def sanitize_command_arg(arg: str) -> str:
     """
     Sanitize an argument for a command line to prevent argument injection
     and null-byte issues, while preserving legitimate special characters.
+    Also ensures the argument doesn't start with a hyphen to prevent flag injection.
     """
     if not arg:
         return ""
     # Remove null bytes and non-printable control characters
-    # Preserve symbols like !, $, #, ;, @, etc.
-    return "".join(c for c in arg if c.isprintable()).strip()
+    sanitized = "".join(c for c in arg if c.isprintable()).strip()
+    
+    # Prevent flag injection by prefixing with a space if it starts with -
+    # (PowerShell handles this well, but it's an extra layer of safety)
+    if sanitized.startswith("-"):
+        sanitized = " " + sanitized
+        
+    return sanitized
+
+
+def mask_secret(secret: Any) -> str:
+    """
+    Mask a sensitive string (API Key, Token, Password) for logging.
+    Example: 'abcdef123456789' -> 'abcde...56789'
+    """
+    if not secret:
+        return "None"
+    s = str(secret)
+    if len(s) <= 8:
+        return "***"
+    return f"{s[:5]}...{s[-4:]}"
 
 
 def get_safe_path(base_dir: Path, user_path: str) -> Path:
@@ -3431,7 +3451,7 @@ async def validate_plex(request: PlexValidationRequest):
     logger.info("PLEX VALIDATION STARTED")
     logger.info(f"[URL] URL: {request.url}")
     logger.info(
-        f"[KEY] Token: {request.token[:10]}...{request.token[-4:] if len(request.token) > 14 else ''}"
+        f"[KEY] Token: {mask_secret(request.token)}"
     )
 
 
@@ -3512,7 +3532,7 @@ async def validate_jellyfin(request: JellyfinValidationRequest):
     logger.info("JELLYFIN VALIDATION STARTED")
     logger.info(f"[URL] URL: {request.url}")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
 
 
@@ -3593,7 +3613,7 @@ async def validate_emby(request: EmbyValidationRequest):
     logger.info("EMBY VALIDATION STARTED")
     logger.info(f"[URL] URL: {request.url}")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
 
 
@@ -3660,8 +3680,8 @@ async def validate_emby(request: EmbyValidationRequest):
         logger.info("=" * 60)
         return {
             "valid": False,
-            "message": f" Error connecting to Emby: {str(e)}",
-            "details": {"error": str(e)},
+            "message": "Error connecting to Emby. Please check your configuration and logs.",
+            "details": {"status": "error"},
         }
 
 
@@ -3671,7 +3691,7 @@ async def validate_tmdb(request: TMDBValidationRequest):
     logger.info("=" * 60)
     logger.info("TMDB VALIDATION STARTED")
     logger.info(
-        f"[KEY] Token: {request.token[:15]}...{request.token[-8:] if len(request.token) > 23 else ''}"
+        f"[KEY] Token: {mask_secret(request.token)}"
     )
 
 
@@ -3733,7 +3753,7 @@ async def validate_tvdb(request: TVDBValidationRequest):
     logger.info("=" * 60)
     logger.info("TVDB VALIDATION STARTED")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
     if request.pin:
         logger.info(f" PIN provided: {'*' * len(request.pin) if request.pin else 'None'}")
@@ -3788,7 +3808,7 @@ async def validate_tvdb(request: TVDBValidationRequest):
                         success = True
                         pin_msg = " (with PIN: ****)" if request.pin else ""
                         logger.info(
-                            f"[TOKEN]  Successfully received TVDB token: {token[:15]}...{token[-8:]}"
+                            f"[TOKEN]  Successfully received TVDB token: {mask_secret(token)}"
                         )
                         logger.info(f"TVDB validation successful!{pin_msg}")
                         logger.info(f"   Token is valid and working")
@@ -3868,7 +3888,7 @@ async def validate_fanart(request: FanartValidationRequest):
     logger.info("=" * 60)
     logger.info("FANART.TV VALIDATION STARTED")
     logger.info(
-        f"[KEY] API Key: {request.api_key[:8]}...{request.api_key[-4:] if len(request.api_key) > 12 else ''}"
+        f"[KEY] API Key: {mask_secret(request.api_key)}"
     )
 
     try:
@@ -12029,7 +12049,7 @@ async def replace_asset_from_url(
             # Don't fail - just create new asset
 
         # Download image from URL
-        if not is_safe_url(image_url):
+        if not is_safe_url(image_url, allow_private=True):
             logger.warning(f"SSRF attempt blocked for image download: {image_url}")
             raise HTTPException(status_code=400, detail="Invalid or unsafe image URL")
 
