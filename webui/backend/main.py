@@ -4150,11 +4150,11 @@ async def perform_plex_action(request: PlexActionRequest):
         plex_url = plex_url.rstrip("/")
 
     except Exception as e:
-        logger.error(f"Error loading Plex config: {e}")
+        logger.error(f"Error loading Plex config: {e}", exc_info=True)
         # Only return detailed error if it wasn't the HTTPException raised above
         if isinstance(e, HTTPException):
             raise e
-        raise HTTPException(status_code=500, detail=f"Failed to load configuration: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error while loading Plex configuration")
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         headers = {"X-Plex-Token": plex_token, "Accept": "application/json"}
@@ -4594,10 +4594,16 @@ async def get_plex_library_items(request: LibraryItemsRequest):
     """Fetch items from a specific Plex library"""
     logger.info(f"Fetching items from Plex library key: {request.library_key}")
 
+    # SSRF Validation
+    if not is_safe_url(request.url, allow_private=True):
+        raise HTTPException(status_code=400, detail="Invalid or unsafe Plex URL")
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            url = f"{request.url}/library/sections/{request.library_key}/all?X-Plex-Token={request.token}"
-            response = await client.get(url)
+            # Use params for safety
+            url = f"{request.url.rstrip('/')}/library/sections/{request.library_key}/all"
+            params = {"X-Plex-Token": request.token}
+            response = await client.get(url, params=params)
 
             if response.status_code == 200:
                 root = fromstring(response.content)
@@ -4642,10 +4648,11 @@ async def get_plex_library_items(request: LibraryItemsRequest):
                     "success": False,
                     "error": f"Failed to fetch items (Status: {response.status_code})",
                 }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"[ERROR] Error fetching Plex library items: {str(e)}")
-        logger.exception("Full traceback:")
-        return {"success": False, "error": str(e)}
+        logger.error(f"Error fetching Plex library items: {e}", exc_info=True)
+        return {"success": False, "error": "Internal error fetching library items"}
 
 
 @app.get("/api/assets/folders")
@@ -4663,9 +4670,13 @@ async def get_assets_folders(library_name: Optional[str] = None):
         logger.info(f"Scanning assets directory: {ASSETS_DIR}")
 
         if library_name:
-            # Get items from specific library folder
-            library_path = ASSETS_DIR / library_name
-            if not library_path.exists() or not library_path.is_dir():
+            # Get items from specific library folder - Path Traversal protection
+            try:
+                library_path = get_safe_path(ASSETS_DIR, library_name)
+            except HTTPException as e:
+                return {"success": False, "error": e.detail}
+
+            if not library_path.is_dir():
                 logger.warning(f"Library folder not found: {library_path}")
                 return {
                     "success": False,
@@ -6649,8 +6660,8 @@ async def search_tmdb_posters(request: TMDBSearchRequest):
         return {"success": True, "posters": results, "count": len(results)}
 
     except requests.RequestException as e:
-        logger.error(f"TMDB API error: {e}")
-        raise HTTPException(status_code=500, detail=f"TMDB API error: {str(e)}")
+        logger.error(f"TMDB API error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error communicating with TMDB API")
     except HTTPException:
         raise
     except Exception as e:
@@ -6708,8 +6719,8 @@ async def run_manual_mode(request: ManualModeRequest):
             )
             return {"success": True, "message": "Manual run added to queue"}
         except Exception as e:
-            logger.error(f"Failed to add to queue: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to queue: {str(e)}")
+            logger.error(f"Failed to queue asset: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Failed to add item to processing queue")
 
     with process_lock:
         # Debug logging
@@ -7165,8 +7176,8 @@ async def run_manual_mode_upload(
                          "upload_path": str(upload_path)
                     }
                 except Exception as e:
-                    logger.error(f"Failed to add to queue: {e}")
-                    raise HTTPException(status_code=500, detail=f"Failed to queue: {str(e)}")
+                    logger.error(f"Failed to queue background: {e}", exc_info=True)
+                    raise HTTPException(status_code=500, detail="Failed to add background to processing queue")
             # ==========================================
 
             # ==========================================
@@ -8954,22 +8965,14 @@ async def get_folder_view_browse(path: Optional[str] = Query(None)):
         relative_path_str = ""
 
         if path:
-            # Sanitize path to prevent traversal
-            # This is a simple sanitization; a more robust one might be needed
-            if ".." in path:
-                raise HTTPException(status_code=400, detail="Invalid path")
+            # Safely resolve path within ASSETS_DIR
+            current_dir = get_safe_path(ASSETS_DIR, path)
 
-            full_path = (ASSETS_DIR / path).resolve()
+            if not current_dir.is_dir():
+                raise HTTPException(status_code=400, detail="Path is not a directory")
 
-            # Ensure the path is within ASSETS_DIR
-            if not str(full_path).startswith(str(ASSETS_DIR.resolve())):
-                raise HTTPException(status_code=403, detail="Access denied: Invalid path")
+            relative_path_str = str(current_dir.relative_to(ASSETS_DIR)).replace("\\", "/")
 
-            if not full_path.exists() or not full_path.is_dir():
-                raise HTTPException(status_code=404, detail="Path not found")
-
-            current_dir = full_path
-            relative_path_str = str(full_path.relative_to(ASSETS_DIR)).replace("\\", "/")
 
         logger.info(f"Browsing folder view: {current_dir}")
 
@@ -9766,12 +9769,11 @@ async def run_scheduler_now():
     try:
         # Use asyncio.create_task to run it asynchronously
         asyncio.create_task(scheduler.run_script(force_run=True))
-
         return {"success": True, "message": "Manual run triggered successfully"}
     except RuntimeError as e:
-        # Runtime errors from run_script (e.g., already running, file issues)
         logger.warning(f"Cannot trigger run: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="A script execution is already in progress or the scheduler is busy.")
+
     except Exception as e:
         logger.error(f"Error triggering scheduled run: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -11247,8 +11249,8 @@ async def upload_asset_replacement(
             contents = await file.read()
             logger.info(f"File read successfully: {len(contents)} bytes")
         except Exception as e:
-            logger.error(f"Error reading uploaded file: {e}")
-            raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+            logger.error(f"Error reading uploaded file: {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Error reading uploaded file contents")
 
         # Validate file size
         if len(contents) == 0:
@@ -11313,41 +11315,25 @@ async def upload_asset_replacement(
 
         # ==========================================
         # OLD MANUAL EXECUTION LOGIC (runs if not queued)
-        # ==========================================
-
-        # Validate and sanitize asset path
+        # ==========================================        # Validate and sanitize asset path
         try:
-            # Normalize the path to handle different path separators (Windows/Linux/Docker)
-            normalized_path = Path(asset_path)
-
             # Determine target directory based on process_with_overlays flag
-            # If NOT processing with overlays, save to manualassets folder
-            if not process_with_overlays:
-                target_base_dir = MANUAL_ASSETS_DIR
-                logger.info(
-                    f"Saving to manual assets directory (no overlay processing)"
-                )
-            else:
-                target_base_dir = ASSETS_DIR
-                logger.info(f"Saving to assets directory (with overlay processing)")
+            target_base_dir = ASSETS_DIR if process_with_overlays else MANUAL_ASSETS_DIR
+            logger.info(f"Target directory for upload: {target_base_dir.name}")
 
-            # Handle absolute paths (for assets outside app root)
-            if normalized_path.is_absolute():
-                full_asset_path = normalized_path.resolve()
-                logger.info(f"Using absolute asset path: {full_asset_path}")
-            else:
-                full_asset_path = (target_base_dir / normalized_path).resolve()
-                logger.info(f"Using relative asset path: {full_asset_path}")
+            # Safely resolve path
+            full_asset_path = get_safe_path(target_base_dir, asset_path)
+            logger.info(f"Resolved safe upload path: {full_asset_path}")
 
-            # Security: For relative paths, ensure they don't escape target directory
-            if not normalized_path.is_absolute():
-                if not str(full_asset_path).startswith(str(target_base_dir.resolve())):
-                    logger.error(f"Path traversal attempt detected: {asset_path}")
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Invalid asset path - path traversal not allowed",
-                    )
+        except HTTPException:
+            raise  # Re-raise path traversal 403
+        except Exception as e:
+            logger.error(f"Error determining asset path: {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Invalid asset path format")
 
+        try:
+            # Check if directory exists
+            full_asset_path.parent.mkdir(parents=True, exist_ok=True)
             # Log whether this is a new asset or replacement
             if full_asset_path.exists():
                 logger.info(f"Replacing existing asset: {full_asset_path}")
@@ -11358,8 +11344,8 @@ async def upload_asset_replacement(
             logger.info(f"Is Docker: {IS_DOCKER}, Target Dir: {target_base_dir}")
 
         except (ValueError, OSError) as e:
-            logger.error(f"Invalid asset path '{asset_path}': {e}")
-            raise HTTPException(status_code=400, detail=f"Invalid asset path: {str(e)}")
+            logger.error(f"Invalid asset path '{asset_path}': {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Invalid asset path or filename")
 
         # Ensure parent directory exists with permission check
         try:
@@ -11509,14 +11495,12 @@ async def upload_asset_replacement(
             logger.error(f"OS error writing to {full_asset_path}: {e}")
             raise HTTPException(
                 status_code=500,
-                detail=f"File system error: {str(e)}. Check disk space, mount points, and file system health (especially on NAS/RAID systems).",
+                detail=f"File system error. Check disk space and permissions.",
             )
         except Exception as e:
-            logger.error(f"Unexpected error writing file: {e}")
-            import traceback
+            logger.error(f"Unexpected error writing file: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="An internal error occurred while saving the file.")
 
-            logger.error(traceback.format_exc())
-            raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
 
         result = {
             "success": True,
@@ -11627,7 +11611,7 @@ async def upload_asset_replacement(
             except Exception as e:
                 logger.error(f"Error triggering Manual Run: {e}")
                 result["manual_run_triggered"] = False
-                result["error"] = str(e)
+                result["error"] = "An error occurred while triggering overlay processing."
 
         return result
 
@@ -11639,7 +11623,7 @@ async def upload_asset_replacement(
         error_details = traceback.format_exc()
         logger.error(f"Unexpected error uploading asset replacement: {e}")
         logger.error(f"Traceback:\n{error_details}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 
 def delete_db_entries_for_asset(asset_path: str):
@@ -11865,7 +11849,7 @@ async def update_asset_db_entry_as_manual(
                             asset_type,
                             f"%Season{season_num}%",
                             f"%Season {season_num}%",
-                            f"%Season {season_num_int}%",
+                            f"%Season{season_num_int}%",
                             f"%Season{season_num_int}%",
                         ),
                     )
@@ -11956,7 +11940,7 @@ async def replace_asset_from_url(
     """
     try:
         # SSRF Validation for image_url
-        if not is_safe_url(image_url):
+        if not is_safe_url(image_url, allow_private=True):
             raise HTTPException(status_code=400, detail="Invalid or unsafe image URL")
 
         # Check if Posterizarr is currently running (only if processing immediately)
@@ -12221,7 +12205,7 @@ async def replace_asset_from_url(
             except Exception as e:
                 logger.error(f"Failed to trigger Manual Run: {e}")
                 result["manual_run_triggered"] = False
-                result["manual_run_error"] = str(e)
+                result["manual_run_error"] = "An error occurred while triggering overlay processing."
                 # Don't fail the whole request, asset is already replaced
 
         return result
@@ -12230,7 +12214,7 @@ async def replace_asset_from_url(
         raise
     except Exception as e:
         logger.error(f"Error replacing asset from URL: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="An internal error occurred.")
 
 
 async def trigger_manual_run_internal(request: ManualModeRequest):
@@ -12420,7 +12404,14 @@ async def _find_and_delete_asset(record_id: int) -> Dict[str, any]:
         return {"success": True, "file_deleted": False, "db_deleted": True, "asset_info": asset_info}
 
     # Step 3: Construct file path
-    file_path = ASSETS_DIR / library / rootfolder / asset_filename
+    try:
+        file_path = get_safe_path(ASSETS_DIR / library / rootfolder, asset_filename)
+        logger.debug(f"[DeleteAsset] Resolved safe delete path: {file_path}")
+    except HTTPException as e:
+        logger.warning(f"[DeleteAsset] Path traversal blocked or invalid path for {asset_info}: {e.detail}")
+        # Delete DB record anyway since it's "orphan" or dangerous
+        db.delete_choice(record_id)
+        return {"success": True, "file_deleted": False, "db_deleted": True, "asset_info": asset_info}
     file_deleted = False
 
     # Step 4: Delete the file
@@ -12470,13 +12461,13 @@ async def delete_asset_and_record(record_id: int):
         else:
             logger.error(f"Delete failed for ID {record_id}: {result['error']}")
             logger.info("=" * 60)
-            raise HTTPException(status_code=500, detail=result.get("error", "Failed to delete asset"))
+            raise HTTPException(status_code=500, detail="Failed to delete asset.")
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error deleting asset ID {record_id}: {e}", exc_info=True)
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
 
 @app.post("/api/assets/bulk-delete-assets")
 async def bulk_delete_assets_and_records(request: BulkDeleteAssetsRequest):
@@ -13288,9 +13279,9 @@ async def get_support_zip(background_tasks: BackgroundTasks):
         )
 
     except Exception as e:
-        logger.error(f"[SupportZip] Error during support zip endpoint execution: {e}")
+        logger.error(f"Failed to create support ZIP: {e}", exc_info=True)
         logger.info("=" * 60)
-        raise HTTPException(status_code=500, detail=f"Failed to create support ZIP: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal error while creating support package")
 
 # ============================================================================
 # WEBHOOK ENDPOINTS (ARR & TAUTULLI)
@@ -13593,10 +13584,18 @@ async def finalize_asset_replacement(
             target_base_dir = ASSETS_DIR
 
         # 2. Path Logic: Prepend 'Collections' ONLY if type is collection
-        if explicit_asset_type == "collection":
-            full_asset_path = target_base_dir / "Collections" / Path(asset_path)
-        else:
-            full_asset_path = target_base_dir / asset_path
+        try:
+            if explicit_asset_type == "collection":
+                full_asset_path = get_safe_path(target_base_dir / "Collections", asset_path)
+            else:
+                full_asset_path = get_safe_path(target_base_dir, asset_path)
+            
+            logger.info(f"Queue Processor: Resolved safe path {full_asset_path}")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Queue Processor: Path resolution error: {e}", exc_info=True)
+            raise HTTPException(status_code=400, detail="Invalid asset path in queue")
 
         # Ensure directory exists
         full_asset_path.parent.mkdir(parents=True, exist_ok=True)
@@ -13605,7 +13604,8 @@ async def finalize_asset_replacement(
         with open(full_asset_path, "wb") as f:
             f.write(file_content)
 
-        logger.info(f"Queue Processor: Saved asset to {full_asset_path}")
+        logger.info(f"Queue Processor: Saved asset successfully")
+
 
         # 4. Update Database
         try:
