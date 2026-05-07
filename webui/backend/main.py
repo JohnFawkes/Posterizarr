@@ -133,6 +133,7 @@ def is_safe_url(url: str, allow_private: bool = False) -> bool:
     try:
         parsed = urllib.parse.urlparse(url)
         if parsed.scheme not in ["http", "https"]:
+            logger.warning(f"Blocked URL with unsafe scheme: {parsed.scheme}")
             return False
 
         # Resolve hostname to IP
@@ -140,13 +141,18 @@ def is_safe_url(url: str, allow_private: bool = False) -> bool:
         if not hostname:
             return False
 
-        # ALWAYS block loopback/localhost to prevent server-side recursion/management bypass
+        # ALWAYS block loopback/localhost
         if hostname.lower() in ["localhost", "127.0.0.1", "::1"]:
             logger.warning(f"Blocked SSRF attempt to localhost: {hostname}")
             return False
 
-        ip_addr = socket.gethostbyname(hostname)
-        ip = ipaddress.ip_address(ip_addr)
+        try:
+            ip_addr = socket.gethostbyname(hostname)
+            ip = ipaddress.ip_address(ip_addr)
+            logger.debug(f"URL Validation: {hostname} resolved to {ip_addr}")
+        except Exception as res_err:
+            logger.error(f"URL Validation: Failed to resolve hostname '{hostname}': {res_err}")
+            return False
 
         # Always block loopback IPs resolved via DNS
         if ip.is_loopback:
@@ -158,11 +164,15 @@ def is_safe_url(url: str, allow_private: bool = False) -> bool:
             if ip.is_private or ip.is_link_local or ip.is_multicast:
                 logger.warning(f"Blocked SSRF attempt to internal/private IP: {ip_addr} (hostname: {hostname})")
                 return False
-        
+        else:
+            if ip.is_private:
+                logger.debug(f"URL Validation: Allowing private IP {ip_addr} for hostname {hostname}")
+
         return True
     except Exception as e:
-        logger.error(f"Error validating URL '{url}': {e}")
+        logger.error(f"Error validating URL '{url}': {e}", exc_info=True)
         return False
+
 
 
 def sanitize_command_arg(arg: str) -> str:
