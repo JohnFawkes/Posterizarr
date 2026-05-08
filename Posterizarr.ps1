@@ -54,7 +54,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.42"
+$CurrentScriptVersion = "2.2.43"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -1568,7 +1568,7 @@ function Get-OptimalPointSize {
         [int]$box_height,
         [int]$min_pointsize,
         [int]$max_pointsize,
-        [int]$lineSpacing  # New parameter for line height
+        [int]$lineSpacing # parameter for line height
     )
 
     try {
@@ -4801,17 +4801,17 @@ function CheckOverlayDimensions {
     Test-Dimension -OverlayPath $TCoverlay4k -ExpectedSize $BackgroundSize -OverlayName "4K TitleCard overlay"
     Test-Dimension -OverlayPath $TCoverlay1080p -ExpectedSize $BackgroundSize -OverlayName "1080p TitleCard overlay"
 
-    # New 4K Poster Types (expect PosterSize)
+    # 4K Poster Types (expect PosterSize)
     Test-Dimension -OverlayPath $Posteroverlay4KDoVi -ExpectedSize $PosterSize -OverlayName "4K DoVi Poster overlay"
     Test-Dimension -OverlayPath $Posteroverlay4KHDR10 -ExpectedSize $PosterSize -OverlayName "4K HDR10 Poster overlay"
     Test-Dimension -OverlayPath $Posteroverlay4KDoViHDR10 -ExpectedSize $PosterSize -OverlayName "4K DoVi/HDR10 Poster overlay"
 
-    # New 4K Background Types (expect BackgroundSize)
+    # 4K Background Types (expect BackgroundSize)
     Test-Dimension -OverlayPath $Backgroundoverlay4KDoVi -ExpectedSize $BackgroundSize -OverlayName "4K DoVi Background overlay"
     Test-Dimension -OverlayPath $Backgroundoverlay4KHDR10 -ExpectedSize $BackgroundSize -OverlayName "4K HDR10 Background overlay"
     Test-Dimension -OverlayPath $Backgroundoverlay4KDoViHDR10 -ExpectedSize $BackgroundSize -OverlayName "4K DoVi/HDR10 Background overlay"
 
-    # New 4K TC Types (expect BackgroundSize)
+    # 4K TC Types (expect BackgroundSize)
     Test-Dimension -OverlayPath $TCoverlay4KDoVi -ExpectedSize $BackgroundSize -OverlayName "4K DoVi TitleCard overlay"
     Test-Dimension -OverlayPath $TCoverlay4KHDR10 -ExpectedSize $BackgroundSize -OverlayName "4K HDR10 TitleCard overlay"
     Test-Dimension -OverlayPath $TCoverlay4KDoViHDR10 -ExpectedSize $BackgroundSize -OverlayName "4K DoVi/HDR10 TitleCard overlay"
@@ -9616,8 +9616,10 @@ Elseif ($Testing) {
 
     # Use Hashtables to store dynamic paths
     $posterPaths = @{}
+    $showPosterPaths = @{}
     $seasonPosterPaths = @{}
     $backgroundPaths = @{}
+    $showBackgroundPaths = @{}
     $titleCardPaths = @{}
 
     $testDir = Join-Path -Path $global:ScriptRoot -ChildPath "test"
@@ -9627,8 +9629,10 @@ Elseif ($Testing) {
 
     if ($AddText -eq 'true') {
         $testCases | ForEach-Object { $posterPaths[$_.ID] = Join-Path $testDir "poster$($_.VarSuffix).jpg" }
+        $testCases | ForEach-Object { $showPosterPaths[$_.ID] = Join-Path $testDir "showPoster$($_.VarSuffix).jpg" }
     } Else {
         $TestPosterTextless = Join-Path $testDir "PosterTextless.jpg"
+        $TestShowPosterTextless = Join-Path $testDir "ShowPosterTextless.jpg"
     }
 
     if ($AddSeasonText -eq 'true') {
@@ -9639,8 +9643,10 @@ Elseif ($Testing) {
 
     if ($AddBackgroundText -eq 'true') {
         $testCases | ForEach-Object { $backgroundPaths[$_.ID] = Join-Path $testDir "background$($_.VarSuffix).jpg" }
+        $testCases | ForEach-Object { $showBackgroundPaths[$_.ID] = Join-Path $testDir "showBackground$($_.VarSuffix).jpg" }
     } Else {
         $BackgroundTestPosterTextless = Join-Path $testDir "BackgroundTextless.jpg"
+        $BackgroundTestShowPosterTextless = Join-Path $testDir "ShowBackgroundTextless.jpg"
     }
 
     if ($AddTitleCardEPTitleText -eq 'true' -or $AddTitleCardEPText -eq 'true') {
@@ -9734,7 +9740,7 @@ Elseif ($Testing) {
     if ($AddText -eq 'true') {
         # Apply Border/Overlay
         foreach ($case in $testCases) {
-            $testingargs = Get-BorderOverlay-Arguments -SourceImage $testimage -OutputPath $posterPaths[$case.ID] -AddBorder $AddBorder -AddOverlay $AddOverlay -OverlayImage $Posteroverlay -BorderWidthSecond $borderwidthsecond -BorderColor $bordercolor -BorderWidth $borderwidth -LogPath $global:configLogging
+            $testingargs = Get-BorderOverlay-Arguments -SourceImage $testimage -OutputPath $posterPaths[$case.ID] -AddBorder $AddBorder -AddOverlay $AddOverlay -OverlayImage $DefaultPosteroverlay -BorderWidthSecond $borderwidthsecond -BorderColor $bordercolor -BorderWidth $borderwidth -LogPath $global:configLogging
             Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
         }
         # Apply Text
@@ -9748,11 +9754,37 @@ Elseif ($Testing) {
     }
     Else {
         # Textless
-        $testingargs = Get-BorderOverlay-Arguments -SourceImage $testimage -OutputPath $TestPosterTextless -AddBorder $AddBorder -AddOverlay $AddOverlay -OverlayImage $Posteroverlay -BorderWidthSecond $borderwidthsecond -BorderColor $bordercolor -BorderWidth $borderwidth -LogPath $global:configLogging
+        $testingargs = Get-BorderOverlay-Arguments -SourceImage $testimage -OutputPath $TestPosterTextless -AddBorder $AddBorder -AddOverlay $AddOverlay -OverlayImage $DefaultPosteroverlay -BorderWidthSecond $borderwidthsecond -BorderColor $bordercolor -BorderWidth $borderwidth -LogPath $global:configLogging
         Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
 
         Write-Entry -Subtext "    Applying textbox only to Poster..." -Path $global:configLogging -Color White -log Info
         $testingargsNoText = "`"$TestPosterTextless`" -size `"$boxsize`" xc:`"#F3AC7C`" -gravity south -geometry +0+`"$text_offset`" -compose over -composite `"$TestPosterTextless`""
+        Invoke-MagickTestCommand -Arguments $testingargsNoText -CommandLogPath $magickLog
+    }
+
+    Write-Entry -Subtext "Show Poster Part:" -Path $global:configLogging -Color Green -log Info
+    if ($AddText -eq 'true') {
+        # Apply Border/Overlay
+        foreach ($case in $testCases) {
+            $testingargs = Get-BorderOverlay-Arguments -SourceImage $testimage -OutputPath $showPosterPaths[$case.ID] -AddBorder $AddBorder -AddOverlay $AddOverlay -OverlayImage $DefaultShowPosteroverlay -BorderWidthSecond $borderwidthsecond -BorderColor $bordercolor -BorderWidth $borderwidth -LogPath $global:configLogging
+            Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
+        }
+        # Apply Text
+        foreach ($case in $testCases) {
+            Write-Entry -Subtext "Optimal font size for $($case.ID) text is: '$($posterFontSizes[$case.ID])'" -Path $global:configLogging -Color White -log Info
+            Write-Entry -Subtext "    Applying text: `"$($case.Text)`"" -Path $global:configLogging -Color White -log Info
+
+            $testingargs = Get-TextOverlay-Arguments -AddStroke $AddTextStroke -InputFile $showPosterPaths[$case.ID] -OutputFile $showPosterPaths[$case.ID] -Font $fontImagemagick -PointSize $posterFontSizes[$case.ID] -FontColor $fontcolor -BoxSize $boxsize -LineSpacing $lineSpacing -TextGravity $textgravity -CaptionText $case.Text -TextOffset $text_offset -StrokeColor $strokecolor -StrokeWidth $strokewidth
+            Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
+        }
+    }
+    Else {
+        # Textless
+        $testingargs = Get-BorderOverlay-Arguments -SourceImage $testimage -OutputPath $TestShowPosterTextless -AddBorder $AddBorder -AddOverlay $AddOverlay -OverlayImage $DefaultShowPosteroverlay -BorderWidthSecond $borderwidthsecond -BorderColor $bordercolor -BorderWidth $borderwidth -LogPath $global:configLogging
+        Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
+
+        Write-Entry -Subtext "    Applying textbox only to Show Poster..." -Path $global:configLogging -Color White -log Info
+        $testingargsNoText = "`"$TestShowPosterTextless`" -size `"$boxsize`" xc:`"#F3AC7C`" -gravity south -geometry +0+`"$text_offset`" -compose over -composite `"$TestShowPosterTextless`""
         Invoke-MagickTestCommand -Arguments $testingargsNoText -CommandLogPath $magickLog
     }
 
@@ -9798,7 +9830,7 @@ Elseif ($Testing) {
     if ($AddBackgroundText -eq 'true') {
         # Apply Border/Overlay
         foreach ($case in $testCases) {
-            $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $backgroundPaths[$case.ID] -AddBorder $AddBackgroundBorder -AddOverlay $AddBackgroundOverlay -OverlayImage $Backgroundoverlay -BorderWidthSecond $Backgroundborderwidthsecond -BorderColor $Backgroundbordercolor -BorderWidth $Backgroundborderwidth -LogPath $global:configLogging
+            $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $backgroundPaths[$case.ID] -AddBorder $AddBackgroundBorder -AddOverlay $AddBackgroundOverlay -OverlayImage $DefaultBackgroundoverlay -BorderWidthSecond $Backgroundborderwidthsecond -BorderColor $Backgroundbordercolor -BorderWidth $Backgroundborderwidth -LogPath $global:configLogging
             Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
         }
         # Apply Text
@@ -9812,11 +9844,37 @@ Elseif ($Testing) {
     }
     Else {
         # Textless
-        $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $BackgroundTestPosterTextless -AddBorder $AddBackgroundBorder -AddOverlay $AddBackgroundOverlay -OverlayImage $Backgroundoverlay -BorderWidthSecond $Backgroundborderwidthsecond -BorderColor $Backgroundbordercolor -BorderWidth $Backgroundborderwidth -LogPath $global:configLogging
+        $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $BackgroundTestPosterTextless -AddBorder $AddBackgroundBorder -AddOverlay $AddBackgroundOverlay -OverlayImage $DefaultBackgroundoverlay -BorderWidthSecond $Backgroundborderwidthsecond -BorderColor $Backgroundbordercolor -BorderWidth $Backgroundborderwidth -LogPath $global:configLogging
         Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
 
         Write-Entry -Subtext "    Applying textbox only to Background..." -Path $global:configLogging -Color White -log Info
         $testingargsNoText = "`"$BackgroundTestPosterTextless`" -size `"$Backgroundboxsize`" xc:`"#F3AC7C`" -gravity south -geometry +0+`"$Backgroundtext_offset`" -compose over -composite `"$BackgroundTestPosterTextless`""
+        Invoke-MagickTestCommand -Arguments $testingargsNoText -CommandLogPath $magickLog
+    }
+
+    Write-Entry -Subtext "Show Background Part:" -Path $global:configLogging -Color Green -log Info
+    if ($AddBackgroundText -eq 'true') {
+        # Apply Border/Overlay
+        foreach ($case in $testCases) {
+            $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $showBackgroundPaths[$case.ID] -AddBorder $AddBackgroundBorder -AddOverlay $AddBackgroundOverlay -OverlayImage $DefaultShowBackgroundoverlay -BorderWidthSecond $Backgroundborderwidthsecond -BorderColor $Backgroundbordercolor -BorderWidth $Backgroundborderwidth -LogPath $global:configLogging
+            Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
+        }
+        # Apply Text
+        foreach ($case in $testCases) {
+            Write-Entry -Subtext "Optimal font size for $($case.ID) text is: '$($backgroundFontSizes[$case.ID])'" -Path $global:configLogging -Color White -log Info
+            Write-Entry -Subtext "    Applying text: `"$($case.Text)`"" -Path $global:configLogging -Color White -log Info
+
+            $testingargs = Get-TextOverlay-Arguments -AddStroke $AddBackgroundTextStroke -InputFile $showBackgroundPaths[$case.ID] -OutputFile $showBackgroundPaths[$case.ID] -Font $backgroundfontImagemagick -PointSize $backgroundFontSizes[$case.ID] -FontColor $Backgroundfontcolor -BoxSize $Backgroundboxsize -LineSpacing $BackgroundlineSpacing -TextGravity $Backgroundtextgravity -CaptionText $case.Text -TextOffset $Backgroundtext_offset -StrokeColor $Backgroundstrokecolor -StrokeWidth $Backgroundstrokewidth
+            Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
+        }
+    }
+    Else {
+        # Textless
+        $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $BackgroundTestShowPosterTextless -AddBorder $AddBackgroundBorder -AddOverlay $AddBackgroundOverlay -OverlayImage $DefaultShowBackgroundoverlay -BorderWidthSecond $Backgroundborderwidthsecond -BorderColor $Backgroundbordercolor -BorderWidth $Backgroundborderwidth -LogPath $global:configLogging
+        Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
+
+        Write-Entry -Subtext "    Applying textbox only to Show Background..." -Path $global:configLogging -Color White -log Info
+        $testingargsNoText = "`"$BackgroundTestShowPosterTextless`" -size `"$Backgroundboxsize`" xc:`"#F3AC7C`" -gravity south -geometry +0+`"$Backgroundtext_offset`" -compose over -composite `"$BackgroundTestShowPosterTextless`""
         Invoke-MagickTestCommand -Arguments $testingargsNoText -CommandLogPath $magickLog
     }
 
@@ -9825,7 +9883,7 @@ Elseif ($Testing) {
     if ($AddTitleCardEPTitleText -eq 'true' -or $AddTitleCardEPText -eq 'true') {
         # Apply Border/Overlay
         foreach ($case in $testCases) {
-            $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $titleCardPaths[$case.ID] -AddBorder $AddTitleCardBorder -AddOverlay $AddTitleCardOverlay -OverlayImage $titlecardoverlay -BorderWidthSecond $titlecardborderwidthsecond -BorderColor $titlecardbordercolor -BorderWidth $titlecardborderwidth -LogPath $global:configLogging
+            $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $titleCardPaths[$case.ID] -AddBorder $AddTitleCardBorder -AddOverlay $AddTitleCardOverlay -OverlayImage $Defaulttitlecardoverlay -BorderWidthSecond $titlecardborderwidthsecond -BorderColor $titlecardbordercolor -BorderWidth $titlecardborderwidth -LogPath $global:configLogging
             Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
         }
 
@@ -9875,7 +9933,7 @@ Elseif ($Testing) {
     }
     Else {
         # Textless TitleCard
-        $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $TitleCardTestPosterTextless -AddBorder $AddTitleCardBorder -AddOverlay $AddTitleCardOverlay -OverlayImage $titlecardoverlay -BorderWidthSecond $titlecardborderwidthsecond -BorderColor $titlecardbordercolor -BorderWidth $titlecardborderwidth -LogPath $global:configLogging
+        $testingargs = Get-BorderOverlay-Arguments -SourceImage $backgroundtestimage -OutputPath $TitleCardTestPosterTextless -AddBorder $AddTitleCardBorder -AddOverlay $AddTitleCardOverlay -OverlayImage $Defaulttitlecardoverlay -BorderWidthSecond $titlecardborderwidthsecond -BorderColor $titlecardbordercolor -BorderWidth $titlecardborderwidth -LogPath $global:configLogging
         Invoke-MagickTestCommand -Arguments $testingargs -CommandLogPath $magickLog
 
         Write-Entry -Subtext "    Applying Title textbox only to TitleCard..." -Path $global:configLogging -Color White -log Info
@@ -9911,8 +9969,13 @@ Elseif ($Testing) {
 
     $gettestimages = Get-ChildItem $testDir
     $titlecardscount = ($gettestimages | Where-Object { $_.name -like 'Title*' }).count
-    $backgroundsscount = ($gettestimages | Where-Object { $_.name -like 'back*' }).count
-    $posterscount = ($gettestimages | Where-Object { $_.name -like 'poster*' }).count
+
+    # Catch both 'background' and 'showBackground'
+    $backgroundsscount = ($gettestimages | Where-Object { $_.name -like '*back*' }).count
+
+    # Catch both 'poster' and 'showPoster' (but specifically exclude SeasonPoster so it doesn't double-count)
+    $posterscount = ($gettestimages | Where-Object { $_.name -like '*poster*' -and $_.name -notlike 'Season*' }).count
+
     $seasonscount = ($gettestimages | Where-Object { $_.name -like 'SeasonPoster*' }).count
 
     # Send Notification
