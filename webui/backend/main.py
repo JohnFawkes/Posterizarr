@@ -9901,6 +9901,9 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
     Returns a list of preview images from all available sources
     """
     try:
+        # Determine the best title to use for searches
+        search_query_title = request.show_title if request.show_title else request.title
+
         # DEBUG: Log incoming request
         logger.info("=" * 80)
         logger.info(f"FETCH ASSET REPLACEMENTS REQUEST:")
@@ -9967,7 +9970,6 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                                 db_record = cursor.fetchone()
                             finally:
                                 conn.close()
-                search_query_title = request.show_title if request.show_title else request.title
                 # Method 2: Search by title + year (for Manual Mode)
                 if not db_record and search_query_title:
                     logger.info(
@@ -10250,11 +10252,11 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
 
                 if response.status_code == 200:
                     data = response.json()
-                    results = data.get("results", [])
-                    logger.info(f"   Results Count: {len(results)}")
-                    if results:
-                        result_id = str(results[0].get("id"))
-                        result_title = results[0].get(
+                    search_results = data.get("results", [])
+                    logger.info(f"   Results Count: {len(search_results)}")
+                    if search_results:
+                        result_id = str(search_results[0].get("id"))
+                        result_title = search_results[0].get(
                             "title" if media_type == "movie" else "name"
                         )
                         logger.info(
@@ -11236,6 +11238,9 @@ async def upload_asset_replacement(
     Optionally add to queue instead of immediate processing
     """
     try:
+        # Normalize path separators for cross-platform compatibility
+        normalized_path = asset_path.replace("\\", "/")
+
         # Check if Posterizarr is currently running (only if processing immediately)
         if not add_to_queue and RUNNING_FILE.exists():
             logger.warning(
@@ -11547,7 +11552,7 @@ async def upload_asset_replacement(
             try:
                 # Parse asset path to extract info
                 # Format: LibraryName/FolderName/poster.jpg, Season01.jpg, or S01E01.jpg
-                path_parts = Path(asset_path).parts
+                path_parts = Path(normalized_path).parts
                 logger.info(f"Path parts: {path_parts} (length: {len(path_parts)})")
 
                 if len(path_parts) >= 3:
@@ -11564,7 +11569,7 @@ async def upload_asset_replacement(
                     )
 
                     # Determine poster type from filename
-                    filename = Path(asset_path).name.lower()
+                    filename = Path(normalized_path).name.lower()
 
                     # Build Manual Run command
                     command = [
