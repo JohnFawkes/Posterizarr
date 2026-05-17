@@ -43,7 +43,7 @@ The Posterizarr Plugin acts as a local asset proxy for Emby. It is designed to w
 
 ## Scheduled Tasks & Automation
 
-The plugin registers a scheduled background task (daily at 2:00 AM) that automatically syncs and refreshes your libraries against local assets without requiring manual metadata refreshes.
+The plugin registers a scheduled background task (default: daily at 02:00 AM) that automatically syncs and refreshes your libraries against local assets.
 
 ### Configuring the Sync Schedule
 

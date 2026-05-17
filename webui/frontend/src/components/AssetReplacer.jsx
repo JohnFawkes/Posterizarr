@@ -46,6 +46,11 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
   // Logo selection mode
   const [logoSelectionMode, setLogoSelectionMode] = useState(false);
 
+  // Season override settings
+  const [overrideSeasonName, setOverrideSeasonName] = useState(false);
+  const [seasonOverrideText, setSeasonOverrideText] = useState("Staffel");
+  const [specialSeasonOverrideText, setSpecialSeasonOverrideText] = useState("Spezial");
+
   // Confirmation dialog states
   const [showUploadConfirm, setShowUploadConfirm] = useState(false);
   const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
@@ -655,6 +660,30 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
             console.log("Using grouped config structure");
           }
 
+          // Extract Season Poster Name overrides
+          let overrideSeasonNameVal = false;
+          let seasonOverrideTextVal = "Staffel";
+          let specialSeasonOverrideTextVal = "Spezial";
+
+          if (data.using_flat_structure) {
+            const flatConfig = data.config || {};
+            overrideSeasonNameVal = flatConfig.SeasonPosterOverrideSeasonName;
+            seasonOverrideTextVal = flatConfig.SeasonPosterSeasonOverrideText || "Staffel";
+            specialSeasonOverrideTextVal = flatConfig.SeasonPosterSpecialSeasonOverrideText || "Spezial";
+          } else {
+            const seasonPart = data.config?.SeasonPosterOverlayPart || data.SeasonPosterOverlayPart || {};
+            overrideSeasonNameVal = seasonPart.OverrideSeasonName;
+            seasonOverrideTextVal = seasonPart.SeasonOverrideText || "Staffel";
+            specialSeasonOverrideTextVal = seasonPart.SpecialSeasonOverrideText || "Spezial";
+          }
+
+          // Handle string versions of booleans
+          const isOverrideEnabled = overrideSeasonNameVal === true || overrideSeasonNameVal === "true";
+
+          setOverrideSeasonName(isOverrideEnabled);
+          setSeasonOverrideText(seasonOverrideTextVal);
+          setSpecialSeasonOverrideText(specialSeasonOverrideTextVal);
+
           // Process PreferredBackgroundLanguageOrder - handle "PleaseFillMe"
           let backgroundOrder =
             configSource.PreferredBackgroundLanguageOrder ||
@@ -883,14 +912,20 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
     // Check if season_number exists (including 0 for specials)
     if (metadata.season_number !== null && metadata.season_number !== undefined) {
       if (metadata.asset_type === "season") {
-        // Format as "Season X" (e.g., "Season 3") or "Specials" for season 0
+        // Format as "Season X" or overridden texts
         let seasonNum;
-        if (metadata.season_number === 0) {
-          seasonNum = "Specials";
+        if (overrideSeasonName) {
+          if (metadata.season_number === 0) {
+            seasonNum = specialSeasonOverrideText;
+          } else {
+            seasonNum = `${seasonOverrideText} ${metadata.season_number}`;
+          }
         } else {
-          // You can use String(metadata.season_number) for "Season 3"
-          // Or .padStart(2, "0") if you prefer "Season 03"
-          seasonNum = `Season ${metadata.season_number}`;
+          if (metadata.season_number === 0) {
+            seasonNum = "Specials";
+          } else {
+            seasonNum = `Season ${metadata.season_number}`;
+          }
         }
 
         setManualForm((prev) => ({
@@ -913,7 +948,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         }));
       }
     }
-  }, [metadata.season_number, metadata.asset_type]);
+  }, [metadata.season_number, metadata.asset_type, overrideSeasonName, seasonOverrideText, specialSeasonOverrideText]);
 
   // Initialize episode data from metadata (for titlecards)
   useEffect(() => {

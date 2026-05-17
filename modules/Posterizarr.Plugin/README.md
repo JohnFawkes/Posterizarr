@@ -44,3 +44,24 @@ The Posterizarr Plugin acts as a local asset proxy for Jellyfin. It is designed 
 1. Enable **Posterizarr** under the **Image Fetchers** settings.
 1. Ensure it is prioritized according to your preferences.
 1. Refresh metadata (Search for missing metadata → **Replace existing images**) for your library to pick up local assets.
+
+## Scheduled Tasks & Automation
+
+The plugin registers a scheduled background task (default: daily at 02:00 AM) that automatically syncs and refreshes your libraries against local assets.
+
+### Configuring the Sync Schedule
+
+1. Open your Jellyfin **Dashboard**.
+2. In the left sidebar under the **Server** section, navigate to **Scheduled Tasks**.
+3. Locate the **Posterizarr Sync Task** in the list.
+4. Click on the task to customize its triggers:
+    * You can configure the task to run on an interval, at a specific time of day (e.g., daily at 3:00 AM), on system startup, or on a weekly schedule.
+5. You can also trigger the task manually at any time by clicking the **Play (Run)** button next to it.
+
+## Building from Source
+
+```bash
+dotnet publish -c Release -o publish
+```
+
+The compiled `Posterizarr.Plugin.dll` will be in the `publish/` directory.

@@ -150,6 +150,9 @@ CONFIG_TOOLTIPS = {
 
     # SeasonPosterOverlayPart
     "SeasonPosterFontAllCaps": "Set to true for all caps text on season posters, else false.",
+    "SeasonPosterOverrideSeasonName": "Set to true to override the default season poster title with a custom name.",
+    "SeasonPosterSeasonOverrideText": "The custom default text to use for regular seasons when Override Season Name is enabled.",
+    "SeasonPosterSpecialSeasonOverrideText": "The custom default text to use for Special seasons (Season 00) when Override Season Name is enabled.",
     "SeasonPosterAddBorder": "Set to true to add a border to the season poster image.",
     "SeasonPosterAddText": "Set to true to add text to the season poster image.",
     "SeasonPosterAddOverlay": "Set to true to add the defined overlay file to the season poster image.",

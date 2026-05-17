@@ -205,7 +205,10 @@
     "MaxHeight": "500",
     "text_offset": "+400",
     "lineSpacing": "0",
-    "TextGravity": "south"
+    "TextGravity": "south",
+    "OverrideSeasonName": "false",
+    "SeasonOverrideText": "Staffel",
+    "SpecialSeasonOverrideText": "Spezial"
   },
   "ShowTitleOnSeasonPosterPart": {
     "AddShowTitletoSeason": "false",
