@@ -13179,7 +13179,7 @@ Elseif ($Tautulli) {
                                     $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                 }
                                 Else {
-                                    $global:seasonTitle = $SeasonOverrideText.ToUpper()
+                                    $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:seasonNumbers[$i]
                                 }
                             }
                             Else {
@@ -13192,7 +13192,7 @@ Elseif ($Tautulli) {
                                     $global:seasonTitle = $SpecialSeasonOverrideText
                                 }
                                 Else {
-                                    $global:seasonTitle = $SeasonOverrideText
+                                    $global:seasonTitle = $SeasonOverrideText+ " " + $global:seasonNumbers[$i]
                                 }
                             }
                             Else {
@@ -18756,7 +18756,7 @@ Elseif ($ArrTrigger) {
                                             $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                         }
                                         Else {
-                                            $global:seasonTitle = $SeasonOverrideText.ToUpper()
+                                            $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:SeasonNumber
                                         }
                                     }
                                     Else {
@@ -18769,7 +18769,7 @@ Elseif ($ArrTrigger) {
                                             $global:seasonTitle = $SpecialSeasonOverrideText
                                         }
                                         Else {
-                                            $global:seasonTitle = $SeasonOverrideText
+                                            $global:seasonTitle = $SeasonOverrideText+ " " + $global:SeasonNumber
                                         }
                                     }
                                     Else {
@@ -23757,7 +23757,7 @@ Elseif ($ArrTrigger) {
                                         $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()
+                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:SeasonNumber
                                     }
                                 }
                                 Else {
@@ -23770,7 +23770,7 @@ Elseif ($ArrTrigger) {
                                         $global:seasonTitle = $SpecialSeasonOverrideText
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText
+                                        $global:seasonTitle = $SeasonOverrideText+ " " + $global:SeasonNumber
                                     }
                                 }
                                 Else {
@@ -30543,7 +30543,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()
+                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:SeasonNumber
                                     }
                                 }
                                 Else {
@@ -30556,7 +30556,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $global:seasonTitle = $SpecialSeasonOverrideText
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText
+                                        $global:seasonTitle = $SeasonOverrideText+ " " + $global:SeasonNumber
                                     }
                                 }
                                 Else {
@@ -36689,7 +36689,7 @@ else {
                                     $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                 }
                                 Else {
-                                    $global:seasonTitle = $SeasonOverrideText.ToUpper()
+                                    $global:seasonTitle = $SeasonOverrideText.ToUpper() + " " + $global:seasonNumbers[$i]
                                 }
                             }
                             Else {
@@ -36702,7 +36702,7 @@ else {
                                     $global:seasonTitle = $SpecialSeasonOverrideText
                                 }
                                 Else {
-                                    $global:seasonTitle = $SeasonOverrideText
+                                    $global:seasonTitle = $SeasonOverrideText + " " + $global:seasonNumbers[$i]
                                 }
                             }
                             Else {
