@@ -220,6 +220,9 @@
     - `text_offset`: Text box offset from the bottom of the picture.
     - `lineSpacing`: Adjust the height between lines of text (Default is `0`)
     - `TextGravity`: Specifies the text alignment within the textbox (Default is `south`)
+    - `OverrideSeasonName`: Set to `true` to override the default season poster title with a custom name.
+    - `SeasonOverrideText`: The custom default text to use for regular seasons when Override Season Name is enabled (e.g., `Staffel`).
+    - `SpecialSeasonOverrideText`: The custom default text to use for Special seasons (Season 00) when Override Season Name is enabled (e.g., `Spezial`).
 
     #### ShowTitleOnSeasonPosterPart
 
