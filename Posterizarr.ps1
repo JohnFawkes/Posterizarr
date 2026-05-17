@@ -7809,6 +7809,9 @@ $SeasonlineSpacing = $config.SeasonPosterOverlayPart.lineSpacing
 $Seasontextgravity = $config.SeasonPosterOverlayPart.TextGravity.tolower()
 $Seasonborderwidthsecond = $borderwidth + 'x' + $borderwidth
 $Seasonboxsize = $SeasonMaxWidth + 'x' + $SeasonMaxHeight
+$OverrideSeasonName = $config.SeasonPosterOverlayPart.OverrideSeasonName
+$SeasonOverrideText = $config.SeasonPosterOverlayPart.SeasonOverrideText.tolower()
+$SpecialSeasonOverrideText = $config.SeasonPosterOverlayPart.SpecialSeasonOverrideText.tolower()
 
 # Show Title on Season Poster Overlay Part
 $ShowOnSeasonfontAllCaps = $config.ShowTitleOnSeasonPosterPart.fontAllCaps.tolower()
