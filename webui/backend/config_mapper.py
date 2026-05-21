@@ -51,6 +51,9 @@ ORIGINAL_KEYS = {
     # SeasonPosterOverlayPart
     "SeasonPosterFontAllCaps": "fontAllCaps",
     "SeasonPosterShowFallback": "ShowFallback",
+    "SeasonPosterOverrideSeasonName": "OverrideSeasonName",
+    "SeasonPosterSeasonOverrideText": "SeasonOverrideText",
+    "SeasonPosterSpecialSeasonOverrideText": "SpecialSeasonOverrideText",
     "SeasonPosterAddBorder": "AddBorder",
     "SeasonPosterAddText": "AddText",
     "SeasonPosterAddTextStroke": "AddTextStroke",
@@ -397,6 +400,9 @@ CONFIG_GROUPS = {
     "PosterTextGravity": "PosterOverlayPart",
     # SeasonPosterOverlayPart
     "SeasonPosterFontAllCaps": "SeasonPosterOverlayPart",
+    "SeasonPosterOverrideSeasonName": "SeasonPosterOverlayPart",
+    "SeasonPosterSeasonOverrideText": "SeasonPosterOverlayPart",
+    "SeasonPosterSpecialSeasonOverrideText": "SeasonPosterOverlayPart",
     "SeasonPosterAddBorder": "SeasonPosterOverlayPart",
     "SeasonPosterAddText": "SeasonPosterOverlayPart",
     "SeasonPosterAddOverlay": "SeasonPosterOverlayPart",
@@ -679,6 +685,9 @@ UI_GROUPS = {
     ],
     "Season Poster Settings": [
         "SeasonPosterFontAllCaps",
+        "SeasonPosterOverrideSeasonName",
+        "SeasonPosterSeasonOverrideText",
+        "SeasonPosterSpecialSeasonOverrideText",
         "SeasonPosterAddBorder",
         "SeasonPosterAddText",
         "SeasonPosterAddOverlay",
@@ -1116,6 +1125,9 @@ DISPLAY_NAMES = {
     "PosterTextGravity": "Text Gravity",
     # Season Poster Settings
     "SeasonPosterFontAllCaps": "All Caps Font",
+    "SeasonPosterOverrideSeasonName": "Override Season Name",
+    "SeasonPosterSeasonOverrideText": "Season Override Text",
+    "SeasonPosterSpecialSeasonOverrideText": "Special Season Override Text",
     "SeasonPosterAddBorder": "Add Border",
     "SeasonPosterAddText": "Add Text",
     "SeasonPosterAddOverlay": "Add Overlay",
