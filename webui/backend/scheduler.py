@@ -73,18 +73,18 @@ class PosterizarrScheduler:
         # Initialize scheduler with timezone support
         jobstores = {"default": MemoryJobStore()}
         executors = {"default": AsyncIOExecutor()}
-        job_defaults = {
+        self.job_defaults = {
             "coalesce": True,
             "max_instances": 1,
             "misfire_grace_time": 300,
         }
 
-        logger.debug(f"Job defaults: {job_defaults}")
+        logger.debug(f"Job defaults: {self.job_defaults}")
 
         self.scheduler = AsyncIOScheduler(
             jobstores=jobstores,
             executors=executors,
-            job_defaults=job_defaults,
+            job_defaults=self.job_defaults,
             timezone=initial_timezone,  # Use detected timezone
         )
 
@@ -170,7 +170,7 @@ class PosterizarrScheduler:
             self.save_config(config)
 
             if "timezone" in updates and self.scheduler:
-                self.scheduler.configure(timezone=updates["timezone"])
+                self.scheduler.configure(timezone=updates["timezone"], job_defaults=self.job_defaults)
                 if config.get("schedules"):
                     self.update_next_run_from_schedules()
 
@@ -200,25 +200,75 @@ class PosterizarrScheduler:
             logger.error(f"Error checking for running processes: {e}")
             return True
 
-    async def run_script(self, mode: str = "normal", schedule_config: dict = None, force_run: bool = False):
+    MAX_RETRIES = 5
+    RETRY_DELAY = 60  # seconds
+
+    async def run_script(
+        self,
+        mode: str = "normal",
+        schedule_config: dict = None,
+        force_run: bool = False,
+        retry_attempt: int = 0,
+    ):
         """Execute Posterizarr script in normal mode (non-blocking)"""
         with self._lock:
             config = self.load_config()
+            is_already_running = False
+            reason = ""
+
             if not force_run and config.get("skip_if_running", True) and self.is_running:
-                logger.warning("Script is already running, skipping scheduled execution")
-                return
+                is_already_running = True
+                reason = "scheduler is already executing a script instance"
 
             running_file = self.base_dir / "temp" / "Posterizarr.Running"
             if not force_run and running_file.exists():
                 if self._is_posterizarr_actually_running():
-                    logger.warning("Posterizarr process is running, cannot start another instance")
-                    return
+                    is_already_running = True
+                    reason = "Posterizarr process is running (temp/Posterizarr.Running exists and is active)"
                 else:
                     try:
                         running_file.unlink()
                     except Exception as e:
                         logger.error(f"Failed to delete stale running file: {e}")
-                        return
+                        is_already_running = True
+                        reason = "failed to delete stale running file"
+
+            if is_already_running:
+                if not force_run:
+                    next_attempt = retry_attempt + 1
+                    if next_attempt <= self.MAX_RETRIES:
+                        logger.info(
+                            f"Scheduled run ({mode}) skipped because {reason}. "
+                            f"Rescheduling retry attempt {next_attempt}/{self.MAX_RETRIES} in {self.RETRY_DELAY} seconds."
+                        )
+                        
+                        tz = pytz.timezone(self._get_timezone())
+                        retry_time = datetime.now(tz) + timedelta(seconds=self.RETRY_DELAY)
+                        
+                        import uuid
+                        retry_job_id = f"retry_{mode}_{uuid.uuid4().hex[:8]}"
+                        
+                        try:
+                            self.scheduler.add_job(
+                                self.run_script,
+                                trigger='date',
+                                run_date=retry_time,
+                                id=retry_job_id,
+                                name=f"Retry {mode} (Attempt {next_attempt})",
+                                args=[mode, schedule_config, force_run, next_attempt],
+                            )
+                            self.update_schedule_status(schedule_config, "retrying")
+                        except Exception as e:
+                            logger.error(f"Failed to schedule retry job: {e}")
+                    else:
+                        logger.warning(
+                            f"Scheduled run ({mode}) skipped because {reason}. "
+                            f"Maximum retry attempts ({self.MAX_RETRIES}) reached. No further retries will be scheduled."
+                        )
+                        self.update_schedule_status(schedule_config, "failed")
+                else:
+                    logger.warning(f"Script run skipped because {reason}.")
+                return
 
             self.is_running = True
             config["last_run"] = datetime.now().isoformat()
@@ -276,9 +326,14 @@ class PosterizarrScheduler:
             loop = asyncio.get_event_loop()
             returncode = await loop.run_in_executor(None, run_in_thread)
             logger.info(f"Scheduled run finished with return code: {returncode}")
+            if returncode == 0:
+                self.update_schedule_status(schedule_config, "success")
+            else:
+                self.update_schedule_status(schedule_config, "failed")
 
         except Exception as e:
             logger.error(f"Error during scheduled script execution: {e}", exc_info=True)
+            self.update_schedule_status(schedule_config, "failed")
         finally:
             with self._lock:
                 self.is_running = False
@@ -392,7 +447,7 @@ class PosterizarrScheduler:
             if not config.get("enabled", False):
                 return
             if not self.scheduler.running:
-                self.scheduler.configure(timezone=self._get_timezone())
+                self.scheduler.configure(timezone=self._get_timezone(), job_defaults=self.job_defaults)
                 self.scheduler.start()
                 self.apply_schedules()
                 self._scheduler_initialized = True
@@ -470,6 +525,25 @@ class PosterizarrScheduler:
             valid_runs = [r for r in next_runs if r]
             if valid_runs:
                 config["next_run"] = min(valid_runs)
+                self.save_config(config)
+
+    def update_schedule_status(self, schedule_config: Optional[dict], status: str):
+        """Update the status of a schedule in scheduler.json"""
+        if not schedule_config:
+            return
+        with self._lock:
+            config = self.load_config()
+            schedules = config.get("schedules", [])
+            updated = False
+            for s in schedules:
+                if (
+                    s.get("time") == schedule_config.get("time")
+                    and s.get("mode") == schedule_config.get("mode")
+                    and s.get("frequency") == schedule_config.get("frequency")
+                ):
+                    s["status"] = status
+                    updated = True
+            if updated:
                 self.save_config(config)
 
     def add_schedule(self, time_str: str, description: str = "", mode: str = "normal",

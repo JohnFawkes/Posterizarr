@@ -598,6 +598,8 @@
       "createConfig": "Konfig. erstellen",
       "completed": "Abgeschlossen",
       "upcoming": "Anstehend",
+      "failed": "Fehlgeschlagen",
+      "retrying": "Wiederholung",
       "ofDay": "des Tages",
       "start": "Start",
       "end": "Ende"

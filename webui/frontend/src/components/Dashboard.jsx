@@ -522,25 +522,48 @@ function Dashboard() {
                             const position = (scheduleMinutes / totalMinutesInDay) * 100;
                             const isPast = scheduleMinutes < currentMinutes;
 
+                            // Determine style class based on status
+                            let tickClass = "bg-theme-card border-theme-muted hover:border-blue-400";
+                            let dotColorClass = "bg-gray-500";
+                            let statusText = t("dashboard.controlDeck.upcoming") || 'Upcoming';
+                            let statusTextColor = "text-gray-500";
+
+                            if (s.status === "success") {
+                              tickClass = "bg-green-500 border-green-400 shadow-[0_0_5px_rgba(74,222,128,0.3)]";
+                              dotColorClass = "bg-green-400";
+                              statusText = t("dashboard.controlDeck.completed") || 'Completed';
+                              statusTextColor = "text-green-400 font-semibold";
+                            } else if (s.status === "failed") {
+                              tickClass = "bg-red-500 border-red-400 shadow-[0_0_5px_rgba(239,68,68,0.3)] animate-pulse";
+                              dotColorClass = "bg-red-400";
+                              statusText = t("dashboard.controlDeck.failed") || 'Failed';
+                              statusTextColor = "text-red-400 font-semibold";
+                            } else if (s.status === "retrying") {
+                              tickClass = "bg-yellow-500 border-yellow-400 shadow-[0_0_5px_rgba(234,179,8,0.3)] animate-pulse";
+                              dotColorClass = "bg-yellow-400";
+                              statusText = t("dashboard.controlDeck.retrying") || 'Retrying';
+                              statusTextColor = "text-yellow-400 font-semibold";
+                            } else if (isPast) {
+                              tickClass = "bg-blue-500 border-blue-400 shadow-[0_0_5px_rgba(59,130,246,0.3)]";
+                              dotColorClass = "bg-blue-400";
+                              statusText = t("dashboard.controlDeck.completed") || 'Completed';
+                            }
+
                             return (
                               <div
                                 key={idx}
-                                className={`group/tick absolute w-2 h-2 rounded-full border-2 transform -translate-x-1/2 z-20 transition-all cursor-pointer ${
-                                  isPast
-                                    ? "bg-blue-500 border-blue-400 shadow-[0_0_5px_rgba(59,130,246,0.3)]"
-                                    : "bg-theme-card border-theme-muted hover:border-blue-400"
-                                }`}
+                                className={`group/tick absolute w-2 h-2 rounded-full border-2 transform -translate-x-1/2 z-20 transition-all cursor-pointer ${tickClass}`}
                                 style={{ left: `${position}%` }}
                               >
                                 {/* Custom Hover Tooltip - Removed the help cursor logic */}
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 px-2.5 py-1.5 bg-gray-900 text-white text-[10px] rounded-lg pointer-events-none opacity-0 group-hover/tick:opacity-100 transition-all duration-200 whitespace-nowrap z-30 border border-theme shadow-2xl scale-95 group-hover/tick:scale-100">
                                     <div className="flex items-center gap-2 mb-0.5">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${isPast ? 'bg-blue-400' : 'bg-gray-500'}`}></div>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${dotColorClass}`}></div>
                                         <span className="font-bold text-blue-400">{s.time}</span>
                                     </div>
                                     <div className="text-gray-300 text-[9px]">{s.description}</div>
-                                    <div className="text-[7px] text-gray-500 mt-1 uppercase tracking-tighter font-bold">
-                                        {isPast ? t("dashboard.controlDeck.completed") || 'Completed' : t("dashboard.controlDeck.upcoming") || 'Upcoming'}
+                                    <div className={`text-[7px] mt-1 uppercase tracking-tighter ${statusTextColor}`}>
+                                        {statusText}
                                     </div>
                                     {/* Small Arrow */}
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-gray-900"></div>
