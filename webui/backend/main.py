@@ -1129,12 +1129,22 @@ def get_library_type_from_db(library_folder: str) -> Optional[str]:
         try:
             library_type = db_instance.lookup_library_type_by_name(library_folder)
             if library_type:
+                # Normalize the library type to match the expected "movie" or "show"
+                lib_type_lower = library_type.lower()
+                normalized_type = None
+                if lib_type_lower in ["show", "shows", "series", "tvshows", "tvshow"]:
+                    normalized_type = "show"
+                elif lib_type_lower in ["movie", "movies"]:
+                    normalized_type = "movie"
+                else:
+                    normalized_type = lib_type_lower
+
                 # Cache the result
-                get_library_type_from_db.cache[library_folder] = library_type
+                get_library_type_from_db.cache[library_folder] = normalized_type
                 logger.info(
-                    f"[LibraryType] Database lookup for '{library_folder}': {library_type} (cached)"
+                    f"[LibraryType] Database lookup for '{library_folder}': {normalized_type} (cached, DB was '{library_type}')"
                 )
-                return library_type
+                return normalized_type
             else:
                 logger.warning(
                     f"[LibraryType] No library type found in database for '{library_folder}'"
@@ -11606,7 +11616,7 @@ async def upload_asset_replacement(
                     elif mediaType == "movie":
                         command.extend(["-MoviePosterCard"])
 
-                    elif mediaType == "show":
+                    elif mediaType in ["show", "tv"]:
                         command.extend(["-ShowPosterCard"])
 
                     logger.info(
@@ -12355,7 +12365,7 @@ async def trigger_manual_run_internal(request: ManualModeRequest):
         if request.mediaType == "movie":
             command.extend(["-MoviePosterCard"])
 
-        elif request.mediaType == "show":
+        elif request.mediaType in ["show", "tv"]:
             command.extend(["-ShowPosterCard"])
 
     logger.info(f"Starting Manual Run: {' '.join(command)}")
@@ -13730,6 +13740,7 @@ async def finalize_asset_replacement(
                 folderName=final_folder_name or "",
                 libraryName=final_library_name or "",
                 posterType=poster_type,
+                mediaType=overlay_params.get("mediaType") or "",
                 seasonPosterName=season_poster_name or "",
                 epTitleName=ep_title_name or "",
                 episodeNumber=ep_number or ""
