@@ -13086,6 +13086,19 @@ def _key_value_sub(match):
     quoted_val = match.group(3)
     unquoted_val = match.group(4)
     
+    val = quoted_val if quote_char is not None else unquoted_val
+    prefix_lower = prefix.lower()
+    val_lower = val.lower() if val else ""
+    
+    # Check if the key contains 'enabled' or the value is a boolean, which are not secrets
+    is_boolean_flag = (
+        "enabled" in prefix_lower or
+        val_lower in ["true", "false"]
+    )
+    
+    if is_boolean_flag:
+        return match.group(0)
+        
     if quote_char is not None:
         # It was a quoted value (e.g. "my secret password")
         return f"{prefix}{quote_char}[MASKED]{quote_char}"
