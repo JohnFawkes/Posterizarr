@@ -13290,7 +13290,7 @@ def _create_support_zip_blocking(staging_dir_path: Path, zip_file_path: Path) ->
                 if suffix == '.db':
                     logger.debug(f"[SupportZip] Sanitizing database file: {file_path.name}")
                     _sanitize_db_file(file_path)
-                elif suffix in ['.log', '.txt', '.csv', '.json']:
+                elif suffix in ['.log', '.txt', '.json'] or (suffix == '.csv' and file_path.name.lower() == 'imagechoices.csv'):
                     logger.debug(f"[SupportZip] Sanitizing text file: {file_path.name}")
                     _sanitize_text_file(file_path)
 
