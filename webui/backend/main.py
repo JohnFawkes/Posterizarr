@@ -1129,12 +1129,22 @@ def get_library_type_from_db(library_folder: str) -> Optional[str]:
         try:
             library_type = db_instance.lookup_library_type_by_name(library_folder)
             if library_type:
+                # Normalize the library type to match the expected "movie" or "show"
+                lib_type_lower = library_type.lower()
+                normalized_type = None
+                if lib_type_lower in ["show", "shows", "series", "tvshows", "tvshow"]:
+                    normalized_type = "show"
+                elif lib_type_lower in ["movie", "movies"]:
+                    normalized_type = "movie"
+                else:
+                    normalized_type = lib_type_lower
+
                 # Cache the result
-                get_library_type_from_db.cache[library_folder] = library_type
+                get_library_type_from_db.cache[library_folder] = normalized_type
                 logger.info(
-                    f"[LibraryType] Database lookup for '{library_folder}': {library_type} (cached)"
+                    f"[LibraryType] Database lookup for '{library_folder}': {normalized_type} (cached, DB was '{library_type}')"
                 )
-                return library_type
+                return normalized_type
             else:
                 logger.warning(
                     f"[LibraryType] No library type found in database for '{library_folder}'"
@@ -11606,7 +11616,7 @@ async def upload_asset_replacement(
                     elif mediaType == "movie":
                         command.extend(["-MoviePosterCard"])
 
-                    elif mediaType == "show":
+                    elif mediaType in ["show", "tv"]:
                         command.extend(["-ShowPosterCard"])
 
                     logger.info(
@@ -12355,7 +12365,7 @@ async def trigger_manual_run_internal(request: ManualModeRequest):
         if request.mediaType == "movie":
             command.extend(["-MoviePosterCard"])
 
-        elif request.mediaType == "show":
+        elif request.mediaType in ["show", "tv"]:
             command.extend(["-ShowPosterCard"])
 
     logger.info(f"Starting Manual Run: {' '.join(command)}")
@@ -13029,6 +13039,188 @@ async def import_imagechoices_csv():
 # SUPPORT & TROUBLESHOOTING
 # ============================================================================
 
+# Regex definitions for support zip sanitization
+RE_QUERY_PARAMS = re.compile(
+    r"(?i)(token|key|pin|password|secret|auth|x-plex-token)=([^&\s\n\"';]+)"
+)
+
+# Specifically target Apprise URL schemes
+RE_APPRISE_URLS = re.compile(
+    r"(?i)\b(discord|tgram|telegram|slack|pushed|pushover|pushbullet|prowl|growl|gotify|matrix|msteams|twilio|vonage|signal)://([^\s\n\"';]+)"
+)
+
+# Specifically target Discord webhooks and Uptime Kuma push URLs
+RE_DISCORD_WEBHOOK = re.compile(
+    r"(?i)(https?://(?:discord|discordapp)\.com/api/webhooks/)([^\s\n\"';]+)"
+)
+RE_UPTIME_KUMA = re.compile(
+    r"(?i)(https?://[^\s\n\"';]+/api/push/)([a-zA-Z0-9_-]+)"
+)
+
+# Authorization & Cookie headers (including JSON quoted format)
+RE_AUTH_HEADERS = re.compile(
+    r"(?i)(authorization\s*[\"']?\s*:\s*[\"']?\w+\s+)([^\"'\s\n,;]+)"
+)
+RE_COOKIE_HEADERS = re.compile(
+    r"(?i)(cookie\s*:\s*)([^\s\n\"';]+)"
+)
+
+# Key-Value pairs in logs/configs
+# Matches: key = value, key: value, "key": "value" (supporting quotes around keys, quotes around values, and spaces inside quoted values)
+RE_KEY_VALUES = re.compile(
+    r"(?i)([\"']?\b[a-z0-9_-]*(?:key|token|password|pin|secret|auth|credential|api)[a-z0-9_-]*\b[\"']?\s*[:=]\s*)(?:([\"'])(.*?)\2|([^\"'\s\n,;]+))"
+)
+
+RE_LOCAL_IPS = re.compile(
+    r"(?<!\d)(?:192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|127\.0\.0\.1)(?!\d)|(?<![a-zA-Z0-9_-])localhost(?![a-zA-Z0-9_-])",
+    re.IGNORECASE
+)
+RE_LOCAL_DOMAINS = re.compile(
+    r"(?<![a-zA-Z0-9_-])[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*(?:\.local|\.lan)\b",
+    re.IGNORECASE
+)
+
+def _key_value_sub(match):
+    prefix = match.group(1)
+    quote_char = match.group(2)
+    quoted_val = match.group(3)
+    unquoted_val = match.group(4)
+    
+    val = quoted_val if quote_char is not None else unquoted_val
+    prefix_lower = prefix.lower()
+    val_lower = val.lower() if val else ""
+    
+    # Check if the key contains 'enabled' or the value is a boolean, which are not secrets
+    is_boolean_flag = (
+        "enabled" in prefix_lower or
+        val_lower in ["true", "false"]
+    )
+    
+    if is_boolean_flag:
+        return match.group(0)
+        
+    if quote_char is not None:
+        # It was a quoted value (e.g. "my secret password")
+        return f"{prefix}{quote_char}[MASKED]{quote_char}"
+    else:
+        # It was an unquoted value
+        return f"{prefix}[MASKED]"
+
+def _sanitize_string(val: str) -> str:
+    if not isinstance(val, str):
+        return val
+    
+    # 1. URL Query parameters
+    val = RE_QUERY_PARAMS.sub(r"\1=[MASKED]", val)
+    
+    # 2. Apprise URLs
+    val = RE_APPRISE_URLS.sub(r"\1://[MASKED]", val)
+    
+    # 3. Discord webhooks & Uptime Kuma URLs
+    val = RE_DISCORD_WEBHOOK.sub(r"\1[MASKED]", val)
+    val = RE_UPTIME_KUMA.sub(r"\1[MASKED]", val)
+    
+    # 4. Authorization & Cookie headers
+    val = RE_AUTH_HEADERS.sub(r"\1[MASKED]", val)
+    val = RE_COOKIE_HEADERS.sub(r"\1[MASKED]", val)
+    
+    # 5. Key-Value configurations/logs
+    val = RE_KEY_VALUES.sub(_key_value_sub, val)
+    
+    # 6. Local IPs
+    val = RE_LOCAL_IPS.sub("[MASKED_IP]", val)
+    
+    # 7. Local Domains
+    val = RE_LOCAL_DOMAINS.sub("[MASKED_HOST]", val)
+    
+    return val
+
+def _sanitize_db_file(db_path: Path):
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [r[0] for r in cursor.fetchall() if r[0] != 'sqlite_sequence']
+        
+        for table in tables:
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns_info = cursor.fetchall()
+            text_cols = []
+            primary_keys = []
+            for col in columns_info:
+                col_name = col[1]
+                col_type = col[2].upper() if col[2] else ""
+                col_pk = col[5]
+                if col_pk > 0:
+                    primary_keys.append(col_name)
+                if not col_type or "TEXT" in col_type or "CHAR" in col_type or "CLOB" in col_type:
+                    text_cols.append(col_name)
+            
+            if not text_cols:
+                continue
+                
+            use_rowid = len(primary_keys) == 0
+            id_cols = ["rowid"] if use_rowid else primary_keys
+            
+            select_cols = id_cols + text_cols
+            cols_str = ", ".join(f'"{c}"' for c in select_cols)
+            cursor.execute(f'SELECT {cols_str} FROM "{table}"')
+            rows = cursor.fetchall()
+            
+            updates = []
+            for row in rows:
+                row_ids = row[:len(id_cols)]
+                text_vals = row[len(id_cols):]
+                
+                sanitized_vals = []
+                changed = False
+                for val in text_vals:
+                    if isinstance(val, str):
+                        sanitized = _sanitize_string(val)
+                        if sanitized != val:
+                            changed = True
+                        sanitized_vals.append(sanitized)
+                    else:
+                        sanitized_vals.append(val)
+                
+                if changed:
+                    set_clause = ", ".join(f'"{c}" = ?' for c in text_cols)
+                    where_clause = " AND ".join(f'"{c}" = ?' for c in id_cols)
+                    sql = f'UPDATE "{table}" SET {set_clause} WHERE {where_clause}'
+                    params = list(sanitized_vals) + list(row_ids)
+                    updates.append((sql, params))
+            
+            if updates:
+                for sql, params in updates:
+                    cursor.execute(sql, params)
+                conn.commit()
+                logger.info(f"[SupportZip] Sanitized {len(updates)} rows in table '{table}' of DB: {db_path.name}")
+        conn.close()
+    except Exception as e:
+        logger.error(f"[SupportZip] Failed to sanitize database {db_path}: {e}", exc_info=True)
+
+def _sanitize_text_file(file_path: Path):
+    try:
+        content = None
+        for encoding in ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252']:
+            try:
+                with open(file_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                break
+            except UnicodeDecodeError:
+                continue
+        if content is None:
+            logger.error(f"[SupportZip] Could not read text file with any encoding: {file_path}")
+            return
+            
+        sanitized = _sanitize_string(content)
+        if sanitized != content:
+            with open(file_path, 'w', encoding='utf-8', newline='') as f:
+                f.write(sanitized)
+            logger.debug(f"[SupportZip] Sanitized text/log file: {file_path.name}")
+    except Exception as e:
+        logger.error(f"[SupportZip] Failed to sanitize text file {file_path}: {e}", exc_info=True)
+
 def _create_support_zip_blocking(staging_dir_path: Path, zip_file_path: Path) -> bool:
     """
     Internal blocking function to create the support zip in a background thread.
@@ -13073,167 +13265,34 @@ def _create_support_zip_blocking(staging_dir_path: Path, zip_file_path: Path) ->
             )
             logger.info("[SupportZip] Copied UILogs directory")
 
-        # 3. Copy & Sanitize Databases
-        # 3a. Copy non-sensitive DBs
+        # 3. Copy Databases
         for db_name in [
             "media_export.db",
             "runtime_stats.db",
-            "server_libraries.db"
+            "server_libraries.db",
+            "imagechoices.db"
         ]:
             src_db = DATABASE_DIR / db_name
             if src_db.exists():
                 shutil.copy2(src_db, db_staging_dir / db_name)
-                logger.debug(f"[SupportZip] Copied non-sensitive DB: {db_name}")
+                logger.debug(f"[SupportZip] Copied DB: {db_name}")
 
-        # 3b. Sanitize and copy imagechoices.db
-        src_imagechoices_db = DATABASE_DIR / "imagechoices.db"
-        if src_imagechoices_db.exists():
-            copied_db_path = db_staging_dir / "imagechoices.db"
-            # Copy the file first
-            shutil.copy2(src_imagechoices_db, copied_db_path)
-            logger.debug(f"[SupportZip] Copied imagechoices.db for sanitization")
-
-            try:
-                # Now, sanitize the *copy*
-                conn = sqlite3.connect(copied_db_path)
-                cursor = conn.cursor()
-
-                cursor.execute(
-                    "SELECT id, DownloadSource FROM imagechoices WHERE DownloadSource LIKE 'http%'"
-                )
-                rows = cursor.fetchall()
-                logger.debug(f"[SupportZip] Found {len(rows)} rows in imagechoices.db to sanitize.")
-
-                updates = []
-
-                ALLOWED_PREFIXES = [
-                    "https://image.tmdb.org",
-                    "https://artworks.thetvdb.com",
-                    "https://assets.fanart.tv",
-                    "https://m.media-amazon.com",
-                    "https://www.themoviedb.org",
-                    "https://fanart.tv",
-                    "https://www.thetvdb.com",
-                ]
-
-                for row_id, source in rows:
-                    if not source:
-                        continue
-
-                    sanitized_source = source
-                    is_allowed = False
-
-                    for prefix in ALLOWED_PREFIXES:
-                        if source.startswith(prefix):
-                            is_allowed = True
-                            break
-
-                    if not is_allowed:
-                        sanitized_source = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_source, count=1)
-
-                    sanitized_source = re.sub(r"([?&][^=]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_source, flags=re.IGNORECASE)
-                    sanitized_source = re.sub(r"([?&][^=]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_source, flags=re.IGNORECASE)
-                    sanitized_source = re.sub(r"([?&][^=]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_source, flags=re.IGNORECASE)
-
-                    if sanitized_source != source:
-                        updates.append((sanitized_source, row_id))
-
-                if updates:
-                    cursor.executemany(
-                        "UPDATE imagechoices SET DownloadSource = ? WHERE id = ?", updates
-                    )
-                    conn.commit()
-                    logger.info(f"[SupportZip] Sanitized {len(updates)} rows in imagechoices.db copy.")
-
-                conn.close()
-            except Exception as e:
-                logger.error(f"[SupportZip] Failed to sanitize imagechoices.db copy: {e}")
-
-        # 3c. Sanitize ImageChoices.csv (searches all subdirs)
-        logger.info("[SupportZip] Searching for ImageChoices.csv files to sanitize...")
-
-        ALLOWED_PREFIXES = [
-            "https://image.tmdb.org",
-            "https://artworks.thetvdb.com",
-            "https://assets.fanart.tv",
-            "https://m.media-amazon.com",
-            "https://www.themoviedb.org",
-            "https://fanart.tv",
-            "https://www.thetvdb.com",
-        ]
-
-        csv_files_to_sanitize = list(staging_dir_path.rglob("ImageChoices.csv"))
-        logger.info(f"[SupportZip] Found {len(csv_files_to_sanitize)} ImageChoices.csv files.")
-
-        total_sanitized_rows = 0
-
-        for staging_csv_path in csv_files_to_sanitize:
-            logger.debug(f"[SupportZip] Sanitizing {staging_csv_path}...")
-            sanitized_rows = []
-            try:
-                with open(staging_csv_path, 'r', encoding='utf-8-sig') as f_in:
-                    import csv
-                    reader = csv.reader(f_in, delimiter=';')
-
-                    header = next(reader)
-                    sanitized_rows.append(header)
-
-                    try:
-                        clean_header = [h.strip().strip('"') for h in header]
-                        download_source_idx = clean_header.index("Download Source")
-                        fav_provider_link_idx = clean_header.index("Fav Provider Link")
-                    except ValueError as e:
-                        logger.error(f"[SupportZip] Could not find required columns in {staging_csv_path.name}: {e}")
-                        continue
-
-                    sanitized_count_in_file = 0
-
-                    for row in reader:
-                        if len(row) > max(download_source_idx, fav_provider_link_idx):
-                            original_download_source = row[download_source_idx]
-                            original_fav_link = row[fav_provider_link_idx]
-
-                            sanitized_download_source = original_download_source
-                            sanitized_fav_link = original_fav_link
-
-                            if original_download_source and original_download_source.startswith("http"):
-                                is_allowed = any(original_download_source.startswith(prefix) for prefix in ALLOWED_PREFIXES)
-                                if not is_allowed:
-                                    sanitized_download_source = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_download_source, count=1)
-
-                                sanitized_download_source = re.sub(r"([?&][^=&]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_download_source, flags=re.IGNORECASE)
-                                sanitized_download_source = re.sub(r"([?&][^=&]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_download_source, flags=re.IGNORECASE)
-                                sanitized_download_source = re.sub(r"([?&][^=&]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_download_source, flags=re.IGNORECASE)
-
-                            if original_fav_link and original_fav_link.startswith("http"):
-                                is_allowed = any(original_fav_link.startswith(prefix) for prefix in ALLOWED_PREFIXES)
-                                if not is_allowed:
-                                    sanitized_fav_link = re.sub(r"(https?://)[^/]+", r"\1[MASKED_HOST]", sanitized_fav_link, count=1)
-
-                                sanitized_fav_link = re.sub(r"([?&][^=&]*Token=)[^&]+", r"\1[MASKED_TOKEN]", sanitized_fav_link, flags=re.IGNORECASE)
-                                sanitized_fav_link = re.sub(r"([?&][^=&]*api_key=)[^&]+", r"\1[MASKED_KEY]", sanitized_fav_link, flags=re.IGNORECASE)
-                                sanitized_fav_link = re.sub(r"([?&][^=&]*pin=)[^&]+", r"\1[MASKED_PIN]", sanitized_fav_link, flags=re.IGNORECASE)
-
-                            if (sanitized_download_source != original_download_source) or (sanitized_fav_link != original_fav_link):
-                                sanitized_count_in_file += 1
-                                row[download_source_idx] = sanitized_download_source
-                                row[fav_provider_link_idx] = sanitized_fav_link
-
-                        sanitized_rows.append(row)
-
-                logger.info(f"[SupportZip] Sanitized {sanitized_count_in_file} rows in {staging_csv_path.name}.")
-                total_sanitized_rows += sanitized_count_in_file
-
-                with open(staging_csv_path, 'w', encoding='utf-8', newline='') as f_out:
-                    writer = csv.writer(f_out, delimiter=';', quoting=csv.QUOTE_ALL)
-                    writer.writerows(sanitized_rows)
-
-                logger.debug(f"[SupportZip] Overwrote {staging_csv_path.name} with sanitized content.")
-
-            except Exception as e:
-                logger.error(f"[SupportZip] Failed to sanitize {staging_csv_path.name}: {e}")
-
-        logger.info(f"[SupportZip] Total sanitized rows across all CSVs: {total_sanitized_rows}")
+        # 3b. Sanitize all copied logs and databases recursively
+        logger.info("[SupportZip] Sanitizing all staged support files...")
+        for root, dirs, files in os.walk(staging_dir_path):
+            for file in files:
+                file_path = Path(root) / file
+                # Skip the zip file itself if it is already in the staging directory
+                if file_path == zip_file_path:
+                    continue
+                
+                suffix = file_path.suffix.lower()
+                if suffix == '.db':
+                    logger.debug(f"[SupportZip] Sanitizing database file: {file_path.name}")
+                    _sanitize_db_file(file_path)
+                elif suffix in ['.log', '.txt', '.json'] or (suffix == '.csv' and file_path.name.lower() == 'imagechoices.csv'):
+                    logger.debug(f"[SupportZip] Sanitizing text file: {file_path.name}")
+                    _sanitize_text_file(file_path)
 
         # 4. Create ZIP file
         logger.debug(f"[SupportZip] Creating ZIP file at: {zip_file_path}")
@@ -13730,6 +13789,7 @@ async def finalize_asset_replacement(
                 folderName=final_folder_name or "",
                 libraryName=final_library_name or "",
                 posterType=poster_type,
+                mediaType=overlay_params.get("mediaType") or "",
                 seasonPosterName=season_poster_name or "",
                 epTitleName=ep_title_name or "",
                 episodeNumber=ep_number or ""

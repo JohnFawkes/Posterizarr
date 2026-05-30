@@ -54,7 +54,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.46"
+$CurrentScriptVersion = "2.2.47"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -18752,7 +18752,7 @@ Elseif ($ArrTrigger) {
                                 $global:SeasonNumber = $season."Season Number"
                                 if ($SeasonfontAllCaps -eq 'true') {
                                     if ($OverrideSeasonName -eq 'true'){
-                                        if ($global:seasonNumbers[$i] -eq '0'){
+                                        if ($global:SeasonNumber -eq '0'){
                                             $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                         }
                                         Else {
@@ -18765,7 +18765,7 @@ Elseif ($ArrTrigger) {
                                 }
                                 Else {
                                     if ($OverrideSeasonName -eq 'true'){
-                                        if ($global:seasonNumbers[$i] -eq '0'){
+                                        if ($global:SeasonNumber -eq '0'){
                                             $global:seasonTitle = $SpecialSeasonOverrideText
                                         }
                                         Else {
@@ -23757,7 +23757,7 @@ Elseif ($ArrTrigger) {
                                         $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:SeasonNumber
+                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:seasonNumbers[$i]
                                     }
                                 }
                                 Else {
@@ -23770,7 +23770,7 @@ Elseif ($ArrTrigger) {
                                         $global:seasonTitle = $SpecialSeasonOverrideText
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText+ " " + $global:SeasonNumber
+                                        $global:seasonTitle = $SeasonOverrideText+ " " + $global:seasonNumbers[$i]
                                     }
                                 }
                                 Else {
@@ -28112,6 +28112,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $global:ImageMagickError = $null
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
+                            $LocalAddOverlay = $AddOverlay
+                            $LocalAddBorder  = $AddBorder
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
@@ -30539,7 +30541,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             Write-Entry -Message "Processing season: Id=$($global:seasonId), Name=$($global:seasonNames), Number=$($global:SeasonNumber)" -Path $global:configLogging -Color Cyan -log Debug
                             if ($SeasonfontAllCaps -eq 'true') {
                                 if ($OverrideSeasonName -eq 'true'){
-                                    if ($global:seasonNumbers[$i] -eq '0'){
+                                    if ($global:SeasonNumber -eq '0'){
                                         $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                     }
                                     Else {
@@ -30552,7 +30554,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             }
                             Else {
                                 if ($OverrideSeasonName -eq 'true'){
-                                    if ($global:seasonNumbers[$i] -eq '0'){
+                                    if ($global:SeasonNumber -eq '0'){
                                         $global:seasonTitle = $SpecialSeasonOverrideText
                                     }
                                     Else {
