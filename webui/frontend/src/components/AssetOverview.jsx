@@ -1490,19 +1490,30 @@ const AssetOverview = () => {
     // -------------------------------------------------------
     // 4. POSTER LANGUAGE LOGIC
     // -------------------------------------------------------
-    // This logic depends on how your `asset.Language` is stored vs your config `PreferredLanguageOrder`
-    // Assuming you have a helper or config for poster languages similar to logos
     const posterLang = asset.Language;
-    const preferredLangs = data?.config?.preferred_language_order || data?.config?.PreferredLanguageOrder || [];
+    const assetTypeLower = (asset.Type || "").toLowerCase();
 
-    if (posterLang && preferredLangs.length > 0) {
-        const primaryLang = preferredLangs[0].toLowerCase();
+    let primaryLang = null;
+    if (assetTypeLower.includes("background")) {
+      primaryLang = data?.config?.primary_language_background;
+    } else if (assetTypeLower.includes("season")) {
+      primaryLang = data?.config?.primary_language_season;
+    } else if (assetTypeLower.includes("titlecard") || assetTypeLower.includes("episode")) {
+      primaryLang = data?.config?.primary_language_titlecard;
+    }
+
+    if (!primaryLang) {
+      primaryLang = data?.config?.primary_language;
+    }
+
+    if (posterLang && primaryLang) {
+        const primaryLangLower = primaryLang.toLowerCase();
         const currentLang = posterLang.toLowerCase();
 
         // Handle "xx" / "textless" equivalence if necessary
-        const isPrimary = currentLang === primaryLang ||
-                         (primaryLang === 'xx' && currentLang === 'textless') ||
-                         (primaryLang === 'textless' && currentLang === 'xx');
+        const isPrimary = currentLang === primaryLangLower ||
+                         (primaryLangLower === 'xx' && currentLang === 'textless') ||
+                         (primaryLangLower === 'textless' && currentLang === 'xx');
 
         if (!isPrimary) {
              tags.push({

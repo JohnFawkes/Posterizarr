@@ -8154,6 +8154,9 @@ def _get_categorized_assets(config: dict) -> dict:
 
     # Get primary language and provider from config
     primary_language = None
+    primary_background_language = None
+    primary_season_language = None
+    primary_titlecard_language = None
     primary_provider = None
     try:
         # Check ApiPart for PreferredLanguageOrder
@@ -8161,6 +8164,27 @@ def _get_categorized_assets(config: dict) -> dict:
         lang_order = api_part.get("PreferredLanguageOrder", [])
         if lang_order and len(lang_order) > 0:
             primary_language = lang_order[0]
+
+        # Background Language (Fallback to Main if empty or "PleaseFillMe")
+        bg_lang_order = api_part.get("PreferredBackgroundLanguageOrder", [])
+        if bg_lang_order and len(bg_lang_order) > 0 and bg_lang_order[0].lower() != "pleasefillme":
+            primary_background_language = bg_lang_order[0]
+        else:
+            primary_background_language = primary_language
+
+        # Season Language (Fallback to Main if empty or "PleaseFillMe")
+        season_lang_order = api_part.get("PreferredSeasonLanguageOrder", [])
+        if season_lang_order and len(season_lang_order) > 0 and season_lang_order[0].lower() != "pleasefillme":
+            primary_season_language = season_lang_order[0]
+        else:
+            primary_season_language = primary_language
+
+        # Title Card Language (Fallback to Main if empty or "PleaseFillMe")
+        tc_lang_order = api_part.get("PreferredTCLanguageOrder", [])
+        if tc_lang_order and len(tc_lang_order) > 0 and tc_lang_order[0].lower() != "pleasefillme":
+            primary_titlecard_language = tc_lang_order[0]
+        else:
+            primary_titlecard_language = primary_language
 
         # Get FavProvider from ApiPart
         fav_provider = api_part.get("FavProvider", "")
@@ -8266,19 +8290,28 @@ def _get_categorized_assets(config: dict) -> dict:
         # Non-Primary Language: Check language against config
         language = record_dict.get("Language", "")
 
-        if language and primary_language:
+        # Determine which primary language setting to use
+        target_primary_lang = primary_language # Default to poster preference
+        if "background" in asset_type_lower:
+            target_primary_lang = primary_background_language
+        elif "season" in asset_type_lower:
+            target_primary_lang = primary_season_language
+        elif "titlecard" in asset_type_lower or "episode" in asset_type_lower:
+            target_primary_lang = primary_titlecard_language
+
+        if language and target_primary_lang:
             lang_normalized = (
                 "xx" if language.lower() == "textless" else language.lower()
             )
             primary_normalized = (
                 "xx"
-                if primary_language.lower() == "textless"
-                else primary_language.lower()
+                if target_primary_lang.lower() == "textless"
+                else target_primary_lang.lower()
             )
             if lang_normalized != primary_normalized:
                 categories["non_primary_lang"].append(record_dict)
                 has_issue = True
-        elif language and not primary_language:
+        elif language and not target_primary_lang:
             if language.lower() not in ["xx", "textless"]:
                 categories["non_primary_lang"].append(record_dict)
                 has_issue = True
@@ -8356,6 +8389,9 @@ def _get_categorized_assets(config: dict) -> dict:
         },
         "config": {
             "primary_language": primary_language,
+            "primary_language_background": primary_background_language,
+            "primary_language_season": primary_season_language,
+            "primary_language_titlecard": primary_titlecard_language,
             "primary_provider": primary_provider,
         },
     }
@@ -12607,6 +12643,7 @@ async def get_assets_overview():
         primary_language = None
         primary_background_language = None
         primary_season_language = None
+        primary_titlecard_language = None
         primary_provider = None
 
         try:
@@ -12635,6 +12672,13 @@ async def get_assets_overview():
                         primary_season_language = season_lang_order[0]
                     else:
                         primary_season_language = primary_language
+
+                    # 4. Title Card Language (Fallback to Main if empty or "PleaseFillMe")
+                    tc_lang_order = api_part.get("PreferredTCLanguageOrder", [])
+                    if tc_lang_order and len(tc_lang_order) > 0 and tc_lang_order[0].lower() != "pleasefillme":
+                        primary_titlecard_language = tc_lang_order[0]
+                    else:
+                        primary_titlecard_language = primary_language
 
                     # Get FavProvider from ApiPart
                     fav_provider = api_part.get("FavProvider", "")
@@ -12736,6 +12780,8 @@ async def get_assets_overview():
                 target_primary_lang = primary_background_language
             elif "season" in asset_type_lower:
                 target_primary_lang = primary_season_language
+            elif "titlecard" in asset_type_lower or "episode" in asset_type_lower:
+                target_primary_lang = primary_titlecard_language
 
             if language and target_primary_lang:
                 # Normalize: "Textless" = "xx"
@@ -12797,6 +12843,7 @@ async def get_assets_overview():
                 "primary_language": primary_language,
                 "primary_language_background": primary_background_language,
                 "primary_language_season": primary_season_language,
+                "primary_language_titlecard": primary_titlecard_language,
                 "primary_provider": primary_provider,
             },
         }
