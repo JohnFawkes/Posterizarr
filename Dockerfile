@@ -42,10 +42,10 @@ RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/r
         libjpeg-turbo \
         imagemagick@edge \
         imagemagick-libs@edge \
-        imagemagick-lqr@edge \
         imagemagick-heic \
         imagemagick-jpeg \
         imagemagick-webp@edge \
+        liblqr \
         libwebp \
         libwebp-tools \
         librsvg@edge \
