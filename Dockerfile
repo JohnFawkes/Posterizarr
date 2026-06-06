@@ -45,7 +45,6 @@ RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/r
         imagemagick-heic \
         imagemagick-jpeg \
         imagemagick-webp@edge \
-        liblqr \
         libwebp \
         libwebp-tools \
         librsvg@edge \
