@@ -54,7 +54,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.47"
+$CurrentScriptVersion = "2.2.48"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -10757,7 +10757,7 @@ Elseif ($Tautulli) {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -11402,7 +11402,7 @@ Elseif ($Tautulli) {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -12146,7 +12146,7 @@ Elseif ($Tautulli) {
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
-                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                     }
                                     # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                     if ($SkippingText -ne 'true') {
@@ -12800,7 +12800,7 @@ Elseif ($Tautulli) {
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
-                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                     }
                                     # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                     if ($SkippingText -ne 'true') {
@@ -13585,7 +13585,7 @@ Elseif ($Tautulli) {
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
-                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             if ($AddSeasonText -eq 'true' -and $SkippingText -eq 'false') {
                                                 $global:seasonTitle = $global:seasonTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
@@ -14311,7 +14311,7 @@ Elseif ($Tautulli) {
                                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                     $SkippingText = 'true'
-                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                 }
                                                                 if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                     if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -14993,7 +14993,7 @@ Elseif ($Tautulli) {
                                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                 $SkippingText = 'true'
-                                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                             }
                                                             if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                 if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -16558,7 +16558,7 @@ Elseif ($ArrTrigger) {
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
-                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                             if ($SkippingText -ne 'true') {
@@ -17142,7 +17142,7 @@ Elseif ($ArrTrigger) {
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
-                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                             if ($SkippingText -ne 'true') {
@@ -17817,7 +17817,7 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -18410,7 +18410,7 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -19139,7 +19139,7 @@ Elseif ($ArrTrigger) {
                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                         $SkippingText = 'true'
-                                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                     }
                                                     if ($AddSeasonText -eq 'true' -and $SkippingText -eq 'false') {
                                                         $global:seasonTitle = $global:seasonTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
@@ -19731,7 +19731,7 @@ Elseif ($ArrTrigger) {
                                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                         $SkippingText = 'true'
-                                                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                     }
                                                                     if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                         if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -20291,7 +20291,7 @@ Elseif ($ArrTrigger) {
                                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                     $SkippingText = 'true'
-                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                 }
                                                                 if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                     if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -21332,7 +21332,7 @@ Elseif ($ArrTrigger) {
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
-                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                             if ($SkippingText -ne 'true') {
@@ -21977,7 +21977,7 @@ Elseif ($ArrTrigger) {
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
-                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                             if ($SkippingText -ne 'true') {
@@ -22720,7 +22720,7 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -23376,7 +23376,7 @@ Elseif ($ArrTrigger) {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -24163,7 +24163,7 @@ Elseif ($ArrTrigger) {
                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                     $SkippingText = 'true'
-                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                 }
                                                 if ($AddSeasonText -eq 'true' -and $SkippingText -eq 'false') {
                                                     $global:seasonTitle = $global:seasonTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
@@ -24891,7 +24891,7 @@ Elseif ($ArrTrigger) {
                                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                         $SkippingText = 'true'
-                                                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                     }
                                                                     if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                         if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -25575,7 +25575,7 @@ Elseif ($ArrTrigger) {
                                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                     $SkippingText = 'true'
-                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                 }
                                                                 if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                     if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -28351,7 +28351,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -28934,7 +28934,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -29605,7 +29605,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
-                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                     }
                                     # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                     if ($SkippingText -ne 'true') {
@@ -30199,7 +30199,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
-                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                     }
                                     # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                     if ($SkippingText -ne 'true') {
@@ -30941,7 +30941,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                     $SkippingText = 'true'
-                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                 }
                                                 if ($AddSeasonText -eq 'true' -and $SkippingText -eq 'false') {
                                                     $global:seasonTitle = $global:seasonTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
@@ -31533,7 +31533,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                     $SkippingText = 'true'
-                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                 }
                                                                 if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                     if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -32093,7 +32093,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                 $SkippingText = 'true'
-                                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                             }
                                                             if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                 if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -34013,7 +34013,7 @@ else {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -34723,7 +34723,7 @@ else {
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
-                                            Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                            Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                         }
                                         # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                         if ($SkippingText -ne 'true') {
@@ -35531,7 +35531,7 @@ else {
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
-                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                     }
                                     # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                     if ($SkippingText -ne 'true') {
@@ -36255,7 +36255,7 @@ else {
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
-                                        Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                        Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                     }
                                     # ONLY proceed with Logo or Text application if SkippingText is NOT true
                                     if ($SkippingText -ne 'true') {
@@ -37115,7 +37115,7 @@ else {
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
-                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             if ($AddSeasonText -eq 'true' -and $SkippingText -eq 'false') {
                                                 $global:seasonTitle = $global:seasonTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
@@ -37908,7 +37908,7 @@ else {
                                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                     $SkippingText = 'true'
-                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                    Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                                 }
                                                                 if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                     if ($TitleCardEPTitlefontAllCaps -eq 'true') {
@@ -38656,7 +38656,7 @@ else {
                                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                 $SkippingText = 'true'
-                                                                Write-Entry -Subtext "Skipping 'AddText' because poster alreaedy has text." -Path $global:configLogging -Color Yellow -log Info
+                                                                Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                                             }
                                                             if ($AddTitleCardEPTitleText -eq 'true' -and $SkippingText -eq 'false') {
                                                                 if ($TitleCardEPTitlefontAllCaps -eq 'true') {
