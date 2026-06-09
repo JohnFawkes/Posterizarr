@@ -4794,7 +4794,7 @@ function CheckOverlayDimensions {
 
     # Standard Background/TC Types (expect BackgroundSize)
     Test-Dimension -OverlayPath $Backgroundoverlay -ExpectedSize $BackgroundSize -OverlayName "Background overlay"
-    Test-Dimension -OverlayPath $Show Backgroundoverlay -ExpectedSize $BackgroundSize -OverlayName "Show Background overlay"
+    Test-Dimension -OverlayPath $ShowBackgroundoverlay -ExpectedSize $BackgroundSize -OverlayName "Show Background overlay"
     Test-Dimension -OverlayPath $Titlecardoverlay -ExpectedSize $BackgroundSize -OverlayName "TitleCard overlay"
     Test-Dimension -OverlayPath $Backgroundoverlay4k -ExpectedSize $BackgroundSize -OverlayName "4K Background overlay"
     Test-Dimension -OverlayPath $Backgroundoverlay1080p -ExpectedSize $BackgroundSize -OverlayName "1080p Background overlay"
