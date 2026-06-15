@@ -102,6 +102,29 @@ To display overall statistics (Total Posters, Seasons, etc.), use the following 
           format: bytes
 ```
 
+### Docker Labels Configuration
+
+If you prefer to configure Homepage automatically via Docker labels instead of manually editing `services.yaml`, you can add the following labels to your Posterizarr container:
+
+```yaml
+      - homepage.name=Posterizarr
+      - homepage.icon=sh-posterizarr
+      - homepage.href=${POSTERIZARR_URL}
+      - homepage.siteMonitor=${POSTERIZARR_URL}
+      - homepage.widget.type=customapi
+      - homepage.widget.url=${POSTERIZARR_URL}/api/assets/stats?api_key=${POSTERIZARR_KEY}
+      - homepage.widget.display=block
+      - homepage.widget.mappings[0].field=stats.posters
+      - homepage.widget.mappings[0].label=Posters
+      - homepage.widget.mappings[1].field=stats.seasons
+      - homepage.widget.mappings[1].label=Seasons
+      - homepage.widget.mappings[2].field=stats.titlecards
+      - homepage.widget.mappings[2].label=Titlecards
+      - homepage.widget.mappings[3].field=stats.total_size
+      - homepage.widget.mappings[3].label=Size
+      - homepage.widget.mappings[3].format=bytes
+```
+
 ## Library-Specific Statistics
 
 You can also create separate widgets for each of your libraries (Anime, TV Shows, Movies, etc.).

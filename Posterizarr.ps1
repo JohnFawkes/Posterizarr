@@ -9161,30 +9161,51 @@ if ($Manual) {
                 if ($SeasonPoster -and $AddSeasonText -eq 'true') {
                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                    # Add Stroke
+
+                    # Add Stroke for Season Text
                     if ($AddSeasonTextStroke -eq 'true') {
                         $Arguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$joinedTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                     }
                     Else {
                         $Arguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                     }
+
+                    # Add Show Title / Logo to Season
                     if ($AddShowTitletoSeason -eq 'true') {
-                        # Show Part
-                        # Add Stroke
-                        if ($AddShowOnSeasonTextStroke -eq 'true') {
-                            $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        if ($isLogo) {
+                            # Logo Logic
+                            if ($Titletext -match "(?i)\.svg") {
+                                Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Show Logo on Season." -Path $global:configLogging -Color Cyan -log Info
+                                $ShowOnSeasonArguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
+                            else {
+                                $ShowOnSeasonArguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
                         }
-                        Else {
-                            $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        else {
+                            # Text Logic
+                            if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
+                            Else {
+                                $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
                         }
                     }
 
+                    # Execute Season Text Command
                     Write-Entry -Subtext "    Applying Season Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     $logEntry = "`"$magick`" $Arguments"
                     $logEntry | Out-File $magickLog -Append
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
+
+                    # Execute Show Title / Logo Command
                     if ($AddShowTitletoSeason -eq 'true') {
-                        Write-Entry -Subtext "    Applying showTitle text: `"$ShowjoinedTitle`"" -Path $global:configLogging -Color White -log Info
+                        if ($isLogo) {
+                            Write-Entry -Subtext "    Applying showTitle logo..." -Path $global:configLogging -Color White -log Info
+                        } else {
+                            Write-Entry -Subtext "    Applying showTitle text: `"$ShowjoinedTitle`"" -Path $global:configLogging -Color White -log Info
+                        }
                         $logEntry = "`"$magick`" $ShowOnSeasonArguments"
                         $logEntry | Out-File $magickLog -Append
                         InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
@@ -13766,16 +13787,40 @@ Elseif ($Tautulli) {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                     if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                        # Season Part
-                                                        # Add Stroke
-                                                        if ($AddSeasonTextStroke -eq 'true') {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                        # Season Text Part
+                                                        $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                        $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                        $superSize = [int]($optimalFontSize * 0.55)
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
+
+                                                        if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                         }
-                                                        Else {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        elseif ($supChar -ne "") {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                        }
+                                                        else {
+                                                            if ($AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
                                                         }
 
                                                         Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -13783,19 +13828,110 @@ Elseif ($Tautulli) {
                                                         $logEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                        # Show Part
-                                                        # Add Stroke
-                                                        if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                        }
-                                                        Else {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        # Show Part (Logo vs Text)
+                                                        $ApplyTextInsteadOfLogo = $null
+
+                                                        if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                            $global:LogoUrl = $null
+                                                            $global:LogoLanguage = $null
+                                                            $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                            $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                            foreach ($provider in $searchOrder) {
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                switch ($provider) {
+                                                                    'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                    'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                    'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                }
+                                                            }
+
+                                                            if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                $global:IsFallback = $false
+                                                                switch ($global:FavProvider) {
+                                                                    'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                    'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                    'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                }
+                                                                if ($global:IsFallback) {
+                                                                    Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                }
+                                                            }
+
+                                                            if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                            }
+
+                                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                $ApplyTextInsteadOfLogo = 'true'
+                                                                Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                $global:IsFallback = $true
+                                                            }
+                                                            ElseIf ($global:LogoUrl) {
+                                                                $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                try {
+                                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                }
+                                                                catch {
+                                                                    if ($_.Exception.Response) {
+                                                                        $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                    }
+                                                                    else {
+                                                                        $statusCode = $_.Exception.Message
+                                                                    }
+                                                                    Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                }
+
+                                                                $colorEffect = ""
+                                                                if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                    if ([double]$_chromaStd -lt 0.25) {
+                                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                    }
+                                                                    else {
+                                                                        $colorEffect = ""
+                                                                        Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                    }
+                                                                }
+
+                                                                if ($urlExtension -match "(?i)\.svg") {
+                                                                    Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                            }
                                                         }
 
-                                                        Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                        $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                        $logEntry | Out-File $magickLog -Append
-                                                        InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        # Fallback Text Logic
+                                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+
+                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                            $logEntry | Out-File $magickLog -Append
+                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        }
                                                     }
                                                 }
                                                 Else {
@@ -19333,16 +19469,40 @@ Elseif ($ArrTrigger) {
                                                         if ($AddShowTitletoSeason -eq 'true') {
                                                             $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                             $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                             if ($global:IsTruncated -ne $true) {
                                                                 Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                                # Season Part
-                                                                # Add Stroke
-                                                                if ($AddSeasonTextStroke -eq 'true') {
-                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                                # Season Text Part
+                                                                $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                                $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                                $superSize = [int]($optimalFontSize * 0.55)
+                                                                $yNudge = [int]($optimalFontSize * 0.3)
+                                                                $gap = 20
+
+                                                                if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                                    $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                                 }
-                                                                Else {
-                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                elseif ($supChar -ne "") {
+                                                                    $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                    ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                                }
+                                                                else {
+                                                                    if ($AddSeasonTextStroke -eq 'true') {
+                                                                        $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    Else {
+                                                                        $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
                                                                 }
 
                                                                 Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -19350,19 +19510,110 @@ Elseif ($ArrTrigger) {
                                                                 $logEntry | Out-File $magickLog -Append
                                                                 InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                                # Show Part
-                                                                # Add Stroke
-                                                                if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                                }
-                                                                Else {
-                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                # Show Part (Logo vs Text)
+                                                                $ApplyTextInsteadOfLogo = $null
+
+                                                                if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                                    $global:LogoUrl = $null
+                                                                    $global:LogoLanguage = $null
+                                                                    $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                                    $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                                    foreach ($provider in $searchOrder) {
+                                                                        if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                        switch ($provider) {
+                                                                            'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                            'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                            'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                        }
+                                                                    }
+
+                                                                    if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                        $global:IsFallback = $false
+                                                                        switch ($global:FavProvider) {
+                                                                            'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                            'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                            'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                        }
+                                                                        if ($global:IsFallback) {
+                                                                            Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                        }
+                                                                    }
+
+                                                                    if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                        Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                                    }
+
+                                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                        $ApplyTextInsteadOfLogo = 'true'
+                                                                        Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                        $global:IsFallback = $true
+                                                                    }
+                                                                    ElseIf ($global:LogoUrl) {
+                                                                        $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                        if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                        try {
+                                                                            $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                        }
+                                                                        catch {
+                                                                            if ($_.Exception.Response) {
+                                                                                $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                            }
+                                                                            else {
+                                                                                $statusCode = $_.Exception.Message
+                                                                            }
+                                                                            Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                        }
+
+                                                                        $colorEffect = ""
+                                                                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                            if ([double]$_chromaStd -lt 0.25) {
+                                                                                $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                                Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                            }
+                                                                            else {
+                                                                                $colorEffect = ""
+                                                                                Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                            }
+                                                                        }
+
+                                                                        if ($urlExtension -match "(?i)\.svg") {
+                                                                            Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                        }
+                                                                        else {
+                                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                        }
+
+                                                                        Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                        $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                        $logEntry | Out-File $magickLog -Append
+                                                                        InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                        Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                                    }
                                                                 }
 
-                                                                Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                                $logEntry | Out-File $magickLog -Append
-                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                                # Fallback Text Logic
+                                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                                    if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    Else {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+
+                                                                    Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                                    $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                                }
                                                             }
                                                         }
                                                         Else {
@@ -24364,16 +24615,40 @@ Elseif ($ArrTrigger) {
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                         if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                            # Season Part
-                                                            # Add Stroke
-                                                            if ($AddSeasonTextStroke -eq 'true') {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                            # Season Text Part
+                                                            $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                            $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                            $superSize = [int]($optimalFontSize * 0.55)
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
+
+                                                            if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                             }
-                                                            Else {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            elseif ($supChar -ne "") {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                            }
+                                                            else {
+                                                                if ($AddSeasonTextStroke -eq 'true') {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
                                                             }
 
                                                             Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -24381,19 +24656,110 @@ Elseif ($ArrTrigger) {
                                                             $logEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                            # Show Part
-                                                            # Add Stroke
-                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                            }
-                                                            Else {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            # Show Part (Logo vs Text)
+                                                            $ApplyTextInsteadOfLogo = $null
+
+                                                            if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                                $global:LogoUrl = $null
+                                                                $global:LogoLanguage = $null
+                                                                $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                                $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                                foreach ($provider in $searchOrder) {
+                                                                    if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                    switch ($provider) {
+                                                                        'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                        'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                        'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                    }
+                                                                }
+
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    $global:IsFallback = $false
+                                                                    switch ($global:FavProvider) {
+                                                                        'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                        'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                        'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                    }
+                                                                    if ($global:IsFallback) {
+                                                                        Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                    }
+                                                                }
+
+                                                                if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                                }
+
+                                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                    $ApplyTextInsteadOfLogo = 'true'
+                                                                    Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                    $global:IsFallback = $true
+                                                                }
+                                                                ElseIf ($global:LogoUrl) {
+                                                                    $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                    if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                    try {
+                                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                    }
+                                                                    catch {
+                                                                        if ($_.Exception.Response) {
+                                                                            $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                        }
+                                                                        else {
+                                                                            $statusCode = $_.Exception.Message
+                                                                        }
+                                                                        Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                    }
+
+                                                                    $colorEffect = ""
+                                                                    if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                        if ([double]$_chromaStd -lt 0.25) {
+                                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                        }
+                                                                        else {
+                                                                            $colorEffect = ""
+                                                                            Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                        }
+                                                                    }
+
+                                                                    if ($urlExtension -match "(?i)\.svg") {
+                                                                        Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    else {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+
+                                                                    Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                    $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                    Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                                }
                                                             }
 
-                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                            $logEntry | Out-File $magickLog -Append
-                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            # Fallback Text Logic
+                                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                                if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            }
                                                         }
                                                     }
                                                     Else {
@@ -31153,16 +31519,40 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                         if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                            # Season Part
-                                                            # Add Stroke
-                                                            if ($AddSeasonTextStroke -eq 'true') {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                            # Season Text Part
+                                                            $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                            $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                            $superSize = [int]($optimalFontSize * 0.55)
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
+
+                                                            if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                             }
-                                                            Else {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            elseif ($supChar -ne "") {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                            }
+                                                            else {
+                                                                if ($AddSeasonTextStroke -eq 'true') {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
                                                             }
 
                                                             Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -31170,19 +31560,110 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             $logEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                            # Show Part
-                                                            # Add Stroke
-                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                            }
-                                                            Else {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            # Show Part (Logo vs Text)
+                                                            $ApplyTextInsteadOfLogo = $null
+
+                                                            if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                                $global:LogoUrl = $null
+                                                                $global:LogoLanguage = $null
+                                                                $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                                $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                                foreach ($provider in $searchOrder) {
+                                                                    if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                    switch ($provider) {
+                                                                        'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                        'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                        'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                    }
+                                                                }
+
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    $global:IsFallback = $false
+                                                                    switch ($global:FavProvider) {
+                                                                        'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                        'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                        'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                    }
+                                                                    if ($global:IsFallback) {
+                                                                        Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                    }
+                                                                }
+
+                                                                if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                                }
+
+                                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                    $ApplyTextInsteadOfLogo = 'true'
+                                                                    Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                    $global:IsFallback = $true
+                                                                }
+                                                                ElseIf ($global:LogoUrl) {
+                                                                    $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                    if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                    try {
+                                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                    }
+                                                                    catch {
+                                                                        if ($_.Exception.Response) {
+                                                                            $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                        }
+                                                                        else {
+                                                                            $statusCode = $_.Exception.Message
+                                                                        }
+                                                                        Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                    }
+
+                                                                    $colorEffect = ""
+                                                                    if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                        if ([double]$_chromaStd -lt 0.25) {
+                                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                        }
+                                                                        else {
+                                                                            $colorEffect = ""
+                                                                            Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                        }
+                                                                    }
+
+                                                                    if ($urlExtension -match "(?i)\.svg") {
+                                                                        Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    else {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+
+                                                                    Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                    $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                    Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                                }
                                                             }
 
-                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                            $logEntry | Out-File $magickLog -Append
-                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            # Fallback Text Logic
+                                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                                if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            }
                                                         }
                                                     }
                                                     Else {
@@ -37347,16 +37828,40 @@ else {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                     if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                        # Season Part
-                                                        # Add Stroke
-                                                        if ($AddSeasonTextStroke -eq 'true') {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                        # Season Text Part
+                                                        $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                        $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                        $superSize = [int]($optimalFontSize * 0.55)
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
+
+                                                        if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                         }
-                                                        Else {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        elseif ($supChar -ne "") {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                        }
+                                                        else {
+                                                            if ($AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
                                                         }
 
                                                         Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -37364,19 +37869,110 @@ else {
                                                         $logEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                        # Show Part
-                                                        # Add Stroke
-                                                        if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                        }
-                                                        Else {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        # Show Part (Logo vs Text)
+                                                        $ApplyTextInsteadOfLogo = $null
+
+                                                        if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                            $global:LogoUrl = $null
+                                                            $global:LogoLanguage = $null
+                                                            $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                            $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                            foreach ($provider in $searchOrder) {
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                switch ($provider) {
+                                                                    'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                    'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                    'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                }
+                                                            }
+
+                                                            if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                $global:IsFallback = $false
+                                                                switch ($global:FavProvider) {
+                                                                    'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                    'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                    'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                }
+                                                                if ($global:IsFallback) {
+                                                                    Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                }
+                                                            }
+
+                                                            if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                            }
+
+                                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                $ApplyTextInsteadOfLogo = 'true'
+                                                                Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                $global:IsFallback = $true
+                                                            }
+                                                            ElseIf ($global:LogoUrl) {
+                                                                $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                try {
+                                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                }
+                                                                catch {
+                                                                    if ($_.Exception.Response) {
+                                                                        $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                    }
+                                                                    else {
+                                                                        $statusCode = $_.Exception.Message
+                                                                    }
+                                                                    Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                }
+
+                                                                $colorEffect = ""
+                                                                if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                    if ([double]$_chromaStd -lt 0.25) {
+                                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                    }
+                                                                    else {
+                                                                        $colorEffect = ""
+                                                                        Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                    }
+                                                                }
+
+                                                                if ($urlExtension -match "(?i)\.svg") {
+                                                                    Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                            }
                                                         }
 
-                                                        Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                        $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                        $logEntry | Out-File $magickLog -Append
-                                                        InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        # Fallback Text Logic
+                                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+
+                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                            $logEntry | Out-File $magickLog -Append
+                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        }
                                                     }
                                                 }
                                                 Else {
