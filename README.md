@@ -68,6 +68,22 @@ Check out our awesome sponsors!
 
 <!-- sponsors --><!-- sponsors -->
 
+## Privacy & Telemetry
+
+[telemetry-code](telemetry-worker/worker.js)
+
+Starting with `v2.2.50`, Posterizarr collects completely anonymous, basic usage stats to help guide development (e.g., knowing whether to prioritize Docker vs. Bare-Metal, or Plex vs. Jellyfin).
+
+**NO** IP addresses, **NO** personal data, and **NO** file paths are collected or stored.
+
+The telemetry payload contains exactly:
+- Anonymous GUID
+- OS
+- Target Media Server
+- App Version
+
+You can opt-out at any time by setting `"telemetry": false` in your `config.json`.
+
 ## Enjoy
 
 Feel free to customize the script further to meet your specific preferences or automation requirements.

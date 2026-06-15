@@ -57,6 +57,7 @@ nav:
     - 'Naming Convention': 'namingconvention.md'
     - 'Platform & Tools': 'platformandtools.md'
     - 'API Endpoints': 'endpoints.md'
+    - 'Telemetry Server': 'telemetry.md'
   - 'Reference':
     - 'Showcase': 'showcase.md'
 
