@@ -518,6 +518,9 @@ function RunModes() {
   const [logoRevert, setLogoRevert] = useState(false);
   const [processAllLibraries, setProcessAllLibraries] = useState(false);
 
+  // Global Config for Defaults
+  const [globalConfig, setGlobalConfig] = useState(null);
+
   // TMDB Poster Search State (now multi-provider)
   const [tmdbSearch, setTmdbSearch] = useState({
     query: "",
@@ -541,9 +544,22 @@ function RunModes() {
 
   useEffect(() => {
     fetchStatus();
+    fetchConfig();
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch(`${API_URL}/config`);
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalConfig(data.config || {});
+      }
+    } catch (error) {
+      console.error("Error fetching config:", error);
+    }
+  };
 
   const fetchStatus = async () => {
     try {
@@ -1280,8 +1296,27 @@ function RunModes() {
         requestBody.episode_number = parseInt(tmdbSearch.episodeNumber);
       }
       if (manualForm.posterType === "season" && tmdbSearch.seasonNumber) {
-        // 1. Create the text once
-        const seasonText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
+        // 1. Create the text once based on config or fallback to translation
+        let seasonPrefix = t("runModes.manual.types.season");
+        
+        if (globalConfig) {
+          const seasonOverlay = globalConfig.SeasonPosterOverlayPart || globalConfig;
+          const overrideSeasonName = seasonOverlay.OverrideSeasonName === "true" || seasonOverlay.OverrideSeasonName === true;
+          
+          if (overrideSeasonName) {
+            if (tmdbSearch.seasonNumber === "0" || tmdbSearch.seasonNumber === "00") {
+              if (seasonOverlay.SpecialSeasonOverrideText && seasonOverlay.SpecialSeasonOverrideText.trim() !== "") {
+                seasonPrefix = seasonOverlay.SpecialSeasonOverrideText;
+              }
+            } else {
+              if (seasonOverlay.SeasonOverrideText && seasonOverlay.SeasonOverrideText.trim() !== "") {
+                seasonPrefix = seasonOverlay.SeasonOverrideText;
+              }
+            }
+          }
+        }
+        
+        const seasonText = `${seasonPrefix} ${tmdbSearch.seasonNumber}`;
 
         // 2. Apply it to both fields
         setManualForm(prev => ({
