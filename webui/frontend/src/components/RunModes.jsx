@@ -1301,16 +1301,20 @@ function RunModes() {
         
         if (globalConfig) {
           const seasonOverlay = globalConfig.SeasonPosterOverlayPart || globalConfig;
-          const overrideSeasonName = seasonOverlay.OverrideSeasonName === "true" || seasonOverlay.OverrideSeasonName === true;
+          const overrideVal = seasonOverlay.OverrideSeasonName ?? globalConfig.SeasonPosterOverrideSeasonName;
+          const overrideSeasonName = String(overrideVal).toLowerCase() === "true";
           
           if (overrideSeasonName) {
+            const specialText = seasonOverlay.SpecialSeasonOverrideText ?? globalConfig.SeasonPosterSpecialSeasonOverrideText;
+            const seasonTextOverride = seasonOverlay.SeasonOverrideText ?? globalConfig.SeasonPosterSeasonOverrideText;
+
             if (tmdbSearch.seasonNumber === "0" || tmdbSearch.seasonNumber === "00") {
-              if (seasonOverlay.SpecialSeasonOverrideText && seasonOverlay.SpecialSeasonOverrideText.trim() !== "") {
-                seasonPrefix = seasonOverlay.SpecialSeasonOverrideText;
+              if (specialText && specialText.trim() !== "") {
+                seasonPrefix = specialText;
               }
             } else {
-              if (seasonOverlay.SeasonOverrideText && seasonOverlay.SeasonOverrideText.trim() !== "") {
-                seasonPrefix = seasonOverlay.SeasonOverrideText;
+              if (seasonTextOverride && seasonTextOverride.trim() !== "") {
+                seasonPrefix = seasonTextOverride;
               }
             }
           }
