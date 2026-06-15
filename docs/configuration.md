@@ -82,6 +82,7 @@
 
     #### PrerequisitePart
 
+    - `telemetry`: Set to `false` to opt-out of anonymous usage data collection. See [Telemetry Details](telemetry.md) for more info. (Default value is: `true`)
     - `AssetPath`: Path to store generated posters.
     - `BackupPath`: Path to store/download Plex posters when using the [backup switch](modes.md#backup-mode).
     - `ManualAssetPath`: If assets are placed in this directory with the **exact** [naming convention](namingconvention.md#manual-assets-naming), they will be preferred. (it has to follow the same naming convention as you have in `/assets`)
