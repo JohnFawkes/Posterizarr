@@ -998,17 +998,28 @@ function RunModes() {
   // LOGO FETCHING (For Title Text)
   // ============================================================================
   const handleFetchLogos = async () => {
-    // 1. Priority: Manual Title Text
-    let query = manualForm.titletext.trim();
+    let query = "";
 
-    // 2. Fallback: Use the Search Box text (Supports Title, tmdb-123, tvdb-456)
-    if (!query && tmdbSearch.query.trim()) {
-      query = tmdbSearch.query.trim();
-    }
+    if (manualForm.posterType === "season") {
+      // For seasons, titletext is usually "Season X", which breaks logo searches.
+      // Prioritize the search box query or folder name first.
+      query =
+        tmdbSearch.query.trim() ||
+        manualForm.folderName.replace(/\s*\(\d{4}\).*$/, "").trim() ||
+        manualForm.titletext.trim();
+    } else {
+      // 1. Priority: Manual Title Text
+      query = manualForm.titletext.trim();
 
-    // 3. Fallback: Folder Name
-    if (!query && manualForm.folderName.trim()) {
-      query = manualForm.folderName.replace(/\s*\(\d{4}\).*$/, "").trim();
+      // 2. Fallback: Use the Search Box text (Supports Title, tmdb-123, tvdb-456)
+      if (!query && tmdbSearch.query.trim()) {
+        query = tmdbSearch.query.trim();
+      }
+
+      // 3. Fallback: Folder Name
+      if (!query && manualForm.folderName.trim()) {
+        query = manualForm.folderName.replace(/\s*\(\d{4}\).*$/, "").trim();
+      }
     }
 
     if (!query) {
