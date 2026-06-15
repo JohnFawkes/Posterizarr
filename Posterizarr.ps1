@@ -1504,7 +1504,7 @@ function SendMessage {
         $payloadObject = [PSCustomObject]@{
             username   = $global:DiscordUserName
             avatar_url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
-            content    = ""
+            # content    = ""
             embeds     = @(
                 [PSCustomObject]@{
                     author      = @{
@@ -4276,6 +4276,8 @@ function Push-ObjectToDiscord {
     try {
         $response = Invoke-RestMethod -Method Post -Uri $strDiscordWebhook -Body $objPayload -ContentType 'Application/Json' -ResponseHeadersVariable "resHeaders"
 
+        Write-Entry -Subtext "Discord webhook sent successfully." -Path $global:configLogging -Color Green -log Info
+
         # Smart Rate Limiting: Discord returns 'x-ratelimit-reset-after' in seconds
         if ($resHeaders.'x-ratelimit-remaining' -eq 0) {
             $waitTime = $resHeaders.'x-ratelimit-reset-after'
@@ -4302,9 +4304,16 @@ function Push-ObjectToDiscord {
             }
             else {
                 # Handle PowerShell 7+ (HttpResponseMessage)
-                if ($response.GetType().Name -eq 'HttpResponseMessage') {
-                    $task = $response.Content.ReadAsStringAsync()
-                    $discordErrorBody = $task.Result
+                if ($_.ErrorDetails) {
+                    $discordErrorBody = $_.ErrorDetails.Message
+                }
+                elseif ($response.GetType().Name -eq 'HttpResponseMessage') {
+                    try {
+                        $task = $response.Content.ReadAsStringAsync()
+                        $discordErrorBody = $task.Result
+                    } catch {
+                        $discordErrorBody = "Could not read disposed response"
+                    }
                 }
                 # Handle Windows PowerShell 5.1 (HttpWebResponse)
                 elseif ($response.GetResponseStream) {
