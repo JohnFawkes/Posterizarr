@@ -1535,7 +1535,7 @@ function SendMessage {
         # Handle Discord notifications
         if ($global:NotifyUrl -like '*discord*') {
             $jsonPayload = Build-DiscordPayload
-            $webhookUrl = $global:NotifyUrl.replace('discord://', 'https://discord.com/api/webhooks/')
+            $webhookUrl = $global:NotifyUrl -replace '(?i)^discord://(?:[^@/]+@)?(.*)$', 'https://discord.com/api/webhooks/$1'
             Push-ObjectToDiscord -strDiscordWebhook $webhookUrl -objPayload $jsonPayload
         }
 
@@ -7389,7 +7389,7 @@ function Send-SummaryNotification {
         }
 
         $jsonPayload = $payloadObject | ConvertTo-Json -Depth 6
-        $webhookUrl = $global:NotifyUrl.replace('discord://', 'https://discord.com/api/webhooks/')
+        $webhookUrl = $global:NotifyUrl -replace '(?i)^discord://(?:[^@/]+@)?(.*)$', 'https://discord.com/api/webhooks/$1'
         Push-ObjectToDiscord -strDiscordWebhook $webhookUrl -objPayload $jsonPayload
     }
 }

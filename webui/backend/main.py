@@ -123,7 +123,7 @@ else:
 # ++ SECURITY UTILITY FUNCTIONS
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def is_safe_url(url: str, allow_private: bool = False) -> bool:
+def is_safe_url(url: str, allow_private: bool = False, allow_apprise_schemes: bool = False) -> bool:
     """
     Validate that the URL is using a safe scheme (http/https) and that the
     target host is not a loopback or reserved IP address.
@@ -133,6 +133,9 @@ def is_safe_url(url: str, allow_private: bool = False) -> bool:
     try:
         parsed = urllib.parse.urlparse(url)
         if parsed.scheme not in ["http", "https"]:
+            if allow_apprise_schemes:
+                # Apprise uses many custom schemes (discord, telegram, etc.)
+                return True
             logger.warning(f"Blocked URL with unsafe scheme: {parsed.scheme}")
             return False
 
@@ -4018,7 +4021,7 @@ async def validate_apprise(request: AppriseValidationRequest):
     logger.info("APPRISE VALIDATION & TEST MESSAGE STARTED")
     logger.info(f"[URL] URL: {request.url[:20]}...")
     
-    if not is_safe_url(request.url, allow_private=True):
+    if not is_safe_url(request.url, allow_private=True, allow_apprise_schemes=True):
         logger.warning(f"SSRF attempt blocked for Apprise URL: {request.url[:20]}...")
         raise HTTPException(status_code=400, detail="Invalid or unsafe Apprise URL")
 
