@@ -2630,7 +2630,7 @@ const LogoUpdaterModal = React.memo(({
                     </button>
                   )}
                 </div>
-                {(manualForm.posterType === "standard" || manualForm.posterType === "background") && (
+                {(manualForm.posterType === "standard" || manualForm.posterType === "background" || manualForm.posterType === "season") && (
                   <button
                     type="button"
                     onClick={handleFetchLogos}
