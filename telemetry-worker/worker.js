@@ -109,9 +109,13 @@ function renderDashboard(data) {
       .card { background: #ffffff; padding: 20px 24px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
       .card-left { flex: 0 0 160px; padding-right: 24px; }
       .card-right { flex: 1; height: 160px; position: relative; min-width: 0; }
-      .map-container { height: 350px; }
+      .map-container { height: 600px; }
       h3 { margin: 0 0 8px 0; color: #64748b; font-size: 13px; font-weight: 500; }
       .top-badge { font-size: 28px; font-weight: 600; color: #0f172a; margin: 0; line-height: 1.2; }
+      .data-table { width: 100%; border-collapse: collapse; margin-top: 16px; background: #fff; border-radius: 8px; overflow: hidden; }
+      .data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+      .data-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+      .data-table tr:last-child td { border-bottom: none; }
     </style>
   </head>
   <body>
@@ -175,6 +179,24 @@ function renderDashboard(data) {
         </div>
       </div>
 
+      <div class="card" style="display: block; margin-top: 24px;">
+        <h3>All Data (Aggregated)</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>OS</th>
+              <th>Target</th>
+              <th>Country</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <script>
       const rawData = ${JSON.stringify(data)};
 
@@ -227,11 +249,50 @@ function renderDashboard(data) {
         return topKey;
       };
 
+      const getCountryName = (code) => {
+        if (!code || code.toLowerCase() === 'unknown') return 'Unknown';
+        try {
+          return new Intl.DisplayNames(['en'], { type: 'region' }).of(code.toUpperCase()) || code;
+        } catch (e) {
+          return code;
+        }
+      };
+
       // Render 4 beautiful Cloudflare-style line charts
       document.getElementById('topVersion').innerText = buildChart('chartVersion', aggregate('version'));
       document.getElementById('topOS').innerText = buildChart('chartOS', aggregate('os'));
       document.getElementById('topTarget').innerText = buildChart('chartTarget', aggregate('target'));
-      document.getElementById('topCountry').innerText = buildChart('chartCountry', aggregate('country'));
+      
+      const countryData = aggregate('country');
+      const countryDataNamed = {};
+      for (const [code, count] of Object.entries(countryData)) {
+        countryDataNamed[getCountryName(code)] = count;
+      }
+      document.getElementById('topCountry').innerText = buildChart('chartCountry', countryDataNamed);
+
+      // Populate Data Table
+      const tableAgg = {};
+      rawData.forEach(d => {
+        const key = d.version + '|' + d.os + '|' + d.target + '|' + d.country;
+        if (!tableAgg[key]) {
+          tableAgg[key] = { ...d, count: 0 };
+        }
+        tableAgg[key].count += d.count;
+      });
+      const tableData = Object.values(tableAgg).sort((a, b) => b.count - a.count);
+      
+      const tbody = document.getElementById('dataTableBody');
+      let html = '';
+      tableData.forEach(row => {
+        html += '<tr>' +
+          '<td>' + row.version + '</td>' +
+          '<td>' + row.os + '</td>' +
+          '<td>' + row.target + '</td>' +
+          '<td>' + getCountryName(row.country) + '</td>' +
+          '<td>' + row.count + '</td>' +
+        '</tr>';
+      });
+      if (tbody) tbody.innerHTML = html;
 
       // Google GeoChart for Locations
       google.charts.load('current', {
