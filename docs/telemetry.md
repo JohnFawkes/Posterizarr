@@ -2,7 +2,7 @@
 
 Posterizarr includes an anonymous, opt-out telemetry system to help understand the usage and deployment environments of the script.
 
-The developer instructions for deploying the telemetry server itself can be found in the `telemetry-worker/README.md` file located alongside the worker script. This page explains what data Posterizarr collects and how you can disable it.
+The developer instructions for deploying the telemetry server itself can be found in the [telemetry README](https://github.com/fscorrupt/posterizarr/blob/main/telemetry-worker/README.md) file located alongside the worker script. This page explains what data Posterizarr collects and how you can disable it.
 
 ## Why do we collect telemetry?
 We use this data to understand how many unique active installations exist, what operating systems Posterizarr is running on, and which media servers (Plex, Jellyfin, Emby) are most popular.
