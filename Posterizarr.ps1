@@ -4916,14 +4916,15 @@ function InvokeMagickCommand {
             [string]$ErrorMessage
         )
 
-        # Split the error message into lines
         $global:ImageMagickError = $true
-        $lines = $ErrorMessage -split "convert: |magick.exe: |@"
-        if ($lines[1]) {
-            return $lines[1]
+        $lines = $ErrorMessage -split "convert: |magick.exe: |magick: |@"
+
+        if ($lines.Count -ge 2 -and -not [string]::IsNullOrWhiteSpace($lines[1])) {
+            return $lines[1].Trim()
         }
         Else {
-            return $lines[0]
+            # Fallback to returning the whole error
+            return $ErrorMessage.Trim()
         }
     }
 
@@ -9352,11 +9353,11 @@ if ($Manual) {
     }
     Else {
         if ($TitleCard) {
-            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
             $EpisodeCount++
         }
         Elseif ($BackgroundCard) {
-            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
             $BackgroundCount++
         }
         Elseif ($SeasonPoster) {
