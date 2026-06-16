@@ -64,7 +64,7 @@ CONFIG_TOOLTIPS = {
     "FileTestOnTrigger": "On trigger run, checks whether the file is present locally. If set to false, the test will be skipped and all images will be overwritten.",
     "BackupPath": "Path to store/download Plex posters when using the backup switch.",
     "ManualAssetPath": "If assets are placed in this directory with the exact naming convention, they will be preferred. It has to follow the same naming convention as you have in /assets.",
-    "SkipAddText": "If set to true, Posterizarr will skip adding text to the poster if it is flagged as a Poster with text by the provider.",
+    "SkipAddText": "If set to true, Posterizarr will skip adding text/logo to the poster if it is flagged as a Poster with text by the provider.",
     "SkipLocalPosterTextAdd": "If set to true, Posterizarr will skip adding text to the local poster.",
     "SkipLocalBackgroundTextAdd": "If set to true, Posterizarr will skip adding text to the local background poster.",
     "SkipLocalSeasonTextAdd": "If set to true, Posterizarr will skip adding text to the local season poster.",
@@ -124,6 +124,7 @@ CONFIG_TOOLTIPS = {
     "ConvertLogoColor": "Set to true to convert the logo image to a solid color (monochrome).",
     "LogoFlatColor": "The specific color to use when Convert Logo Color is enabled (e.g., 'white', '#FFFFFF').",
     "UseOriginalTitle": "Set to true to use the original title instead of the localized version.",
+    "telemetry": "Set to true to participate in anonymous telemetry that helps the developers understand global usage (sends instance ID, OS, Target, and Country).",
 
     # OverlayPart
     "ImageProcessing": "Set to true if you want the ImageMagick part (text, overlay and/or border); if false, it only downloads the posters.",
@@ -132,7 +133,7 @@ CONFIG_TOOLTIPS = {
     # PosterOverlayPart
     "PosterFontAllCaps": "Set to true for all caps text on posters, else false.",
     "PosterAddBorder": "Set to true to add a border to the poster image.",
-    "PosterAddText": "Set to true to add text to the poster image.",
+    "PosterAddText": "Set to true to add text/logo to the poster image.",
     "PosterAddOverlay": "Set to true to add the defined overlay file to the poster image.",
     "PosterFontcolor": "Color of font text on posters (e.g., #FFFFFF for white).",
     "PosterBordercolor": "Color of border on posters (e.g., #000000 for black).",
@@ -175,7 +176,7 @@ CONFIG_TOOLTIPS = {
     "BackgroundFontAllCaps": "Set to true for all caps text on backgrounds, else false.",
     "BackgroundAddOverlay": "Set to true to add the defined background overlay file to the background image.",
     "BackgroundAddBorder": "Set to true to add a border to the background image.",
-    "BackgroundAddText": "Set to true to add text to the background image.",
+    "BackgroundAddText": "Set to true to add text/logo to the background image.",
     "BackgroundFontcolor": "Color of font text on backgrounds.",
     "BackgroundBordercolor": "Color of border on backgrounds.",
     "BackgroundMinPointSize": "Minimum size of text in background image.",
@@ -231,7 +232,7 @@ CONFIG_TOOLTIPS = {
     "TitleCardEPTextGravity": "Specifies the episode number text alignment within the textbox on title cards (Default is south).",
 
     # ShowTitleOnSeasonPosterPart
-    "ShowTitleAddShowTitletoSeason": "If set to true it will add show title to season poster (Default Value is: false).",
+    "ShowTitleAddShowTitletoSeason": "If set to true it will add show title/logo to season poster (Default Value is: false).",
     "ShowTitleFontAllCaps": "Set to true for all caps show title text on season posters, else false.",
     "ShowTitleAddTextStroke": "Set to true to add stroke/outline to show title text on season posters.",
     "ShowTitleStrokecolor": "Color of show title text stroke/outline on season posters.",

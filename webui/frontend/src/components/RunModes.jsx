@@ -518,6 +518,9 @@ function RunModes() {
   const [logoRevert, setLogoRevert] = useState(false);
   const [processAllLibraries, setProcessAllLibraries] = useState(false);
 
+  // Global Config for Defaults
+  const [globalConfig, setGlobalConfig] = useState(null);
+
   // TMDB Poster Search State (now multi-provider)
   const [tmdbSearch, setTmdbSearch] = useState({
     query: "",
@@ -541,9 +544,22 @@ function RunModes() {
 
   useEffect(() => {
     fetchStatus();
+    fetchConfig();
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch(`${API_URL}/config`);
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalConfig(data.config || {});
+      }
+    } catch (error) {
+      console.error("Error fetching config:", error);
+    }
+  };
 
   const fetchStatus = async () => {
     try {
@@ -998,17 +1014,28 @@ function RunModes() {
   // LOGO FETCHING (For Title Text)
   // ============================================================================
   const handleFetchLogos = async () => {
-    // 1. Priority: Manual Title Text
-    let query = manualForm.titletext.trim();
+    let query = "";
 
-    // 2. Fallback: Use the Search Box text (Supports Title, tmdb-123, tvdb-456)
-    if (!query && tmdbSearch.query.trim()) {
-      query = tmdbSearch.query.trim();
-    }
+    if (manualForm.posterType === "season") {
+      // For seasons, titletext is usually "Season X", which breaks logo searches.
+      // Prioritize the search box query or folder name first.
+      query =
+        tmdbSearch.query.trim() ||
+        manualForm.folderName.replace(/\s*\(\d{4}\).*$/, "").trim() ||
+        manualForm.titletext.trim();
+    } else {
+      // 1. Priority: Manual Title Text
+      query = manualForm.titletext.trim();
 
-    // 3. Fallback: Folder Name
-    if (!query && manualForm.folderName.trim()) {
-      query = manualForm.folderName.replace(/\s*\(\d{4}\).*$/, "").trim();
+      // 2. Fallback: Use the Search Box text (Supports Title, tmdb-123, tvdb-456)
+      if (!query && tmdbSearch.query.trim()) {
+        query = tmdbSearch.query.trim();
+      }
+
+      // 3. Fallback: Folder Name
+      if (!query && manualForm.folderName.trim()) {
+        query = manualForm.folderName.replace(/\s*\(\d{4}\).*$/, "").trim();
+      }
     }
 
     if (!query) {
@@ -1269,8 +1296,31 @@ function RunModes() {
         requestBody.episode_number = parseInt(tmdbSearch.episodeNumber);
       }
       if (manualForm.posterType === "season" && tmdbSearch.seasonNumber) {
-        // 1. Create the text once
-        const seasonText = `${t("runModes.manual.types.season")} ${tmdbSearch.seasonNumber}`;
+        // 1. Create the text once based on config or fallback to translation
+        let seasonPrefix = t("runModes.manual.types.season");
+        
+        if (globalConfig) {
+          const seasonOverlay = globalConfig.SeasonPosterOverlayPart || globalConfig;
+          const overrideVal = seasonOverlay.OverrideSeasonName ?? globalConfig.SeasonPosterOverrideSeasonName;
+          const overrideSeasonName = String(overrideVal).toLowerCase() === "true";
+          
+          if (overrideSeasonName) {
+            const specialText = seasonOverlay.SpecialSeasonOverrideText ?? globalConfig.SeasonPosterSpecialSeasonOverrideText;
+            const seasonTextOverride = seasonOverlay.SeasonOverrideText ?? globalConfig.SeasonPosterSeasonOverrideText;
+
+            if (tmdbSearch.seasonNumber === "0" || tmdbSearch.seasonNumber === "00") {
+              if (specialText && specialText.trim() !== "") {
+                seasonPrefix = specialText;
+              }
+            } else {
+              if (seasonTextOverride && seasonTextOverride.trim() !== "") {
+                seasonPrefix = seasonTextOverride;
+              }
+            }
+          }
+        }
+        
+        const seasonText = `${seasonPrefix} ${tmdbSearch.seasonNumber}`;
 
         // 2. Apply it to both fields
         setManualForm(prev => ({
@@ -2630,7 +2680,7 @@ const LogoUpdaterModal = React.memo(({
                     </button>
                   )}
                 </div>
-                {(manualForm.posterType === "standard" || manualForm.posterType === "background") && (
+                {(manualForm.posterType === "standard" || manualForm.posterType === "background" || manualForm.posterType === "season") && (
                   <button
                     type="button"
                     onClick={handleFetchLogos}

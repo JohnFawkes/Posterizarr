@@ -35,7 +35,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
   });
 
   const [activeTab, setActiveTab] = useState("upload");
-  const [processWithOverlays, setProcessWithOverlays] = useState(false);
+  const [processWithOverlays, setProcessWithOverlays] = useState(true);
   const [addToQueue, setAddToQueue] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null); // Store the actual file

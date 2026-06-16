@@ -95,6 +95,7 @@
     "FollowSymlink": "false",
     "ForceRunningDeletion": "false",
     "AutoUpdatePosterizarr": "false",
+    "telemetry": "true",
     "BackupPath": "/assetsbackup",
     "ManualAssetPath": "/manualassets",
     "PlexUpload": "false",
@@ -143,10 +144,10 @@
     ],
     "NewLineOnSpecificWords": "false",
     "NewLineWords": {
-        "WEIHNACHTSGESCHICHTE": "WEIHNACHTS-\nGESCHICHTE",
-        "SCHOKOLADENFABRIK": "SCHOKOLADEN-\nFABRIK",
-        "FEUERZANGENBOWLE": "FEUERZANGEN-\nBOWLE",
-        "AHNUNGSLOSIGKEIT": "AHNUNGS-\nLOSIGKEIT"
+      "WEIHNACHTSGESCHICHTE": "WEIHNACHTS-\nGESCHICHTE",
+      "SCHOKOLADENFABRIK": "SCHOKOLADEN-\nFABRIK",
+      "FEUERZANGENBOWLE": "FEUERZANGEN-\nBOWLE",
+      "AHNUNGSLOSIGKEIT": "AHNUNGS-\nLOSIGKEIT"
     },
     "SymbolsToKeepOnNewLine": [],
     "SkipTBA": "false",
@@ -286,7 +287,9 @@
     "AddBorder": "true",
     "bordercolor": "black",
     "borderwidth": "30",
-    "SkipWords": ["TBA"]
+    "SkipWords": [
+      "TBA"
+    ]
   },
   "TitleCardTitleTextPart": {
     "fontAllCaps": "true",

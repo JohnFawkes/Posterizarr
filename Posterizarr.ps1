@@ -54,7 +54,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.49"
+$CurrentScriptVersion = "2.2.50"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -141,7 +141,7 @@ function GetTMDBLogo {
             if ($response.images.logos) {
                 foreach ($lang in $global:LogoLanguageOrder) {
                     if ($lang -ne 'null' -and $lang -ne 'xx') {
-                        if ($global:UseClearlogo -eq 'true'){
+                        if ($global:UseClearlogo -eq 'true') {
                             $FavPoster = ($response.images.logos | Where-Object iso_639_1 -eq $lang)
                         }
                     }
@@ -183,7 +183,7 @@ function GetTVDBLogo {
     if ($global:tvdbid) {
         Write-Entry -Subtext "Searching on TVDB for a Logo - TVDBID: $global:tvdbid" -Path $global:configLogging -Color Cyan -log Info
         try {
-            if ($type -eq 'series'){
+            if ($type -eq 'series') {
                 $response = (Invoke-WebRequest -Uri "https://api4.thetvdb.com/v4/$Type/$($global:tvdbid)/artworks" -Method GET -Headers $global:tvdbheader).content | ConvertFrom-Json
             }
             Else {
@@ -198,16 +198,16 @@ function GetTVDBLogo {
             if ($response.data) {
                 foreach ($lang in $global:LogoLanguageOrder) {
                     if ($lang -ne 'null') {
-                        if ($global:UseClearart -eq 'true'){
-                            if ($Type -eq 'series'){
+                        if ($global:UseClearart -eq 'true') {
+                            if ($Type -eq 'series') {
                                 $global:tvdblogo = ($response.data.artworks | Where-Object { $_.language -like "$lang*" -and $_.type -eq '22' } | Sort-Object Score -Descending)
                             }
                             Else {
                                 $global:tvdblogo = ($response.data.artworks | Where-Object { $_.language -like "$lang*" -and $_.type -eq '24' } | Sort-Object Score -Descending)
                             }
                         }
-                        elseif ($global:UseClearlogo -eq 'true'){
-                            if ($Type -eq 'series'){
+                        elseif ($global:UseClearlogo -eq 'true') {
+                            if ($Type -eq 'series') {
                                 $global:tvdblogo = ($response.data.artworks | Where-Object { $_.language -like "$lang*" -and $_.type -eq '23' } | Sort-Object Score -Descending)
                             }
                             Else {
@@ -288,15 +288,15 @@ function New-PosterizarrSupportZip {
     )
 
     # 0. Timestamp + paths (match Python zip name)
-    $timestamp    = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-    $stagingDir   = Join-Path $BasePath "SupportZip_$timestamp"
-    $zipPath      = Join-Path $BasePath "posterizarr_support_$timestamp.zip"
+    $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+    $stagingDir = Join-Path $BasePath "SupportZip_$timestamp"
+    $zipPath = Join-Path $BasePath "posterizarr_support_$timestamp.zip"
 
     # Base dirs (equivalent to globals in main.py)
-    $databaseDir  = Join-Path $BasePath "database"
-    $logsDir      = Join-Path $BasePath "Logs"
-    $rotatedDir   = Join-Path $BasePath "RotatedLogs"
-    $uiLogsDir    = Join-Path $BasePath "UILogs"
+    $databaseDir = Join-Path $BasePath "database"
+    $logsDir = Join-Path $BasePath "Logs"
+    $rotatedDir = Join-Path $BasePath "RotatedLogs"
+    $uiLogsDir = Join-Path $BasePath "UILogs"
 
     # 1. Staging + database subdir
     New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
@@ -314,7 +314,7 @@ function New-PosterizarrSupportZip {
             [string]$Source,
             [string]$Dest,
             [string[]]$ExcludeExtensions = @(),
-            [string[]]$ExcludeNames      = @()
+            [string[]]$ExcludeNames = @()
         )
 
         if (-not (Test-Path $Source)) { return }
@@ -330,12 +330,13 @@ function New-PosterizarrSupportZip {
                 return
             }
 
-            $relative = $_.FullName.Substring($Source.Length).TrimStart('\','/')
-            $target   = Join-Path $Dest $relative
+            $relative = $_.FullName.Substring($Source.Length).TrimStart('\', '/')
+            $target = Join-Path $Dest $relative
 
             if ($_.PSIsContainer) {
                 New-Item -ItemType Directory -Path $target -Force | Out-Null
-            } else {
+            }
+            else {
                 New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
                 Copy-Item $_.FullName -Destination $target -Force
             }
@@ -485,10 +486,10 @@ conn.close()
 
             foreach ($row in $rows) {
                 $origDownload = $row.'Download Source'
-                $origFav      = $row.'Fav Provider Link'
+                $origFav = $row.'Fav Provider Link'
 
-                $newDownload  = $origDownload
-                $newFav       = $origFav
+                $newDownload = $origDownload
+                $newFav = $origFav
 
                 if ($newDownload -and $newDownload -like 'http*') {
                     $isAllowed = $false
@@ -500,9 +501,9 @@ conn.close()
                         $newDownload = $newDownload -replace '(https?://)[^/]+', '$1[MASKED_HOST]'
                     }
 
-                    $newDownload = $newDownload -replace '([?&][^=]*Token=)[^&]+',   '$1[MASKED_TOKEN]'
+                    $newDownload = $newDownload -replace '([?&][^=]*Token=)[^&]+', '$1[MASKED_TOKEN]'
                     $newDownload = $newDownload -replace '([?&][^=]*api_key=)[^&]+', '$1[MASKED_KEY]'
-                    $newDownload = $newDownload -replace '([?&][^=]*pin=)[^&]+',     '$1[MASKED_PIN]'
+                    $newDownload = $newDownload -replace '([?&][^=]*pin=)[^&]+', '$1[MASKED_PIN]'
                 }
 
                 if ($newFav -and $newFav -like 'http*') {
@@ -515,9 +516,9 @@ conn.close()
                         $newFav = $newFav -replace '(https?://)[^/]+', '$1[MASKED_HOST]'
                     }
 
-                    $newFav = $newFav -replace '([?&][^=]*Token=)[^&]+',   '$1[MASKED_TOKEN]'
+                    $newFav = $newFav -replace '([?&][^=]*Token=)[^&]+', '$1[MASKED_TOKEN]'
                     $newFav = $newFav -replace '([?&][^=]*api_key=)[^&]+', '$1[MASKED_KEY]'
-                    $newFav = $newFav -replace '([?&][^=]*pin=)[^&]+',     '$1[MASKED_PIN]'
+                    $newFav = $newFav -replace '([?&][^=]*pin=)[^&]+', '$1[MASKED_PIN]'
                 }
 
                 if ($newDownload -ne $origDownload -or $newFav -ne $origFav) {
@@ -545,13 +546,14 @@ conn.close()
             # Write data rows (all quoted)
             foreach ($r in $rows) {
                 $line = ($headers | ForEach-Object {
-                    $val = $r.$_
-                    '"{0}"' -f "$val".Replace('"', '""')
-                }) -join ';'
+                        $val = $r.$_
+                        '"{0}"' -f "$val".Replace('"', '""')
+                    }) -join ';'
                 $sw.WriteLine($line)
             }
             $sw.Dispose()
-        } catch {
+        }
+        catch {
             # Log-like behavior; in PS script we can just Write-Host or ignore
             Write-Host "[SupportZip] Failed to sanitize $($csv.Name): $($_.Exception.Message)"
         }
@@ -768,7 +770,7 @@ function Output-ConfigJson {
         # For any string longer than 1 char, show the first char and then redact.
         return $value.Substring(0, 1) + '****'
     }
-    $redactKeys = @("tvdbapi", "tmdbtoken", "fanarttvapikey", "plextoken", "jellyfinapikey", "embyapikey", "embyurl", "jellyfinurl", "discord", "plexurl", "UptimeKumaUrl", "AppriseUrl", "basicAuthPassword","basicAuthUsername")
+    $redactKeys = @("tvdbapi", "tmdbtoken", "fanarttvapikey", "plextoken", "jellyfinapikey", "embyapikey", "embyurl", "jellyfinurl", "discord", "plexurl", "UptimeKumaUrl", "AppriseUrl", "basicAuthPassword", "basicAuthUsername")
     $indent = '  ' * $indentLevel
 
     if ($indentLevel -eq 0) {
@@ -1175,7 +1177,8 @@ function Reset-PlexLibraryLogos {
                 catch {
                     Write-Entry -Subtext "Error setting logo for [$title]: $_" -Path "$global:configLogging" -Color Red -log Error
                 }
-            } else {
+            }
+            else {
                 Write-Entry -Subtext "No default fallback logo found for: $title" -Path "$global:configLogging" -Color Yellow -log Warning
             }
         }
@@ -1501,7 +1504,7 @@ function SendMessage {
         $payloadObject = [PSCustomObject]@{
             username   = $global:DiscordUserName
             avatar_url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
-            content    = ""
+            # content    = ""
             embeds     = @(
                 [PSCustomObject]@{
                     author      = @{
@@ -1532,7 +1535,7 @@ function SendMessage {
         # Handle Discord notifications
         if ($global:NotifyUrl -like '*discord*') {
             $jsonPayload = Build-DiscordPayload
-            $webhookUrl = $global:NotifyUrl.replace('discord://', 'https://discord.com/api/webhooks/')
+            $webhookUrl = $global:NotifyUrl -replace '(?i)^discord://(?:[^@/]+@)?(.*)$', 'https://discord.com/api/webhooks/$1'
             Push-ObjectToDiscord -strDiscordWebhook $webhookUrl -objPayload $jsonPayload
         }
 
@@ -1575,18 +1578,19 @@ function Get-OptimalPointSize {
         if (-not $script:IMVersion) { $script:IMVersion = (& $magick -version | Select-Object -First 1) }
 
         $__tsc_Params = @{
-            font=$fontImagemagick; w=$box_width; h=$box_height;
-            min=$min_pointsize; max=$max_pointsize; line=$lineSpacing;
-            imv=$script:IMVersion; algo='Get-OptimalPointSize-v1'
+            font = $fontImagemagick; w = $box_width; h = $box_height;
+            min = $min_pointsize; max = $max_pointsize; line = $lineSpacing;
+            imv = $script:IMVersion; algo = 'Get-OptimalPointSize-v1'
         }
 
-        $__tsc_Key  = New-TextSizeCacheKey -Text $text -Params $__tsc_Params
+        $__tsc_Key = New-TextSizeCacheKey -Text $text -Params $__tsc_Params
         $__tsc_Path = if ($Global:TextSizeCachePath) { $Global:TextSizeCachePath } else { Join-Path $global:ScriptRoot 'Cache\text_size_cache.json' }
 
         # Wrapped in try/catch to ensure corruption doesn't stop flow
         try {
             $__tsc_Hit = Get-TextSizeFromCache -Key $__tsc_Key -Path $__tsc_Path
-        } catch {
+        }
+        catch {
             $__tsc_Hit = $null
         }
 
@@ -1596,7 +1600,8 @@ function Get-OptimalPointSize {
             $script:tsHits++   # [stats] count cache hits
             return [int]$__tsc_Hit.pointSize
         }
-    } catch {
+    }
+    catch {
         # If cache logic fails entirely, ignore and proceed to calculate
         Write-Entry -Message "Cache lookup failed, proceeding with calculation. Error: $_" -Path $global:configLogging -Color Yellow -log Debug
     }
@@ -1635,7 +1640,8 @@ function Get-OptimalPointSize {
     try {
         $__tsc_Save = [PSCustomObject]@{ pointSize = [int]$current_pointsize; isTruncated = [bool]$global:IsTruncated }
         Set-TextSizeCacheEntry -Key $__tsc_Key -Result $__tsc_Save -Path $__tsc_Path
-    } catch {
+    }
+    catch {
         Write-Entry -Message "Failed to save to text size cache: $_" -Path $global:configLogging -Color Yellow -log Debug
     }
 
@@ -4224,7 +4230,8 @@ function GetPlexArtwork {
             if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
                 $ExifFound = $true
             }
-        } catch {
+        }
+        catch {
             Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
             $global:errorCount++; return
         }
@@ -4269,12 +4276,15 @@ function Push-ObjectToDiscord {
     try {
         $response = Invoke-RestMethod -Method Post -Uri $strDiscordWebhook -Body $objPayload -ContentType 'Application/Json' -ResponseHeadersVariable "resHeaders"
 
+        Write-Entry -Subtext "Discord webhook sent successfully." -Path $global:configLogging -Color Green -log Info
+
         # Smart Rate Limiting: Discord returns 'x-ratelimit-reset-after' in seconds
         if ($resHeaders.'x-ratelimit-remaining' -eq 0) {
             $waitTime = $resHeaders.'x-ratelimit-reset-after'
             Write-Verbose "Rate limit reached. Sleeping for $waitTime seconds."
             Start-Sleep -Seconds [math]::Ceiling($waitTime)
-        } else {
+        }
+        else {
             # Default safety gap
             Start-Sleep -Milliseconds 500
         }
@@ -4294,9 +4304,16 @@ function Push-ObjectToDiscord {
             }
             else {
                 # Handle PowerShell 7+ (HttpResponseMessage)
-                if ($response.GetType().Name -eq 'HttpResponseMessage') {
-                    $task = $response.Content.ReadAsStringAsync()
-                    $discordErrorBody = $task.Result
+                if ($_.ErrorDetails) {
+                    $discordErrorBody = $_.ErrorDetails.Message
+                }
+                elseif ($response.GetType().Name -eq 'HttpResponseMessage') {
+                    try {
+                        $task = $response.Content.ReadAsStringAsync()
+                        $discordErrorBody = $task.Result
+                    } catch {
+                        $discordErrorBody = "Could not read disposed response"
+                    }
                 }
                 # Handle Windows PowerShell 5.1 (HttpWebResponse)
                 elseif ($response.GetResponseStream) {
@@ -4481,7 +4498,7 @@ function CheckJsonPaths {
         $font, $RTLfont, $backgroundfont, $titlecardfont, $Posteroverlay, $ShowPosteroverlay,
         $Collectionoverlay, $Backgroundoverlay, $ShowBackgroundoverlay, $titlecardoverlay, $Seasonoverlay,
         $Posteroverlay4k, $Posteroverlay1080p, $Backgroundoverlay4k,
-        $Backgroundoverlay1080p, $TCoverlay4k, $TCoverlay1080p,$Posteroverlay4KDoVi, $Posteroverlay4KHDR10, $Posteroverlay4KDoViHDR10,
+        $Backgroundoverlay1080p, $TCoverlay4k, $TCoverlay1080p, $Posteroverlay4KDoVi, $Posteroverlay4KHDR10, $Posteroverlay4KDoViHDR10,
         $Backgroundoverlay4KDoVi, $Backgroundoverlay4KHDR10, $Backgroundoverlay4KDoViHDR10,
         $TCoverlay4KDoVi, $TCoverlay4KHDR10, $TCoverlay4KDoViHDR10
     )
@@ -4559,6 +4576,73 @@ function RotateLogs {
                 Write-Host "Log Rotation partial or failed: $($_.Exception.Message)"
             }
         }
+    }
+}
+function Send-PosterizarrTelemetry {
+    # Immediately return/exit if the config's telemetry toggle is set to false.
+    if ($config.PrerequisitePart.telemetry -eq $false -or $config.PrerequisitePart.telemetry -eq 'false') {
+        return
+    }
+
+    $cacheFile = Join-Path $global:ScriptRoot 'Cache\telemetry.cache.json'
+    try {
+        $cacheDir = Split-Path -Parent $cacheFile
+        if ($cacheDir -and -not (Test-Path -LiteralPath $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null }
+    }
+    catch {}
+    $cache = $null
+    if (Test-Path $cacheFile) {
+        try {
+            $cache = Get-Content $cacheFile -Raw | ConvertFrom-Json
+        }
+        catch {}
+    }
+
+    $instanceId = $null
+    if ($cache -and $cache.InstanceId) {
+        $instanceId = $cache.InstanceId
+    }
+    else {
+        $instanceId = [guid]::NewGuid().ToString()
+    }
+
+    $cachedVersion = $null
+    if ($cache -and $cache.AppVersion) {
+        $cachedVersion = $cache.AppVersion
+    }
+
+    if ($cachedVersion -eq $CurrentScriptVersion) {
+        return
+    }
+
+    $osName = $Platform
+
+    if ($config.PlexPart.UsePlex -eq 'true' -or $config.PlexPart.UsePlex -eq $true) {
+        $target = "Plex"
+    } elseif ($config.JellyfinPart.UseJellyfin -eq 'true' -or $config.JellyfinPart.UseJellyfin -eq $true) {
+        $target = "Jellyfin"
+    } elseif ($config.EmbyPart.UseEmby -eq 'true' -or $config.EmbyPart.UseEmby -eq $true) {
+        $target = "Emby"
+    }
+
+    $payload = @{
+        InstanceId = $instanceId
+        os         = $osName
+        target     = $target
+        appVersion = $CurrentScriptVersion
+    }
+
+    try {
+        Invoke-RestMethod -Uri "https://telemetry.posterizarr-stats.workers.dev/" -Method Post -Body ($payload | ConvertTo-Json -Compress) -ContentType "application/json" -ErrorAction Stop | Out-Null
+
+        $newCache = @{
+            InstanceId = $instanceId
+            AppVersion = $CurrentScriptVersion
+        }
+        $newCache | ConvertTo-Json -Compress | Set-Content $cacheFile -Force
+    }
+    catch {
+        Write-Verbose "Telemetry failed silently: $($_.Exception.Message)"
     }
 }
 function CheckConfigFile {
@@ -4832,14 +4916,15 @@ function InvokeMagickCommand {
             [string]$ErrorMessage
         )
 
-        # Split the error message into lines
         $global:ImageMagickError = $true
-        $lines = $ErrorMessage -split "convert: |magick.exe: |@"
-        if ($lines[1]) {
-            return $lines[1]
+        $lines = $ErrorMessage -split "convert: |magick.exe: |magick: |@"
+
+        if ($lines.Count -ge 2 -and -not [string]::IsNullOrWhiteSpace($lines[1])) {
+            return $lines[1].Trim()
         }
         Else {
-            return $lines[0]
+            # Fallback to returning the whole error
+            return $ErrorMessage.Trim()
         }
     }
 
@@ -5162,7 +5247,8 @@ function MassDownloadPlexArtwork {
                 if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
                     $ExifFound = $true
                 }
-            } catch {
+            }
+            catch {
                 Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                 $global:errorCount++; return
             }
@@ -5282,7 +5368,7 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -5300,7 +5386,7 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -5322,7 +5408,7 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -5340,7 +5426,7 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -5715,7 +5801,7 @@ function MassDownloadPlexArtwork {
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($UseOriginalTitle -eq 'true'){
+                if ($UseOriginalTitle -eq 'true') {
                     if ($entry.originalTitle -match $cjkPattern) {
                         $Titletext = $entry.title
                     }
@@ -6048,7 +6134,7 @@ function MassDownloadPlexArtwork {
 
             $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-            if ($UseOriginalTitle -eq 'true'){
+            if ($UseOriginalTitle -eq 'true') {
                 if ($entry.originalTitle -match $cjkPattern) {
                     $Titletext = $entry.title
                 }
@@ -6736,12 +6822,12 @@ function MassDownloadPlexArtwork {
     }
 }
 function MassDownloadJellyEmbyArtwork {
-    if ($UseJellyfin -eq 'true'){
+    if ($UseJellyfin -eq 'true') {
         CheckJellyfinAccess -JellyfinUrl $JellyfinUrl -JellyfinApi $JellyfinAPIKey
         $OtherMediaServerUrl = $JellyfinUrl
         $OtherMediaServerApiKey = $JellyfinAPIKey
     }
-    if ($UseEmby -eq 'true'){
+    if ($UseEmby -eq 'true') {
         CheckEmbyAccess -EmbyUrl $EmbyUrl -EmbyAPI $EmbyAPIKey
         $OtherMediaServerUrl = $EmbyUrl
         $OtherMediaServerApiKey = $EmbyAPIKey
@@ -6780,7 +6866,8 @@ function MassDownloadJellyEmbyArtwork {
                 $entryDir = Join-Path $BackupPath "$($lib.Name)\$rootFolderName"
                 $posterDest = Join-Path $entryDir "poster.jpg"
                 $backdropDest = Join-Path $entryDir "background.jpg"
-            } else {
+            }
+            else {
                 $entryDir = $BackupPath
                 $posterDest = Join-Path $entryDir "$($rootFolderName).jpg"
                 $backdropDest = Join-Path $entryDir "$($rootFolderName)_background.jpg"
@@ -6797,7 +6884,8 @@ function MassDownloadJellyEmbyArtwork {
                     Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue
                     $posterCount++
                     Write-Entry -Subtext "Added: $posterDest" -Path $global:configLogging -Color Green -Log Info
-                } catch {
+                }
+                catch {
                     Write-Entry -Subtext "[ERROR-HERE] Failed to download poster for $($item.Name)" -Path $global:configLogging -Color Red -Log Error
                     $global:errorCount++
                 }
@@ -6810,7 +6898,8 @@ function MassDownloadJellyEmbyArtwork {
                     $BackgroundCount++
                     $posterCount++
                     Write-Entry -Subtext "Added: $backdropDest" -Path $global:configLogging -Color Green -Log Info
-                } catch {
+                }
+                catch {
                     Write-Entry -Subtext "No backdrop found for $($item.Name)" -Path $global:configLogging -Color Yellow -Log Debug
                     $global:errorCount++
                 }
@@ -6826,7 +6915,8 @@ function MassDownloadJellyEmbyArtwork {
                         try {
                             Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $sDest -ErrorAction SilentlyContinue
                             Write-Entry -Subtext "Added: $sDest" -Path $global:configLogging -Color Green -Log Info
-                        } catch {
+                        }
+                        catch {
                             Write-Entry -Subtext "No season found for $($item.Name) | Season$sNum" -Path $global:configLogging -Color Yellow -Log Info
                             $global:errorCount++
                         }
@@ -6846,7 +6936,8 @@ function MassDownloadJellyEmbyArtwork {
                             $EpisodeCount++
                             $posterCount++
                             Write-Entry -Subtext "Added: $epDest" -Path $global:configLogging -Color Green -Log Info
-                        } catch {
+                        }
+                        catch {
                             Write-Entry -Subtext "No episode found for $($item.Name) | $naming" -Path $global:configLogging -Color Yellow -Log Error
                             $global:errorCount++
                         }
@@ -7126,13 +7217,13 @@ function Send-UptimeKumaWebhook {
 
 function Write-TextSizeCacheSummary {
     param([string]$Label = "Text-size cache")
-    $total=$script:tsHits+$script:tsMiss
-    $rate = if($total){[math]::Round(100*$script:tsHits/$total,2)}else{0}
-    $avg  = if($script:tsRuns){[math]::Round($script:tsMs/$script:tsRuns,2)}else{0}
-    $saved=[TimeSpan]::FromMilliseconds([double]($script:tsHits*$avg))
+    $total = $script:tsHits + $script:tsMiss
+    $rate = if ($total) { [math]::Round(100 * $script:tsHits / $total, 2) }else { 0 }
+    $avg = if ($script:tsRuns) { [math]::Round($script:tsMs / $script:tsRuns, 2) }else { 0 }
+    $saved = [TimeSpan]::FromMilliseconds([double]($script:tsHits * $avg))
     Write-Entry -Subtext ("{0}: hits='{1}', misses='{2}' ({3}%); magick_calls='{4}' in '{5} ms'; est_saved='{6}h {7}m {8}s'" -f `
-    $Label,$script:tsHits,$script:tsMiss,$rate,$script:tsRuns,$script:tsMs,$saved.Hours,$saved.Minutes,$saved.Seconds) `
-    -Path $global:configLogging -Color Green -log Info
+            $Label, $script:tsHits, $script:tsMiss, $rate, $script:tsRuns, $script:tsMs, $saved.Hours, $saved.Minutes, $saved.Seconds) `
+        -Path $global:configLogging -Color Green -log Info
 }
 
 function Send-SummaryNotification {
@@ -7178,7 +7269,8 @@ function Send-SummaryNotification {
 
         if ($ErrorCount -ge '1') {
             apprise --notification-type="failure" --title="Posterizarr" --body="$body`n`nDuring execution '$ErrorCount' Errors occurred, please check log." "$global:NotifyUrl"
-        } else {
+        }
+        else {
             apprise --notification-type="success" --title="Posterizarr" --body="$body" "$global:NotifyUrl"
         }
         return
@@ -7215,10 +7307,12 @@ function Send-SummaryNotification {
         $fieldList.Add([PSCustomObject]@{ name = ""; value = ":bar_chart:"; inline = $false })
         if ($ScriptMode -eq 'testing') {
             $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $TruncatedCount; inline = $false })
-        } else {
+        }
+        else {
             if ($ScriptMode -eq 'logoupdater') {
                 $fieldList.Add([PSCustomObject]@{ name = "Errors"; value = $ErrorCount; inline = $false })
-            }Else {
+            }
+            Else {
                 $fieldList.Add([PSCustomObject]@{ name = "Errors"; value = $ErrorCount; inline = $false })
                 $fieldList.Add([PSCustomObject]@{ name = "Fallbacks"; value = $FallbackCount; inline = $true })
                 $fieldList.Add([PSCustomObject]@{ name = "Textless"; value = $TextlessCount; inline = $true })
@@ -7238,18 +7332,22 @@ function Send-SummaryNotification {
             $fieldList.Add([PSCustomObject]@{ name = "Backgrounds Downloaded"; value = $BackgroundCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Seasons Downloaded"; value = $SeasonCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "TitleCards Downloaded"; value = $EpisodeCount; inline = $true })
-        } elseif ($ScriptMode -eq 'syncjelly' -or $ScriptMode -eq 'syncemby') {
+        }
+        elseif ($ScriptMode -eq 'syncjelly' -or $ScriptMode -eq 'syncemby') {
             $fieldList.Add([PSCustomObject]@{ name = "Posters Uploaded"; value = ($UploadCount - $SeasonCount - $BackgroundCount - $EpisodeCount); inline = $false })
             $fieldList.Add([PSCustomObject]@{ name = "Backgrounds Uploaded"; value = $BackgroundCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Seasons Uploaded"; value = $SeasonCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "TitleCards Uploaded"; value = $EpisodeCount; inline = $true })
-        } elseif ($ScriptMode -eq 'logoupdater') {
+        }
+        elseif ($ScriptMode -eq 'logoupdater') {
             $fieldList.Add([PSCustomObject]@{ name = "Logos Matched"; value = $MatchedCount; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Logos Updated"; value = $UploadCount; inline = $true })
-        } else {
+        }
+        else {
             if ($ScriptMode -eq 'testing') {
                 $fieldList.Add([PSCustomObject]@{ name = "Posters"; value = $posterscount; inline = $false })
-            } else {
+            }
+            else {
                 # For Normal/Arr/Tautulli, $PosterCount IS the total, so subtraction is correct.
                 $fieldList.Add([PSCustomObject]@{ name = "Posters"; value = ($PosterCount - $SeasonCount - $BackgroundCount - $EpisodeCount); inline = $false })
             }
@@ -7273,18 +7371,18 @@ function Send-SummaryNotification {
             content    = ""
             embeds     = @(
                 [PSCustomObject]@{
-                    author    = @{
+                    author      = @{
                         name = "Posterizarr @Github"
                         url  = "https://github.com/fscorrupt/posterizarr"
                     }
                     description = $desc
-                    timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                    color     = $(if ($ErrorCount -ge '1') { 16711680 } Elseif ($Testing) { 8388736 } Elseif ($FallbackCount -gt '1' -or $PosterUnknownCount -ge '1' -or $TruncatedCount -gt '1') { 15120384 } Else { 5763719 })
-                    fields    = $fieldList
-                    thumbnail = @{
+                    timestamp   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+                    color       = $(if ($ErrorCount -ge '1') { 16711680 } Elseif ($Testing) { 8388736 } Elseif ($FallbackCount -gt '1' -or $PosterUnknownCount -ge '1' -or $TruncatedCount -gt '1') { 15120384 } Else { 5763719 })
+                    fields      = $fieldList
+                    thumbnail   = @{
                         url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
                     }
-                    footer    = @{
+                    footer      = @{
                         text = "$Platform  | vCurr: $CurrentScriptVersion | vNext: $LatestScriptVersion | IM vCurr: $global:CurrentImagemagickversion | IM vNext: $global:LatestImagemagickversion"
                     }
                 }
@@ -7292,7 +7390,7 @@ function Send-SummaryNotification {
         }
 
         $jsonPayload = $payloadObject | ConvertTo-Json -Depth 6
-        $webhookUrl = $global:NotifyUrl.replace('discord://', 'https://discord.com/api/webhooks/')
+        $webhookUrl = $global:NotifyUrl -replace '(?i)^discord://(?:[^@/]+@)?(.*)$', 'https://discord.com/api/webhooks/$1'
         Push-ObjectToDiscord -strDiscordWebhook $webhookUrl -objPayload $jsonPayload
     }
 }
@@ -7305,7 +7403,7 @@ $global:errorCount = 0
 if (-not (Get-Variable -Name tsHits -Scope Script -ErrorAction SilentlyContinue)) { [int]  $script:tsHits = 0 }
 if (-not (Get-Variable -Name tsMiss -Scope Script -ErrorAction SilentlyContinue)) { [int]  $script:tsMiss = 0 }
 if (-not (Get-Variable -Name tsRuns -Scope Script -ErrorAction SilentlyContinue)) { [int]  $script:tsRuns = 0 }
-if (-not (Get-Variable -Name tsMs   -Scope Script -ErrorAction SilentlyContinue)) { [int64]$script:tsMs   = 0 }
+if (-not (Get-Variable -Name tsMs   -Scope Script -ErrorAction SilentlyContinue)) { [int64]$script:tsMs = 0 }
 # -----------------------------------------
 #region Variables
 # Set Branch
@@ -7399,7 +7497,8 @@ if (-not $Global:TextSizeCachePath) {
 try {
     $cacheDir = Split-Path -Parent $Global:TextSizeCachePath
     if ($cacheDir -and -not (Test-Path -LiteralPath $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null }
-} catch {}
+}
+catch {}
 
 Write-Entry -Message "Starting..." -Path $global:configLogging -Color Green -log Info
 # Create directories if they don't exist
@@ -7472,14 +7571,17 @@ if ($maxLogs -le 0) {
 }
 # Delete excess log folders
 $allFolders = Get-ChildItem -Path (Join-Path $global:ScriptRoot $global:RotationFolderName) -Directory |
-              Where-Object { $_.Name -match $folderPattern } |
-              Sort-Object CreationTime -Descending
+Where-Object { $_.Name -match $folderPattern } |
+Sort-Object CreationTime -Descending
 
 $allFolders | Select-Object -Skip $maxLogs | ForEach-Object {
     $fldrName = $_.FullName
     Remove-Item -Path $fldrName -Recurse -Force
     Write-Entry -Message "Deleting excess folder: $fldrName" -Path $global:configLogging -Color White -log Info
 }
+
+# Send anonymous telemetry if enabled
+Send-PosterizarrTelemetry
 
 # Access variables from the config file
 # Notification Part
@@ -7706,7 +7808,7 @@ $RTLFont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.Prereq
 $backgroundfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundfont -join $($joinsymbol))
 $titlecardfont = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.titlecardfont -join $($joinsymbol))
 $DefaultPosteroverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.overlayfile -join $($joinsymbol))
-if (-not $config.PrerequisitePart.showoverlayfile){
+if (-not $config.PrerequisitePart.showoverlayfile) {
     $DefaultShowPosteroverlay = $DefaultPosteroverlay
 }
 Else {
@@ -7715,7 +7817,7 @@ Else {
 $Seasonoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.seasonoverlayfile -join $($joinsymbol))
 $collectionoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.collectionoverlayfile -join $($joinsymbol))
 $DefaultBackgroundoverlay = Join-Path -Path $global:ScriptRoot -ChildPath ('temp', $config.PrerequisitePart.backgroundoverlayfile -join $($joinsymbol))
-if (-not $config.PrerequisitePart.showbackgroundoverlayfile){
+if (-not $config.PrerequisitePart.showbackgroundoverlayfile) {
     $DefaultShowBackgroundoverlay = $DefaultBackgroundoverlay
 }
 Else {
@@ -8369,12 +8471,12 @@ if ($Manual) {
 
             # Define the variable names and their prompts
             $posterPrompts = [Ordered]@{
-                'SeasonPoster'     = "Create Season Poster?"
-                'MoviePosterCard'  = "Create Movie Poster?"
-                'ShowPosterCard'   = "Create Show Poster?"
-                'TitleCard'        = "Create TitleCard?"
-                'CollectionCard'   = "Create Collection?"
-                'BackgroundCard'   = "Create Background?"
+                'SeasonPoster'    = "Create Season Poster?"
+                'MoviePosterCard' = "Create Movie Poster?"
+                'ShowPosterCard'  = "Create Show Poster?"
+                'TitleCard'       = "Create TitleCard?"
+                'CollectionCard'  = "Create Collection?"
+                'BackgroundCard'  = "Create Background?"
             }
 
             # Loop through each and ask the user
@@ -8475,7 +8577,7 @@ if ($Manual) {
             }
             Else {
                 Write-Entry -Subtext "Could not match Season name..." -Path $global:configLogging -Color Yellow -log Warning
-                if ($TriggeredViaCli -eq 'true'){
+                if ($TriggeredViaCli -eq 'true') {
                     $seasontemp = Read-Host "Please enter Season Name for the local file (eq. Season 0 or Season 1....)"
                 }
                 if ($seasontemp -match $seasonNumberPattern) {
@@ -8581,7 +8683,7 @@ if ($Manual) {
             }
             Else {
                 Write-Entry -Subtext "Could not match Season name..." -Path $global:configLogging -Color Yellow -log Warning
-                if ($TriggeredViaCli -eq 'true'){
+                if ($TriggeredViaCli -eq 'true') {
                     $seasontemp = Read-Host "Please enter Season Name for the local file (eq. Season 0 or Season 1....)"
                 }
                 if ($seasontemp -match $seasonNumberPattern) {
@@ -8653,7 +8755,7 @@ if ($Manual) {
         }
     }
 
-    if ($CollectionCard){
+    if ($CollectionCard) {
         $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$SafeFolderName.jpg"
     }
     Else {
@@ -9060,30 +9162,51 @@ if ($Manual) {
                 if ($SeasonPoster -and $AddSeasonText -eq 'true') {
                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                    # Add Stroke
+
+                    # Add Stroke for Season Text
                     if ($AddSeasonTextStroke -eq 'true') {
                         $Arguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$joinedTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$joinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                     }
                     Else {
                         $Arguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$joinedTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                     }
+
+                    # Add Show Title / Logo to Season
                     if ($AddShowTitletoSeason -eq 'true') {
-                        # Show Part
-                        # Add Stroke
-                        if ($AddShowOnSeasonTextStroke -eq 'true') {
-                            $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        if ($isLogo) {
+                            # Logo Logic
+                            if ($Titletext -match "(?i)\.svg") {
+                                Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Show Logo on Season." -Path $global:configLogging -Color Cyan -log Info
+                                $ShowOnSeasonArguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
+                            else {
+                                $ShowOnSeasonArguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
                         }
-                        Else {
-                            $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                        else {
+                            # Text Logic
+                            if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
+                            Else {
+                                $ShowOnSeasonArguments = "`"$PosterImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$showoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$ShowjoinedTitle`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
+                            }
                         }
                     }
 
+                    # Execute Season Text Command
                     Write-Entry -Subtext "    Applying Season Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     $logEntry = "`"$magick`" $Arguments"
                     $logEntry | Out-File $magickLog -Append
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
+
+                    # Execute Show Title / Logo Command
                     if ($AddShowTitletoSeason -eq 'true') {
-                        Write-Entry -Subtext "    Applying showTitle text: `"$ShowjoinedTitle`"" -Path $global:configLogging -Color White -log Info
+                        if ($isLogo) {
+                            Write-Entry -Subtext "    Applying showTitle logo..." -Path $global:configLogging -Color White -log Info
+                        } else {
+                            Write-Entry -Subtext "    Applying showTitle text: `"$ShowjoinedTitle`"" -Path $global:configLogging -Color White -log Info
+                        }
                         $logEntry = "`"$magick`" $ShowOnSeasonArguments"
                         $logEntry | Out-File $magickLog -Append
                         InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
@@ -9151,7 +9274,7 @@ if ($Manual) {
                     }
                 }
                 Elseif ($BackgroundCard -and $AddBackgroundText -eq 'true') {
-                    if ($isLogo){
+                    if ($isLogo) {
                         $colorEffect = ""
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
@@ -9165,7 +9288,8 @@ if ($Manual) {
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                        } else {
+                        }
+                        else {
                             $Arguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                         }
 
@@ -9188,7 +9312,7 @@ if ($Manual) {
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                 }
                 Elseif ($AddText -eq 'true' -or $isLogo) {
-                    if ($isLogo){
+                    if ($isLogo) {
                         $colorEffect = ""
                         if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
                             $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
@@ -9202,7 +9326,8 @@ if ($Manual) {
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                        } else {
+                        }
+                        else {
                             $Arguments = "`"$PosterImage`" ( -background none `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                         }
                         Write-Entry -Subtext "    Applying logo..." -Path $global:configLogging -Color White -log Info
@@ -9228,11 +9353,11 @@ if ($Manual) {
     }
     Else {
         if ($TitleCard) {
-            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
             $EpisodeCount++
         }
         Elseif ($BackgroundCard) {
-            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
+            $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
             $BackgroundCount++
         }
         Elseif ($SeasonPoster) {
@@ -9278,7 +9403,8 @@ if ($Manual) {
 
                 if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) {
                     $baseItem = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' -and $_.librarySectionTitle -eq $LibraryName }
-                } else {
+                }
+                else {
                     $baseItem = $searchXml.MediaContainer.directory | Where-Object { $_.type -eq 'show' -and $_.librarySectionTitle -eq $LibraryName }
                 }
 
@@ -9290,7 +9416,8 @@ if ($Manual) {
                 if ($baseItem) {
                     $FinalTargetID = $baseItem.ratingKey
                     Write-Entry -Subtext "Base Item Found: $($baseItem.title) (RatingKey: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
-                } else {
+                }
+                else {
                     Write-Entry -Message "No Plex match found for '$Titletext' in library '$LibraryName'." -Path $global:configLogging -Color Red -log Error
                     $FinalTargetID = $null
                 }
@@ -9321,7 +9448,8 @@ if ($Manual) {
                     Write-Entry -Subtext "Aborting upload to prevent applying artwork to incorrect media item." -Path $global:configLogging -Color Yellow -log Warning
 
                     $FinalTargetID = $null
-                } else {
+                }
+                else {
                     $FinalTargetID = $baseItem.Id
                     Write-Entry -Subtext "Base Item Found: $($baseItem.Name) (ID: $FinalTargetID)" -Path $global:configLogging -Color Cyan -log Debug
                 }
@@ -9334,7 +9462,8 @@ if ($Manual) {
                         $drillUri = "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken"
                         [xml]$children = (Invoke-WebRequest $drillUri -Headers $extraPlexHeaders).content
                         $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
-                    } else {
+                    }
+                    else {
                         $drillUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&api_key=$OtherMediaServerApiKey"
                         $seasons = Invoke-RestMethod -Uri $drillUri
                         $FinalTargetID = ($seasons.Items | Where-Object { [int]$_.IndexNumber -eq [int]$global:SeasonNumber }).Id
@@ -9349,7 +9478,8 @@ if ($Manual) {
 
                         [xml]$epsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$seasonKey/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
                         $FinalTargetID = ($epsXml.MediaContainer.video | Where-Object { [int]$_.index -eq [int]$global:EpisodeNumber }).ratingKey
-                    } else {
+                    }
+                    else {
                         $epsUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
                         $eps = Invoke-RestMethod -Uri $epsUri
                         $FinalTargetID = ($eps.Items | Where-Object { [int]$_.ParentIndexNumber -eq [int]$global:SeasonNumber -and [int]$_.IndexNumber -eq [int]$global:EpisodeNumber }).Id
@@ -9370,16 +9500,19 @@ if ($Manual) {
 
                             Write-Entry -Subtext "Manual Plex Upload Success: $PosterImage" -Path $global:configLogging -Color Green -log Info
                             $UploadCount++
-                        } catch {
+                        }
+                        catch {
                             Write-Entry -Subtext "Manual Plex Upload Failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                         }
-                    } else {
+                    }
+                    else {
                         Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
                         UploadOtherMediaServerArtwork -itemId $FinalTargetID -imageType $FinalImageType -imagePath $PosterImage
                         $UploadCount++
                     }
                 }
-            } else {
+            }
+            else {
                 Write-Entry -Subtext "Could not resolve ID on server for $Titletext" -Path $global:configLogging -Color Red -log Error
             }
         }
@@ -9603,12 +9736,12 @@ Elseif ($Testing) {
 
     # Define a single list of all test cases
     $testCases = @(
-        [PSCustomObject]@{ ID = 'Short';       Text = $ShortText;                  VarSuffix = 'ShortText' }
-        [PSCustomObject]@{ ID = 'Medium';      Text = $MediumText;                 VarSuffix = 'MediumText' }
-        [PSCustomObject]@{ ID = 'Long';        Text = $LongText;                   VarSuffix = 'LongText' }
-        [PSCustomObject]@{ ID = 'ShortCAPS';   Text = $ShortText.ToUpper();        VarSuffix = 'ShortTextCAPS' }
-        [PSCustomObject]@{ ID = 'MediumCAPS';  Text = $MediumText.ToUpper();       VarSuffix = 'MediumTextCAPS' }
-        [PSCustomObject]@{ ID = 'LongCAPS';    Text = $LongText.ToUpper();         VarSuffix = 'LongTextCAPS' }
+        [PSCustomObject]@{ ID = 'Short'; Text = $ShortText; VarSuffix = 'ShortText' }
+        [PSCustomObject]@{ ID = 'Medium'; Text = $MediumText; VarSuffix = 'MediumText' }
+        [PSCustomObject]@{ ID = 'Long'; Text = $LongText; VarSuffix = 'LongText' }
+        [PSCustomObject]@{ ID = 'ShortCAPS'; Text = $ShortText.ToUpper(); VarSuffix = 'ShortTextCAPS' }
+        [PSCustomObject]@{ ID = 'MediumCAPS'; Text = $MediumText.ToUpper(); VarSuffix = 'MediumTextCAPS' }
+        [PSCustomObject]@{ ID = 'LongCAPS'; Text = $LongText.ToUpper(); VarSuffix = 'LongTextCAPS' }
     )
 
     $EpisodetextCAPS = $Episodetext.ToUpper()
@@ -9633,28 +9766,32 @@ Elseif ($Testing) {
     if ($AddText -eq 'true') {
         $testCases | ForEach-Object { $posterPaths[$_.ID] = Join-Path $testDir "poster$($_.VarSuffix).jpg" }
         $testCases | ForEach-Object { $showPosterPaths[$_.ID] = Join-Path $testDir "showPoster$($_.VarSuffix).jpg" }
-    } Else {
+    }
+    Else {
         $TestPosterTextless = Join-Path $testDir "PosterTextless.jpg"
         $TestShowPosterTextless = Join-Path $testDir "ShowPosterTextless.jpg"
     }
 
     if ($AddSeasonText -eq 'true') {
         $testCases | ForEach-Object { $seasonPosterPaths[$_.ID] = Join-Path $testDir "SeasonPoster$($_.VarSuffix).jpg" }
-    } Else {
+    }
+    Else {
         $TestSeasonPosterTextless = Join-Path $testDir "SeasonPosterTextless.jpg"
     }
 
     if ($AddBackgroundText -eq 'true') {
         $testCases | ForEach-Object { $backgroundPaths[$_.ID] = Join-Path $testDir "background$($_.VarSuffix).jpg" }
         $testCases | ForEach-Object { $showBackgroundPaths[$_.ID] = Join-Path $testDir "showBackground$($_.VarSuffix).jpg" }
-    } Else {
+    }
+    Else {
         $BackgroundTestPosterTextless = Join-Path $testDir "BackgroundTextless.jpg"
         $BackgroundTestShowPosterTextless = Join-Path $testDir "ShowBackgroundTextless.jpg"
     }
 
     if ($AddTitleCardEPTitleText -eq 'true' -or $AddTitleCardEPText -eq 'true') {
         $testCases | ForEach-Object { $titleCardPaths[$_.ID] = Join-Path $testDir "TitleCard$($_.VarSuffix).jpg" }
-    } Else {
+    }
+    Else {
         $TitleCardTestPosterTextless = Join-Path $testDir "TitleCardTextless.jpg"
     }
 
@@ -10391,7 +10528,7 @@ Elseif ($Tautulli) {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($UseOriginalTitle -eq 'true'){
+                    if ($UseOriginalTitle -eq 'true') {
                         if ($entry.originalTitle -match $cjkPattern) {
                             $Titletext = $entry.title
                         }
@@ -10491,7 +10628,7 @@ Elseif ($Tautulli) {
                             $global:LogoUrl = $null
                             $global:LogoLanguage = $null
                             $LocalAddOverlay = $AddOverlay
-                            $LocalAddBorder  = $AddBorder
+                            $LocalAddBorder = $AddBorder
 
                             if ($entry.PlexPosterUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -10626,7 +10763,7 @@ Elseif ($Tautulli) {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                     }
-                                    if ($SkipLocalPosterTextAdd -eq 'true'){
+                                    if ($SkipLocalPosterTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -10710,10 +10847,10 @@ Elseif ($Tautulli) {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                '4K'            { $Posteroverlay = $4kposter }
-                                                '1080p'         { $Posteroverlay = $1080pPoster }
+                                                '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                '4K' { $Posteroverlay = $4kposter }
+                                                '1080p' { $Posteroverlay = $1080pPoster }
                                                 Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
                                         }
@@ -10802,15 +10939,15 @@ Elseif ($Tautulli) {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -10839,7 +10976,8 @@ Elseif ($Tautulli) {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -10850,7 +10988,7 @@ Elseif ($Tautulli) {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                 if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $fontImagemagick = $RTLfontImagemagick
@@ -10905,24 +11043,24 @@ Elseif ($Tautulli) {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -10972,12 +11110,12 @@ Elseif ($Tautulli) {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -11019,14 +11157,14 @@ Elseif ($Tautulli) {
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie'
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -11060,7 +11198,7 @@ Elseif ($Tautulli) {
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -11161,7 +11299,7 @@ Elseif ($Tautulli) {
                             $LocalAssetMissing = $null
                             $Arturl = $null
                             $LocalAddOverlay = $AddBackgroundOverlay
-                            $LocalAddBorder  = $AddBackgroundBorder
+                            $LocalAddBorder = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -11271,7 +11409,7 @@ Elseif ($Tautulli) {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $BackgroundImage | Out-Null
                                     }
-                                    if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                    if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $BackgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -11355,11 +11493,11 @@ Elseif ($Tautulli) {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                '4K'            { $backgroundoverlay = $4kBackground }
-                                                '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                '4K' { $backgroundoverlay = $4kBackground }
+                                                '1080p' { $backgroundoverlay = $1080pBackground }
+                                                Default { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
                                         }
                                         Else {
@@ -11448,15 +11586,15 @@ Elseif ($Tautulli) {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -11485,7 +11623,8 @@ Elseif ($Tautulli) {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -11496,7 +11635,7 @@ Elseif ($Tautulli) {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                 if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $backgroundfontImagemagick = $RTLfontImagemagick
@@ -11551,24 +11690,24 @@ Elseif ($Tautulli) {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -11618,12 +11757,12 @@ Elseif ($Tautulli) {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -11666,14 +11805,14 @@ Elseif ($Tautulli) {
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie Background'
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -11706,7 +11845,7 @@ Elseif ($Tautulli) {
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -11753,7 +11892,7 @@ Elseif ($Tautulli) {
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -11815,7 +11954,7 @@ Elseif ($Tautulli) {
                 $TakeLocal = $null
                 $LocalAssetMissing = $null
                 $LocalAddOverlay = $AddOverlay
-                $LocalAddBorder  = $AddBorder
+                $LocalAddBorder = $AddBorder
 
                 # Determine the language direction
                 $global:langCode = $entry.'Library Language'
@@ -11823,7 +11962,7 @@ Elseif ($Tautulli) {
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($UseOriginalTitle -eq 'true'){
+                if ($UseOriginalTitle -eq 'true') {
                     if ($entry.originalTitle -match $cjkPattern) {
                         $Titletext = $entry.title
                     }
@@ -12015,7 +12154,7 @@ Elseif ($Tautulli) {
                                 Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                     Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                 }
-                                if ($SkipLocalPosterTextAdd -eq 'true'){
+                                if ($SkipLocalPosterTextAdd -eq 'true') {
                                     $SkippingText = 'true'
                                 }
                                 Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -12099,10 +12238,10 @@ Elseif ($Tautulli) {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                            '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                            '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                            '4K'            { $Posteroverlay = $4kposter }
-                                            '1080p'         { $Posteroverlay = $1080pPoster }
+                                            '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                            '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                            '4K' { $Posteroverlay = $4kposter }
+                                            '1080p' { $Posteroverlay = $1080pPoster }
                                             Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                         }
                                     }
@@ -12191,15 +12330,15 @@ Elseif ($Tautulli) {
                                             if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                 Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                             }
-                                            if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                 $ApplyTextInsteadOfLogo = 'true'
                                                 Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                 $global:IsFallback = $true
                                             }
-                                            ElseIf ($global:LogoUrl){
+                                            ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -12228,7 +12367,8 @@ Elseif ($Tautulli) {
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                     $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                } else {
+                                                }
+                                                else {
                                                     $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -12239,7 +12379,7 @@ Elseif ($Tautulli) {
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                             }
                                         }
-                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                             if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                 if ($global:direction -eq "RTL") {
                                                     $fontImagemagick = $RTLfontImagemagick
@@ -12294,24 +12434,24 @@ Elseif ($Tautulli) {
                                                     $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                     $superSize = [int]($optimalFontSize * 0.55)
-                                                    $yNudge    = [int]($optimalFontSize * 0.3)
-                                                    $gap       = 20
+                                                    $yNudge = [int]($optimalFontSize * 0.3)
+                                                    $gap = 20
 
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                        "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                     }
                                                     elseif ($supChar -ne "") {
                                                         # SUPERSCRIPT ONLY MODE (No Stroke)
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                        "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                        ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                     }
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
@@ -12361,12 +12501,12 @@ Elseif ($Tautulli) {
                                             Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                             # Try uploading, capturing the response in detail
                                             $Upload = Invoke-WebRequest -Uri $uri `
-                                                                        -Method Post `
-                                                                        -Headers $extraPlexHeaders `
-                                                                        -Body $fileContent `
-                                                                        -ContentType 'application/octet-stream' `
-                                                                        -SkipHttpErrorCheck `
-                                                                        -ErrorAction Stop
+                                                -Method Post `
+                                                -Headers $extraPlexHeaders `
+                                                -Body $fileContent `
+                                                -ContentType 'application/octet-stream' `
+                                                -SkipHttpErrorCheck `
+                                                -ErrorAction Stop
 
                                             if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                 Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -12408,14 +12548,14 @@ Elseif ($Tautulli) {
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show'
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -12448,7 +12588,7 @@ Elseif ($Tautulli) {
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                             $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                            $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                            $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -12557,7 +12697,7 @@ Elseif ($Tautulli) {
                         $LocalAssetMissing = $null
                         $Arturl = $null
                         $LocalAddOverlay = $AddBackgroundOverlay
-                        $LocalAddBorder  = $AddBackgroundBorder
+                        $LocalAddBorder = $AddBackgroundBorder
 
                         if ($entry.PlexBackgroundUrl -like "/library/*") {
                             if ($PlexToken) {
@@ -12669,7 +12809,7 @@ Elseif ($Tautulli) {
                                 Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                     Copy-Item -LiteralPath $_.FullName -Destination $backgroundImage | Out-Null
                                 }
-                                if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                     $SkippingText = 'true'
                                 }
                                 Write-Entry -Subtext "Copy local asset to: $backgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -12753,11 +12893,11 @@ Elseif ($Tautulli) {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                            '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                            '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                            '4K'            { $backgroundoverlay = $4kBackground }
-                                            '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
+                                            '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                            '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                            '4K' { $backgroundoverlay = $4kBackground }
+                                            '1080p' { $backgroundoverlay = $1080pBackground }
+                                            Default { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                         }
                                     }
                                     Else {
@@ -12845,15 +12985,15 @@ Elseif ($Tautulli) {
                                             if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                 Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                             }
-                                            if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                 $ApplyTextInsteadOfLogo = 'true'
                                                 Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                 $global:IsFallback = $true
                                             }
-                                            ElseIf ($global:LogoUrl){
+                                            ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -12882,7 +13022,8 @@ Elseif ($Tautulli) {
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                     $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                } else {
+                                                }
+                                                else {
                                                     $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -12893,7 +13034,7 @@ Elseif ($Tautulli) {
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                             }
                                         }
-                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                             if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                 if ($global:direction -eq "RTL") {
                                                     $backgroundfontImagemagick = $RTLfontImagemagick
@@ -12948,24 +13089,24 @@ Elseif ($Tautulli) {
                                                     $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                     $superSize = [int]($optimalFontSize * 0.55)
-                                                    $yNudge    = [int]($optimalFontSize * 0.3)
-                                                    $gap       = 20
+                                                    $yNudge = [int]($optimalFontSize * 0.3)
+                                                    $gap = 20
 
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                        "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                     }
                                                     elseif ($supChar -ne "") {
                                                         # SUPERSCRIPT ONLY MODE (No Stroke)
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                        ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                     }
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
@@ -13020,12 +13161,12 @@ Elseif ($Tautulli) {
                                             Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                             # Try uploading, capturing the response in detail
                                             $Upload = Invoke-WebRequest -Uri $uri `
-                                                                        -Method Post `
-                                                                        -Headers $extraPlexHeaders `
-                                                                        -Body $fileContent `
-                                                                        -ContentType 'application/octet-stream' `
-                                                                        -SkipHttpErrorCheck `
-                                                                        -ErrorAction Stop
+                                                -Method Post `
+                                                -Headers $extraPlexHeaders `
+                                                -Body $fileContent `
+                                                -ContentType 'application/octet-stream' `
+                                                -SkipHttpErrorCheck `
+                                                -ErrorAction Stop
 
                                             if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                 Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -13068,14 +13209,14 @@ Elseif ($Tautulli) {
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show Background'
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -13108,7 +13249,7 @@ Elseif ($Tautulli) {
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                            $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                            $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -13171,15 +13312,15 @@ Elseif ($Tautulli) {
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
                         $LocalAddOverlay = $AddSeasonOverlay
-                        $LocalAddBorder  = $AddSeasonBorder
+                        $LocalAddBorder = $AddSeasonBorder
 
                         if ($SeasonfontAllCaps -eq 'true') {
-                            if ($OverrideSeasonName -eq 'true'){
-                                if ($global:seasonNumbers[$i] -eq '0'){
+                            if ($OverrideSeasonName -eq 'true') {
+                                if ($global:seasonNumbers[$i] -eq '0') {
                                     $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                 }
                                 Else {
-                                    $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:seasonNumbers[$i]
+                                    $global:seasonTitle = $SeasonOverrideText.ToUpper() + " " + $global:seasonNumbers[$i]
                                 }
                             }
                             Else {
@@ -13187,12 +13328,12 @@ Elseif ($Tautulli) {
                             }
                         }
                         Else {
-                            if ($OverrideSeasonName -eq 'true'){
-                                if ($global:seasonNumbers[$i] -eq '0'){
+                            if ($OverrideSeasonName -eq 'true') {
+                                if ($global:seasonNumbers[$i] -eq '0') {
                                     $global:seasonTitle = $SpecialSeasonOverrideText
                                 }
                                 Else {
-                                    $global:seasonTitle = $SeasonOverrideText+ " " + $global:seasonNumbers[$i]
+                                    $global:seasonTitle = $SeasonOverrideText + " " + $global:seasonNumbers[$i]
                                 }
                             }
                             Else {
@@ -13268,13 +13409,14 @@ Elseif ($Tautulli) {
                                 }
                             }
                             foreach ($ext in $allowedExtensions) {
-                                $manualFile   = "$ManualTestPath$ext"
+                                $manualFile = "$ManualTestPath$ext"
                                 $templateFile = "$Templatetestpath$ext"
                                 $filePath = $null
 
                                 if (Test-Path -LiteralPath $manualFile) {
                                     $filePath = $manualFile
-                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                }
+                                elseif (Test-Path -LiteralPath $templateFile) {
                                     $filePath = $templateFile
                                 }
 
@@ -13485,7 +13627,7 @@ Elseif ($Tautulli) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage | Out-Null
                                         }
-                                        if ($SkipLocalSeasonrTextAdd -eq 'true'){
+                                        if ($SkipLocalSeasonrTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -13646,16 +13788,40 @@ Elseif ($Tautulli) {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                     if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                        # Season Part
-                                                        # Add Stroke
-                                                        if ($AddSeasonTextStroke -eq 'true') {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                        # Season Text Part
+                                                        $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                        $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                        $superSize = [int]($optimalFontSize * 0.55)
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
+
+                                                        if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                         }
-                                                        Else {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        elseif ($supChar -ne "") {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                        }
+                                                        else {
+                                                            if ($AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
                                                         }
 
                                                         Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -13663,19 +13829,110 @@ Elseif ($Tautulli) {
                                                         $logEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                        # Show Part
-                                                        # Add Stroke
-                                                        if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                        }
-                                                        Else {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        # Show Part (Logo vs Text)
+                                                        $ApplyTextInsteadOfLogo = $null
+
+                                                        if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                            $global:LogoUrl = $null
+                                                            $global:LogoLanguage = $null
+                                                            $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                            $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                            foreach ($provider in $searchOrder) {
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                switch ($provider) {
+                                                                    'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                    'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                    'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                }
+                                                            }
+
+                                                            if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                $global:IsFallback = $false
+                                                                switch ($global:FavProvider) {
+                                                                    'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                    'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                    'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                }
+                                                                if ($global:IsFallback) {
+                                                                    Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                }
+                                                            }
+
+                                                            if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                            }
+
+                                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                $ApplyTextInsteadOfLogo = 'true'
+                                                                Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                $global:IsFallback = $true
+                                                            }
+                                                            ElseIf ($global:LogoUrl) {
+                                                                $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                try {
+                                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                }
+                                                                catch {
+                                                                    if ($_.Exception.Response) {
+                                                                        $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                    }
+                                                                    else {
+                                                                        $statusCode = $_.Exception.Message
+                                                                    }
+                                                                    Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                }
+
+                                                                $colorEffect = ""
+                                                                if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                    if ([double]$_chromaStd -lt 0.25) {
+                                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                    }
+                                                                    else {
+                                                                        $colorEffect = ""
+                                                                        Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                    }
+                                                                }
+
+                                                                if ($urlExtension -match "(?i)\.svg") {
+                                                                    Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                            }
                                                         }
 
-                                                        Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                        $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                        $logEntry | Out-File $magickLog -Append
-                                                        InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        # Fallback Text Logic
+                                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+
+                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                            $logEntry | Out-File $magickLog -Append
+                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        }
                                                     }
                                                 }
                                                 Else {
@@ -13705,7 +13962,7 @@ Elseif ($Tautulli) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage | Out-Null
                                         }
-                                        if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                        if ($SkipLocalSeasonTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -13792,12 +14049,12 @@ Elseif ($Tautulli) {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -13840,14 +14097,14 @@ Elseif ($Tautulli) {
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Season'
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$SeasonImage} Else {$global:posterurl})
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $SeasonImage } Else { $global:posterurl })
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -13880,7 +14137,7 @@ Elseif ($Tautulli) {
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -13974,7 +14231,7 @@ Elseif ($Tautulli) {
                                     $bullet = [char]0x2022
                                     $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
                                     $LocalAddOverlay = $AddTitleCardOverlay
-                                    $LocalAddBorder  = $AddTitleCardBorder
+                                    $LocalAddBorder = $AddTitleCardBorder
 
                                     if ($LibraryFolders -eq 'true') {
                                         $EpisodeImageoriginal = "$EntryDir\$global:FileNaming.jpg"
@@ -14060,13 +14317,14 @@ Elseif ($Tautulli) {
                                                 }
                                             }
                                             foreach ($ext in $allowedExtensions) {
-                                                $manualFile   = "$ManualTestPath$ext"
+                                                $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
 
                                                 if (Test-Path -LiteralPath $manualFile) {
                                                     $filePath = $manualFile
-                                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                                }
+                                                elseif (Test-Path -LiteralPath $templateFile) {
                                                     $filePath = $templateFile
                                                 }
 
@@ -14195,7 +14453,7 @@ Elseif ($Tautulli) {
                                                         if ($global:TempImagecopied -ne 'true') {
                                                             Copy-Item -LiteralPath $EpisodeImage -destination $EpisodeTempImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -14264,10 +14522,10 @@ Elseif ($Tautulli) {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                        '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                        '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                        '4K'            { $TitleCardoverlay = $4kTC }
-                                                                        '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                        '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                        '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                        '4K' { $TitleCardoverlay = $4kTC }
+                                                                        '1080p' { $TitleCardoverlay = $1080pTC }
                                                                         Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
                                                                 }
@@ -14412,7 +14670,7 @@ Elseif ($Tautulli) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -14486,12 +14744,12 @@ Elseif ($Tautulli) {
                                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                 # Try uploading, capturing the response in detail
                                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                            -Method Post `
-                                                                                            -Headers $extraPlexHeaders `
-                                                                                            -Body $fileContent `
-                                                                                            -ContentType 'application/octet-stream' `
-                                                                                            -SkipHttpErrorCheck `
-                                                                                            -ErrorAction Stop
+                                                                    -Method Post `
+                                                                    -Headers $extraPlexHeaders `
+                                                                    -Body $fileContent `
+                                                                    -ContentType 'application/octet-stream' `
+                                                                    -SkipHttpErrorCheck `
+                                                                    -ErrorAction Stop
 
                                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -14534,14 +14792,14 @@ Elseif ($Tautulli) {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'true' } Else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -14573,7 +14831,7 @@ Elseif ($Tautulli) {
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -14637,7 +14895,7 @@ Elseif ($Tautulli) {
                                     $bullet = [char]0x2022
                                     $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
                                     $LocalAddOverlay = $AddTitleCardOverlay
-                                    $LocalAddBorder  = $AddTitleCardBorder
+                                    $LocalAddBorder = $AddTitleCardBorder
 
                                     if ($LibraryFolders -eq 'true') {
                                         $EpisodeImageoriginal = "$EntryDir\$global:FileNaming.jpg"
@@ -14714,13 +14972,14 @@ Elseif ($Tautulli) {
                                                 }
                                             }
                                             foreach ($ext in $allowedExtensions) {
-                                                $manualFile   = "$ManualTestPath$ext"
+                                                $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
 
                                                 if (Test-Path -LiteralPath $manualFile) {
                                                     $filePath = $manualFile
-                                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                                }
+                                                elseif (Test-Path -LiteralPath $templateFile) {
                                                     $filePath = $templateFile
                                                 }
 
@@ -14753,7 +15012,7 @@ Elseif ($Tautulli) {
                                                         $global:posterurl = GetTMDBTitleCard
                                                         if (!$global:posterurl -or $global:Fallback -eq "TVDB") {
                                                             $global:posterurl = GetTVDBTitleCard
-                                                            if ($global:posterurl){
+                                                            if ($global:posterurl) {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
@@ -14822,7 +15081,7 @@ Elseif ($Tautulli) {
                                                         $global:posterurl = GetTVDBTitleCard
                                                         if (!$global:posterurl -or $global:Fallback -eq "TMDB") {
                                                             $global:posterurl = GetTMDBTitleCard
-                                                            if ($global:posterurl){
+                                                            if ($global:posterurl) {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
@@ -14893,7 +15152,7 @@ Elseif ($Tautulli) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -14946,10 +15205,10 @@ Elseif ($Tautulli) {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                    '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                    '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                    '4K'            { $TitleCardoverlay = $4kTC }
-                                                                    '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                    '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                    '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                    '4K' { $TitleCardoverlay = $4kTC }
+                                                                    '1080p' { $TitleCardoverlay = $1080pTC }
                                                                     Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
                                                             }
@@ -15092,7 +15351,7 @@ Elseif ($Tautulli) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -15166,12 +15425,12 @@ Elseif ($Tautulli) {
                                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                 # Try uploading, capturing the response in detail
                                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                            -Method Post `
-                                                                                            -Headers $extraPlexHeaders `
-                                                                                            -Body $fileContent `
-                                                                                            -ContentType 'application/octet-stream' `
-                                                                                            -SkipHttpErrorCheck `
-                                                                                            -ErrorAction Stop
+                                                                    -Method Post `
+                                                                    -Headers $extraPlexHeaders `
+                                                                    -Body $fileContent `
+                                                                    -ContentType 'application/octet-stream' `
+                                                                    -SkipHttpErrorCheck `
+                                                                    -ErrorAction Stop
 
                                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -15214,14 +15473,14 @@ Elseif ($Tautulli) {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'true' } Else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -15253,7 +15512,7 @@ Elseif ($Tautulli) {
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -15519,7 +15778,8 @@ Elseif ($ArrTrigger) {
 
                     if ($filteredShows) {
                         $shows = $filteredShows
-                    } else {
+                    }
+                    else {
                         Write-Entry -Message "Year mismatch ignored: Could not find '$seriesTitle' with year $seriesYear. Defaulting to first result." -Path $global:configLogging -Color Yellow -log Warning
                     }
                 }
@@ -15531,7 +15791,7 @@ Elseif ($ArrTrigger) {
                     Write-Entry -Message "Selected show: $($shows.title)" -Path $global:configLogging -Color Green -log Info
 
                     $contentquery = "Directory"
-                    $queryKey     = $shows.RatingKey
+                    $queryKey = $shows.RatingKey
                 }
                 else {
                     Write-Entry -Message "No valid show found (all matches were in excluded libraries)." -Path $global:configLogging -Color Green -log Info
@@ -15636,7 +15896,8 @@ Elseif ($ArrTrigger) {
 
                     if ($filteredmovies) {
                         $movies = $filteredmovies
-                    } else {
+                    }
+                    else {
                         Write-Entry -Message "Year mismatch ignored: Could not find '$movieTitle' with year $movieYear. Defaulting to first result." -Path $global:configLogging -Color Yellow -log Warning
                     }
                 }
@@ -15646,7 +15907,7 @@ Elseif ($ArrTrigger) {
                     $movies = $matchedMovie
                     Write-Entry -Message "Selected movie: $($movies.title)" -Path $global:configLogging -Color Green -log Info
                     $contentquery = "video"
-                    $queryKey     = $movies.RatingKey
+                    $queryKey = $movies.RatingKey
                 }
                 else {
                     # This only runs if NO movies passed the filter
@@ -15722,9 +15983,9 @@ Elseif ($ArrTrigger) {
 
                         # Grab the primary video stream to check for HDR
                         $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                        if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None'){
+                        if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None') {
                             Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
-                            if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
+                            if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
                                 $hdrType = 'DOVIHDR10'
                             }
                         }
@@ -15738,21 +15999,22 @@ Elseif ($ArrTrigger) {
 
                             switch -Regex ($hdrType) {
                                 # Check for Dolby Vision combinations
-                                'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                                'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                                'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                                '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+                                'DOVIWithEL' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10Plus' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                '^DOVI|^DolbyVision' { $Resolution = "$baseResolution DoVi"; break }
 
                                 # Check for standard HDR combinations
-                                '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
-                                '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10Plus' { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10' { $Resolution = "$baseResolution HDR10"; break }
 
                                 # If it's SDR or something unrecognized, just keep it simple
-                                'SDR'             { $Resolution = "$baseResolution"; break }
-                                default           { $Resolution = "$baseResolution"; break }
+                                'SDR' { $Resolution = "$baseResolution"; break }
+                                default { $Resolution = "$baseResolution"; break }
                             }
 
-                        } else {
+                        }
+                        else {
                             # For 1080p, 720p, or files without a VideoRangeType, just use the base name
                             $Resolution = $baseResolution
                         }
@@ -15849,21 +16111,22 @@ Elseif ($ArrTrigger) {
 
                             switch -Regex ($hdrType) {
                                 # Check for Dolby Vision combinations
-                                'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                                'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                                'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                                '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+                                'DOVIWithEL' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10Plus' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                'DOVI.*HDR10' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                                '^DOVI|^DolbyVision' { $Resolution = "$baseResolution DoVi"; break }
 
                                 # Check for standard HDR combinations
-                                '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
-                                '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10Plus' { $Resolution = "$baseResolution HDR10"; break }
+                                '^HDR10' { $Resolution = "$baseResolution HDR10"; break }
 
                                 # If it's SDR or something unrecognized, just keep it simple
-                                'SDR'             { $Resolution = "$baseResolution"; break }
-                                default           { $Resolution = "$baseResolution"; break }
+                                'SDR' { $Resolution = "$baseResolution"; break }
+                                default { $Resolution = "$baseResolution"; break }
                             }
 
-                        } else {
+                        }
+                        else {
                             # For 1080p, 720p, or files without a VideoRangeType, just use the base name
                             $Resolution = $baseResolution
                         }
@@ -16005,7 +16268,7 @@ Elseif ($ArrTrigger) {
 
                     if ($currentRange -and $currentRange -ne 'None') {
                         Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
-                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None'){
+                        if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None') {
                             Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         }
                         # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
@@ -16014,7 +16277,8 @@ Elseif ($ArrTrigger) {
                         }
 
                         $currentRange
-                    } else {
+                    }
+                    else {
                         "None"
                     }
                 }
@@ -16077,17 +16341,18 @@ Elseif ($ArrTrigger) {
                 if ($baseRes -eq "4K" -and $hdrType -ne "None") {
 
                     switch -Regex ($hdrType) {
-                        'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                        'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
-                        'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
-                        '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
-                        '^HDR10Plus'            { $finalRes = "$baseRes HDR10"; break }
-                        '^HDR10'                { $finalRes = "$baseRes HDR10"; break }
-                        'SDR'                   { $finalRes = "$baseRes"; break }
-                        default                 { $finalRes = "$baseRes"; break }
+                        'DOVIWithEL' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                        'DOVI.*HDR10Plus' { $finalRes = "$baseRes DoVi/HDR10"; break }
+                        'DOVI.*HDR10' { $finalRes = "$baseRes DoVi/HDR10"; break }
+                        '^DOVI|^DolbyVision' { $finalRes = "$baseRes DoVi"; break }
+                        '^HDR10Plus' { $finalRes = "$baseRes HDR10"; break }
+                        '^HDR10' { $finalRes = "$baseRes HDR10"; break }
+                        'SDR' { $finalRes = "$baseRes"; break }
+                        default { $finalRes = "$baseRes"; break }
                     }
 
-                } else {
+                }
+                else {
                     # Fallback for 1080p, 720p, etc.
                     $finalRes = $baseRes
                 }
@@ -16096,25 +16361,25 @@ Elseif ($ArrTrigger) {
             }
             # Create a custom object for each episode using the variables
             $FormattedData.Add([PSCustomObject]@{
-                'Library Name'                 = $data.'Library Name'
-                'Show Name'                    = $data.'Show Name'
-                'Show Original Name'           = $data.'Show Original Name'
-                'Library Language'             = $data.'Library Language'
-                'ShowID'                       = $data.'ShowID'
-                'SeasonId'                     = $data.'SeasonId'
-                'EpisodeIds'                   = $data.'EpisodeIds'
-                'Resolutions'                  = $Resolution -join ","
-                'tvdbid'                       = $data.'tvdbid'
-                'imdbid'                       = $data.'imdbid'
-                'tmdbid'                       = $data.'tmdbid'
-                'type'                         = $data.'type'
-                'Season Number'                = $data.'Season Number'
-                'SeasonName'                   = $data.'SeasonName'
-                'Episodes'                     = $data.'Episodes'
-                'Title'                        = $data.'Title'
-                'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
-                'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-            })
+                    'Library Name'                 = $data.'Library Name'
+                    'Show Name'                    = $data.'Show Name'
+                    'Show Original Name'           = $data.'Show Original Name'
+                    'Library Language'             = $data.'Library Language'
+                    'ShowID'                       = $data.'ShowID'
+                    'SeasonId'                     = $data.'SeasonId'
+                    'EpisodeIds'                   = $data.'EpisodeIds'
+                    'Resolutions'                  = $Resolution -join ","
+                    'tvdbid'                       = $data.'tvdbid'
+                    'imdbid'                       = $data.'imdbid'
+                    'tmdbid'                       = $data.'tmdbid'
+                    'type'                         = $data.'type'
+                    'Season Number'                = $data.'Season Number'
+                    'SeasonName'                   = $data.'SeasonName'
+                    'Episodes'                     = $data.'Episodes'
+                    'Title'                        = $data.'Title'
+                    'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
+                    'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
+                })
         }
 
         # Export the formatted data to CSV
@@ -16222,7 +16487,7 @@ Elseif ($ArrTrigger) {
 
                         $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                        if ($UseOriginalTitle -eq 'true'){
+                        if ($UseOriginalTitle -eq 'true') {
                             if ($entry.originalTitle -match $cjkPattern) {
                                 $Titletext = $entry.title
                             }
@@ -16320,7 +16585,7 @@ Elseif ($ArrTrigger) {
                                 $TakeLocal = $null
                                 $LocalAssetMissing = $null
                                 $LocalAddOverlay = $AddOverlay
-                                $LocalAddBorder  = $AddBorder
+                                $LocalAddBorder = $AddBorder
                                 foreach ($ext in $allowedExtensions) {
                                     $filePath = "$ManualTestPath$ext"
                                     if (Test-Path -LiteralPath $filePath) {
@@ -16436,7 +16701,7 @@ Elseif ($ArrTrigger) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                         }
-                                        if ($SkipLocalPosterTextAdd -eq 'true'){
+                                        if ($SkipLocalPosterTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -16511,10 +16776,10 @@ Elseif ($ArrTrigger) {
                                             if ($UsePosterResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                    '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                    '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                    '4K'            { $Posteroverlay = $4kposter }
-                                                    '1080p'         { $Posteroverlay = $1080pPoster }
+                                                    '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                    '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                    '4K' { $Posteroverlay = $4kposter }
+                                                    '1080p' { $Posteroverlay = $1080pPoster }
                                                     Default { $Posteroverlay = $DefaultPosteroverlay }
                                                 }
                                             }
@@ -16603,15 +16868,15 @@ Elseif ($ArrTrigger) {
                                                     if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                         Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                     }
-                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                         $ApplyTextInsteadOfLogo = 'true'
                                                         Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                         $global:IsFallback = $true
                                                     }
-                                                    ElseIf ($global:LogoUrl){
+                                                    ElseIf ($global:LogoUrl) {
                                                         $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                         if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                         try {
                                                             $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                         }
@@ -16639,7 +16904,8 @@ Elseif ($ArrTrigger) {
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                        } else {
+                                                        }
+                                                        else {
                                                             $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                         }
                                                         Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -16650,7 +16916,7 @@ Elseif ($ArrTrigger) {
                                                         Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                     }
                                                 }
-                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                     if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                         if ($global:direction -eq "RTL") {
                                                             $fontImagemagick = $RTLfontImagemagick
@@ -16704,24 +16970,24 @@ Elseif ($ArrTrigger) {
                                                             $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                             $superSize = [int]($optimalFontSize * 0.55)
-                                                            $yNudge    = [int]($optimalFontSize * 0.3)
-                                                            $gap       = 20
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
 
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                             }
                                                             elseif ($supChar -ne "") {
                                                                 # SUPERSCRIPT ONLY MODE (No Stroke)
                                                                 $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                    ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                             }
                                                             else {
                                                                 # STANDARD MODE (Normal caption logic)
@@ -16780,14 +17046,14 @@ Elseif ($ArrTrigger) {
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie'
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -16821,7 +17087,7 @@ Elseif ($ArrTrigger) {
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                    $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -16928,7 +17194,7 @@ Elseif ($ArrTrigger) {
                                 $TakeLocal = $null
                                 $LocalAssetMissing = $null
                                 $LocalAddOverlay = $AddBackgroundOverlay
-                                $LocalAddBorder  = $AddBackgroundBorder
+                                $LocalAddBorder = $AddBackgroundBorder
                                 foreach ($ext in $allowedExtensions) {
                                     $filePath = "$ManualTestPath$ext"
                                     if (Test-Path -LiteralPath $filePath) {
@@ -17020,7 +17286,7 @@ Elseif ($ArrTrigger) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $backgroundImage | Out-Null
                                         }
-                                        if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                        if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $backgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -17095,11 +17361,11 @@ Elseif ($ArrTrigger) {
                                             if ($UseBackgroundResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                    '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                    '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                    '4K'            { $backgroundoverlay = $4kBackground }
-                                                    '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                    Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                    '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                    '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                    '4K' { $backgroundoverlay = $4kBackground }
+                                                    '1080p' { $backgroundoverlay = $1080pBackground }
+                                                    Default { $backgroundoverlay = $Defaultbackgroundoverlay }
                                                 }
                                             }
                                             Else {
@@ -17187,15 +17453,15 @@ Elseif ($ArrTrigger) {
                                                     if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                         Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                     }
-                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                         $ApplyTextInsteadOfLogo = 'true'
                                                         Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                         $global:IsFallback = $true
                                                     }
-                                                    ElseIf ($global:LogoUrl){
+                                                    ElseIf ($global:LogoUrl) {
                                                         $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                         if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                         try {
                                                             $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                         }
@@ -17224,7 +17490,8 @@ Elseif ($ArrTrigger) {
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                             $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                        } else {
+                                                        }
+                                                        else {
                                                             $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                         }
                                                         Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -17235,7 +17502,7 @@ Elseif ($ArrTrigger) {
                                                         Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                     }
                                                 }
-                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                     if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                         if ($global:direction -eq "RTL") {
                                                             $backgroundfontImagemagick = $RTLfontImagemagick
@@ -17289,24 +17556,24 @@ Elseif ($ArrTrigger) {
                                                             $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                             $superSize = [int]($optimalFontSize * 0.55)
-                                                            $yNudge    = [int]($optimalFontSize * 0.3)
-                                                            $gap       = 20
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
 
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                             }
                                                             elseif ($supChar -ne "") {
                                                                 # SUPERSCRIPT ONLY MODE (No Stroke)
                                                                 $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                    ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                             }
                                                             else {
                                                                 # STANDARD MODE (Normal caption logic)
@@ -17366,14 +17633,14 @@ Elseif ($ArrTrigger) {
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie Background'
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -17406,7 +17673,7 @@ Elseif ($ArrTrigger) {
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -17460,7 +17727,7 @@ Elseif ($ArrTrigger) {
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -17518,7 +17785,7 @@ Elseif ($ArrTrigger) {
                     $TakeLocal = $null
                     $LocalAssetMissing = $null
                     $LocalAddOverlay = $AddOverlay
-                    $LocalAddBorder  = $AddBorder
+                    $LocalAddBorder = $AddBorder
 
                     # Determine the language direction
                     $global:langCode = $entry.'Library Language'
@@ -17526,7 +17793,7 @@ Elseif ($ArrTrigger) {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($UseOriginalTitle -eq 'true'){
+                    if ($UseOriginalTitle -eq 'true') {
                         if ($entry.originalTitle -match $cjkPattern) {
                             $Titletext = $entry.title
                         }
@@ -17695,7 +17962,7 @@ Elseif ($ArrTrigger) {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                     }
-                                    if ($SkipLocalPosterTextAdd -eq 'true'){
+                                    if ($SkipLocalPosterTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -17770,10 +18037,10 @@ Elseif ($ArrTrigger) {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                '4K'            { $Posteroverlay = $4kposter }
-                                                '1080p'         { $Posteroverlay = $1080pPoster }
+                                                '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                '4K' { $Posteroverlay = $4kposter }
+                                                '1080p' { $Posteroverlay = $1080pPoster }
                                                 Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                             }
                                         }
@@ -17862,15 +18129,15 @@ Elseif ($ArrTrigger) {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -17899,7 +18166,8 @@ Elseif ($ArrTrigger) {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -17910,7 +18178,7 @@ Elseif ($ArrTrigger) {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                 if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $fontImagemagick = $RTLfontImagemagick
@@ -17964,24 +18232,24 @@ Elseif ($ArrTrigger) {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -18039,14 +18307,14 @@ Elseif ($ArrTrigger) {
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show'
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -18079,7 +18347,7 @@ Elseif ($ArrTrigger) {
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -18193,7 +18461,7 @@ Elseif ($ArrTrigger) {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $LocalAddOverlay = $AddBackgroundOverlay
-                            $LocalAddBorder  = $AddBackgroundBorder
+                            $LocalAddBorder = $AddBackgroundBorder
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
@@ -18288,7 +18556,7 @@ Elseif ($ArrTrigger) {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $backgroundImage | Out-Null
                                     }
-                                    if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                    if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $backgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -18363,11 +18631,11 @@ Elseif ($ArrTrigger) {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                '4K'            { $backgroundoverlay = $4kBackground }
-                                                '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
+                                                '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                '4K' { $backgroundoverlay = $4kBackground }
+                                                '1080p' { $backgroundoverlay = $1080pBackground }
+                                                Default { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                             }
                                         }
                                         Else {
@@ -18455,15 +18723,15 @@ Elseif ($ArrTrigger) {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -18492,7 +18760,8 @@ Elseif ($ArrTrigger) {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -18503,7 +18772,7 @@ Elseif ($ArrTrigger) {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                 if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $backgroundfontImagemagick = $RTLfontImagemagick
@@ -18557,24 +18826,24 @@ Elseif ($ArrTrigger) {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -18634,14 +18903,14 @@ Elseif ($ArrTrigger) {
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show Background'
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -18674,7 +18943,7 @@ Elseif ($ArrTrigger) {
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -18744,19 +19013,19 @@ Elseif ($ArrTrigger) {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $LocalAddOverlay = $AddSeasonOverlay
-                            $LocalAddBorder  = $AddSeasonBorder
+                            $LocalAddBorder = $AddSeasonBorder
 
                             if ($season.tmdbid -eq $entry.tmdbid -or $season.tvdbid -eq $entry.tvdbid) {
                                 $global:seasonId = $season.SeasonId
                                 $global:seasonNames = $season.SeasonName
                                 $global:SeasonNumber = $season."Season Number"
                                 if ($SeasonfontAllCaps -eq 'true') {
-                                    if ($OverrideSeasonName -eq 'true'){
-                                        if ($global:SeasonNumber -eq '0'){
+                                    if ($OverrideSeasonName -eq 'true') {
+                                        if ($global:SeasonNumber -eq '0') {
                                             $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                         }
                                         Else {
-                                            $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:SeasonNumber
+                                            $global:seasonTitle = $SeasonOverrideText.ToUpper() + " " + $global:SeasonNumber
                                         }
                                     }
                                     Else {
@@ -18764,12 +19033,12 @@ Elseif ($ArrTrigger) {
                                     }
                                 }
                                 Else {
-                                    if ($OverrideSeasonName -eq 'true'){
-                                        if ($global:SeasonNumber -eq '0'){
+                                    if ($OverrideSeasonName -eq 'true') {
+                                        if ($global:SeasonNumber -eq '0') {
                                             $global:seasonTitle = $SpecialSeasonOverrideText
                                         }
                                         Else {
-                                            $global:seasonTitle = $SeasonOverrideText+ " " + $global:SeasonNumber
+                                            $global:seasonTitle = $SeasonOverrideText + " " + $global:SeasonNumber
                                         }
                                     }
                                     Else {
@@ -18842,13 +19111,14 @@ Elseif ($ArrTrigger) {
                                 $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                                 if (($FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
                                     foreach ($ext in $allowedExtensions) {
-                                        $manualFile   = "$ManualTestPath$ext"
+                                        $manualFile = "$ManualTestPath$ext"
                                         $templateFile = "$Templatetestpath$ext"
                                         $filePath = $null
 
                                         if (Test-Path -LiteralPath $manualFile) {
                                             $filePath = $manualFile
-                                        } elseif (Test-Path -LiteralPath $templateFile) {
+                                        }
+                                        elseif (Test-Path -LiteralPath $templateFile) {
                                             $filePath = $templateFile
                                         }
 
@@ -19045,7 +19315,7 @@ Elseif ($ArrTrigger) {
                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                 Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage | Out-Null
                                             }
-                                            if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                            if ($SkipLocalSeasonTextAdd -eq 'true') {
                                                 $SkippingText = 'true'
                                             }
                                             Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -19200,16 +19470,40 @@ Elseif ($ArrTrigger) {
                                                         if ($AddShowTitletoSeason -eq 'true') {
                                                             $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                             $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                             if ($global:IsTruncated -ne $true) {
                                                                 Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                                 Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                                # Season Part
-                                                                # Add Stroke
-                                                                if ($AddSeasonTextStroke -eq 'true') {
-                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                                # Season Text Part
+                                                                $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                                $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                                $superSize = [int]($optimalFontSize * 0.55)
+                                                                $yNudge = [int]($optimalFontSize * 0.3)
+                                                                $gap = 20
+
+                                                                if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                                    $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                    "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                                 }
-                                                                Else {
-                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                elseif ($supChar -ne "") {
+                                                                    $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                    ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                                }
+                                                                else {
+                                                                    if ($AddSeasonTextStroke -eq 'true') {
+                                                                        $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    Else {
+                                                                        $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
                                                                 }
 
                                                                 Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -19217,19 +19511,110 @@ Elseif ($ArrTrigger) {
                                                                 $logEntry | Out-File $magickLog -Append
                                                                 InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                                # Show Part
-                                                                # Add Stroke
-                                                                if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                                }
-                                                                Else {
-                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                # Show Part (Logo vs Text)
+                                                                $ApplyTextInsteadOfLogo = $null
+
+                                                                if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                                    $global:LogoUrl = $null
+                                                                    $global:LogoLanguage = $null
+                                                                    $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                                    $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                                    foreach ($provider in $searchOrder) {
+                                                                        if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                        switch ($provider) {
+                                                                            'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                            'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                            'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                        }
+                                                                    }
+
+                                                                    if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                        $global:IsFallback = $false
+                                                                        switch ($global:FavProvider) {
+                                                                            'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                            'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                            'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                        }
+                                                                        if ($global:IsFallback) {
+                                                                            Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                        }
+                                                                    }
+
+                                                                    if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                        Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                                    }
+
+                                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                        $ApplyTextInsteadOfLogo = 'true'
+                                                                        Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                        $global:IsFallback = $true
+                                                                    }
+                                                                    ElseIf ($global:LogoUrl) {
+                                                                        $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                        if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                        try {
+                                                                            $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                        }
+                                                                        catch {
+                                                                            if ($_.Exception.Response) {
+                                                                                $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                            }
+                                                                            else {
+                                                                                $statusCode = $_.Exception.Message
+                                                                            }
+                                                                            Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                        }
+
+                                                                        $colorEffect = ""
+                                                                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                            if ([double]$_chromaStd -lt 0.25) {
+                                                                                $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                                Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                            }
+                                                                            else {
+                                                                                $colorEffect = ""
+                                                                                Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                            }
+                                                                        }
+
+                                                                        if ($urlExtension -match "(?i)\.svg") {
+                                                                            Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                        }
+                                                                        else {
+                                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                        }
+
+                                                                        Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                        $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                        $logEntry | Out-File $magickLog -Append
+                                                                        InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                        Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                                    }
                                                                 }
 
-                                                                Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                                $logEntry | Out-File $magickLog -Append
-                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                                # Fallback Text Logic
+                                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                                    if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    Else {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+
+                                                                    Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                                    $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                                }
                                                             }
                                                         }
                                                         Else {
@@ -19295,14 +19680,14 @@ Elseif ($ArrTrigger) {
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Season'
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$SeasonImage} Else {$global:posterurl})
-                                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $SeasonImage } Else { $global:posterurl })
+                                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -19335,7 +19720,7 @@ Elseif ($ArrTrigger) {
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -19427,7 +19812,7 @@ Elseif ($ArrTrigger) {
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
                                         $LocalAddOverlay = $AddTitleCardOverlay
-                                        $LocalAddBorder  = $AddTitleCardBorder
+                                        $LocalAddBorder = $AddTitleCardBorder
                                         $global:EPTitle = $($global:titles[$i].Trim())
                                         $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
@@ -19511,13 +19896,14 @@ Elseif ($ArrTrigger) {
                                         Else {
                                             if (($FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
                                                 foreach ($ext in $allowedExtensions) {
-                                                    $manualFile   = "$ManualTestPath$ext"
+                                                    $manualFile = "$ManualTestPath$ext"
                                                     $templateFile = "$Templatetestpath$ext"
                                                     $filePath = $null
 
                                                     if (Test-Path -LiteralPath $manualFile) {
                                                         $filePath = $manualFile
-                                                    } elseif (Test-Path -LiteralPath $templateFile) {
+                                                    }
+                                                    elseif (Test-Path -LiteralPath $templateFile) {
                                                         $filePath = $templateFile
                                                     }
 
@@ -19620,7 +20006,7 @@ Elseif ($ArrTrigger) {
                                                         if ($global:TempImagecopied -ne 'true') {
                                                             Copy-Item -LiteralPath $EpisodeImage -destination $EpisodeTempImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -19684,10 +20070,10 @@ Elseif ($ArrTrigger) {
                                                                     if ($UseTCResolutionOverlays -eq 'true') {
                                                                         switch ($global:EPResolution) {
                                                                             '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                            '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                            '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                            '4K'            { $TitleCardoverlay = $4kTC }
-                                                                            '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                            '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                            '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                            '4K' { $TitleCardoverlay = $4kTC }
+                                                                            '1080p' { $TitleCardoverlay = $1080pTC }
                                                                             Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                         }
                                                                     }
@@ -19868,14 +20254,14 @@ Elseif ($ArrTrigger) {
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'True' } Else { 'False' })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -19907,7 +20293,7 @@ Elseif ($ArrTrigger) {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -19969,7 +20355,7 @@ Elseif ($ArrTrigger) {
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
                                         $LocalAddOverlay = $AddTitleCardOverlay
-                                        $LocalAddBorder  = $AddTitleCardBorder
+                                        $LocalAddBorder = $AddTitleCardBorder
                                         $global:EPTitle = $($global:titles[$i].Trim())
                                         $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                         $global:episodenumber = $($global:episode_numbers[$i].Trim())
@@ -20043,13 +20429,14 @@ Elseif ($ArrTrigger) {
                                         Else {
                                             if (($FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
                                                 foreach ($ext in $allowedExtensions) {
-                                                    $manualFile   = "$ManualTestPath$ext"
+                                                    $manualFile = "$ManualTestPath$ext"
                                                     $templateFile = "$Templatetestpath$ext"
                                                     $filePath = $null
 
                                                     if (Test-Path -LiteralPath $manualFile) {
                                                         $filePath = $manualFile
-                                                    } elseif (Test-Path -LiteralPath $templateFile) {
+                                                    }
+                                                    elseif (Test-Path -LiteralPath $templateFile) {
                                                         $filePath = $templateFile
                                                     }
 
@@ -20083,7 +20470,7 @@ Elseif ($ArrTrigger) {
                                                             $global:posterurl = GetTMDBTitleCard
                                                             if (!$global:posterurl -or $global:Fallback -eq "TVDB") {
                                                                 $global:posterurl = GetTVDBTitleCard
-                                                                if ($global:posterurl){
+                                                                if ($global:posterurl) {
                                                                     $global:IsFallback = $true
                                                                 }
                                                             }
@@ -20140,7 +20527,7 @@ Elseif ($ArrTrigger) {
                                                             $global:posterurl = GetTVDBTitleCard
                                                             if (!$global:posterurl -or $global:Fallback -eq "TMDB") {
                                                                 $global:posterurl = GetTMDBTitleCard
-                                                                if ($global:posterurl){
+                                                                if ($global:posterurl) {
                                                                     $global:IsFallback = $true
                                                                 }
                                                             }
@@ -20197,7 +20584,7 @@ Elseif ($ArrTrigger) {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -20244,10 +20631,10 @@ Elseif ($ArrTrigger) {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                        '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                        '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                        '4K'            { $TitleCardoverlay = $4kTC }
-                                                                        '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                        '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                        '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                        '4K' { $TitleCardoverlay = $4kTC }
+                                                                        '1080p' { $TitleCardoverlay = $1080pTC }
                                                                         Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
                                                                 }
@@ -20427,14 +20814,14 @@ Elseif ($ArrTrigger) {
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'True' } Else { 'False' })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -20466,7 +20853,7 @@ Elseif ($ArrTrigger) {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -20967,7 +21354,7 @@ Elseif ($ArrTrigger) {
 
                         $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                        if ($UseOriginalTitle -eq 'true'){
+                        if ($UseOriginalTitle -eq 'true') {
                             if ($entry.originalTitle -match $cjkPattern) {
                                 $Titletext = $entry.title
                             }
@@ -21065,7 +21452,7 @@ Elseif ($ArrTrigger) {
                                 $LocalAssetMissing = $null
                                 $Arturl = $null
                                 $LocalAddOverlay = $AddOverlay
-                                $LocalAddBorder  = $AddBorder
+                                $LocalAddBorder = $AddBorder
 
                                 if ($entry.PlexPosterUrl -like "/library/*") {
                                     if ($PlexToken) {
@@ -21201,7 +21588,7 @@ Elseif ($ArrTrigger) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                         }
-                                        if ($SkipLocalPosterTextAdd -eq 'true'){
+                                        if ($SkipLocalPosterTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -21285,10 +21672,10 @@ Elseif ($ArrTrigger) {
                                             if ($UsePosterResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                    '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                    '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                    '4K'            { $Posteroverlay = $4kposter }
-                                                    '1080p'         { $Posteroverlay = $1080pPoster }
+                                                    '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                    '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                    '4K' { $Posteroverlay = $4kposter }
+                                                    '1080p' { $Posteroverlay = $1080pPoster }
                                                     Default { $Posteroverlay = $DefaultPosteroverlay }
                                                 }
                                             }
@@ -21377,15 +21764,15 @@ Elseif ($ArrTrigger) {
                                                     if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                         Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                     }
-                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                         $ApplyTextInsteadOfLogo = 'true'
                                                         Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                         $global:IsFallback = $true
                                                     }
-                                                    ElseIf ($global:LogoUrl){
+                                                    ElseIf ($global:LogoUrl) {
                                                         $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                         if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                         try {
                                                             $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                         }
@@ -21414,7 +21801,8 @@ Elseif ($ArrTrigger) {
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                        } else {
+                                                        }
+                                                        else {
                                                             $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                         }
                                                         Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -21425,7 +21813,7 @@ Elseif ($ArrTrigger) {
                                                         Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                     }
                                                 }
-                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                     if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                         if ($global:direction -eq "RTL") {
                                                             $fontImagemagick = $RTLfontImagemagick
@@ -21480,24 +21868,24 @@ Elseif ($ArrTrigger) {
                                                             $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                             $superSize = [int]($optimalFontSize * 0.55)
-                                                            $yNudge    = [int]($optimalFontSize * 0.3)
-                                                            $gap       = 20
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
 
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                             }
                                                             elseif ($supChar -ne "") {
                                                                 # SUPERSCRIPT ONLY MODE (No Stroke)
                                                                 $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                    ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                             }
                                                             else {
                                                                 # STANDARD MODE (Normal caption logic)
@@ -21547,12 +21935,12 @@ Elseif ($ArrTrigger) {
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        -Method Post `
+                                                        -Headers $extraPlexHeaders `
+                                                        -Body $fileContent `
+                                                        -ContentType 'application/octet-stream' `
+                                                        -SkipHttpErrorCheck `
+                                                        -ErrorAction Stop
 
                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -21594,14 +21982,14 @@ Elseif ($ArrTrigger) {
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie'
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                            $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                             $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -21635,7 +22023,7 @@ Elseif ($ArrTrigger) {
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                    $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -21736,7 +22124,7 @@ Elseif ($ArrTrigger) {
                                 $LocalAssetMissing = $null
                                 $Arturl = $null
                                 $LocalAddOverlay = $AddBackgroundOverlay
-                                $LocalAddBorder  = $AddBackgroundBorder
+                                $LocalAddBorder = $AddBackgroundBorder
 
                                 if ($entry.PlexBackgroundUrl -like "/library/*") {
                                     if ($PlexToken) {
@@ -21846,7 +22234,7 @@ Elseif ($ArrTrigger) {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $BackgroundImage | Out-Null
                                         }
-                                        if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                        if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $BackgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -21930,11 +22318,11 @@ Elseif ($ArrTrigger) {
                                             if ($UseBackgroundResolutionOverlays -eq 'true') {
                                                 switch ($entry.Resolution) {
                                                     '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                    '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                    '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                    '4K'            { $backgroundoverlay = $4kBackground }
-                                                    '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                    Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                    '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                    '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                    '4K' { $backgroundoverlay = $4kBackground }
+                                                    '1080p' { $backgroundoverlay = $1080pBackground }
+                                                    Default { $backgroundoverlay = $Defaultbackgroundoverlay }
                                                 }
                                             }
                                             Else {
@@ -22022,15 +22410,15 @@ Elseif ($ArrTrigger) {
                                                     if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                         Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                     }
-                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                    if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                         $ApplyTextInsteadOfLogo = 'true'
                                                         Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                         $global:IsFallback = $true
                                                     }
-                                                    ElseIf ($global:LogoUrl){
+                                                    ElseIf ($global:LogoUrl) {
                                                         $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                         if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                        $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                         try {
                                                             $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                         }
@@ -22059,7 +22447,8 @@ Elseif ($ArrTrigger) {
                                                         if ($urlExtension -match "(?i)\.svg") {
                                                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                             $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                        } else {
+                                                        }
+                                                        else {
                                                             $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                         }
                                                         Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -22070,7 +22459,7 @@ Elseif ($ArrTrigger) {
                                                         Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                     }
                                                 }
-                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                                if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                     if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                         if ($global:direction -eq "RTL") {
                                                             $backgroundfontImagemagick = $RTLfontImagemagick
@@ -22125,24 +22514,24 @@ Elseif ($ArrTrigger) {
                                                             $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                             $superSize = [int]($optimalFontSize * 0.55)
-                                                            $yNudge    = [int]($optimalFontSize * 0.3)
-                                                            $gap       = 20
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
 
                                                             if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                                 # SUPERSCRIPT + STROKE MODE
                                                                 $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                    "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                             }
                                                             elseif ($supChar -ne "") {
                                                                 # SUPERSCRIPT ONLY MODE (No Stroke)
                                                                 $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                    "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                    ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                             }
                                                             else {
                                                                 # STANDARD MODE (Normal caption logic)
@@ -22192,12 +22581,12 @@ Elseif ($ArrTrigger) {
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        -Method Post `
+                                                        -Headers $extraPlexHeaders `
+                                                        -Body $fileContent `
+                                                        -ContentType 'application/octet-stream' `
+                                                        -SkipHttpErrorCheck `
+                                                        -ErrorAction Stop
 
                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -22240,14 +22629,14 @@ Elseif ($ArrTrigger) {
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie Background'
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                            $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                             $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -22280,7 +22669,7 @@ Elseif ($ArrTrigger) {
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -22327,7 +22716,7 @@ Elseif ($ArrTrigger) {
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                    $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                     $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -22389,7 +22778,7 @@ Elseif ($ArrTrigger) {
                     $TakeLocal = $null
                     $LocalAssetMissing = $null
                     $LocalAddOverlay = $AddOverlay
-                    $LocalAddBorder  = $AddBorder
+                    $LocalAddBorder = $AddBorder
 
                     # Determine the language direction
                     $global:langCode = $entry.'Library Language'
@@ -22397,7 +22786,7 @@ Elseif ($ArrTrigger) {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($UseOriginalTitle -eq 'true'){
+                    if ($UseOriginalTitle -eq 'true') {
                         if ($entry.originalTitle -match $cjkPattern) {
                             $Titletext = $entry.title
                         }
@@ -22589,7 +22978,7 @@ Elseif ($ArrTrigger) {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                     }
-                                    if ($SkipLocalPosterTextAdd -eq 'true'){
+                                    if ($SkipLocalPosterTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -22673,11 +23062,11 @@ Elseif ($ArrTrigger) {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                '4K'            { $Posteroverlay = $4kposter }
-                                                '1080p'         { $Posteroverlay = $1080pPoster }
-                                                Default { $Posteroverlay = $DefaultShowPosteroverlay  }
+                                                '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                '4K' { $Posteroverlay = $4kposter }
+                                                '1080p' { $Posteroverlay = $1080pPoster }
+                                                Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                             }
                                         }
                                         Else {
@@ -22765,15 +23154,15 @@ Elseif ($ArrTrigger) {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -22802,7 +23191,8 @@ Elseif ($ArrTrigger) {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -22813,7 +23203,7 @@ Elseif ($ArrTrigger) {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                 if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $fontImagemagick = $RTLfontImagemagick
@@ -22868,24 +23258,24 @@ Elseif ($ArrTrigger) {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -22935,12 +23325,12 @@ Elseif ($ArrTrigger) {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -22982,14 +23372,14 @@ Elseif ($ArrTrigger) {
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show'
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                        $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -23022,7 +23412,7 @@ Elseif ($ArrTrigger) {
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -23133,7 +23523,7 @@ Elseif ($ArrTrigger) {
                             $LocalAssetMissing = $null
                             $Arturl = $null
                             $LocalAddOverlay = $AddBackgroundOverlay
-                            $LocalAddBorder  = $AddBackgroundBorder
+                            $LocalAddBorder = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -23245,7 +23635,7 @@ Elseif ($ArrTrigger) {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $backgroundImage | Out-Null
                                     }
-                                    if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                    if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $backgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -23329,11 +23719,11 @@ Elseif ($ArrTrigger) {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                '4K'            { $backgroundoverlay = $4kBackground }
-                                                '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
+                                                '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                '4K' { $backgroundoverlay = $4kBackground }
+                                                '1080p' { $backgroundoverlay = $1080pBackground }
+                                                Default { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                             }
                                         }
                                         Else {
@@ -23421,15 +23811,15 @@ Elseif ($ArrTrigger) {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -23458,7 +23848,8 @@ Elseif ($ArrTrigger) {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -23469,7 +23860,7 @@ Elseif ($ArrTrigger) {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                 if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $backgroundfontImagemagick = $RTLfontImagemagick
@@ -23524,24 +23915,24 @@ Elseif ($ArrTrigger) {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -23596,12 +23987,12 @@ Elseif ($ArrTrigger) {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -23644,14 +24035,14 @@ Elseif ($ArrTrigger) {
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show Background'
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                        $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -23684,7 +24075,7 @@ Elseif ($ArrTrigger) {
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -23749,15 +24140,15 @@ Elseif ($ArrTrigger) {
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $LocalAddOverlay = $AddSeasonOverlay
-                            $LocalAddBorder  = $AddSeasonBorder
+                            $LocalAddBorder = $AddSeasonBorder
 
                             if ($SeasonfontAllCaps -eq 'true') {
-                                if ($OverrideSeasonName -eq 'true'){
-                                    if ($global:seasonNumbers[$i] -eq '0'){
+                                if ($OverrideSeasonName -eq 'true') {
+                                    if ($global:seasonNumbers[$i] -eq '0') {
                                         $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:seasonNumbers[$i]
+                                        $global:seasonTitle = $SeasonOverrideText.ToUpper() + " " + $global:seasonNumbers[$i]
                                     }
                                 }
                                 Else {
@@ -23765,12 +24156,12 @@ Elseif ($ArrTrigger) {
                                 }
                             }
                             Else {
-                                if ($OverrideSeasonName -eq 'true'){
-                                    if ($global:seasonNumbers[$i] -eq '0'){
+                                if ($OverrideSeasonName -eq 'true') {
+                                    if ($global:seasonNumbers[$i] -eq '0') {
                                         $global:seasonTitle = $SpecialSeasonOverrideText
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText+ " " + $global:seasonNumbers[$i]
+                                        $global:seasonTitle = $SeasonOverrideText + " " + $global:seasonNumbers[$i]
                                     }
                                 }
                                 Else {
@@ -23846,13 +24237,14 @@ Elseif ($ArrTrigger) {
                                     }
                                 }
                                 foreach ($ext in $allowedExtensions) {
-                                    $manualFile   = "$ManualTestPath$ext"
+                                    $manualFile = "$ManualTestPath$ext"
                                     $templateFile = "$Templatetestpath$ext"
                                     $filePath = $null
 
                                     if (Test-Path -LiteralPath $manualFile) {
                                         $filePath = $manualFile
-                                    } elseif (Test-Path -LiteralPath $templateFile) {
+                                    }
+                                    elseif (Test-Path -LiteralPath $templateFile) {
                                         $filePath = $templateFile
                                     }
 
@@ -24063,7 +24455,7 @@ Elseif ($ArrTrigger) {
                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                 Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage | Out-Null
                                             }
-                                            if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                            if ($SkipLocalSeasonTextAdd -eq 'true') {
                                                 $SkippingText = 'true'
                                             }
                                             Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -24224,16 +24616,40 @@ Elseif ($ArrTrigger) {
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                         if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                            # Season Part
-                                                            # Add Stroke
-                                                            if ($AddSeasonTextStroke -eq 'true') {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                            # Season Text Part
+                                                            $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                            $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                            $superSize = [int]($optimalFontSize * 0.55)
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
+
+                                                            if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                             }
-                                                            Else {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            elseif ($supChar -ne "") {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                            }
+                                                            else {
+                                                                if ($AddSeasonTextStroke -eq 'true') {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
                                                             }
 
                                                             Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -24241,19 +24657,110 @@ Elseif ($ArrTrigger) {
                                                             $logEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                            # Show Part
-                                                            # Add Stroke
-                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                            }
-                                                            Else {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            # Show Part (Logo vs Text)
+                                                            $ApplyTextInsteadOfLogo = $null
+
+                                                            if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                                $global:LogoUrl = $null
+                                                                $global:LogoLanguage = $null
+                                                                $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                                $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                                foreach ($provider in $searchOrder) {
+                                                                    if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                    switch ($provider) {
+                                                                        'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                        'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                        'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                    }
+                                                                }
+
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    $global:IsFallback = $false
+                                                                    switch ($global:FavProvider) {
+                                                                        'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                        'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                        'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                    }
+                                                                    if ($global:IsFallback) {
+                                                                        Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                    }
+                                                                }
+
+                                                                if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                                }
+
+                                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                    $ApplyTextInsteadOfLogo = 'true'
+                                                                    Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                    $global:IsFallback = $true
+                                                                }
+                                                                ElseIf ($global:LogoUrl) {
+                                                                    $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                    if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                    try {
+                                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                    }
+                                                                    catch {
+                                                                        if ($_.Exception.Response) {
+                                                                            $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                        }
+                                                                        else {
+                                                                            $statusCode = $_.Exception.Message
+                                                                        }
+                                                                        Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                    }
+
+                                                                    $colorEffect = ""
+                                                                    if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                        if ([double]$_chromaStd -lt 0.25) {
+                                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                        }
+                                                                        else {
+                                                                            $colorEffect = ""
+                                                                            Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                        }
+                                                                    }
+
+                                                                    if ($urlExtension -match "(?i)\.svg") {
+                                                                        Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    else {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+
+                                                                    Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                    $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                    Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                                }
                                                             }
 
-                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                            $logEntry | Out-File $magickLog -Append
-                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            # Fallback Text Logic
+                                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                                if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            }
                                                         }
                                                     }
                                                     Else {
@@ -24283,7 +24790,7 @@ Elseif ($ArrTrigger) {
                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                 Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage | Out-Null
                                             }
-                                            if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                            if ($SkipLocalSeasonTextAdd -eq 'true') {
                                                 $SkippingText = 'true'
                                             }
                                             Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -24369,12 +24876,12 @@ Elseif ($ArrTrigger) {
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        -Method Post `
+                                                        -Headers $extraPlexHeaders `
+                                                        -Body $fileContent `
+                                                        -ContentType 'application/octet-stream' `
+                                                        -SkipHttpErrorCheck `
+                                                        -ErrorAction Stop
 
                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -24417,14 +24924,14 @@ Elseif ($ArrTrigger) {
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Season'
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$SeasonImage} Else {$global:posterurl})
-                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $SeasonImage } Else { $global:posterurl })
+                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -24457,7 +24964,7 @@ Elseif ($ArrTrigger) {
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                    $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -24545,7 +25052,7 @@ Elseif ($ArrTrigger) {
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
                                         $LocalAddOverlay = $AddTitleCardOverlay
-                                        $LocalAddBorder  = $AddTitleCardBorder
+                                        $LocalAddBorder = $AddTitleCardBorder
                                         $global:PlexTitleCardUrl = $entry.PlexBackgroundUrl
                                         $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                         $global:EPTitle = $($global:titles[$i].Trim())
@@ -24640,13 +25147,14 @@ Elseif ($ArrTrigger) {
                                                     }
                                                 }
                                                 foreach ($ext in $allowedExtensions) {
-                                                    $manualFile   = "$ManualTestPath$ext"
+                                                    $manualFile = "$ManualTestPath$ext"
                                                     $templateFile = "$Templatetestpath$ext"
                                                     $filePath = $null
 
                                                     if (Test-Path -LiteralPath $manualFile) {
                                                         $filePath = $manualFile
-                                                    } elseif (Test-Path -LiteralPath $templateFile) {
+                                                    }
+                                                    elseif (Test-Path -LiteralPath $templateFile) {
                                                         $filePath = $templateFile
                                                     }
 
@@ -24775,7 +25283,7 @@ Elseif ($ArrTrigger) {
                                                             if ($global:TempImagecopied -ne 'true') {
                                                                 Copy-Item -LiteralPath $EpisodeImage -destination $EpisodeTempImage | Out-Null
                                                             }
-                                                            if ($SkipLocalTCTextAdd -eq 'true'){
+                                                            if ($SkipLocalTCTextAdd -eq 'true') {
                                                                 $SkippingText = 'true'
                                                             }
                                                             Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -24844,10 +25352,10 @@ Elseif ($ArrTrigger) {
                                                                     if ($UseTCResolutionOverlays -eq 'true') {
                                                                         switch ($global:EPResolution) {
                                                                             '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                            '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                            '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                            '4K'            { $TitleCardoverlay = $4kTC }
-                                                                            '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                            '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                            '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                            '4K' { $TitleCardoverlay = $4kTC }
+                                                                            '1080p' { $TitleCardoverlay = $1080pTC }
                                                                             Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                         }
                                                                     }
@@ -24992,7 +25500,7 @@ Elseif ($ArrTrigger) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                                 Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage
                                                             }
-                                                            if ($SkipLocalTCTextAdd -eq 'true'){
+                                                            if ($SkipLocalTCTextAdd -eq 'true') {
                                                                 $SkippingText = 'true'
                                                             }
                                                             Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -25066,12 +25574,12 @@ Elseif ($ArrTrigger) {
                                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                     # Try uploading, capturing the response in detail
                                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                                -Method Post `
-                                                                                                -Headers $extraPlexHeaders `
-                                                                                                -Body $fileContent `
-                                                                                                -ContentType 'application/octet-stream' `
-                                                                                                -SkipHttpErrorCheck `
-                                                                                                -ErrorAction Stop
+                                                                        -Method Post `
+                                                                        -Headers $extraPlexHeaders `
+                                                                        -Body $fileContent `
+                                                                        -ContentType 'application/octet-stream' `
+                                                                        -SkipHttpErrorCheck `
+                                                                        -ErrorAction Stop
 
                                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -25114,14 +25622,14 @@ Elseif ($ArrTrigger) {
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'true' } Else { 'false' })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -25153,7 +25661,7 @@ Elseif ($ArrTrigger) {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -25211,7 +25719,7 @@ Elseif ($ArrTrigger) {
                                         $TakeLocal = $null
                                         $LocalAssetMissing = $null
                                         $LocalAddOverlay = $AddTitleCardOverlay
-                                        $LocalAddBorder  = $AddTitleCardBorder
+                                        $LocalAddBorder = $AddTitleCardBorder
                                         $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                         $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                         $global:EPTitle = $($global:titles[$i].Trim())
@@ -25296,13 +25804,14 @@ Elseif ($ArrTrigger) {
                                                     }
                                                 }
                                                 foreach ($ext in $allowedExtensions) {
-                                                    $manualFile   = "$ManualTestPath$ext"
+                                                    $manualFile = "$ManualTestPath$ext"
                                                     $templateFile = "$Templatetestpath$ext"
                                                     $filePath = $null
 
                                                     if (Test-Path -LiteralPath $manualFile) {
                                                         $filePath = $manualFile
-                                                    } elseif (Test-Path -LiteralPath $templateFile) {
+                                                    }
+                                                    elseif (Test-Path -LiteralPath $templateFile) {
                                                         $filePath = $templateFile
                                                     }
 
@@ -25335,7 +25844,7 @@ Elseif ($ArrTrigger) {
                                                             $global:posterurl = GetTMDBTitleCard
                                                             if (!$global:posterurl -or $global:Fallback -eq "TVDB") {
                                                                 $global:posterurl = GetTVDBTitleCard
-                                                                if ($global:posterurl){
+                                                                if ($global:posterurl) {
                                                                     $global:IsFallback = $true
                                                                 }
                                                             }
@@ -25404,7 +25913,7 @@ Elseif ($ArrTrigger) {
                                                             $global:posterurl = GetTVDBTitleCard
                                                             if (!$global:posterurl -or $global:Fallback -eq "TMDB") {
                                                                 $global:posterurl = GetTMDBTitleCard
-                                                                if ($global:posterurl){
+                                                                if ($global:posterurl) {
                                                                     $global:IsFallback = $true
                                                                 }
                                                             }
@@ -25475,7 +25984,7 @@ Elseif ($ArrTrigger) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                                 Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage | Out-Null
                                                             }
-                                                            if ($SkipLocalTCTextAdd -eq 'true'){
+                                                            if ($SkipLocalTCTextAdd -eq 'true') {
                                                                 $SkippingText = 'true'
                                                             }
                                                             Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -25528,10 +26037,10 @@ Elseif ($ArrTrigger) {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                        '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                        '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                        '4K'            { $TitleCardoverlay = $4kTC }
-                                                                        '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                        '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                        '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                        '4K' { $TitleCardoverlay = $4kTC }
+                                                                        '1080p' { $TitleCardoverlay = $1080pTC }
                                                                         Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
                                                                 }
@@ -25674,7 +26183,7 @@ Elseif ($ArrTrigger) {
                                                             Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                                 Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage
                                                             }
-                                                            if ($SkipLocalTCTextAdd -eq 'true'){
+                                                            if ($SkipLocalTCTextAdd -eq 'true') {
                                                                 $SkippingText = 'true'
                                                             }
                                                             Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -25748,12 +26257,12 @@ Elseif ($ArrTrigger) {
                                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                     # Try uploading, capturing the response in detail
                                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                                -Method Post `
-                                                                                                -Headers $extraPlexHeaders `
-                                                                                                -Body $fileContent `
-                                                                                                -ContentType 'application/octet-stream' `
-                                                                                                -SkipHttpErrorCheck `
-                                                                                                -ErrorAction Stop
+                                                                        -Method Post `
+                                                                        -Headers $extraPlexHeaders `
+                                                                        -Body $fileContent `
+                                                                        -ContentType 'application/octet-stream' `
+                                                                        -SkipHttpErrorCheck `
+                                                                        -ErrorAction Stop
 
                                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -25796,14 +26305,14 @@ Elseif ($ArrTrigger) {
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'true' } Else { 'false' })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                            $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                             $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -25835,7 +26344,7 @@ Elseif ($ArrTrigger) {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -26144,7 +26653,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -26163,7 +26672,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -26185,7 +26694,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -26203,7 +26712,7 @@ Elseif ($SyncJelly -or $SyncEmby) {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -26769,24 +27278,24 @@ Elseif ($SyncJelly -or $SyncEmby) {
     foreach ($data in $OtherEpisodedata) {
         # Create a custom object for each episode using the variables
         $FormattedData.Add([PSCustomObject]@{
-            'Library Name'                 = $data.'Library Name'
-            'Show Name'                    = $data.'Show Name'
-            'Show Original Name'           = $data.'Show Original Name'
-            'Library Language'             = $data.'Library Language'
-            'ShowID'                       = $data.'ShowID'
-            'SeasonId'                     = $data.'SeasonId'
-            'EpisodeIds'                   = $data.'EpisodeIds'
-            'tvdbid'                       = $data.'tvdbid'
-            'imdbid'                       = $data.'imdbid'
-            'tmdbid'                       = $data.'tmdbid'
-            'type'                         = $data.'type'
-            'Season Number'                = $data.'Season Number'
-            'SeasonName'                   = $data.'SeasonName'
-            'Episodes'                     = $data.'Episodes'
-            'Title'                        = $data.'Title'
-            'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
-            'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-        })
+                'Library Name'                 = $data.'Library Name'
+                'Show Name'                    = $data.'Show Name'
+                'Show Original Name'           = $data.'Show Original Name'
+                'Library Language'             = $data.'Library Language'
+                'ShowID'                       = $data.'ShowID'
+                'SeasonId'                     = $data.'SeasonId'
+                'EpisodeIds'                   = $data.'EpisodeIds'
+                'tvdbid'                       = $data.'tvdbid'
+                'imdbid'                       = $data.'imdbid'
+                'tmdbid'                       = $data.'tmdbid'
+                'type'                         = $data.'type'
+                'Season Number'                = $data.'Season Number'
+                'SeasonName'                   = $data.'SeasonName'
+                'Episodes'                     = $data.'Episodes'
+                'Title'                        = $data.'Title'
+                'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
+                'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
+            })
     }
 
     # Export the formatted data to CSV
@@ -27492,9 +28001,9 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                    if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None'){
+                    if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None') {
                         Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
-                        if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10'){
+                        if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
                             $hdrType = 'DOVIHDR10'
                         }
                     }
@@ -27508,21 +28017,22 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         switch -Regex ($hdrType) {
                             # Check for Dolby Vision combinations
-                            'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                            'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                            'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                            '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+                            'DOVIWithEL' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10Plus' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            '^DOVI|^DolbyVision' { $Resolution = "$baseResolution DoVi"; break }
 
                             # Check for standard HDR combinations
-                            '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
-                            '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10Plus' { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10' { $Resolution = "$baseResolution HDR10"; break }
 
                             # If it's SDR or something unrecognized, just keep it simple
-                            'SDR'             { $Resolution = "$baseResolution"; break }
-                            default           { $Resolution = "$baseResolution"; break }
+                            'SDR' { $Resolution = "$baseResolution"; break }
+                            default { $Resolution = "$baseResolution"; break }
                         }
 
-                    } else {
+                    }
+                    else {
                         # For 1080p, 720p, or files without a VideoRangeType, just use the base name
                         $Resolution = $baseResolution
                     }
@@ -27617,21 +28127,22 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                         switch -Regex ($hdrType) {
                             # Check for Dolby Vision combinations
-                            'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                            'DOVI.*HDR10Plus'       { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                            'DOVI.*HDR10'           { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                            '^DOVI|^DolbyVision'    { $Resolution = "$baseResolution DoVi"; break }
+                            'DOVIWithEL' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10Plus' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            'DOVI.*HDR10' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                            '^DOVI|^DolbyVision' { $Resolution = "$baseResolution DoVi"; break }
 
                             # Check for standard HDR combinations
-                            '^HDR10Plus'      { $Resolution = "$baseResolution HDR10"; break }
-                            '^HDR10'          { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10Plus' { $Resolution = "$baseResolution HDR10"; break }
+                            '^HDR10' { $Resolution = "$baseResolution HDR10"; break }
 
                             # If it's SDR or something unrecognized, just keep it simple
-                            'SDR'             { $Resolution = "$baseResolution"; break }
-                            default           { $Resolution = "$baseResolution"; break }
+                            'SDR' { $Resolution = "$baseResolution"; break }
+                            default { $Resolution = "$baseResolution"; break }
                         }
 
-                    } else {
+                    }
+                    else {
                         # For 1080p, 720p, or files without a VideoRangeType, just use the base name
                         $Resolution = $baseResolution
                     }
@@ -27774,7 +28285,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                 if ($currentRange -and $currentRange -ne 'None') {
                     Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
-                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None'){
+                    if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None') {
                         Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                     }
                     # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
@@ -27783,7 +28294,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                     }
 
                     $currentRange
-                } else {
+                }
+                else {
                     "None"
                 }
             }
@@ -27867,17 +28379,18 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
             if ($baseRes -eq "4K" -and $hdrType -ne "None") {
 
                 switch -Regex ($hdrType) {
-                    'DOVIWithEL'             { $Resolution = "$baseResolution DoVi/HDR10"; break }
-                    'DOVI.*HDR10Plus'       { $finalRes = "$baseRes DoVi/HDR10"; break }
-                    'DOVI.*HDR10'           { $finalRes = "$baseRes DoVi/HDR10"; break }
-                    '^DOVI|^DolbyVision'    { $finalRes = "$baseRes DoVi"; break }
-                    '^HDR10Plus'            { $finalRes = "$baseRes HDR10"; break }
-                    '^HDR10'                { $finalRes = "$baseRes HDR10"; break }
-                    'SDR'                   { $finalRes = "$baseRes"; break }
-                    default                 { $finalRes = "$baseRes"; break }
+                    'DOVIWithEL' { $Resolution = "$baseResolution DoVi/HDR10"; break }
+                    'DOVI.*HDR10Plus' { $finalRes = "$baseRes DoVi/HDR10"; break }
+                    'DOVI.*HDR10' { $finalRes = "$baseRes DoVi/HDR10"; break }
+                    '^DOVI|^DolbyVision' { $finalRes = "$baseRes DoVi"; break }
+                    '^HDR10Plus' { $finalRes = "$baseRes HDR10"; break }
+                    '^HDR10' { $finalRes = "$baseRes HDR10"; break }
+                    'SDR' { $finalRes = "$baseRes"; break }
+                    default { $finalRes = "$baseRes"; break }
                 }
 
-            } else {
+            }
+            else {
                 # Fallback for 1080p, 720p, etc.
                 $finalRes = $baseRes
             }
@@ -27886,25 +28399,25 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
         }
         # Create a custom object for each episode using the variables
         $FormattedData.Add([PSCustomObject]@{
-            'Library Name'                 = $data.'Library Name'
-            'Show Name'                    = $data.'Show Name'
-            'Show Original Name'           = $data.'Show Original Name'
-            'Library Language'             = $data.'Library Language'
-            'ShowID'                       = $data.'ShowID'
-            'SeasonId'                     = $data.'SeasonId'
-            'EpisodeIds'                   = $data.'EpisodeIds'
-            'Resolutions'                  = $Resolution -join ","
-            'tvdbid'                       = $data.'tvdbid'
-            'imdbid'                       = $data.'imdbid'
-            'tmdbid'                       = $data.'tmdbid'
-            'type'                         = $data.'type'
-            'Season Number'                = $data.'Season Number'
-            'SeasonName'                   = $data.'SeasonName'
-            'Episodes'                     = $data.'Episodes'
-            'Title'                        = $data.'Title'
-            'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
-            'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
-        })
+                'Library Name'                 = $data.'Library Name'
+                'Show Name'                    = $data.'Show Name'
+                'Show Original Name'           = $data.'Show Original Name'
+                'Library Language'             = $data.'Library Language'
+                'ShowID'                       = $data.'ShowID'
+                'SeasonId'                     = $data.'SeasonId'
+                'EpisodeIds'                   = $data.'EpisodeIds'
+                'Resolutions'                  = $Resolution -join ","
+                'tvdbid'                       = $data.'tvdbid'
+                'imdbid'                       = $data.'imdbid'
+                'tmdbid'                       = $data.'tmdbid'
+                'type'                         = $data.'type'
+                'Season Number'                = $data.'Season Number'
+                'SeasonName'                   = $data.'SeasonName'
+                'Episodes'                     = $data.'Episodes'
+                'Title'                        = $data.'Title'
+                'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
+                'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
+            })
     }
 
     # Export the formatted data to CSV
@@ -28014,7 +28527,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($UseOriginalTitle -eq 'true'){
+                    if ($UseOriginalTitle -eq 'true') {
                         if ($entry.originalTitle -match $cjkPattern) {
                             $Titletext = $entry.title
                         }
@@ -28113,7 +28626,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $LocalAddOverlay = $AddOverlay
-                            $LocalAddBorder  = $AddBorder
+                            $LocalAddBorder = $AddBorder
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
@@ -28229,7 +28742,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                     }
-                                    if ($SkipLocalPosterTextAdd -eq 'true'){
+                                    if ($SkipLocalPosterTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -28304,10 +28817,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                '4K'            { $Posteroverlay = $4kposter }
-                                                '1080p'         { $Posteroverlay = $1080pPoster }
+                                                '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                '4K' { $Posteroverlay = $4kposter }
+                                                '1080p' { $Posteroverlay = $1080pPoster }
                                                 Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
                                         }
@@ -28396,15 +28909,15 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -28433,7 +28946,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -28444,7 +28958,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                 if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $fontImagemagick = $RTLfontImagemagick
@@ -28498,24 +29012,24 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -28574,14 +29088,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie'
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -28614,7 +29128,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -28720,7 +29234,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $TakeLocal = $null
                             $LocalAssetMissing = $null
                             $LocalAddOverlay = $AddBackgroundOverlay
-                            $LocalAddBorder  = $AddBackgroundBorder
+                            $LocalAddBorder = $AddBackgroundBorder
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
@@ -28812,7 +29326,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $backgroundImage | Out-Null
                                     }
-                                    if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                    if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $backgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -28887,11 +29401,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                '4K'            { $backgroundoverlay = $4kBackground }
-                                                '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                '4K' { $backgroundoverlay = $4kBackground }
+                                                '1080p' { $backgroundoverlay = $1080pBackground }
+                                                Default { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
                                         }
                                         Else {
@@ -28979,15 +29493,15 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -29016,7 +29530,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -29027,7 +29542,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                 if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $backgroundfontImagemagick = $RTLfontImagemagick
@@ -29081,24 +29596,24 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -29158,14 +29673,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie Background'
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -29197,7 +29712,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -29249,7 +29764,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -29305,7 +29820,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                 $TakeLocal = $null
                 $LocalAssetMissing = $null
                 $LocalAddOverlay = $AddOverlay
-                $LocalAddBorder  = $AddBorder
+                $LocalAddBorder = $AddBorder
 
                 # Determine the language direction
                 $global:langCode = $entry.'Library Language'
@@ -29313,7 +29828,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($UseOriginalTitle -eq 'true'){
+                if ($UseOriginalTitle -eq 'true') {
                     if ($entry.originalTitle -match $cjkPattern) {
                         $Titletext = $entry.title
                     }
@@ -29483,7 +29998,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                     Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                 }
-                                if ($SkipLocalPosterTextAdd -eq 'true'){
+                                if ($SkipLocalPosterTextAdd -eq 'true') {
                                     $SkippingText = 'true'
                                 }
                                 Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -29558,10 +30073,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                            '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                            '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                            '4K'            { $Posteroverlay = $4kposter }
-                                            '1080p'         { $Posteroverlay = $1080pPoster }
+                                            '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                            '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                            '4K' { $Posteroverlay = $4kposter }
+                                            '1080p' { $Posteroverlay = $1080pPoster }
                                             Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                         }
                                     }
@@ -29650,15 +30165,15 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                 Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                             }
-                                            if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                 $ApplyTextInsteadOfLogo = 'true'
                                                 Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                 $global:IsFallback = $true
                                             }
-                                            ElseIf ($global:LogoUrl){
+                                            ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -29687,7 +30202,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                     $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                } else {
+                                                }
+                                                else {
                                                     $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -29698,7 +30214,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                             }
                                         }
-                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                             if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                 if ($global:direction -eq "RTL") {
                                                     $fontImagemagick = $RTLfontImagemagick
@@ -29752,24 +30268,24 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                     $superSize = [int]($optimalFontSize * 0.55)
-                                                    $yNudge    = [int]($optimalFontSize * 0.3)
-                                                    $gap       = 20
+                                                    $yNudge = [int]($optimalFontSize * 0.3)
+                                                    $gap = 20
 
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                        "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                     }
                                                     elseif ($supChar -ne "") {
                                                         # SUPERSCRIPT ONLY MODE (No Stroke)
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                        "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                        ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                     }
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
@@ -29828,14 +30344,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show'
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -29867,7 +30383,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                             $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                            $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                            $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -29982,7 +30498,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
                         $LocalAddOverlay = $AddBackgroundOverlay
-                        $LocalAddBorder  = $AddBackgroundBorder
+                        $LocalAddBorder = $AddBackgroundBorder
                         foreach ($ext in $allowedExtensions) {
                             $filePath = "$ManualTestPath$ext"
                             if (Test-Path -LiteralPath $filePath) {
@@ -30077,7 +30593,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                     Copy-Item -LiteralPath $_.FullName -Destination $backgroundImage | Out-Null
                                 }
-                                if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                     $SkippingText = 'true'
                                 }
                                 Write-Entry -Subtext "Copy local asset to: $backgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -30152,11 +30668,11 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                            '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                            '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                            '4K'            { $backgroundoverlay = $4kBackground }
-                                            '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
+                                            '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                            '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                            '4K' { $backgroundoverlay = $4kBackground }
+                                            '1080p' { $backgroundoverlay = $1080pBackground }
+                                            Default { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                         }
                                     }
                                     Else {
@@ -30244,15 +30760,15 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                 Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                             }
-                                            if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                 $ApplyTextInsteadOfLogo = 'true'
                                                 Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                 $global:IsFallback = $true
                                             }
-                                            ElseIf ($global:LogoUrl){
+                                            ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -30281,7 +30797,8 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                     $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                } else {
+                                                }
+                                                else {
                                                     $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -30292,7 +30809,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                             }
                                         }
-                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                             if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                 if ($global:direction -eq "RTL") {
                                                     $backgroundfontImagemagick = $RTLfontImagemagick
@@ -30346,24 +30863,24 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                     $superSize = [int]($optimalFontSize * 0.55)
-                                                    $yNudge    = [int]($optimalFontSize * 0.3)
-                                                    $gap       = 20
+                                                    $yNudge = [int]($optimalFontSize * 0.3)
+                                                    $gap = 20
 
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                        "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                     }
                                                     elseif ($supChar -ne "") {
                                                         # SUPERSCRIPT ONLY MODE (No Stroke)
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                        ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                     }
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
@@ -30423,14 +30940,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show Background'
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -30462,7 +30979,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                            $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                            $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -30532,7 +31049,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
                         $LocalAddOverlay = $AddSeasonOverlay
-                        $LocalAddBorder  = $AddSeasonBorder
+                        $LocalAddBorder = $AddSeasonBorder
 
                         if ($season.tmdbid -eq $entry.tmdbid -or $season.tvdbid -eq $entry.tvdbid) {
                             $global:seasonId = $season.SeasonId
@@ -30540,12 +31057,12 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             $global:SeasonNumber = $season."Season Number"
                             Write-Entry -Message "Processing season: Id=$($global:seasonId), Name=$($global:seasonNames), Number=$($global:SeasonNumber)" -Path $global:configLogging -Color Cyan -log Debug
                             if ($SeasonfontAllCaps -eq 'true') {
-                                if ($OverrideSeasonName -eq 'true'){
-                                    if ($global:SeasonNumber -eq '0'){
+                                if ($OverrideSeasonName -eq 'true') {
+                                    if ($global:SeasonNumber -eq '0') {
                                         $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText.ToUpper()+ " " + $global:SeasonNumber
+                                        $global:seasonTitle = $SeasonOverrideText.ToUpper() + " " + $global:SeasonNumber
                                     }
                                 }
                                 Else {
@@ -30553,12 +31070,12 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 }
                             }
                             Else {
-                                if ($OverrideSeasonName -eq 'true'){
-                                    if ($global:SeasonNumber -eq '0'){
+                                if ($OverrideSeasonName -eq 'true') {
+                                    if ($global:SeasonNumber -eq '0') {
                                         $global:seasonTitle = $SpecialSeasonOverrideText
                                     }
                                     Else {
-                                        $global:seasonTitle = $SeasonOverrideText+ " " + $global:SeasonNumber
+                                        $global:seasonTitle = $SeasonOverrideText + " " + $global:SeasonNumber
                                     }
                                 }
                                 Else {
@@ -30644,13 +31161,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                             Write-Entry -Message "Added $hashtestpath to checkedItems" -Path $global:configLogging -Color Cyan -log Debug
                             if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                 foreach ($ext in $allowedExtensions) {
-                                    $manualFile   = "$ManualTestPath$ext"
+                                    $manualFile = "$ManualTestPath$ext"
                                     $templateFile = "$Templatetestpath$ext"
                                     $filePath = $null
 
                                     if (Test-Path -LiteralPath $manualFile) {
                                         $filePath = $manualFile
-                                    } elseif (Test-Path -LiteralPath $templateFile) {
+                                    }
+                                    elseif (Test-Path -LiteralPath $templateFile) {
                                         $filePath = $templateFile
                                     }
 
@@ -30847,7 +31365,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage | Out-Null
                                         }
-                                        if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                        if ($SkipLocalSeasonTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -31002,16 +31520,40 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($AddShowTitletoSeason -eq 'true') {
                                                         $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                         $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                         if ($global:IsTruncated -ne $true) {
                                                             Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                             Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                            # Season Part
-                                                            # Add Stroke
-                                                            if ($AddSeasonTextStroke -eq 'true') {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                            # Season Text Part
+                                                            $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                            $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                            $superSize = [int]($optimalFontSize * 0.55)
+                                                            $yNudge = [int]($optimalFontSize * 0.3)
+                                                            $gap = 20
+
+                                                            if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                             }
-                                                            Else {
-                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            elseif ($supChar -ne "") {
+                                                                $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                                ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                            }
+                                                            else {
+                                                                if ($AddSeasonTextStroke -eq 'true') {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
                                                             }
 
                                                             Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -31019,19 +31561,110 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             $logEntry | Out-File $magickLog -Append
                                                             InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                            # Show Part
-                                                            # Add Stroke
-                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                            }
-                                                            Else {
-                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            # Show Part (Logo vs Text)
+                                                            $ApplyTextInsteadOfLogo = $null
+
+                                                            if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                                $global:LogoUrl = $null
+                                                                $global:LogoLanguage = $null
+                                                                $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                                $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                                foreach ($provider in $searchOrder) {
+                                                                    if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                    switch ($provider) {
+                                                                        'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                        'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                        'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                    }
+                                                                }
+
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    $global:IsFallback = $false
+                                                                    switch ($global:FavProvider) {
+                                                                        'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                        'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                        'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                    }
+                                                                    if ($global:IsFallback) {
+                                                                        Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                    }
+                                                                }
+
+                                                                if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                    Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                                }
+
+                                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                    $ApplyTextInsteadOfLogo = 'true'
+                                                                    Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                    $global:IsFallback = $true
+                                                                }
+                                                                ElseIf ($global:LogoUrl) {
+                                                                    $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                    if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                    try {
+                                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                    }
+                                                                    catch {
+                                                                        if ($_.Exception.Response) {
+                                                                            $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                        }
+                                                                        else {
+                                                                            $statusCode = $_.Exception.Message
+                                                                        }
+                                                                        Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                    }
+
+                                                                    $colorEffect = ""
+                                                                    if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                        if ([double]$_chromaStd -lt 0.25) {
+                                                                            $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                            Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                        }
+                                                                        else {
+                                                                            $colorEffect = ""
+                                                                            Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                        }
+                                                                    }
+
+                                                                    if ($urlExtension -match "(?i)\.svg") {
+                                                                        Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+                                                                    else {
+                                                                        $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                    }
+
+                                                                    Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                    $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                    Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                                }
                                                             }
 
-                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                            $logEntry | Out-File $magickLog -Append
-                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            # Fallback Text Logic
+                                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                                if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                Else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                            }
                                                         }
                                                     }
                                                     Else {
@@ -31097,14 +31730,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Season'
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'True' } else { 'False' })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$SeasonImage} Else {$global:posterurl})
-                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $SeasonImage } Else { $global:posterurl })
+                                            $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                             $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -31136,7 +31769,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                    $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -31228,7 +31861,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
                                     $LocalAddOverlay = $AddTitleCardOverlay
-                                    $LocalAddBorder  = $AddTitleCardBorder
+                                    $LocalAddBorder = $AddTitleCardBorder
                                     $global:EPTitle = $($global:titles[$i].Trim())
                                     $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
@@ -31313,13 +31946,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $checkedItems.Add($hashtestpath)
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             foreach ($ext in $allowedExtensions) {
-                                                $manualFile   = "$ManualTestPath$ext"
+                                                $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
 
                                                 if (Test-Path -LiteralPath $manualFile) {
                                                     $filePath = $manualFile
-                                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                                }
+                                                elseif (Test-Path -LiteralPath $templateFile) {
                                                     $filePath = $templateFile
                                                 }
 
@@ -31422,7 +32056,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     if ($global:TempImagecopied -ne 'true') {
                                                         Copy-Item -LiteralPath $EpisodeImage -destination $EpisodeTempImage | Out-Null
                                                     }
-                                                    if ($SkipLocalTCTextAdd -eq 'true'){
+                                                    if ($SkipLocalTCTextAdd -eq 'true') {
                                                         $SkippingText = 'true'
                                                     }
                                                     Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -31486,10 +32120,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                        '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                        '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                        '4K'            { $TitleCardoverlay = $4kTC }
-                                                                        '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                        '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                        '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                        '4K' { $TitleCardoverlay = $4kTC }
+                                                                        '1080p' { $TitleCardoverlay = $1080pTC }
                                                                         Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
                                                                 }
@@ -31670,14 +32304,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'True' } Else { 'False' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -31708,7 +32342,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -31770,7 +32404,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
                                     $LocalAddOverlay = $AddTitleCardOverlay
-                                    $LocalAddBorder  = $AddTitleCardBorder
+                                    $LocalAddBorder = $AddTitleCardBorder
                                     $global:EPTitle = $($global:titles[$i].Trim())
                                     $global:EPResolution = $($global:EPResolutions[$i].Trim())
                                     $global:episodenumber = $($global:episode_numbers[$i].Trim())
@@ -31845,13 +32479,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                         $checkedItems.Add($hashtestpath)
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             foreach ($ext in $allowedExtensions) {
-                                                $manualFile   = "$ManualTestPath$ext"
+                                                $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
 
                                                 if (Test-Path -LiteralPath $manualFile) {
                                                     $filePath = $manualFile
-                                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                                }
+                                                elseif (Test-Path -LiteralPath $templateFile) {
                                                     $filePath = $templateFile
                                                 }
 
@@ -31885,7 +32520,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $global:posterurl = GetTMDBTitleCard
                                                         if (!$global:posterurl -or $global:Fallback -eq "TVDB") {
                                                             $global:posterurl = GetTVDBTitleCard
-                                                            if ($global:posterurl){
+                                                            if ($global:posterurl) {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
@@ -31942,7 +32577,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $global:posterurl = GetTVDBTitleCard
                                                         if (!$global:posterurl -or $global:Fallback -eq "TMDB") {
                                                             $global:posterurl = GetTMDBTitleCard
-                                                            if ($global:posterurl){
+                                                            if ($global:posterurl) {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
@@ -31999,7 +32634,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                         Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage | Out-Null
                                                     }
-                                                    if ($SkipLocalTCTextAdd -eq 'true'){
+                                                    if ($SkipLocalTCTextAdd -eq 'true') {
                                                         $SkippingText = 'true'
                                                     }
                                                     Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -32046,10 +32681,10 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                    '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                    '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                    '4K'            { $TitleCardoverlay = $4kTC }
-                                                                    '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                    '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                    '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                    '4K' { $TitleCardoverlay = $4kTC }
+                                                                    '1080p' { $TitleCardoverlay = $1080pTC }
                                                                     Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
                                                             }
@@ -32229,14 +32864,14 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'True' } Else { 'False' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -32267,7 +32902,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'True' } else { 'False' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -32646,361 +33281,372 @@ Elseif ($LogoUpdater -or $LogoRevert) {
         $LibraryName = $SelectedLib.title
         Write-Entry -Message "Processing library: $LibraryName ($($SelectedLib.type))" -Path $global:configLogging -Color Cyan -log Info
 
-    $PlexHeaders = @{}
-    if ($PlexToken) {
-        $PlexHeaders['X-Plex-Token'] = $PlexToken
-    }
-
-    # Fetch all items in library
-    $searchsize = 0
-    $totalContentSize = 1
-    $allItems = [System.Collections.Generic.List[object]]::new()
-
-    Write-Entry -Subtext "Fetching items from Plex..." -Path $global:configLogging -Color White -log Info
-    do {
-        $PlexHeaders['X-Plex-Container-Start'] = $searchsize
-        $PlexHeaders['X-Plex-Container-Size'] = '1000'
-
-        $response = Invoke-WebRequest -Uri "$PlexUrl/library/sections/$($SelectedLib.key)/all" -Headers $PlexHeaders
-        [xml]$additionalContent = $response.Content
-
-        if ($totalContentSize -eq 1) {
-            $totalContentSize = $additionalContent.MediaContainer.totalSize
+        $PlexHeaders = @{}
+        if ($PlexToken) {
+            $PlexHeaders['X-Plex-Token'] = $PlexToken
         }
 
-        $contentquery = if ($additionalContent.MediaContainer.video) { 'video' } else { 'Directory' }
-        foreach ($item in $additionalContent.MediaContainer.$contentquery) {
-            $allItems.Add($item)
-        }
+        # Fetch all items in library
+        $searchsize = 0
+        $totalContentSize = 1
+        $allItems = [System.Collections.Generic.List[object]]::new()
 
-        $searchsize += [int]$additionalContent.MediaContainer.Size
-    } until ($searchsize -ge $totalContentSize)
+        Write-Entry -Subtext "Fetching items from Plex..." -Path $global:configLogging -Color White -log Info
+        do {
+            $PlexHeaders['X-Plex-Container-Start'] = $searchsize
+            $PlexHeaders['X-Plex-Container-Size'] = '1000'
 
-    Write-Entry -Subtext "Found $($allItems.Count) items. Checking for missing logos..." -Path $global:configLogging -Color Cyan -log Info
+            $response = Invoke-WebRequest -Uri "$PlexUrl/library/sections/$($SelectedLib.key)/all" -Headers $PlexHeaders
+            [xml]$additionalContent = $response.Content
 
-    foreach ($item in $allItems) {
-        $ratingKey = $item.ratingKey
-        $title = $item.title
+            if ($totalContentSize -eq 1) {
+                $totalContentSize = $additionalContent.MediaContainer.totalSize
+            }
 
-        # Check if item already has a clearLogo
-        $metadataResponse = Invoke-WebRequest -Uri "$PlexUrl/library/metadata/$ratingKey" -Headers $PlexHeaders
-        [xml]$metadataXml = $metadataResponse.Content
+            $contentquery = if ($additionalContent.MediaContainer.video) { 'video' } else { 'Directory' }
+            foreach ($item in $additionalContent.MediaContainer.$contentquery) {
+                $allItems.Add($item)
+            }
 
-        $hasLogo = $false
+            $searchsize += [int]$additionalContent.MediaContainer.Size
+        } until ($searchsize -ge $totalContentSize)
 
-        $mediaItem = if ($metadataXml.MediaContainer.Video) { $metadataXml.MediaContainer.Video } else { $metadataXml.MediaContainer.Directory }
+        Write-Entry -Subtext "Found $($allItems.Count) items. Checking for missing logos..." -Path $global:configLogging -Color Cyan -log Info
 
-        if ($mediaItem.Image) {
-            foreach ($img in $mediaItem.Image) {
-                if ($img.type -eq 'clearLogo') {
-                    $hasLogo = $true
-                    break
+        foreach ($item in $allItems) {
+            $ratingKey = $item.ratingKey
+            $title = $item.title
+
+            # Check if item already has a clearLogo
+            $metadataResponse = Invoke-WebRequest -Uri "$PlexUrl/library/metadata/$ratingKey" -Headers $PlexHeaders
+            [xml]$metadataXml = $metadataResponse.Content
+
+            $hasLogo = $false
+
+            $mediaItem = if ($metadataXml.MediaContainer.Video) { $metadataXml.MediaContainer.Video } else { $metadataXml.MediaContainer.Directory }
+
+            if ($mediaItem.Image) {
+                foreach ($img in $mediaItem.Image) {
+                    if ($img.type -eq 'clearLogo') {
+                        $hasLogo = $true
+                        break
+                    }
                 }
             }
-        }
 
-        if ($hasLogo) {
-            if ($LogoRevert) {
-                Write-Entry -Message "[$title] Logo exists. Checking if it's a Posterizarr asset for removal..." -Path $global:configLogging -Color Yellow -log Info
+            if ($hasLogo) {
+                if ($LogoRevert) {
+                    Write-Entry -Message "[$title] Logo exists. Checking if it's a Posterizarr asset for removal..." -Path $global:configLogging -Color Yellow -log Info
 
-                # Fetch logos list to find the one to check/delete
-                $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos"
-                try {
-                    $logosResponse = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
+                    # Fetch logos list to find the one to check/delete
+                    $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos"
+                    try {
+                        $logosResponse = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
 
-                    $posterizarrLogo = $null
-                    $defaultLogo = $null
+                        $posterizarrLogo = $null
+                        $defaultLogo = $null
 
-                    foreach ($logo in $logosResponse.MediaContainer.Photo) {
-                        # Capture default fallback logo
-                        if ($logo.ratingKey -match "^metadata://" -or $logo.ratingKey -match "^https?://") {
-                            if (-not $defaultLogo) { $defaultLogo = $logo }
+                        foreach ($logo in $logosResponse.MediaContainer.Photo) {
+                            # Capture default fallback logo
+                            if ($logo.ratingKey -match "^metadata://" -or $logo.ratingKey -match "^https?://") {
+                                if (-not $defaultLogo) { $defaultLogo = $logo }
+                            }
+
+                            # Check if uploaded logo is from Posterizarr
+                            if ($logo.ratingKey -match "^upload://") {
+                                # Sanitize rating key to ensure valid Windows file paths
+                                $safeFileName = $logo.ratingKey -replace '[^a-zA-Z0-9]', '_'
+                                $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
+
+                                # Conditionally construct URL to prevent http://plex:32400https://...
+                                $logoKey = $logo.key
+                                if ($logoKey -match "^https?://") {
+                                    $logoDownloadUrl = $logoKey
+                                }
+                                else {
+                                    # Ensure clean relative path concatenation
+                                    $logoKey = "/" + $logoKey.TrimStart("/")
+                                    $logoDownloadUrl = "$PlexUrl$logoKey"
+                                }
+
+                                try {
+                                    Invoke-WebRequest -Uri $logoDownloadUrl -Headers $PlexHeaders -OutFile $checkLogoPath -ErrorAction Stop
+                                    if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
+                                        $posterizarrLogo = $logo
+                                    }
+                                    Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue
+                                }
+                                catch {
+                                    Write-Entry -Subtext "[$title] Error checking logo $($logo.ratingKey): $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+                                }
+                            }
                         }
 
-                        # Check if uploaded logo is from Posterizarr
-                        if ($logo.ratingKey -match "^upload://") {
-                            # Sanitize rating key to ensure valid Windows file paths
-                            $safeFileName = $logo.ratingKey -replace '[^a-zA-Z0-9]', '_'
-                            $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
+                        if ($posterizarrLogo) {
+                            Write-Entry -Message "[$title] Found Posterizarr Logo. Attempting Revert..." -Path $global:configLogging -Color Yellow -log Info
 
-                            # Conditionally construct URL to prevent http://plex:32400https://...
-                            $logoKey = $logo.key
-                            if ($logoKey -match "^https?://") {
-                                $logoDownloadUrl = $logoKey
-                            } else {
-                                # Ensure clean relative path concatenation
-                                $logoKey = "/" + $logoKey.TrimStart("/")
-                                $logoDownloadUrl = "$PlexUrl$logoKey"
+                            # Reset UI to Default Logo
+                            if ($defaultLogo) {
+                                Write-Entry -Subtext "[$title] Reverting UI selection to default Plex logo..." -Path $global:configLogging -Color Cyan -log Info
+                                $safeDefaultKey = [uri]::EscapeDataString($defaultLogo.ratingKey)
+                                $selectUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogo?url=$safeDefaultKey"
+                                Invoke-RestMethod -Method Put -Uri $selectUrl -Headers $PlexHeaders
                             }
+
+                            # Attempt API Deletion (and handle the 404 for upload:// schemas gracefully)
+                            $safeLogoRatingKey = [uri]::EscapeDataString($posterizarrLogo.ratingKey)
+                            $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$safeLogoRatingKey"
 
                             try {
-                                Invoke-WebRequest -Uri $logoDownloadUrl -Headers $PlexHeaders -OutFile $checkLogoPath -ErrorAction Stop
-                                if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
-                                    $posterizarrLogo = $logo
-                                }
-                                Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue
-                            } catch {
-                                Write-Entry -Subtext "[$title] Error checking logo $($logo.ratingKey): $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
-                            }
-                        }
-                    }
-
-                    if ($posterizarrLogo) {
-                        Write-Entry -Message "[$title] Found Posterizarr Logo. Attempting Revert..." -Path $global:configLogging -Color Yellow -log Info
-
-                        # Reset UI to Default Logo
-                        if ($defaultLogo) {
-                            Write-Entry -Subtext "[$title] Reverting UI selection to default Plex logo..." -Path $global:configLogging -Color Cyan -log Info
-                            $safeDefaultKey = [uri]::EscapeDataString($defaultLogo.ratingKey)
-                            $selectUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogo?url=$safeDefaultKey"
-                            Invoke-RestMethod -Method Put -Uri $selectUrl -Headers $PlexHeaders
-                        }
-
-                        # Attempt API Deletion (and handle the 404 for upload:// schemas gracefully)
-                        $safeLogoRatingKey = [uri]::EscapeDataString($posterizarrLogo.ratingKey)
-                        $deleteUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos/$safeLogoRatingKey"
-
-                        try {
-                            Invoke-RestMethod -Method Delete -Uri $deleteUrl -Headers $PlexHeaders
-                            Write-Entry -Subtext "[$title] Successfully deleted via API." -Path $global:configLogging -Color Green -log Info
-                            $UploadCount++
-                        } catch {
-                            if ($_.Exception.Response.StatusCode.value__ -eq 404) {
-                                Write-Entry -Subtext "[$title] Asset unlinked from UI." -Path $global:configLogging -Color Green -log Info
+                                Invoke-RestMethod -Method Delete -Uri $deleteUrl -Headers $PlexHeaders
+                                Write-Entry -Subtext "[$title] Successfully deleted via API." -Path $global:configLogging -Color Green -log Info
                                 $UploadCount++
-                            } else {
-                                Write-Entry -Subtext "[$title] Unexpected error during deletion: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            }
+                            catch {
+                                if ($_.Exception.Response.StatusCode.value__ -eq 404) {
+                                    Write-Entry -Subtext "[$title] Asset unlinked from UI." -Path $global:configLogging -Color Green -log Info
+                                    $UploadCount++
+                                }
+                                else {
+                                    Write-Entry -Subtext "[$title] Unexpected error during deletion: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                                }
                             }
                         }
-                    } else {
-                        Write-Entry -Subtext "[$title] No Posterizarr logo found to revert." -Path $global:configLogging -Color Cyan -log Debug
+                        else {
+                            Write-Entry -Subtext "[$title] No Posterizarr logo found to revert." -Path $global:configLogging -Color Cyan -log Debug
+                        }
+
                     }
-
-                } catch {
-                    Write-Entry -Subtext "[$title] Error fetching logos list: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                    catch {
+                        Write-Entry -Subtext "[$title] Error fetching logos list: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                    }
+                    continue # Move to next item
                 }
-                continue # Move to next item
+
+                if ($ForceReplace) {
+                    Write-Entry -Message "[$title] Logo exists but ForceReplace is enabled. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
+                }
+                else {
+                    Write-Entry -Subtext "[$title] Logo already exists. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+                    continue
+                }
+            }
+            else {
+                if ($LogoRevert) {
+                    Write-Entry -Subtext "[$title] No Logo found to revert. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+                    continue
+                }
+                Write-Entry -Message "[$title] Missing Logo. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
             }
 
-            if ($ForceReplace) {
-                Write-Entry -Message "[$title] Logo exists but ForceReplace is enabled. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
-            } else {
-                Write-Entry -Subtext "[$title] Logo already exists. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+            # Reset IDs
+            $global:tmdbid = $null
+            $global:tvdbid = $null
+            $global:imdbid = $null
+            $global:LogoUrl = $null
+            $global:UseClearlogo = 'true'
+            $global:UseClearart = 'false'
+
+            # Extract IDs from GUIDs
+            if ($mediaItem.Guid) {
+                foreach ($guidNode in $mediaItem.Guid) {
+                    $guid = $guidNode.id
+                    if ($guid -match 'tmdb://(\d+)') { $global:tmdbid = $matches[1] }
+                    if ($guid -match 'tvdb://(\d+)') { $global:tvdbid = $matches[1] }
+                    if ($guid -match 'imdb://(tt\d+)') { $global:imdbid = $matches[1] }
+                }
+            }
+
+            if (-not $global:tmdbid -and -not $global:tvdbid -and -not $global:imdbid) {
+                Write-Entry -Subtext "[$title] Could not extract any IDs from Plex GUIDs." -Path $global:configLogging -Color Yellow -log Warning
                 continue
             }
-        } else {
-            if ($LogoRevert) {
-                Write-Entry -Subtext "[$title] No Logo found to revert. Skipping." -Path $global:configLogging -Color Cyan -log Debug
-                continue
-            }
-            Write-Entry -Message "[$title] Missing Logo. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
-        }
 
-        # Reset IDs
-        $global:tmdbid = $null
-        $global:tvdbid = $null
-        $global:imdbid = $null
-        $global:LogoUrl = $null
-        $global:UseClearlogo = 'true'
-        $global:UseClearart = 'false'
+            $mediaType = if ($SelectedLib.type -eq 'movie') { 'movie' } else { 'tv' }
+            $tvdbType = if ($SelectedLib.type -eq 'movie') { 'movies' } else { 'series' }
+            $fanartType = if ($SelectedLib.type -eq 'movie') { 'movies' } else { 'tv' }
 
-        # Extract IDs from GUIDs
-        if ($mediaItem.Guid) {
-            foreach ($guidNode in $mediaItem.Guid) {
-                $guid = $guidNode.id
-                if ($guid -match 'tmdb://(\d+)') { $global:tmdbid = $matches[1] }
-                if ($guid -match 'tvdb://(\d+)') { $global:tvdbid = $matches[1] }
-                if ($guid -match 'imdb://(tt\d+)') { $global:imdbid = $matches[1] }
-            }
-        }
+            # Try fetching logo
+            GetTMDBLogo -Type $mediaType | Out-Null
+            if (-not $global:LogoUrl) { GetTVDBLogo -Type $tvdbType | Out-Null }
+            if (-not $global:LogoUrl) { GetFanartLogo -Type $fanartType | Out-Null }
 
-        if (-not $global:tmdbid -and -not $global:tvdbid -and -not $global:imdbid) {
-            Write-Entry -Subtext "[$title] Could not extract any IDs from Plex GUIDs." -Path $global:configLogging -Color Yellow -log Warning
-            continue
-        }
+            if ($global:LogoUrl) {
+                Write-Entry -Subtext "[$title] Found Logo URL: $global:LogoUrl" -Path $global:configLogging -Color Green -log Info
+                $matched++
 
-        $mediaType = if ($SelectedLib.type -eq 'movie') { 'movie' } else { 'tv' }
-        $tvdbType = if ($SelectedLib.type -eq 'movie') { 'movies' } else { 'series' }
-        $fanartType = if ($SelectedLib.type -eq 'movie') { 'movies' } else { 'tv' }
-
-        # Try fetching logo
-        GetTMDBLogo -Type $mediaType | Out-Null
-        if (-not $global:LogoUrl) { GetTVDBLogo -Type $tvdbType | Out-Null }
-        if (-not $global:LogoUrl) { GetFanartLogo -Type $fanartType | Out-Null }
-
-        if ($global:LogoUrl) {
-            Write-Entry -Subtext "[$title] Found Logo URL: $global:LogoUrl" -Path $global:configLogging -Color Green -log Info
-            $matched++
-
-            # Download temporarily
-            $tempLogo = Join-Path $global:ScriptRoot -ChildPath "temp\logo_$ratingKey.png"
-            try {
-                # Download temporarily with fallback for SSL issues
+                # Download temporarily
+                $tempLogo = Join-Path $global:ScriptRoot -ChildPath "temp\logo_$ratingKey.png"
                 try {
-                    Invoke-WebRequest -Uri $global:LogoUrl -OutFile $tempLogo -ErrorAction Stop
-                }
-                catch {
-                    if ($_.Exception.Message -like "*SSL*" -or $_.Exception.InnerException.Message -like "*SSL*") {
-                        Write-Entry -Subtext "[$title] Logo download SSL error. Retrying with explicit HttpClient..." -Path $global:configLogging -Color Yellow -log Warning
-                        try {
-                            # Ensure TLS is set for this thread
-                            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
-                            $handler = New-Object System.Net.Http.HttpClientHandler
-                            $handler.ServerCertificateCustomValidationCallback = { $true }
-                            $client = New-Object System.Net.Http.HttpClient($handler)
-                            $client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                            $response = $client.GetAsync($global:LogoUrl).GetAwaiter().GetResult()
-                            if ($response.IsSuccessStatusCode) {
-                                $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
-                                [System.IO.File]::WriteAllBytes($tempLogo, $bytes)
-                            } else {
-                                throw "HttpClient download failed with status $($response.StatusCode)"
+                    # Download temporarily with fallback for SSL issues
+                    try {
+                        Invoke-WebRequest -Uri $global:LogoUrl -OutFile $tempLogo -ErrorAction Stop
+                    }
+                    catch {
+                        if ($_.Exception.Message -like "*SSL*" -or $_.Exception.InnerException.Message -like "*SSL*") {
+                            Write-Entry -Subtext "[$title] Logo download SSL error. Retrying with explicit HttpClient..." -Path $global:configLogging -Color Yellow -log Warning
+                            try {
+                                # Ensure TLS is set for this thread
+                                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
+                                $handler = New-Object System.Net.Http.HttpClientHandler
+                                $handler.ServerCertificateCustomValidationCallback = { $true }
+                                $client = New-Object System.Net.Http.HttpClient($handler)
+                                $client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                                $response = $client.GetAsync($global:LogoUrl).GetAwaiter().GetResult()
+                                if ($response.IsSuccessStatusCode) {
+                                    $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+                                    [System.IO.File]::WriteAllBytes($tempLogo, $bytes)
+                                }
+                                else {
+                                    throw "HttpClient download failed with status $($response.StatusCode)"
+                                }
+                            }
+                            catch {
+                                throw "Download fallback failed: $($_.Exception.Message)"
+                            }
+                            finally {
+                                if ($client) { $client.Dispose() }
                             }
                         }
-                        catch {
-                            throw "Download fallback failed: $($_.Exception.Message)"
-                        }
-                        finally {
-                            if ($client) { $client.Dispose() }
+                        else {
+                            throw $_
                         }
                     }
-                    else {
-                        throw $_
+
+                    # Tag image with Posterizarr metadata
+                    if ($magick) {
+                        $CommentArguments = "`"$tempLogo`" -set `"comment`" `"created with posterizarr`" `"$tempLogo`""
+                        $CommentlogEntry = "`"$magick`" $CommentArguments"
+                        $CommentlogEntry | Out-File $magickLog -Append
+                        InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                     }
-                }
 
-                # Tag image with Posterizarr metadata
-                if ($magick) {
-                    $CommentArguments = "`"$tempLogo`" -set `"comment`" `"created with posterizarr`" `"$tempLogo`""
-                    $CommentlogEntry = "`"$magick`" $CommentArguments"
-                    $CommentlogEntry | Out-File $magickLog -Append
-                    InvokeMagickCommand -Command $magick -Arguments $CommentArguments
-                }
-
-                # Upload to Plex ClearLogo endpoint
-                $fileContent = [System.IO.File]::ReadAllBytes($tempLogo)
-                $uploadUri = if ($PlexToken) {
-                    "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
-                }
-                Else {
-                    "$PlexUrl/library/metadata/$ratingKey/clearLogos"
-                }
-
-                Write-Entry -Subtext "[$title] Uploading Logo to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
-
-                $UploadSuccess = $false
-                try {
-                    $Upload = Invoke-WebRequest -Uri $uploadUri `
-                        -Method Post `
-                        -Headers $extraPlexHeaders `
-                        -Body $fileContent `
-                        -ContentType 'application/octet-stream' `
-                        -SkipHttpErrorCheck `
-                        -ErrorAction Stop
-
-                    if ($Upload.StatusCode -eq 200 -or $Upload.StatusCode -eq 201) {
-                        $UploadSuccess = $true
-                    } else {
-                        Write-Entry -Subtext "[$title] Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan -log Debug
+                    # Upload to Plex ClearLogo endpoint
+                    $fileContent = [System.IO.File]::ReadAllBytes($tempLogo)
+                    $uploadUri = if ($PlexToken) {
+                        "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
                     }
-                }
-                catch {
-                    if ($_.Exception.Message -like "*SSL*" -or $_.Exception.InnerException.Message -like "*SSL*") {
-                        Write-Entry -Subtext "[$title] Upload SSL error. Retrying with explicit HttpClient..." -Path $global:configLogging -Color Yellow -log Warning
-                        try {
-                            # Ensure TLS is set for this thread
-                            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
-                            $handler = New-Object System.Net.Http.HttpClientHandler
-                            $handler.ServerCertificateCustomValidationCallback = { $true }
-                            $client = New-Object System.Net.Http.HttpClient($handler)
-                            $client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    Else {
+                        "$PlexUrl/library/metadata/$ratingKey/clearLogos"
+                    }
 
-                            if ($extraPlexHeaders) {
-                                foreach ($key in $extraPlexHeaders.Keys) {
-                                    if ($key -ne "Content-Type" -and $key -ne "User-Agent") {
-                                        $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+                    Write-Entry -Subtext "[$title] Uploading Logo to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
+
+                    $UploadSuccess = $false
+                    try {
+                        $Upload = Invoke-WebRequest -Uri $uploadUri `
+                            -Method Post `
+                            -Headers $extraPlexHeaders `
+                            -Body $fileContent `
+                            -ContentType 'application/octet-stream' `
+                            -SkipHttpErrorCheck `
+                            -ErrorAction Stop
+
+                        if ($Upload.StatusCode -eq 200 -or $Upload.StatusCode -eq 201) {
+                            $UploadSuccess = $true
+                        }
+                        else {
+                            Write-Entry -Subtext "[$title] Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan -log Debug
+                        }
+                    }
+                    catch {
+                        if ($_.Exception.Message -like "*SSL*" -or $_.Exception.InnerException.Message -like "*SSL*") {
+                            Write-Entry -Subtext "[$title] Upload SSL error. Retrying with explicit HttpClient..." -Path $global:configLogging -Color Yellow -log Warning
+                            try {
+                                # Ensure TLS is set for this thread
+                                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
+                                $handler = New-Object System.Net.Http.HttpClientHandler
+                                $handler.ServerCertificateCustomValidationCallback = { $true }
+                                $client = New-Object System.Net.Http.HttpClient($handler)
+                                $client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+                                if ($extraPlexHeaders) {
+                                    foreach ($key in $extraPlexHeaders.Keys) {
+                                        if ($key -ne "Content-Type" -and $key -ne "User-Agent") {
+                                            $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+                                        }
                                     }
                                 }
+
+                                $content = New-Object System.Net.Http.ByteArrayContent($fileContent)
+                                $content.Headers.ContentType = New-Object System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream")
+
+                                $response = $client.PostAsync($uploadUri, $content).GetAwaiter().GetResult()
+                                if ($response.IsSuccessStatusCode) {
+                                    $UploadSuccess = $true
+                                }
+                                else {
+                                    $respBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+                                    Write-Entry -Subtext "[$title] HttpClient upload failed: $($response.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                    Write-Entry -Subtext "Response: $respBody" -Path $global:configLogging -Color Cyan -log Debug
+                                }
                             }
-
-                            $content = New-Object System.Net.Http.ByteArrayContent($fileContent)
-                            $content.Headers.ContentType = New-Object System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream")
-
-                            $response = $client.PostAsync($uploadUri, $content).GetAwaiter().GetResult()
-                            if ($response.IsSuccessStatusCode) {
-                                $UploadSuccess = $true
-                            } else {
-                                $respBody = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-                                Write-Entry -Subtext "[$title] HttpClient upload failed: $($response.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                Write-Entry -Subtext "Response: $respBody" -Path $global:configLogging -Color Cyan -log Debug
+                            catch {
+                                Write-Entry -Subtext "[$title] HttpClient upload fallback failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            }
+                            finally {
+                                if ($client) { $client.Dispose() }
                             }
                         }
-                        catch {
-                            Write-Entry -Subtext "[$title] HttpClient upload fallback failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                        }
-                        finally {
-                            if ($client) { $client.Dispose() }
+                        else {
+                            throw $_
                         }
                     }
-                    else {
-                        throw $_
+
+                    if ($UploadSuccess) {
+                        Write-Entry -Subtext "[$title] Logo uploaded successfully!" -Path $global:configLogging -Color Green -log Info
+                        $UploadCount++
                     }
                 }
-
-                if ($UploadSuccess) {
-                    Write-Entry -Subtext "[$title] Logo uploaded successfully!" -Path $global:configLogging -Color Green -log Info
-                    $UploadCount++
+                catch {
+                    Write-Entry -Subtext "[$title] Processing failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                }
+                finally {
+                    if (Test-Path $tempLogo) {
+                        Remove-Item -LiteralPath $tempLogo -Force
+                    }
                 }
             }
-            catch {
-                Write-Entry -Subtext "[$title] Processing failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-            }
-            finally {
-                if (Test-Path $tempLogo) {
-                    Remove-Item -LiteralPath $tempLogo -Force
-                }
+            else {
+                Write-Entry -Subtext "[$title] No Logo found online." -Path $global:configLogging -Color Yellow -log Warning
             }
         }
-        else {
-            Write-Entry -Subtext "[$title] No Logo found online." -Path $global:configLogging -Color Yellow -log Warning
+        Write-Entry -Message "Finished processing library: $LibraryName. Logos processed: $UploadCount" -Path $global:configLogging -Color Green -log Info
+    }
+
+    $endTime = Get-Date
+    $executionTime = New-TimeSpan -Start $startTime -End $endTime
+    # Format the execution time
+    $hours = [math]::Floor($executionTime.TotalHours)
+    $minutes = $executionTime.Minutes
+    $seconds = $executionTime.Seconds
+    $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
+
+    Write-Entry -Message "LogoUpdater/Revert Mode Finished!" -Path $global:configLogging -Color Green -log Info
+    Write-Entry -Subtext "Matched items: $matched | Actions taken: $UploadCount | Errors: $global:errorCount" -Path $global:configLogging -Color White -log Info
+    Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
+
+    # Send Notification
+    $summaryLibName = if ($OriginalLibraryName -eq "all") { "All Libraries" } else { $LibraryName }
+    Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $global:errorCount -matchedcount $matched -uploadcount $UploadCount -LibName $summaryLibName
+
+
+    # Clear Running File
+    if (Test-Path $CurrentlyRunning) {
+        try {
+            Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
+            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
-    Write-Entry -Message "Finished processing library: $LibraryName. Logos processed: $UploadCount" -Path $global:configLogging -Color Green -log Info
-}
-
-$endTime = Get-Date
-$executionTime = New-TimeSpan -Start $startTime -End $endTime
-# Format the execution time
-$hours = [math]::Floor($executionTime.TotalHours)
-$minutes = $executionTime.Minutes
-$seconds = $executionTime.Seconds
-$FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
-
-Write-Entry -Message "LogoUpdater/Revert Mode Finished!" -Path $global:configLogging -Color Green -log Info
-Write-Entry -Subtext "Matched items: $matched | Actions taken: $UploadCount | Errors: $global:errorCount" -Path $global:configLogging -Color White -log Info
-Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
-
-# Send Notification
-$summaryLibName = if ($OriginalLibraryName -eq "all") { "All Libraries" } else { $LibraryName }
-Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $global:errorCount -matchedcount $matched -uploadcount $UploadCount -LibName $summaryLibName
-
-
-# Clear Running File
-if (Test-Path $CurrentlyRunning) {
-    try {
-        Remove-Item -LiteralPath $CurrentlyRunning -ErrorAction Stop | Out-Null
+    if ($global:UptimeKumaUrl) {
+        Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
     }
-    catch {
-        Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
-        Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-    }
-}
-if ($global:UptimeKumaUrl) {
-    Send-UptimeKumaWebhook -status "up" -ping $executionTime.TotalMilliseconds
-}
 }
 #region Normal Mode
 else {
@@ -33124,7 +33770,7 @@ else {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -33142,7 +33788,7 @@ else {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -33164,7 +33810,7 @@ else {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -33182,7 +33828,7 @@ else {
                             Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -like "*Connection refused*"
-                            if ($isConnRefused){
+                            if ($isConnRefused) {
                                 $ConnRefusedCount++
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
@@ -33379,7 +34025,8 @@ else {
                         # Verification: Force PowerShell to check the disk
                         if (Test-Path $XmlPath) {
                             Write-Entry -Subtext "Raw XML saved and verified: $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
-                        } else {
+                        }
+                        else {
                             throw "XML.Save() returned no error, but the file does not exist on disk."
                         }
                     }
@@ -33484,7 +34131,8 @@ else {
                     $MasterXml.Save($XmlPath)
                     if (Test-Path $XmlPath) {
                         Write-Entry -Subtext "  Raw Episode XML saved to $XmlPath" -Path $global:configLogging -Color Cyan -log Debug
-                    } else {
+                    }
+                    else {
                         Write-Entry -Subtext "  Episode file missing after save." -Path $global:configLogging -Color Cyan -log Debug
                     }
                 }
@@ -33645,7 +34293,7 @@ else {
 
                     $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                    if ($UseOriginalTitle -eq 'true'){
+                    if ($UseOriginalTitle -eq 'true') {
                         if ($entry.originalTitle -match $cjkPattern) {
                             $Titletext = $entry.title
                         }
@@ -33746,7 +34394,7 @@ else {
                             $LocalAssetMissing = $null
                             $Arturl = $null
                             $LocalAddOverlay = $AddOverlay
-                            $LocalAddBorder  = $AddBorder
+                            $LocalAddBorder = $AddBorder
 
                             if ($entry.PlexPosterUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -33882,7 +34530,7 @@ else {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                     }
-                                    if ($SkipLocalPosterTextAdd -eq 'true'){
+                                    if ($SkipLocalPosterTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -33966,10 +34614,10 @@ else {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                                '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                                '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                                '4K'            { $Posteroverlay = $4kposter }
-                                                '1080p'         { $Posteroverlay = $1080pPoster }
+                                                '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                                '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                                '4K' { $Posteroverlay = $4kposter }
+                                                '1080p' { $Posteroverlay = $1080pPoster }
                                                 Default { $Posteroverlay = $DefaultPosteroverlay }
                                             }
                                         }
@@ -34058,15 +34706,15 @@ else {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -34094,7 +34742,8 @@ else {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -34105,7 +34754,7 @@ else {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                                 if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $fontImagemagick = $RTLfontImagemagick
@@ -34161,24 +34810,24 @@ else {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$PosterImage`" ( -background none " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -34229,12 +34878,12 @@ else {
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        -Method Post `
+                                                        -Headers $extraPlexHeaders `
+                                                        -Body $fileContent `
+                                                        -ContentType 'application/octet-stream' `
+                                                        -SkipHttpErrorCheck `
+                                                        -ErrorAction Stop
 
                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -34277,14 +34926,14 @@ else {
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie'
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                        $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -34317,7 +34966,7 @@ else {
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $movietemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -34362,12 +35011,12 @@ else {
                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                         # Try uploading, capturing the response in detail
                                         $Upload = Invoke-WebRequest -Uri $uri `
-                                                                    -Method Post `
-                                                                    -Headers $extraPlexHeaders `
-                                                                    -Body $fileContent `
-                                                                    -ContentType 'application/octet-stream' `
-                                                                    -SkipHttpErrorCheck `
-                                                                    -ErrorAction Stop
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
 
                                         if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                             Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -34477,7 +35126,7 @@ else {
                             $LocalAssetMissing = $null
                             $Arturl = $null
                             $LocalAddOverlay = $AddBackgroundOverlay
-                            $LocalAddBorder  = $AddBackgroundBorder
+                            $LocalAddBorder = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 if ($PlexToken) {
@@ -34592,7 +35241,7 @@ else {
                                     Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                         Copy-Item -LiteralPath $_.FullName -Destination $BackgroundImage | Out-Null
                                     }
-                                    if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                    if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                         $SkippingText = 'true'
                                     }
                                     Write-Entry -Subtext "Copy local asset to: $BackgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -34676,11 +35325,11 @@ else {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
                                             switch ($entry.Resolution) {
                                                 '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                                '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                                '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                                '4K'            { $backgroundoverlay = $4kBackground }
-                                                '1080p'         { $backgroundoverlay = $1080pBackground }
-                                                Default         { $backgroundoverlay = $Defaultbackgroundoverlay }
+                                                '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                                '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                                '4K' { $backgroundoverlay = $4kBackground }
+                                                '1080p' { $backgroundoverlay = $1080pBackground }
+                                                Default { $backgroundoverlay = $Defaultbackgroundoverlay }
                                             }
                                         }
                                         Else {
@@ -34768,15 +35417,15 @@ else {
                                                 if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                     Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                                 }
-                                                if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                                if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                     $ApplyTextInsteadOfLogo = 'true'
                                                     Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                     $global:IsFallback = $true
                                                 }
-                                                ElseIf ($global:LogoUrl){
+                                                ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -34805,7 +35454,8 @@ else {
                                                     if ($urlExtension -match "(?i)\.svg") {
                                                         Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                         $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                    } else {
+                                                    }
+                                                    else {
                                                         $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -34816,7 +35466,7 @@ else {
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                                 }
                                             }
-                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                            if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                                 if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                     if ($global:direction -eq "RTL") {
                                                         $backgroundfontImagemagick = $RTLfontImagemagick
@@ -34871,24 +35521,24 @@ else {
                                                         $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                         $superSize = [int]($optimalFontSize * 0.55)
-                                                        $yNudge    = [int]($optimalFontSize * 0.3)
-                                                        $gap       = 20
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
 
                                                         if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                             # SUPERSCRIPT + STROKE MODE
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                                "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         elseif ($supChar -ne "") {
                                                             # SUPERSCRIPT ONLY MODE (No Stroke)
                                                             $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                                "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                                ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                         }
                                                         else {
                                                             # STANDARD MODE (Normal caption logic)
@@ -34939,12 +35589,12 @@ else {
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        -Method Post `
+                                                        -Headers $extraPlexHeaders `
+                                                        -Body $fileContent `
+                                                        -ContentType 'application/octet-stream' `
+                                                        -SkipHttpErrorCheck `
+                                                        -ErrorAction Stop
 
                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -34988,14 +35638,14 @@ else {
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Movie Background'
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                        $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -35027,7 +35677,7 @@ else {
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -35072,12 +35722,12 @@ else {
                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                         # Try uploading, capturing the response in detail
                                         $Upload = Invoke-WebRequest -Uri $uri `
-                                                                    -Method Post `
-                                                                    -Headers $extraPlexHeaders `
-                                                                    -Body $fileContent `
-                                                                    -ContentType 'application/octet-stream' `
-                                                                    -SkipHttpErrorCheck `
-                                                                    -ErrorAction Stop
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
 
                                         if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                             Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -35132,7 +35782,7 @@ else {
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -35192,7 +35842,7 @@ else {
                 $TakeLocal = $null
                 $LocalAssetMissing = $null
                 $LocalAddOverlay = $AddOverlay
-                $LocalAddBorder  = $AddBorder
+                $LocalAddBorder = $AddBorder
 
                 # Determine the language direction
                 $global:langCode = $entry.'Library Language'
@@ -35200,7 +35850,7 @@ else {
 
                 $cjkPattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsCyrillic}\p{IsDevanagari}\p{IsThai}\p{IsEthiopic}\p{IsGeorgian}\p{IsArmenian}\p{IsBengali}]'
 
-                if ($UseOriginalTitle -eq 'true'){
+                if ($UseOriginalTitle -eq 'true') {
                     if ($entry.originalTitle -match $cjkPattern) {
                         $Titletext = $entry.title
                     }
@@ -35400,7 +36050,7 @@ else {
                                 Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                     Copy-Item -LiteralPath $_.FullName -Destination $PosterImage | Out-Null
                                 }
-                                if ($SkipLocalPosterTextAdd -eq 'true'){
+                                if ($SkipLocalPosterTextAdd -eq 'true') {
                                     $SkippingText = 'true'
                                 }
                                 Write-Entry -Subtext "Copy local asset to: $PosterImage" -Path $global:configLogging -Color Green -log Info
@@ -35484,10 +36134,10 @@ else {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $Posteroverlay = $4KDoViHDR10 }
-                                            '4K DoVi'       { $Posteroverlay = $4KDoVi }
-                                            '4K HDR10'      { $Posteroverlay = $4KHDR10 }
-                                            '4K'            { $Posteroverlay = $4kposter }
-                                            '1080p'         { $Posteroverlay = $1080pPoster }
+                                            '4K DoVi' { $Posteroverlay = $4KDoVi }
+                                            '4K HDR10' { $Posteroverlay = $4KHDR10 }
+                                            '4K' { $Posteroverlay = $4kposter }
+                                            '1080p' { $Posteroverlay = $1080pPoster }
                                             Default { $Posteroverlay = $DefaultShowPosteroverlay }
                                         }
                                     }
@@ -35576,15 +36226,15 @@ else {
                                             if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                 Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                             }
-                                            if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                 $ApplyTextInsteadOfLogo = 'true'
                                                 Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                 $global:IsFallback = $true
                                             }
-                                            ElseIf ($global:LogoUrl){
+                                            ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -35613,7 +36263,8 @@ else {
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                     $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
-                                                } else {
+                                                }
+                                                else {
                                                     $Arguments = "`"$PosterImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -35624,7 +36275,7 @@ else {
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                             }
                                         }
-                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false'){
+                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
                                             if ($AddText -eq 'true' -and $SkippingText -eq 'false') {
                                                 if ($global:direction -eq "RTL") {
                                                     $fontImagemagick = $RTLfontImagemagick
@@ -35679,24 +36330,24 @@ else {
                                                     $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                     $superSize = [int]($optimalFontSize * 0.55)
-                                                    $yNudge    = [int]($optimalFontSize * 0.3)
-                                                    $gap       = 20
+                                                    $yNudge = [int]($optimalFontSize * 0.3)
+                                                    $gap = 20
 
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                        "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$strokecolor`" -stroke `"$strokecolor`" -strokewidth `"$strokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "-gravity center -composite ) -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                     }
                                                     elseif ($supChar -ne "") {
                                                         # SUPERSCRIPT ONLY MODE (No Stroke)
                                                         $Arguments = "`"$PosterImage`" ( -background none " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                            ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
+                                                        "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$fontcolor`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$fontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                        ") -gravity south -geometry +0`"$text_offset`" -composite `"$PosterImage`""
                                                     }
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
@@ -35747,12 +36398,12 @@ else {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -35795,14 +36446,14 @@ else {
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show'
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$PosterImage} Else {$global:posterurl})
-                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $PosterImage } Else { $global:posterurl })
+                                    $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -35834,7 +36485,7 @@ else {
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                             $showtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                            $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                            $showtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                             $showtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -35879,12 +36530,12 @@ else {
                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                     # Try uploading, capturing the response in detail
                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                -Method Post `
-                                                                -Headers $extraPlexHeaders `
-                                                                -Body $fileContent `
-                                                                -ContentType 'application/octet-stream' `
-                                                                -SkipHttpErrorCheck `
-                                                                -ErrorAction Stop
+                                        -Method Post `
+                                        -Headers $extraPlexHeaders `
+                                        -Body $fileContent `
+                                        -ContentType 'application/octet-stream' `
+                                        -SkipHttpErrorCheck `
+                                        -ErrorAction Stop
 
                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -36004,7 +36655,7 @@ else {
                         $LocalAssetMissing = $null
                         $Arturl = $null
                         $LocalAddOverlay = $AddBackgroundOverlay
-                        $LocalAddBorder  = $AddBackgroundBorder
+                        $LocalAddBorder = $AddBackgroundBorder
 
                         if ($entry.PlexBackgroundUrl -like "/library/*") {
                             if ($PlexToken) {
@@ -36124,7 +36775,7 @@ else {
                                 Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                     Copy-Item -LiteralPath $_.FullName -Destination $BackgroundImage | Out-Null
                                 }
-                                if ($SkipLocalBackgroundTextAdd -eq 'true'){
+                                if ($SkipLocalBackgroundTextAdd -eq 'true') {
                                     $SkippingText = 'true'
                                 }
                                 Write-Entry -Subtext "Copy local asset to: $BackgroundImage" -Path $global:configLogging -Color Green -log Info
@@ -36208,11 +36859,11 @@ else {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
                                         switch ($entry.Resolution) {
                                             '4K DoVi/HDR10' { $backgroundoverlay = $4KDoViHDR10Background }
-                                            '4K DoVi'       { $backgroundoverlay = $4KDoViBackground }
-                                            '4K HDR10'      { $backgroundoverlay = $4KHDR10Background }
-                                            '4K'            { $backgroundoverlay = $4kBackground }
-                                            '1080p'         { $backgroundoverlay = $1080pBackground }
-                                            Default         { $backgroundoverlay = $DefaultShowBackgroundoverlay }
+                                            '4K DoVi' { $backgroundoverlay = $4KDoViBackground }
+                                            '4K HDR10' { $backgroundoverlay = $4KHDR10Background }
+                                            '4K' { $backgroundoverlay = $4kBackground }
+                                            '1080p' { $backgroundoverlay = $1080pBackground }
+                                            Default { $backgroundoverlay = $DefaultShowBackgroundoverlay }
                                         }
                                     }
                                     Else {
@@ -36300,15 +36951,15 @@ else {
                                             if ([string]::IsNullOrEmpty($global:LogoUrl)) {
                                                 Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
                                             }
-                                            if (!$global:LogoUrl -and $TextFallback -eq 'true'){
+                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
                                                 $ApplyTextInsteadOfLogo = 'true'
                                                 Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
                                                 $global:IsFallback = $true
                                             }
-                                            ElseIf ($global:LogoUrl){
+                                            ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension);Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -36337,7 +36988,8 @@ else {
                                                 if ($urlExtension -match "(?i)\.svg") {
                                                     Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                                                     $Arguments = "`"$backgroundImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
-                                                } else {
+                                                }
+                                                else {
                                                     $Arguments = "`"$backgroundImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$backgroundImage`""
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
@@ -36348,7 +37000,7 @@ else {
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
                                             }
                                         }
-                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false'){
+                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseBGLogo -eq 'false') {
                                             if ($AddBackgroundText -eq 'true' -and $SkippingText -eq 'false') {
                                                 if ($global:direction -eq "RTL") {
                                                     $backgroundfontImagemagick = $RTLfontImagemagick
@@ -36403,24 +37055,24 @@ else {
                                                     $supChar = if ($joinedTitle -match '³') { "3" } elseif ($joinedTitle -match '²') { "2" } else { "" }
 
                                                     $superSize = [int]($optimalFontSize * 0.55)
-                                                    $yNudge    = [int]($optimalFontSize * 0.3)
-                                                    $gap       = 20
+                                                    $yNudge = [int]($optimalFontSize * 0.3)
+                                                    $gap = 20
 
                                                     if ($supChar -ne "" -and $AddTextStroke -eq 'true') {
                                                         # SUPERSCRIPT + STROKE MODE
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
-                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                        "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundstrokecolor`" -stroke `"$Backgroundstrokecolor`" -strokewidth `"$Backgroundstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "( ( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                        "-gravity center -composite ) -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                     }
                                                     elseif ($supChar -ne "") {
                                                         # SUPERSCRIPT ONLY MODE (No Stroke)
                                                         $Arguments = "`"$backgroundImage`" ( -background none " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
-                                                            "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
-                                                            ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $optimalFontSize -fill `"$Backgroundfontcolor`" label:`"$cleanTitle`" ) " +
+                                                        "( -font `"$backgroundfontImagemagick`" -pointsize $superSize -fill `"$Backgroundfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                        ") -gravity south -geometry +0`"$Backgroundtext_offset`" -composite `"$backgroundImage`""
                                                     }
                                                     else {
                                                         # STANDARD MODE (Normal caption logic)
@@ -36471,12 +37123,12 @@ else {
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
-                                                                            -Method Post `
-                                                                            -Headers $extraPlexHeaders `
-                                                                            -Body $fileContent `
-                                                                            -ContentType 'application/octet-stream' `
-                                                                            -SkipHttpErrorCheck `
-                                                                            -ErrorAction Stop
+                                                    -Method Post `
+                                                    -Headers $extraPlexHeaders `
+                                                    -Body $fileContent `
+                                                    -ContentType 'application/octet-stream' `
+                                                    -SkipHttpErrorCheck `
+                                                    -ErrorAction Stop
 
                                                 if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                     Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -36520,14 +37172,14 @@ else {
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Show Background'
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$backgroundImage} Else {$global:posterurl})
-                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $backgroundImage } Else { $global:posterurl })
+                                    $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                     $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -36559,7 +37211,7 @@ else {
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                            $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                            $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -36604,12 +37256,12 @@ else {
                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                     # Try uploading, capturing the response in detail
                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                -Method Post `
-                                                                -Headers $extraPlexHeaders `
-                                                                -Body $fileContent `
-                                                                -ContentType 'application/octet-stream' `
-                                                                -SkipHttpErrorCheck `
-                                                                -ErrorAction Stop
+                                        -Method Post `
+                                        -Headers $extraPlexHeaders `
+                                        -Body $fileContent `
+                                        -ContentType 'application/octet-stream' `
+                                        -SkipHttpErrorCheck `
+                                        -ErrorAction Stop
 
                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -36684,10 +37336,10 @@ else {
                         $TakeLocal = $null
                         $LocalAssetMissing = $null
                         $LocalAddOverlay = $AddSeasonOverlay
-                        $LocalAddBorder  = $AddSeasonBorder
+                        $LocalAddBorder = $AddSeasonBorder
                         if ($SeasonfontAllCaps -eq 'true') {
-                            if ($OverrideSeasonName -eq 'true'){
-                                if ($global:seasonNumbers[$i] -eq '0'){
+                            if ($OverrideSeasonName -eq 'true') {
+                                if ($global:seasonNumbers[$i] -eq '0') {
                                     $global:seasonTitle = $SpecialSeasonOverrideText.ToUpper()
                                 }
                                 Else {
@@ -36699,8 +37351,8 @@ else {
                             }
                         }
                         Else {
-                            if ($OverrideSeasonName -eq 'true'){
-                                if ($global:seasonNumbers[$i] -eq '0'){
+                            if ($OverrideSeasonName -eq 'true') {
+                                if ($global:seasonNumbers[$i] -eq '0') {
                                     $global:seasonTitle = $SpecialSeasonOverrideText
                                 }
                                 Else {
@@ -36781,13 +37433,14 @@ else {
                                 }
                             }
                             foreach ($ext in $allowedExtensions) {
-                                $manualFile   = "$ManualTestPath$ext"
+                                $manualFile = "$ManualTestPath$ext"
                                 $templateFile = "$Templatetestpath$ext"
                                 $filePath = $null
 
                                 if (Test-Path -LiteralPath $manualFile) {
                                     $filePath = $manualFile
-                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                }
+                                elseif (Test-Path -LiteralPath $templateFile) {
                                     $filePath = $templateFile
                                 }
 
@@ -37015,7 +37668,7 @@ else {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage
                                         }
-                                        if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                        if ($SkipLocalSeasonTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -37176,16 +37829,40 @@ else {
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
+
                                                     if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal Season font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
                                                         Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
-                                                        # Season Part
-                                                        # Add Stroke
-                                                        if ($AddSeasonTextStroke -eq 'true') {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+
+                                                        # Season Text Part
+                                                        $cleanTitle = $global:seasonTitle -replace '³', '' -replace '²', ''
+                                                        $supChar = if ($global:seasonTitle -match '³') { "3" } elseif ($global:seasonTitle -match '²') { "2" } else { "" }
+
+                                                        $superSize = [int]($optimalFontSize * 0.55)
+                                                        $yNudge = [int]($optimalFontSize * 0.3)
+                                                        $gap = 20
+
+                                                        if ($supChar -ne "" -and $AddSeasonTextStroke -eq 'true') {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "( ( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" -stroke none label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" -stroke none label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap ) " +
+                                                            "-gravity center -composite ) -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
                                                         }
-                                                        Else {
-                                                            $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        elseif ($supChar -ne "") {
+                                                            $SeasonArguments = "`"$SeasonImage`" ( -background none " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $optimalFontSize -fill `"$Seasonfontcolor`" label:`"$cleanTitle`" ) " +
+                                                            "( -font `"$fontImagemagick`" -pointsize $superSize -fill `"$Seasonfontcolor`" label:`"$supChar`" -repage +0-$yNudge ) +smush +$gap " +
+                                                            ") -gravity south -geometry +0`"$Seasontext_offset`" -composite `"$SeasonImage`""
+                                                        }
+                                                        else {
+                                                            if ($AddSeasonTextStroke -eq 'true') {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$Seasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonstrokecolor`" -stroke `"$Seasonstrokecolor`" -strokewidth `"$Seasonstrokewidth`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -stroke none -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $SeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$optimalFontSize`" -fill `"$Seasonfontcolor`" -size `"$Seasonboxsize`" -background none -interline-spacing `"$SeasonlineSpacing`" -gravity `"$Seasontextgravity`" caption:`"$global:seasonTitle`" -trim +repage -extent `"$Seasonboxsize`" `) -gravity south -geometry +0`"$Seasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
                                                         }
 
                                                         Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
@@ -37193,19 +37870,110 @@ else {
                                                         $logEntry | Out-File $magickLog -Append
                                                         InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
-                                                        # Show Part
-                                                        # Add Stroke
-                                                        if ($AddShowOnSeasonTextStroke -eq 'true') {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
-                                                        }
-                                                        Else {
-                                                            $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                        # Show Part (Logo vs Text)
+                                                        $ApplyTextInsteadOfLogo = $null
+
+                                                        if ($UseLogo -eq 'true' -and ($global:UseClearlogo -eq 'true' -or $global:UseClearart -eq 'true')) {
+                                                            $global:LogoUrl = $null
+                                                            $global:LogoLanguage = $null
+                                                            $allProviders = @('TMDB', 'FANART', 'TVDB')
+                                                            $searchOrder = @($global:FavProvider) + ($allProviders -ne $global:FavProvider)
+
+                                                            foreach ($provider in $searchOrder) {
+                                                                if (-not [string]::IsNullOrEmpty($global:LogoUrl)) { break }
+                                                                switch ($provider) {
+                                                                    'TMDB' { if ($entry.tmdbid) { $global:LogoUrl = GetTMDBLogo -Type tv } }
+                                                                    'FANART' { $global:LogoUrl = GetFanartLogo -Type tv }
+                                                                    'TVDB' { if ($entry.tvdbid) { $global:LogoUrl = GetTVDBLogo -Type series } }
+                                                                }
+                                                            }
+
+                                                            if (-not [string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                $global:IsFallback = $false
+                                                                switch ($global:FavProvider) {
+                                                                    'TMDB' { if (-not ($global:LogoUrl.StartsWith("https://image.tmdb.org"))) { $global:IsFallback = $true } }
+                                                                    'TVDB' { if (-not ($global:LogoUrl.StartsWith("https://artworks.thetvdb.com"))) { $global:IsFallback = $true } }
+                                                                    'FANART' { if (-not ($global:LogoUrl.StartsWith("https://assets.fanart.tv"))) { $global:IsFallback = $true } }
+                                                                }
+                                                                if ($global:IsFallback) {
+                                                                    Write-Entry -Subtext "Logo Source: Fallback (URL did not match $global:FavProvider)" -Path $global:configLogging -Color Yellow -log Debug
+                                                                }
+                                                            }
+
+                                                            if ([string]::IsNullOrEmpty($global:LogoUrl)) {
+                                                                Write-Entry -Subtext "Could not find a logo on any provider (Tried: $($searchOrder -join ', '))" -Path $global:configLogging -Color Yellow -log Warning
+                                                            }
+
+                                                            if (!$global:LogoUrl -and $TextFallback -eq 'true') {
+                                                                $ApplyTextInsteadOfLogo = 'true'
+                                                                Write-Entry -Subtext "Falling back to text as no logo was found." -Path $global:configLogging -Color Yellow -log Warning
+                                                                $global:IsFallback = $true
+                                                            }
+                                                            ElseIf ($global:LogoUrl) {
+                                                                $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
+                                                                if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
+                                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+
+                                                                try {
+                                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                }
+                                                                catch {
+                                                                    if ($_.Exception.Response) {
+                                                                        $statusCode = $_.Exception.Response.StatusCode.value__
+                                                                    }
+                                                                    else {
+                                                                        $statusCode = $_.Exception.Message
+                                                                    }
+                                                                    Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
+                                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                }
+
+                                                                $colorEffect = ""
+                                                                if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+                                                                    $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                                                                    $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+                                                                    if ([double]$_chromaStd -lt 0.25) {
+                                                                        $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"
+                                                                        Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+                                                                    }
+                                                                    else {
+                                                                        $colorEffect = ""
+                                                                        Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+                                                                    }
+                                                                }
+
+                                                                if ($urlExtension -match "(?i)\.svg") {
+                                                                    Write-Entry -Subtext "Detected SVG. Applying High-Res settings for Season Show Logo." -Path $global:configLogging -Color Cyan -log Info
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none -density 300 `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+                                                                else {
+                                                                    $ShowOnSeasonArguments = "`"$SeasonImage`" ( -background none `"$LogoImage`" $colorEffect -resize `"$ShowOnSeasonboxsize`" `) -gravity `"$ShowOnSeasontextgravity`" -geometry +0+`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                                }
+
+                                                                Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
+                                                                $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                                $logEntry | Out-File $magickLog -Append
+                                                                InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+
+                                                                Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
+                                                            }
                                                         }
 
-                                                        Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
-                                                        $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                        $logEntry | Out-File $magickLog -Append
-                                                        InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        # Fallback Text Logic
+                                                        if ($ApplyTextInsteadOfLogo -eq 'true' -or $UseLogo -eq 'false') {
+                                                            if ($AddShowOnSeasonTextStroke -eq 'true') {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -size `"$ShowOnSeasonboxsize`" -background none `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonstrokecolor`" -stroke `"$ShowOnSeasonstrokecolor`" -strokewidth `"$ShowOnSeasonstrokewidth`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -stroke none -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" `) -gravity `"$ShowOnSeasontextgravity`" -composite -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+                                                            Else {
+                                                                $ShowOnSeasonArguments = "`"$SeasonImage`" -gravity center -background None -layers Flatten `( -font `"$fontImagemagick`" -pointsize `"$ShowoptimalFontSize`" -fill `"$ShowOnSeasonfontcolor`" -size `"$ShowOnSeasonboxsize`" -background none -interline-spacing `"$ShowOnSeasonlineSpacing`" -gravity `"$ShowOnSeasontextgravity`" caption:`"$global:ShowTitleOnSeason`" -trim +repage -extent `"$ShowOnSeasonboxsize`" `) -gravity south -geometry +0`"$ShowOnSeasontext_offset`" -quality $global:outputQuality -composite `"$SeasonImage`""
+                                                            }
+
+                                                            Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
+                                                            $logEntry = "`"$magick`" $ShowOnSeasonArguments"
+                                                            $logEntry | Out-File $magickLog -Append
+                                                            InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
+                                                        }
                                                     }
                                                 }
                                                 Else {
@@ -37235,7 +38003,7 @@ else {
                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                             Copy-Item -LiteralPath $_.FullName -Destination $SeasonImage
                                         }
-                                        if ($SkipLocalSeasonTextAdd -eq 'true'){
+                                        if ($SkipLocalSeasonTextAdd -eq 'true') {
                                             $SkippingText = 'true'
                                         }
                                         Write-Entry -Subtext "Copy local asset to: $SeasonImage" -Path $global:configLogging -Color Green -log Info
@@ -37323,12 +38091,12 @@ else {
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        -Method Post `
+                                                        -Headers $extraPlexHeaders `
+                                                        -Body $fileContent `
+                                                        -ContentType 'application/octet-stream' `
+                                                        -SkipHttpErrorCheck `
+                                                        -ErrorAction Stop
 
                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -37372,14 +38140,14 @@ else {
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Season'
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback) { 'true' } else { 'false' })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$SeasonImage} Else {$global:posterurl})
-                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $SeasonImage } Else { $global:posterurl })
+                                        $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                         $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -37411,7 +38179,7 @@ else {
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                $seasontemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -37456,12 +38224,12 @@ else {
                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                         # Try uploading, capturing the response in detail
                                         $Upload = Invoke-WebRequest -Uri $uri `
-                                                                    -Method Post `
-                                                                    -Headers $extraPlexHeaders `
-                                                                    -Body $fileContent `
-                                                                    -ContentType 'application/octet-stream' `
-                                                                    -SkipHttpErrorCheck `
-                                                                    -ErrorAction Stop
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
 
                                         if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                             Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -37558,7 +38326,7 @@ else {
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
                                     $LocalAddOverlay = $AddTitleCardOverlay
-                                    $LocalAddBorder  = $AddTitleCardBorder
+                                    $LocalAddBorder = $AddTitleCardBorder
                                     $global:PlexTitleCardUrl = $entry.PlexBackgroundUrl
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
@@ -37654,13 +38422,14 @@ else {
                                                 }
                                             }
                                             foreach ($ext in $allowedExtensions) {
-                                                $manualFile   = "$ManualTestPath$ext"
+                                                $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
 
                                                 if (Test-Path -LiteralPath $manualFile) {
                                                     $filePath = $manualFile
-                                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                                }
+                                                elseif (Test-Path -LiteralPath $templateFile) {
                                                     $filePath = $templateFile
                                                 }
 
@@ -37793,7 +38562,7 @@ else {
                                                         if ($global:TempImagecopied -ne 'true') {
                                                             Copy-Item -LiteralPath $EpisodeImage -destination $EpisodeTempImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -37861,10 +38630,10 @@ else {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
                                                                     switch ($global:EPResolution) {
                                                                         '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                        '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                        '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                        '4K'            { $TitleCardoverlay = $4kTC }
-                                                                        '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                        '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                        '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                        '4K' { $TitleCardoverlay = $4kTC }
+                                                                        '1080p' { $TitleCardoverlay = $1080pTC }
                                                                         Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                     }
                                                                 }
@@ -38008,7 +38777,7 @@ else {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -38083,12 +38852,12 @@ else {
                                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                     # Try uploading, capturing the response in detail
                                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                                -Method Post `
-                                                                                                -Headers $extraPlexHeaders `
-                                                                                                -Body $fileContent `
-                                                                                                -ContentType 'application/octet-stream' `
-                                                                                                -SkipHttpErrorCheck `
-                                                                                                -ErrorAction Stop
+                                                                        -Method Post `
+                                                                        -Headers $extraPlexHeaders `
+                                                                        -Body $fileContent `
+                                                                        -ContentType 'application/octet-stream' `
+                                                                        -SkipHttpErrorCheck `
+                                                                        -ErrorAction Stop
 
                                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -38132,14 +38901,14 @@ else {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'true' } Else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -38170,7 +38939,7 @@ else {
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -38200,48 +38969,48 @@ else {
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
-                                                GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
-                                                if ($global:PlexartworkDownloaded -eq 'true') {
-                                                    Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                                    $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
-                                                    # Verify variables before uploading
-                                                    Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                                    Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                                    Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+                                                    GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
+                                                    if ($global:PlexartworkDownloaded -eq 'true') {
+                                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                                        $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
+                                                        # Verify variables before uploading
+                                                        Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                                        Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                    $uri = if ($PlexToken) {
-                                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                    }
-                                                    Else {
-                                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                                    }
-                                                    Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                                    # Try uploading, capturing the response in detail
-                                                    $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                -Method Post `
-                                                                                -Headers $extraPlexHeaders `
-                                                                                -Body $fileContent `
-                                                                                -ContentType 'application/octet-stream' `
-                                                                                -SkipHttpErrorCheck `
-                                                                                -ErrorAction Stop
+                                                        $uri = if ($PlexToken) {
+                                                            "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
+                                                        }
+                                                        Else {
+                                                            "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
+                                                        }
+                                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                                        # Try uploading, capturing the response in detail
+                                                        $Upload = Invoke-WebRequest -Uri $uri `
+                                                            -Method Post `
+                                                            -Headers $extraPlexHeaders `
+                                                            -Body $fileContent `
+                                                            -ContentType 'application/octet-stream' `
+                                                            -SkipHttpErrorCheck `
+                                                            -ErrorAction Stop
 
-                                                    if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                                        Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                                        }
+                                                        else {
+                                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                                        }
+                                                        $UploadCount++
                                                     }
-                                                    else {
-                                                        Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                                        Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                                    }
-                                                    $UploadCount++
                                                 }
-                                            }
-                                            catch {
-                                                Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                                                catch {
+                                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                $global:errorCount++
-                                                Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-                                            }
+                                                    $global:errorCount++
+                                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                }
                                                 if (Test-Path $EpisodeImage -ErrorAction SilentlyContinue) {
                                                     Remove-Item -LiteralPath $EpisodeImage | Out-Null
                                                     Write-Entry -Message "Deleting Temp Image: $EpisodeImage" -Path $global:configLogging -Color White -log Info
@@ -38287,7 +39056,7 @@ else {
                                     $TakeLocal = $null
                                     $LocalAssetMissing = $null
                                     $LocalAddOverlay = $AddTitleCardOverlay
-                                    $LocalAddBorder  = $AddTitleCardBorder
+                                    $LocalAddBorder = $AddTitleCardBorder
                                     $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
                                     $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
                                     $global:EPTitle = $($global:titles[$i].Trim())
@@ -38373,13 +39142,14 @@ else {
                                                 }
                                             }
                                             foreach ($ext in $allowedExtensions) {
-                                                $manualFile   = "$ManualTestPath$ext"
+                                                $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
 
                                                 if (Test-Path -LiteralPath $manualFile) {
                                                     $filePath = $manualFile
-                                                } elseif (Test-Path -LiteralPath $templateFile) {
+                                                }
+                                                elseif (Test-Path -LiteralPath $templateFile) {
                                                     $filePath = $templateFile
                                                 }
 
@@ -38413,7 +39183,7 @@ else {
                                                         if (!$global:posterurl) {
                                                             $global:IsFallback = $true
                                                             $global:posterurl = GetTVDBTitleCard
-                                                            if ($global:posterurl){
+                                                            if ($global:posterurl) {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
@@ -38556,7 +39326,7 @@ else {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -38609,10 +39379,10 @@ else {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
                                                                 switch ($global:EPResolution) {
                                                                     '4K DoVi/HDR10' { $TitleCardoverlay = $4KDoViHDR10TC }
-                                                                    '4K DoVi'       { $TitleCardoverlay = $4KDoViTC }
-                                                                    '4K HDR10'      { $TitleCardoverlay = $4KHDR10TC }
-                                                                    '4K'            { $TitleCardoverlay = $4kTC }
-                                                                    '1080p'         { $TitleCardoverlay = $1080pTC }
+                                                                    '4K DoVi' { $TitleCardoverlay = $4KDoViTC }
+                                                                    '4K HDR10' { $TitleCardoverlay = $4KHDR10TC }
+                                                                    '4K' { $TitleCardoverlay = $4kTC }
+                                                                    '1080p' { $TitleCardoverlay = $1080pTC }
                                                                     Default { $TitleCardoverlay = $DefaultTitleCardoverlay }
                                                                 }
                                                             }
@@ -38755,7 +39525,7 @@ else {
                                                         Get-ChildItem -LiteralPath "$($ManualTestPath)$posterext" | ForEach-Object {
                                                             Copy-Item -LiteralPath $_.FullName -Destination $EpisodeImage | Out-Null
                                                         }
-                                                        if ($SkipLocalTCTextAdd -eq 'true'){
+                                                        if ($SkipLocalTCTextAdd -eq 'true') {
                                                             $SkippingText = 'true'
                                                         }
                                                         Write-Entry -Subtext "Copy local asset to: $EpisodeImage" -Path $global:configLogging -Color Green -log Info
@@ -38830,12 +39600,12 @@ else {
                                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                     # Try uploading, capturing the response in detail
                                                                     $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                                -Method Post `
-                                                                                                -Headers $extraPlexHeaders `
-                                                                                                -Body $fileContent `
-                                                                                                -ContentType 'application/octet-stream' `
-                                                                                                -SkipHttpErrorCheck `
-                                                                                                -ErrorAction Stop
+                                                                        -Method Post `
+                                                                        -Headers $extraPlexHeaders `
+                                                                        -Body $fileContent `
+                                                                        -ContentType 'application/octet-stream' `
+                                                                        -SkipHttpErrorCheck `
+                                                                        -ErrorAction Stop
 
                                                                     if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                                         Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
@@ -38879,14 +39649,14 @@ else {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) {"false"} Else {if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang }})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo TextFallback" -Value $(if ($ApplyTextInsteadOfLogo) { $ApplyTextInsteadOfLogo } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value $(if ($global:IsFallback -and $global:FallbackText) { $global:FallbackText } elseif ($global:IsFallback -and !$global:FallbackText) { 'true' } Else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) {$EpisodeImage} Else {$global:posterurl})
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -38917,7 +39687,7 @@ else {
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) {"true"} Else {"false"})
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
@@ -38965,12 +39735,12 @@ else {
                                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                         # Try uploading, capturing the response in detail
                                                         $Upload = Invoke-WebRequest -Uri $uri `
-                                                                                    -Method Post `
-                                                                                    -Headers $extraPlexHeaders `
-                                                                                    -Body $fileContent `
-                                                                                    -ContentType 'application/octet-stream' `
-                                                                                    -SkipHttpErrorCheck `
-                                                                                    -ErrorAction Stop
+                                                            -Method Post `
+                                                            -Headers $extraPlexHeaders `
+                                                            -Body $fileContent `
+                                                            -ContentType 'application/octet-stream' `
+                                                            -SkipHttpErrorCheck `
+                                                            -ErrorAction Stop
 
                                                         if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
                                                             Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error

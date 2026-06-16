@@ -82,10 +82,11 @@
 
     #### PrerequisitePart
 
+    - `telemetry`: Set to `false` to opt-out of anonymous usage data collection. See [Telemetry Details](telemetry.md) for more info. (Default value is: `true`)
     - `AssetPath`: Path to store generated posters.
     - `BackupPath`: Path to store/download Plex posters when using the [backup switch](modes.md#backup-mode).
     - `ManualAssetPath`: If assets are placed in this directory with the **exact** [naming convention](namingconvention.md#manual-assets-naming), they will be preferred. (it has to follow the same naming convention as you have in `/assets`)
-    - `SkipAddText`: If set to `true`, Posterizarr will skip adding text to the poster if it is flagged as a `Poster with text` by the provider.
+    - `SkipAddText`: If set to `true`, Posterizarr will skip adding text/logo to the poster if it is flagged as a `Poster with text` by the provider.
     - `SkipLocalPosterTextAdd`: If set to `true`, Posterizarr will skip adding text to the local poster.
     - `SkipLocalBackgroundrTextAdd`: If set to `true`, Posterizarr will skip adding text to the local background poster.
     - `SkipLocalSeasonTextAdd`: If set to `true`, Posterizarr will skip adding text to the local season poster.
@@ -184,7 +185,7 @@
 
     - `fontAllCaps`: Set to `true` for all caps text, else `false`.
     - `AddBorder`: Set to `true` to add a border to the image.
-    - `AddText`: Set to `true` to add text to the image.
+    - `AddText`: Set to `true` to add text/logo to the image.
     - `AddTextStroke`: Set to `true` to add stroke to text.
     - `strokecolor`: Color of text stroke.
     - `strokewidth`: Stroke width.
@@ -227,7 +228,7 @@
     #### ShowTitleOnSeasonPosterPart
 
     - `fontAllCaps`: Set to `true` for all caps text, else `false`.
-    - `AddShowTitletoSeason`: if set to `true` it will add show title to season poster (Default Value is: `false`)
+    - `AddShowTitletoSeason`: if set to `true` it will add show title/logo to season poster (Default Value is: `false`)
     - `AddTextStroke`: Set to `true` to add stroke to text.
     - `strokecolor`: Color of text stroke.
     - `strokewidth`: Stroke width.
@@ -244,7 +245,7 @@
 
     - `fontAllCaps`: Set to `true` for all caps text, else `false`.
     - `AddBorder`: Set to `true` to add a border to the background image.
-    - `AddText`: Set to `true` to add text to the background image.
+    - `AddText`: Set to `true` to add text/logo to the background image.
     - `AddTextStroke`: Set to `true` to add stroke to text.
     - `strokecolor`: Color of text stroke.
     - `strokewidth`: Stroke width.
