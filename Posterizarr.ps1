@@ -8763,6 +8763,13 @@ if ($Manual) {
     }
     $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
     $global:IsTruncated = $null
+    if ($isWebPic -eq 'true') {
+        Write-Entry -Subtext "Downloading Image from: $PicturePath" -Path $global:configLogging -Color White -log Info
+        Invoke-WebRequest -Uri $PicturePath -OutFile $PosterImage
+    }
+    Else {
+        Move-Item -LiteralPath $PicturePath -destination $PosterImage -Force -ErrorAction SilentlyContinue
+    }
     if ($global:ImageProcessing -eq 'true') {
         if ($SeasonPoster) {
             if ($AddShowTitletoSeason -eq 'true') {
@@ -8862,13 +8869,6 @@ if ($Manual) {
             Else {
                 $joinedTitle = $Titletext
             }
-        }
-        if ($isWebPic -eq 'true') {
-            Write-Entry -Subtext "Downloading Image from: $PicturePath" -Path $global:configLogging -Color White -log Info
-            Invoke-WebRequest -Uri $PicturePath -OutFile $PosterImage
-        }
-        Else {
-            Move-Item -LiteralPath $PicturePath -destination $PosterImage -Force -ErrorAction SilentlyContinue
         }
         if ($Titletext -match '^(http|https)://' -or $Titletext -match '\.(png|jpg|jpeg|webp)$') {
             Write-Entry -Subtext "Processing Poster/Logo for: `"$FolderName`"" -Path $global:configLogging -Color White -log Info
