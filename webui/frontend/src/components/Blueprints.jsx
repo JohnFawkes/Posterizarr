@@ -202,6 +202,22 @@ const Accordion = ({ title, icon: Icon, children, defaultOpen = false }) => {
   );
 };
 
+const ColorInput = ({ value, onChange, label }) => (
+  <div className="flex items-center gap-2 mt-2">
+    <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-theme shadow-sm shrink-0">
+      <input type="color" value={value || "#ffffff"} onChange={e => onChange(e.target.value)} className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer p-0 border-0" title={label} />
+    </div>
+    <input type="text" value={value || "#ffffff"} onChange={e => onChange(e.target.value)} className="w-24 bg-transparent border border-theme rounded-md px-2 py-1 text-xs font-mono uppercase text-theme-text focus:border-theme-primary focus:outline-none transition-colors" />
+  </div>
+);
+
+const NumberInput = ({ label, value, onChange, min = 0, max = 5000 }) => (
+  <div className="flex items-center justify-between gap-4 mt-2">
+    <span className="text-sm text-theme-muted">{label}</span>
+    <input type="number" min={min} max={max} value={value || 0} onChange={(e) => onChange(e.target.value)} className="bg-theme-bg border border-theme rounded-md px-3 py-1.5 text-sm w-24 text-right focus:border-theme-primary outline-none transition-colors text-theme-text" />
+  </div>
+);
+
 export default function Blueprints() {
   const { t } = useTranslation();
   const { showSuccess, showError } = useToast();
@@ -222,10 +238,10 @@ export default function Blueprints() {
   // Builder State
   const [builderState, setBuilderState] = useState({
     ImageProcessing: true,
-    Poster: { AddBorder: false, AddText: false, UseResolutionOverlays: false },
-    Season: { AddBorder: false, AddText: false, ShowTitle: false, UseResolutionOverlays: false },
-    TitleCard: { AddBorder: false, AddOverlay: false, AddEPText: false, AddEPTitleText: false, UseResolutionOverlays: false },
-    Background: { AddBorder: false, AddText: false, AddOverlay: false, UseResolutionOverlays: false },
+    Poster: { AddBorder: false, AddText: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400" },
+    Season: { AddBorder: false, AddText: false, ShowTitle: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400" },
+    TitleCard: { AddBorder: false, AddOverlay: false, AddEPText: false, AddEPTitleText: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400" },
+    Background: { AddBorder: false, AddText: false, AddOverlay: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200" },
     Global: { 
       UseClearlogo: true, 
       UseClearart: false, 
@@ -236,6 +252,7 @@ export default function Blueprints() {
   });
 
   const [previewType, setPreviewType] = useState("Poster"); // "Poster", "Season", "TitleCard", "Background"
+  const [importBlueprintState, setImportBlueprintState] = useState(null);
 
   useEffect(() => {
     fetchConfig();
@@ -251,6 +268,71 @@ export default function Blueprints() {
         setConfig(data.config);
         setUsingFlatStructure(data.using_flat_structure || false);
         if (data.display_names) setDisplayNames(data.display_names);
+        
+        // Populate Builder State from config
+        setBuilderState(prev => ({
+          ...prev,
+          ImageProcessing: data.config.OverlayPart?.ImageProcessing === "true",
+          Poster: {
+             ...prev.Poster,
+             AddBorder: data.config.PosterOverlayPart?.AddBorder === "true",
+             AddText: data.config.PosterOverlayPart?.AddText === "true",
+             UseResolutionOverlays: data.config.PrerequisitePart?.UsePosterResolutionOverlays === "true",
+             bordercolor: data.config.PosterOverlayPart?.bordercolor || "#000000",
+             borderwidth: parseInt(data.config.PosterOverlayPart?.borderwidth || 30),
+             fontcolor: data.config.PosterOverlayPart?.fontcolor || "#ffffff",
+             strokecolor: data.config.PosterOverlayPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.PosterOverlayPart?.strokewidth || 6),
+             text_offset: data.config.PosterOverlayPart?.text_offset || "+430"
+          },
+          Season: {
+             ...prev.Season,
+             AddBorder: data.config.SeasonPosterOverlayPart?.AddBorder === "true",
+             AddText: data.config.SeasonPosterOverlayPart?.AddText === "true",
+             ShowTitle: data.config.ShowTitleOnSeasonPosterPart?.AddShowTitletoSeason === "true",
+             UseResolutionOverlays: data.config.PrerequisitePart?.UseSeasonResolutionOverlays === "true",
+             bordercolor: data.config.SeasonPosterOverlayPart?.bordercolor || "#000000",
+             borderwidth: parseInt(data.config.SeasonPosterOverlayPart?.borderwidth || 30),
+             fontcolor: data.config.SeasonPosterOverlayPart?.fontcolor || "#ffffff",
+             strokecolor: data.config.SeasonPosterOverlayPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.SeasonPosterOverlayPart?.strokewidth || 6),
+             text_offset: data.config.SeasonPosterOverlayPart?.text_offset || "+400"
+          },
+          Background: {
+             ...prev.Background,
+             AddBorder: data.config.BackgroundOverlayPart?.AddBorder === "true",
+             AddText: data.config.BackgroundOverlayPart?.AddText === "true",
+             AddOverlay: data.config.BackgroundOverlayPart?.AddOverlay === "true",
+             UseResolutionOverlays: data.config.PrerequisitePart?.UseBackgroundResolutionOverlays === "true",
+             bordercolor: data.config.BackgroundOverlayPart?.bordercolor || "#000000",
+             borderwidth: parseInt(data.config.BackgroundOverlayPart?.borderwidth || 30),
+             fontcolor: data.config.BackgroundOverlayPart?.fontcolor || "#ffffff",
+             strokecolor: data.config.BackgroundOverlayPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.BackgroundOverlayPart?.strokewidth || 6),
+             text_offset: data.config.BackgroundOverlayPart?.text_offset || "+200"
+          },
+          TitleCard: {
+             ...prev.TitleCard,
+             AddBorder: data.config.TitleCardOverlayPart?.AddBorder === "true",
+             AddOverlay: data.config.TitleCardOverlayPart?.AddOverlay === "true",
+             AddEPText: data.config.TitleCardEPTextPart?.AddEPText === "true",
+             AddEPTitleText: data.config.TitleCardTitleTextPart?.AddEPTitleText === "true",
+             UseResolutionOverlays: data.config.PrerequisitePart?.UseTCResolutionOverlays === "true",
+             bordercolor: data.config.TitleCardOverlayPart?.bordercolor || "#000000",
+             borderwidth: parseInt(data.config.TitleCardOverlayPart?.borderwidth || 30),
+             fontcolor: data.config.TitleCardTitleTextPart?.fontcolor || "#ffffff",
+             strokecolor: data.config.TitleCardTitleTextPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.TitleCardTitleTextPart?.strokewidth || 6),
+             text_offset: data.config.TitleCardTitleTextPart?.text_offset || "+300"
+          },
+          Global: {
+             UseClearlogo: data.config.PrerequisitePart?.UseClearlogo === "true",
+             UseClearart: data.config.PrerequisitePart?.UseClearart === "true",
+             UseOriginalTitle: data.config.PrerequisitePart?.UseOriginalTitle === "true",
+             FlatWhiteLogo: data.config.PrerequisitePart?.ConvertLogoColor === "true",
+             TextlessOnly: false
+          }
+        }));
       } else {
         setError("Failed to load config");
       }
@@ -316,12 +398,24 @@ export default function Blueprints() {
       PosterOverlayPart: {
         AddBorder: builderState.Poster.AddBorder ? "true" : "false",
         AddText: builderState.Poster.AddText ? "true" : "false",
-        AddOverlay: builderState.Poster.AddBorder ? "true" : "false" // Sync overlay with border for typical use case
+        AddOverlay: builderState.Poster.AddBorder ? "true" : "false", // Sync overlay with border for typical use case
+        bordercolor: builderState.Poster.bordercolor,
+        borderwidth: builderState.Poster.borderwidth.toString(),
+        fontcolor: builderState.Poster.fontcolor,
+        strokecolor: builderState.Poster.strokecolor,
+        strokewidth: builderState.Poster.strokewidth.toString(),
+        text_offset: builderState.Poster.text_offset.toString()
       },
       SeasonPosterOverlayPart: {
         AddBorder: builderState.Season.AddBorder ? "true" : "false",
         AddText: builderState.Season.AddText ? "true" : "false",
-        AddOverlay: builderState.Season.AddBorder ? "true" : "false"
+        AddOverlay: builderState.Season.AddBorder ? "true" : "false",
+        bordercolor: builderState.Season.bordercolor,
+        borderwidth: builderState.Season.borderwidth.toString(),
+        fontcolor: builderState.Season.fontcolor,
+        strokecolor: builderState.Season.strokecolor,
+        strokewidth: builderState.Season.strokewidth.toString(),
+        text_offset: builderState.Season.text_offset.toString()
       },
       ShowTitleOnSeasonPosterPart: {
         AddShowTitletoSeason: builderState.Season.ShowTitle ? "true" : "false"
@@ -329,14 +423,26 @@ export default function Blueprints() {
       BackgroundOverlayPart: {
         AddBorder: builderState.Background.AddBorder ? "true" : "false",
         AddText: builderState.Background.AddText ? "true" : "false",
-        AddOverlay: builderState.Background.AddOverlay ? "true" : "false"
+        AddOverlay: builderState.Background.AddOverlay ? "true" : "false",
+        bordercolor: builderState.Background.bordercolor,
+        borderwidth: builderState.Background.borderwidth.toString(),
+        fontcolor: builderState.Background.fontcolor,
+        strokecolor: builderState.Background.strokecolor,
+        strokewidth: builderState.Background.strokewidth.toString(),
+        text_offset: builderState.Background.text_offset.toString()
       },
       TitleCardOverlayPart: {
         AddBorder: builderState.TitleCard.AddBorder ? "true" : "false",
-        AddOverlay: builderState.TitleCard.AddOverlay ? "true" : "false"
+        AddOverlay: builderState.TitleCard.AddOverlay ? "true" : "false",
+        bordercolor: builderState.TitleCard.bordercolor,
+        borderwidth: builderState.TitleCard.borderwidth.toString(),
       },
       TitleCardTitleTextPart: {
-        AddEPTitleText: builderState.TitleCard.AddEPTitleText ? "true" : "false"
+        AddEPTitleText: builderState.TitleCard.AddEPTitleText ? "true" : "false",
+        fontcolor: builderState.TitleCard.fontcolor,
+        strokecolor: builderState.TitleCard.strokecolor,
+        strokewidth: builderState.TitleCard.strokewidth.toString(),
+        text_offset: builderState.TitleCard.text_offset.toString()
       },
       TitleCardEPTextPart: {
         AddEPText: builderState.TitleCard.AddEPText ? "true" : "false"
@@ -356,17 +462,41 @@ export default function Blueprints() {
       PosterAddBorder: builderState.Poster.AddBorder ? "true" : "false",
       PosterAddText: builderState.Poster.AddText ? "true" : "false",
       PosterAddOverlay: builderState.Poster.AddBorder ? "true" : "false",
+      Posterbordercolor: builderState.Poster.bordercolor,
+      Posterborderwidth: builderState.Poster.borderwidth.toString(),
+      Posterfontcolor: builderState.Poster.fontcolor,
+      Posterstrokecolor: builderState.Poster.strokecolor,
+      Posterstrokewidth: builderState.Poster.strokewidth.toString(),
+      Postertext_offset: builderState.Poster.text_offset.toString(),
       SeasonPosterAddBorder: builderState.Season.AddBorder ? "true" : "false",
       SeasonPosterAddText: builderState.Season.AddText ? "true" : "false",
       SeasonPosterAddOverlay: builderState.Season.AddBorder ? "true" : "false",
       ShowTitleAddShowTitletoSeason: builderState.Season.ShowTitle ? "true" : "false",
+      SeasonPosterbordercolor: builderState.Season.bordercolor,
+      SeasonPosterborderwidth: builderState.Season.borderwidth.toString(),
+      SeasonPosterfontcolor: builderState.Season.fontcolor,
+      SeasonPosterstrokecolor: builderState.Season.strokecolor,
+      SeasonPosterstrokewidth: builderState.Season.strokewidth.toString(),
+      SeasonPostertext_offset: builderState.Season.text_offset.toString(),
       BackgroundAddBorder: builderState.Background.AddBorder ? "true" : "false",
       BackgroundAddText: builderState.Background.AddText ? "true" : "false",
       BackgroundAddOverlay: builderState.Background.AddOverlay ? "true" : "false",
+      Backgroundbordercolor: builderState.Background.bordercolor,
+      Backgroundborderwidth: builderState.Background.borderwidth.toString(),
+      Backgroundfontcolor: builderState.Background.fontcolor,
+      Backgroundstrokecolor: builderState.Background.strokecolor,
+      Backgroundstrokewidth: builderState.Background.strokewidth.toString(),
+      Backgroundtext_offset: builderState.Background.text_offset.toString(),
       TitleCardAddBorder: builderState.TitleCard.AddBorder ? "true" : "false",
       TitleCardAddOverlay: builderState.TitleCard.AddOverlay ? "true" : "false",
       TitleCardTitleAddEPTitleText: builderState.TitleCard.AddEPTitleText ? "true" : "false",
-      TitleCardEPAddEPText: builderState.TitleCard.AddEPText ? "true" : "false"
+      TitleCardEPAddEPText: builderState.TitleCard.AddEPText ? "true" : "false",
+      TitleCardbordercolor: builderState.TitleCard.bordercolor,
+      TitleCardborderwidth: builderState.TitleCard.borderwidth.toString(),
+      TitleCardTitlefontcolor: builderState.TitleCard.fontcolor,
+      TitleCardTitlestrokecolor: builderState.TitleCard.strokecolor,
+      TitleCardTitlestrokewidth: builderState.TitleCard.strokewidth.toString(),
+      TitleCardTitletext_offset: builderState.TitleCard.text_offset.toString()
     };
 
     if (builderState.Global.TextlessOnly) {
@@ -403,12 +533,26 @@ export default function Blueprints() {
     const file = event.target.files[0];
     if (!file) return;
 
-    setIsImporting(true);
     try {
       const text = await file.text();
-      JSON.parse(text); // validate
+      const parsed = JSON.parse(text);
+      if (!parsed.updates || (!parsed.updates.flat && !parsed.updates.nested)) {
+        throw new Error("Invalid blueprint format. Missing updates object.");
+      }
+      setImportBlueprintState(parsed);
+    } catch (err) {
+      showError(t("blueprints.importError", { message: err.message }));
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const confirmImport = async () => {
+    if (!importBlueprintState) return;
+    setIsImporting(true);
+    try {
       const response = await fetch(`${API_URL}/config/import`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: text,
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(importBlueprintState),
       });
 
       const result = await response.json();
@@ -422,7 +566,7 @@ export default function Blueprints() {
       showError(t("blueprints.importError", { message: err.message }));
     } finally {
       setIsImporting(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      setImportBlueprintState(null);
     }
   };
 
@@ -627,27 +771,83 @@ export default function Blueprints() {
 
               <Accordion title={t("blueprints.builder.categoryPoster", "Poster")} icon={Image}>
                 <Toggle label={t("blueprints.builder.enableBorders", "Enable Borders")} checked={builderState.Poster.AddBorder} onChange={(v) => { updateBuilder("Poster", "AddBorder", v); setPreviewType("Poster"); }} />
+                {builderState.Poster.AddBorder && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Border Color" value={builderState.Poster.bordercolor} onChange={(v) => updateBuilder("Poster", "bordercolor", v)} />
+                      <NumberInput label="Border Width" value={builderState.Poster.borderwidth} onChange={(v) => updateBuilder("Poster", "borderwidth", v)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.enableText", "Enable Text / Logo")} checked={builderState.Poster.AddText} onChange={(v) => { updateBuilder("Poster", "AddText", v); setPreviewType("Poster"); }} />
+                {builderState.Poster.AddText && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Text Color" value={builderState.Poster.fontcolor} onChange={(v) => updateBuilder("Poster", "fontcolor", v)} />
+                      <ColorInput label="Stroke Color" value={builderState.Poster.strokecolor} onChange={(v) => updateBuilder("Poster", "strokecolor", v)} />
+                      <NumberInput label="Stroke Width" value={builderState.Poster.strokewidth} onChange={(v) => updateBuilder("Poster", "strokewidth", v)} />
+                      <NumberInput label="Text Offset Y" value={parseInt(builderState.Poster.text_offset.replace('+','').replace('-','')) || 0} onChange={(v) => updateBuilder("Poster", "text_offset", `+${v}`)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.resolutionOverlays", "Resolution Overlays")} checked={builderState.Poster.UseResolutionOverlays} onChange={(v) => { updateBuilder("Poster", "UseResolutionOverlays", v); setPreviewType("Poster"); }} />
               </Accordion>
 
               <Accordion title={t("blueprints.builder.categorySeason", "Season")} icon={Layers}>
                 <Toggle label={t("blueprints.builder.enableBorders", "Enable Borders")} checked={builderState.Season.AddBorder} onChange={(v) => { updateBuilder("Season", "AddBorder", v); setPreviewType("Season"); }} />
+                {builderState.Season.AddBorder && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Border Color" value={builderState.Season.bordercolor} onChange={(v) => updateBuilder("Season", "bordercolor", v)} />
+                      <NumberInput label="Border Width" value={builderState.Season.borderwidth} onChange={(v) => updateBuilder("Season", "borderwidth", v)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.enableText", "Enable Text / Logo")} checked={builderState.Season.AddText} onChange={(v) => { updateBuilder("Season", "AddText", v); setPreviewType("Season"); }} />
+                {builderState.Season.AddText && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Text Color" value={builderState.Season.fontcolor} onChange={(v) => updateBuilder("Season", "fontcolor", v)} />
+                      <ColorInput label="Stroke Color" value={builderState.Season.strokecolor} onChange={(v) => updateBuilder("Season", "strokecolor", v)} />
+                      <NumberInput label="Stroke Width" value={builderState.Season.strokewidth} onChange={(v) => updateBuilder("Season", "strokewidth", v)} />
+                      <NumberInput label="Text Offset Y" value={parseInt(builderState.Season.text_offset.replace('+','').replace('-','')) || 0} onChange={(v) => updateBuilder("Season", "text_offset", `+${v}`)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.showTitleOnSeason", "Show Title on Season")} checked={builderState.Season.ShowTitle} onChange={(v) => { updateBuilder("Season", "ShowTitle", v); setPreviewType("Season"); }} />
               </Accordion>
 
               <Accordion title={t("blueprints.builder.categoryBackground", "Background")} icon={Square}>
                 <Toggle label={t("blueprints.builder.enableBorders", "Enable Borders")} checked={builderState.Background.AddBorder} onChange={(v) => { updateBuilder("Background", "AddBorder", v); setPreviewType("Background"); }} />
+                {builderState.Background.AddBorder && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Border Color" value={builderState.Background.bordercolor} onChange={(v) => updateBuilder("Background", "bordercolor", v)} />
+                      <NumberInput label="Border Width" value={builderState.Background.borderwidth} onChange={(v) => updateBuilder("Background", "borderwidth", v)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.enableText", "Enable Text / Logo")} checked={builderState.Background.AddText} onChange={(v) => { updateBuilder("Background", "AddText", v); setPreviewType("Background"); }} />
+                {builderState.Background.AddText && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Text Color" value={builderState.Background.fontcolor} onChange={(v) => updateBuilder("Background", "fontcolor", v)} />
+                      <ColorInput label="Stroke Color" value={builderState.Background.strokecolor} onChange={(v) => updateBuilder("Background", "strokecolor", v)} />
+                      <NumberInput label="Stroke Width" value={builderState.Background.strokewidth} onChange={(v) => updateBuilder("Background", "strokewidth", v)} />
+                      <NumberInput label="Text Offset Y" value={parseInt(builderState.Background.text_offset.replace('+','').replace('-','')) || 0} onChange={(v) => updateBuilder("Background", "text_offset", `+${v}`)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.enableProcessing", "Enable Overlays (Darken/Glow)")} checked={builderState.Background.AddOverlay} onChange={(v) => { updateBuilder("Background", "AddOverlay", v); setPreviewType("Background"); }} />
               </Accordion>
 
               <Accordion title={t("blueprints.builder.categoryTitleCard", "Title Card")} icon={Type}>
                 <Toggle label={t("blueprints.builder.enableBorders", "Enable Borders")} checked={builderState.TitleCard.AddBorder} onChange={(v) => { updateBuilder("TitleCard", "AddBorder", v); setPreviewType("TitleCard"); }} />
+                {builderState.TitleCard.AddBorder && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Border Color" value={builderState.TitleCard.bordercolor} onChange={(v) => updateBuilder("TitleCard", "bordercolor", v)} />
+                      <NumberInput label="Border Width" value={builderState.TitleCard.borderwidth} onChange={(v) => updateBuilder("TitleCard", "borderwidth", v)} />
+                   </div>
+                )}
                 <Toggle label={t("blueprints.builder.enableProcessing", "Enable Overlays (Darken/Glow)")} checked={builderState.TitleCard.AddOverlay} onChange={(v) => { updateBuilder("TitleCard", "AddOverlay", v); setPreviewType("TitleCard"); }} />
                 <Toggle label="Enable Episode Title Text" checked={builderState.TitleCard.AddEPTitleText} onChange={(v) => { updateBuilder("TitleCard", "AddEPTitleText", v); setPreviewType("TitleCard"); }} />
                 <Toggle label="Enable SxxExx Text" checked={builderState.TitleCard.AddEPText} onChange={(v) => { updateBuilder("TitleCard", "AddEPText", v); setPreviewType("TitleCard"); }} />
+                {(builderState.TitleCard.AddEPTitleText || builderState.TitleCard.AddEPText) && (
+                   <div className="pl-4 ml-2 border-l-2 border-theme/20 mb-4 pb-2">
+                      <ColorInput label="Text Color" value={builderState.TitleCard.fontcolor} onChange={(v) => updateBuilder("TitleCard", "fontcolor", v)} />
+                      <ColorInput label="Stroke Color" value={builderState.TitleCard.strokecolor} onChange={(v) => updateBuilder("TitleCard", "strokecolor", v)} />
+                      <NumberInput label="Stroke Width" value={builderState.TitleCard.strokewidth} onChange={(v) => updateBuilder("TitleCard", "strokewidth", v)} />
+                      <NumberInput label="Text Offset Y" value={parseInt(builderState.TitleCard.text_offset.replace('+','').replace('-','')) || 0} onChange={(v) => updateBuilder("TitleCard", "text_offset", `+${v}`)} />
+                   </div>
+                )}
               </Accordion>
 
             </div>
@@ -702,9 +902,14 @@ export default function Blueprints() {
                        (previewType === 'Background' && builderState.Background.AddText)) && (
                         <div className="absolute left-0 w-full flex justify-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
                           {builderState.Global.UseClearlogo || builderState.Global.UseClearart ? (
-                             <div className="text-3xl lg:text-4xl font-black italic tracking-tighter" style={{ color: builderState.Global.FlatWhiteLogo ? config?.PrerequisitePart?.LogoFlatColor || 'white' : '#ffd700', textShadow: previewStyles.text.textShadow }}>
-                                TITLE LOGO
-                             </div>
+                             <img 
+                               src="https://image.tmdb.org/t/p/w500/b0gA3L7D57Vb1R5GZ7XJpC6jI3Z.png" 
+                               alt="Sample Logo" 
+                               className="w-2/3 object-contain drop-shadow-2xl transition-all"
+                               style={{ 
+                                  filter: builderState.Global.FlatWhiteLogo ? 'brightness(0) invert(1) drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' : 'drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' 
+                               }} 
+                             />
                           ) : (
                              <div className="text-2xl lg:text-3xl font-bold uppercase tracking-widest">Movie Title</div>
                           )}
@@ -770,6 +975,55 @@ export default function Blueprints() {
           </div>
         )}
       </div>
+
+      {/* Import Confirmation Modal */}
+      {importBlueprintState && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-theme-card border border-theme rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-theme bg-theme-bg/50">
+              <h2 className="text-2xl font-bold text-theme-text flex items-center gap-2">
+                <AlertCircle className="w-6 h-6 text-theme-primary" />
+                {t("blueprints.importConfirmTitle", "Confirm Blueprint Import")}
+              </h2>
+              <p className="text-theme-muted mt-2">
+                {t("blueprints.importConfirmDesc", "The following settings will be modified by this blueprint. Do you want to proceed?")}
+              </p>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-4">
+              <div className="bg-theme-bg/50 rounded-lg border border-theme p-4">
+                <h3 className="font-semibold text-theme-text mb-4 border-b border-theme pb-2">Proposed Changes</h3>
+                <ul className="space-y-2 text-sm">
+                  {Object.entries(importBlueprintState.updates?.flat || {}).map(([key, val]) => (
+                    <li key={key} className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-theme/10 pb-2 last:border-0 last:pb-0">
+                      <span className="text-theme-muted truncate mr-4" title={displayNames[key] || key}>{displayNames[key] || key}</span>
+                      <span className="text-theme-primary font-mono bg-theme-primary/10 px-2 py-0.5 rounded shrink-0">{String(val)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-theme bg-theme-bg/50 flex justify-end gap-3">
+              <button 
+                onClick={() => setImportBlueprintState(null)} 
+                disabled={isImporting}
+                className="px-6 py-2.5 rounded-lg font-medium text-theme-text bg-theme-bg border border-theme hover:bg-theme-hover transition-colors"
+              >
+                {t("common.cancel", "Cancel")}
+              </button>
+              <button 
+                onClick={confirmImport} 
+                disabled={isImporting}
+                className="flex items-center gap-2 bg-theme-primary text-white px-6 py-2.5 rounded-lg font-medium shadow-lg hover:bg-theme-primary/90 transition-colors disabled:opacity-50"
+              >
+                {isImporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                {isImporting ? t("blueprints.importing", "Importing...") : t("blueprints.importConfirmBtn", "Confirm Import")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
