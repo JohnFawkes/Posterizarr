@@ -2561,6 +2561,31 @@ async def get_config(request: Request):
         logger.error(f"Error reading config: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.post("/api/config/backup")
+async def backup_config():
+    """Create a timestamped backup of the current config.json"""
+    logger.info("=" * 60)
+    logger.info("CONFIG BACKUP REQUEST")
+    try:
+        if not CONFIG_PATH.exists():
+            return {"success": False, "message": "No config.json found to backup"}
+            
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_filename = f"config_backup_{timestamp}.json"
+        backup_path = BASE_DIR / backup_filename
+        
+        shutil.copy2(CONFIG_PATH, backup_path)
+        logger.info(f"Created config backup at {backup_path}")
+        
+        return {
+            "success": True, 
+            "message": "Backup created successfully",
+            "backup_file": backup_filename
+        }
+    except Exception as e:
+        logger.error(f"Error creating config backup: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create config backup")
+
 @app.post("/api/config")
 async def update_config(data: ConfigUpdate):
     """Update config.json - accepts FLAT structure and saves as GROUPED when config_mapper available"""

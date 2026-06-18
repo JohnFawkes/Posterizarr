@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Loader2, Palette, Image, Layers, CheckCircle2, AlertCircle, Type, Square, Languages, Sparkles } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Loader2, Palette, Image, Layers, CheckCircle2, AlertCircle, Type, Square, Languages, Sparkles, Download, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../context/ToastContext";
 
@@ -9,8 +9,9 @@ const BLUEPRINTS = [
   {
     id: "clearlogo-instead-of-text",
     title: "Logo (Clearlogo)",
-    description: "Replaces standard text with the movie/show clearlogo. Requires Fanart API or TMDB API.",
+    description: "Replaces standard text with the movie/show clearlogo.",
     icon: Image,
+    images: ["/images/blueprints/clearlogo-instead-of-text_poster.png", "/images/blueprints/clearlogo-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -31,8 +32,9 @@ const BLUEPRINTS = [
   {
     id: "clearart-instead-of-text",
     title: "Logo (Clearart)",
-    description: "Replaces standard text with the movie/show clearart. Requires Fanart API or TMDB API.",
+    description: "Replaces standard text with the movie/show clearart.",
     icon: Image,
+    images: ["/images/blueprints/clearart-instead-of-text_poster.png", "/images/blueprints/clearart-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -55,6 +57,7 @@ const BLUEPRINTS = [
     title: "Flat White Logo (Clearlogo)",
     description: "Replaces standard text with a clearlogo converted to a flat white color for better contrast.",
     icon: Image,
+    images: ["/images/blueprints/flat-clearlogo-instead-of-text_poster.png", "/images/blueprints/flat-clearlogo-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -78,6 +81,7 @@ const BLUEPRINTS = [
     title: "Flat White Logo (Clearart)",
     description: "Replaces standard text with a clearart converted to a flat white color for better contrast.",
     icon: Image,
+    images: ["/images/blueprints/flat-clearart-instead-of-text_poster.png", "/images/blueprints/flat-clearart-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -101,6 +105,7 @@ const BLUEPRINTS = [
     title: "Show Title on Season",
     description: "Adds the show title (or logo if logo settings are enabled) to season posters alongside the season text.",
     icon: Type,
+    images: ["/images/blueprints/show-title-on-season.png"],
     updates: {
       flat: {
         ShowTitleAddShowTitletoSeason: "true"
@@ -115,6 +120,7 @@ const BLUEPRINTS = [
     title: "Minimalist Posters",
     description: "Disables image processing entirely. Only the raw poster gets downloaded and moved to the asset directory.",
     icon: Palette,
+    images: ["/images/blueprints/minimalist-posters_en.png", "/images/blueprints/minimalist-posters_textless.png", "/images/blueprints/minimalist-posters_textless_background.png"],
     updates: {
       flat: {
         ImageProcessing: "false"
@@ -129,6 +135,7 @@ const BLUEPRINTS = [
     title: "Enable All Overlays",
     description: "Enables borders, text, and overlays across all standard posters, season posters, backgrounds, and title cards.",
     icon: Layers,
+    images: ["/images/blueprints/full-overlays.png", "/images/blueprints/full-overlays_background-small.png"],
     updates: {
       flat: {
         PosterAddBorder: "true",
@@ -160,6 +167,7 @@ const BLUEPRINTS = [
     title: "Only Borders",
     description: "Disables text and overlays, rendering only borders across all posters and cards.",
     icon: Square,
+    images: ["/images/blueprints/only-borders.png", "/images/blueprints/only-borders_background.png"],
     updates: {
       flat: {
         PosterAddBorder: "true", PosterAddText: "false", PosterAddOverlay: "false",
@@ -183,6 +191,7 @@ const BLUEPRINTS = [
     title: "Only Text",
     description: "Disables borders and overlays, rendering only text (or logos) across all posters and cards.",
     icon: Type,
+    images: ["/images/blueprints/only-text.png", "/images/blueprints/only-text_background.png"],
     updates: {
       flat: {
         PosterAddBorder: "false", PosterAddText: "true", PosterAddOverlay: "false",
@@ -206,6 +215,7 @@ const BLUEPRINTS = [
     title: "Only Overlays",
     description: "Disables text and borders, rendering only resolution/rating overlays across all posters and cards.",
     icon: Layers,
+    images: ["/images/blueprints/only-overlays.png", "/images/blueprints/only-overlays_background.png"],
     updates: {
       flat: {
         PosterAddBorder: "false", PosterAddText: "false", PosterAddOverlay: "true",
@@ -229,6 +239,7 @@ const BLUEPRINTS = [
     title: "Textless Posters Only",
     description: "Configures language orders to 'xx' to ensure only textless artwork is downloaded. Skips artwork with text.",
     icon: Languages,
+    images: ["/images/blueprints/minimalist-posters_textless.png", "/images/blueprints/minimalist-posters_textless_background.png"],
     updates: {
       flat: {
         PreferredLanguageOrder: ["xx"],
@@ -251,7 +262,8 @@ const BLUEPRINTS = [
 export default function Blueprints() {
   const { t } = useTranslation();
   const { showSuccess, showError } = useToast();
-  
+  const fileInputRef = useRef(null);
+
   const [config, setConfig] = useState(null);
   const [usingFlatStructure, setUsingFlatStructure] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -305,7 +317,7 @@ export default function Blueprints() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ config: updatedConfig }),
       });
-      
+
       const data = await response.json();
       if (data.success) {
         setConfig(updatedConfig);
@@ -317,6 +329,112 @@ export default function Blueprints() {
       showError(`Error applying blueprint: ${err.message}`);
     } finally {
       setApplyingId(null);
+    }
+  };
+
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleExportBlueprint = () => {
+    if (!config) return;
+
+    // Create a deep copy
+    const exportData = JSON.parse(JSON.stringify(config));
+
+    // Remove sensitive sections completely
+    const sectionsToRemove = [
+      "ApiPart",
+      "PlexPart",
+      "JellyfinPart",
+      "EmbyPart",
+      "Notification",
+      "WebUI"
+    ];
+    
+    sectionsToRemove.forEach(section => {
+      delete exportData[section];
+    });
+
+    // Remove specific paths from PrerequisitePart
+    if (exportData.PrerequisitePart) {
+      const pathsToRemove = [
+        "AssetPath",
+        "ManualAssetPath",
+        "BackupPath",
+        "magickinstalllocation",
+        "overlayfile"
+      ];
+      pathsToRemove.forEach(p => {
+        delete exportData.PrerequisitePart[p];
+      });
+    }
+
+    // Convert to JSON and download
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "custom_blueprint.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    
+    try {
+      const text = await file.text();
+      const importedConfig = JSON.parse(text);
+
+      // 1. Trigger Backup
+      const backupResponse = await fetch(`${API_URL}/config/backup`, { method: "POST" });
+      const backupData = await backupResponse.json();
+      
+      if (!backupData.success) {
+        throw new Error("Failed to create backup: " + backupData.message);
+      }
+      
+      showSuccess(`Backup created: ${backupData.backup_file}`);
+
+      // 2. Merge imported config with current config
+      let updatedConfig = { ...config };
+      
+      for (const [section, fields] of Object.entries(importedConfig)) {
+        updatedConfig[section] = {
+          ...(updatedConfig[section] || {}),
+          ...fields
+        };
+      }
+
+      // 3. Save new config
+      const response = await fetch(`${API_URL}/config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setConfig(updatedConfig);
+        showSuccess("Custom blueprint imported successfully!");
+      } else {
+        showError("Failed to apply imported configuration");
+      }
+    } catch (err) {
+      showError(`Error importing blueprint: ${err.message}`);
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Reset input
+      }
     }
   };
 
@@ -334,8 +452,8 @@ export default function Blueprints() {
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
         <p className="text-red-300 text-lg font-semibold mb-2">Error Loading Configuration</p>
         <p className="text-red-200 mb-4">{error}</p>
-        <button 
-          onClick={fetchConfig} 
+        <button
+          onClick={fetchConfig}
           className="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-all shadow-lg"
         >
           Retry
@@ -347,14 +465,42 @@ export default function Blueprints() {
   return (
     <div className="space-y-6">
       <div className="bg-theme-card border border-theme rounded-xl p-6 shadow-sm">
-        <div className="mb-6 pb-4 border-b border-theme">
-          <h2 className="text-2xl font-bold text-theme-text flex items-center gap-3">
-            <Layers className="w-7 h-7 text-theme-primary" />
-            Config Blueprints
-          </h2>
-          <p className="text-theme-muted mt-2">
-            Quickly apply pre-defined configurations to achieve specific visual styles. Applying a blueprint will instantly update your settings.
-          </p>
+        <div className="mb-6 pb-4 border-b border-theme flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-theme-text flex items-center gap-3">
+              <Layers className="w-7 h-7 text-theme-primary" />
+              Config Blueprints
+            </h2>
+            <p className="text-theme-muted mt-2">
+              Quickly apply pre-defined configurations to achieve specific visual styles. Applying a blueprint will instantly update your settings.
+            </p>
+          </div>
+          <div className="flex gap-3 shrink-0">
+            <button
+              onClick={handleExportBlueprint}
+              className="flex items-center gap-2 px-4 py-2 bg-theme-bg/50 border border-theme hover:border-theme-primary/50 text-theme-text rounded-lg transition-all"
+              title="Export Current Config as Blueprint"
+            >
+              <Download className="w-4 h-4 text-theme-primary" />
+              <span>Export</span>
+            </button>
+            <input 
+              type="file" 
+              accept=".json" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              className="hidden" 
+            />
+            <button
+              onClick={handleImportClick}
+              disabled={isImporting}
+              className="flex items-center gap-2 px-4 py-2 bg-theme-primary/10 hover:bg-theme-primary/20 border border-theme-primary/30 text-theme-primary rounded-lg transition-all disabled:opacity-50"
+              title="Import Custom Blueprint"
+            >
+              {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              <span>{isImporting ? "Importing..." : "Import"}</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -363,8 +509,8 @@ export default function Blueprints() {
             const isApplying = applyingId === blueprint.id;
 
             return (
-              <div 
-                key={blueprint.id} 
+              <div
+                key={blueprint.id}
                 className="bg-theme-bg/50 border border-theme rounded-xl p-5 hover:border-theme-primary/50 transition-all flex flex-col h-full group shadow-md hover:shadow-lg"
               >
                 <div className="flex items-start gap-4 mb-4">
@@ -375,7 +521,15 @@ export default function Blueprints() {
                     <h3 className="text-lg font-semibold text-theme-text">{blueprint.title}</h3>
                   </div>
                 </div>
-                
+
+                {blueprint.images && blueprint.images.length > 0 && (
+                  <div className="flex gap-2 mb-4 overflow-x-auto pb-2 custom-scrollbar items-center">
+                    {blueprint.images.map((img, idx) => (
+                      <img key={idx} src={img} alt={`${blueprint.title} preview ${idx + 1}`} className="h-32 object-contain rounded-md bg-black/20 shrink-0 border border-theme/50 shadow-sm" />
+                    ))}
+                  </div>
+                )}
+
                 <p className="text-sm text-theme-muted flex-grow mb-6">
                   {blueprint.description}
                 </p>
