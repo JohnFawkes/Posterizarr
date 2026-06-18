@@ -163,6 +163,33 @@ const BLUEPRINTS = [
     }
   },
   {
+    id: "resolution-overlays",
+    title: "Resolution Overlays",
+    description: "Enables resolution and HDR/DoVi overlays based on media metadata. Note: Not all resolution overlay files are provided by default (e.g. you will need to supply poster-4k, background-1080p, etc.).",
+    icon: Sparkles,
+    images: [
+      "/blueprint-previews/resolution-overlays_poster4k.png",
+      "/blueprint-previews/resolution-overlays_Background4k.png",
+      "/blueprint-previews/resolution-overlays_4KDoVi.png",
+      "/blueprint-previews/resolution-overlays_4KHDR10.png",
+      "/blueprint-previews/resolution-overlays_4KDoViHDR10.png"
+    ],
+    updates: {
+      flat: {
+        UsePosterResolutionOverlays: "true",
+        UseBackgroundResolutionOverlays: "true",
+        UseTCResolutionOverlays: "true"
+      },
+      nested: {
+        PrerequisitePart: {
+          UsePosterResolutionOverlays: "true",
+          UseBackgroundResolutionOverlays: "true",
+          UseTCResolutionOverlays: "true"
+        }
+      }
+    }
+  },
+  {
     id: "only-borders",
     title: "Only Borders",
     description: "Disables text and overlays, rendering only borders across all posters and cards.",
