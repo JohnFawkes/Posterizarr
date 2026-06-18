@@ -44,6 +44,7 @@ import LoginScreen from "./components/LoginScreen";
 import LoadingScreen from "./components/LoadingScreen";
 import TestGallery from "./components/TestGallery";
 import QueueView from "./components/QueueView";
+import Blueprints from "./components/Blueprints";
 
 function AppContent() {
   const { isCollapsed } = useSidebar();
@@ -250,6 +251,7 @@ function AppContent() {
                 <Route path="/gallery/titlecards" element={<GalleryHub />} />
 
                 <Route path="/test-gallery" element={<TestGallery />} />
+                <Route path="/blueprints" element={<Blueprints />} />
 
                 <Route
                   path="/config"

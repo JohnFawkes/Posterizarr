@@ -38,6 +38,7 @@ const Sidebar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAssetsExpanded, setIsAssetsExpanded] = useState(false);
   const [isMediaServerExpanded, setIsMediaServerExpanded] = useState(false);
+  const [isConfigExpanded, setIsConfigExpanded] = useState(false);
   const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const [missingAssetsCount, setMissingAssetsCount] = useState(0);
   const [manualAssetsCount, setManualAssetsCount] = useState(0);
@@ -144,7 +145,11 @@ const Sidebar = () => {
       path: "/config/webui",
       label: t("nav.config"),
       icon: Settings,
-      hasSubItems: false
+      hasSubItems: true,
+      subItems: [
+        { path: "/config/webui", label: "Settings", icon: Settings },
+        { path: "/blueprints", label: "Blueprints", icon: Layers }
+      ]
     },
 
     { id: "runtimeHistory", path: "/runtime-history", label: t("nav.runtimeHistory"), icon: TrendingUp },
@@ -176,7 +181,7 @@ const Sidebar = () => {
 
   const isInAssetsSection = location.pathname.startsWith("/gallery") || location.pathname.startsWith("/manual-assets") || location.pathname.startsWith("/asset-backups") || location.pathname.startsWith("/asset-overview") || location.pathname.startsWith("/assets-manager") || location.pathname.startsWith("/test-gallery");
   const isInMediaServerSection = location.pathname.startsWith("/media-server-export");
-  const isInConfigSection = location.pathname.startsWith("/config");
+  const isInConfigSection = location.pathname.startsWith("/config") || location.pathname.startsWith("/blueprints");
 
   return (
     <>
@@ -208,10 +213,23 @@ const Sidebar = () => {
               const inactiveClass = "text-theme-muted hover:bg-theme-hover hover:text-theme-text";
 
               if (item.hasSubItems) {
-                const isAssetsItem = item.path === "/gallery";
-                const isExpanded = isAssetsItem ? isAssetsExpanded : isMediaServerExpanded;
-                const isInSection = isAssetsItem ? isInAssetsSection : isInMediaServerSection;
-                const toggleExpanded = isAssetsItem ? () => setIsAssetsExpanded(!isAssetsExpanded) : () => setIsMediaServerExpanded(!isMediaServerExpanded);
+                let isExpanded = false;
+                let isInSection = false;
+                let toggleExpanded = () => {};
+
+                if (item.id === "gallery") {
+                  isExpanded = isAssetsExpanded;
+                  isInSection = isInAssetsSection;
+                  toggleExpanded = () => setIsAssetsExpanded(!isAssetsExpanded);
+                } else if (item.id === "mediaServerExport") {
+                  isExpanded = isMediaServerExpanded;
+                  isInSection = isInMediaServerSection;
+                  toggleExpanded = () => setIsMediaServerExpanded(!isMediaServerExpanded);
+                } else if (item.id === "config") {
+                  isExpanded = isConfigExpanded;
+                  isInSection = isInConfigSection;
+                  toggleExpanded = () => setIsConfigExpanded(!isConfigExpanded);
+                }
                 const isGroupActive = isInSection;
 
                 return (
@@ -356,9 +374,19 @@ const Sidebar = () => {
                   const isActive = item.id === "config" ? isInConfigSection : location.pathname === item.path;
 
                   if (item.hasSubItems) {
-                    const isAssetsItem = item.path === "/gallery";
-                    const isExpanded = isAssetsItem ? isAssetsExpanded : isMediaServerExpanded;
-                    const toggleExpanded = isAssetsItem ? () => setIsAssetsExpanded(!isAssetsExpanded) : () => setIsMediaServerExpanded(!isMediaServerExpanded);
+                    let isExpanded = false;
+                    let toggleExpanded = () => {};
+
+                    if (item.id === "gallery") {
+                      isExpanded = isAssetsExpanded;
+                      toggleExpanded = () => setIsAssetsExpanded(!isAssetsExpanded);
+                    } else if (item.id === "mediaServerExport") {
+                      isExpanded = isMediaServerExpanded;
+                      toggleExpanded = () => setIsMediaServerExpanded(!isMediaServerExpanded);
+                    } else if (item.id === "config") {
+                      isExpanded = isConfigExpanded;
+                      toggleExpanded = () => setIsConfigExpanded(!isConfigExpanded);
+                    }
                     return (<div key={item.id}><button onClick={toggleExpanded} className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-theme-muted hover:bg-theme-hover/50"><div className="flex items-center"><Icon className="w-5 h-5 mr-3" /><span>{item.label}</span></div>{isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}</button>{isExpanded && (<div className="ml-4 mt-1 space-y-1 border-l border-theme/30 pl-3">{item.subItems.map(sub => (<Link key={sub.path} to={sub.path} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-theme-muted hover:bg-theme-hover"><sub.icon className="w-4 h-4 mr-3" />{sub.label}</Link>))}</div>)}</div>)
                   }
                   return (<Link key={item.id} to={item.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium ${isActive ? "bg-theme-primary text-white shadow-lg" : "text-theme-muted hover:bg-theme-hover"}`}><Icon className="w-5 h-5 mr-3" /><span>{item.label}</span></Link>);

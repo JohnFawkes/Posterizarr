@@ -179,6 +179,8 @@ function renderDashboard(data) {
         </div>
       </div>
 
+
+
       <div class="card" style="display: block; margin-top: 24px;">
         <h3>All Data (Aggregated)</h3>
         <table class="data-table">
@@ -268,7 +270,13 @@ function renderDashboard(data) {
       for (const [code, count] of Object.entries(countryData)) {
         countryDataNamed[getCountryName(code)] = count;
       }
-      document.getElementById('topCountry').innerText = buildChart('chartCountry', countryDataNamed);
+      // Limit to top 10 so the graph doesn't skip labels like Germany
+      const topCountriesArray = Object.entries(countryDataNamed)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      const topCountriesObj = Object.fromEntries(topCountriesArray);
+      
+      document.getElementById('topCountry').innerText = buildChart('chartCountry', topCountriesObj);
 
       // Populate Data Table
       const tableAgg = {};
