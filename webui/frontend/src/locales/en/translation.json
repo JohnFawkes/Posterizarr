@@ -2427,5 +2427,90 @@
       "step3": "Click 'Run Queue' to process them sequentially.",
       "step4": "Check status column for results."
     }
+  },
+  "blueprints": {
+    "pageTitle": "Config Blueprints",
+    "pageDescription": "Quickly apply pre-defined configurations to achieve specific visual styles. Applying a blueprint will instantly update your settings.",
+    "export": "Export",
+    "import": "Import",
+    "importing": "Importing...",
+    "apply": "Apply Blueprint",
+    "applying": "Applying...",
+    "settingsChanged": "Settings Changed",
+    "importSuccess": "Custom blueprint imported successfully and a backup was created!",
+    "importFailed": "Failed to apply imported configuration: {message}",
+    "importError": "Error importing blueprint: {message}",
+    "items": {
+      "clearlogo": {
+        "title": "Logo (Clearlogo)",
+        "description": "Replaces standard text with the movie/show clearlogo."
+      },
+      "clearart": {
+        "title": "Logo (Clearart)",
+        "description": "Replaces standard text with the movie/show clearart."
+      },
+      "flatClearlogo": {
+        "title": "Flat White Logo (Clearlogo)",
+        "description": "Replaces standard text with a clearlogo converted to a flat white color for better contrast."
+      },
+      "flatClearart": {
+        "title": "Flat White Logo (Clearart)",
+        "description": "Replaces standard text with a clearart converted to a flat white color for better contrast."
+      },
+      "showTitleSeason": {
+        "title": "Show Title on Season",
+        "description": "Adds the show title (or logo if logo settings are enabled) to season posters alongside the season text."
+      },
+      "minimalist": {
+        "title": "Minimalist Posters",
+        "description": "Disables image processing entirely. Only the raw poster gets downloaded and moved to the asset directory."
+      },
+      "fullOverlays": {
+        "title": "Enable All Overlays",
+        "description": "Enables borders, text, and overlays across all standard posters, season posters, backgrounds, and title cards."
+      },
+      "resolutionOverlays": {
+        "title": "Resolution Overlays",
+        "description": "Enables resolution and HDR/DoVi overlays based on media metadata. Note: Not all resolution overlay files are provided by default (e.g. you will need to supply poster-4k, background-1080p, etc.)."
+      },
+      "onlyBorders": {
+        "title": "Only Borders",
+        "description": "Disables text and overlays, rendering only borders across all posters and cards."
+      },
+      "onlyText": {
+        "title": "Only Text",
+        "description": "Disables borders and overlays, rendering only text (or logos) across all posters and cards."
+      },
+      "onlyOverlays": {
+        "title": "Only Overlays",
+        "description": "Disables text and borders, rendering only resolution/rating overlays across all posters and cards."
+      },
+      "textless": {
+        "title": "Textless Posters Only",
+        "description": "Configures language orders to 'xx' to ensure only textless artwork is downloaded. Skips artwork with text."
+      }
+    },
+    "builder": {
+      "tabPresets": "Presets",
+      "tabBuilder": "Builder",
+      "tabBuilderDesc": "Create your own custom blueprint by mixing and matching specific overlays.",
+      "categoryPoster": "Poster",
+      "categorySeason": "Season",
+      "categoryTitleCard": "Title Card",
+      "categoryBackground": "Background",
+      "categoryGlobal": "Global Settings",
+      "enableProcessing": "Enable Image Processing",
+      "enableBorders": "Enable Borders",
+      "enableText": "Enable Text / Logo",
+      "useClearlogo": "Use Clearlogo",
+      "useClearart": "Use Clearart",
+      "useOriginalTitle": "Use Original Title",
+      "flatWhiteLogo": "Flat White Logo",
+      "showTitleOnSeason": "Show Title on Season",
+      "resolutionOverlays": "Resolution Overlays",
+      "onlyTextless": "Only Download Textless Artwork",
+      "preview": "Live Preview",
+      "applyCustom": "Apply Custom Blueprint"
+    }
   }
 }

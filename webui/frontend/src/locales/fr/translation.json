@@ -2426,5 +2426,90 @@
       "step3": "Cliquez sur \"Lancer la File\" pour les traiter séquentiellement.",
       "step4": "Consultez la colonne de statut pour les résultats."
     }
+  },
+  "blueprints": {
+    "pageTitle": "Blueprints de Configuration",
+    "pageDescription": "Appliquez rapidement des configurations prédéfinies pour obtenir des styles visuels spécifiques. L'application d'un blueprint mettra immédiatement à jour vos paramètres.",
+    "export": "Exporter",
+    "import": "Importer",
+    "importing": "Importation...",
+    "apply": "Appliquer le Blueprint",
+    "applying": "Application...",
+    "settingsChanged": "Paramètres Modifiés",
+    "importSuccess": "Blueprint personnalisé importé avec succès et sauvegarde créée !",
+    "importFailed": "Échec de l'application de la configuration importée : {message}",
+    "importError": "Erreur lors de l'importation du blueprint : {message}",
+    "items": {
+      "clearlogo": {
+        "title": "Logo (Clearlogo)",
+        "description": "Remplace le texte standard par le clearlogo du film/de la série."
+      },
+      "clearart": {
+        "title": "Logo (Clearart)",
+        "description": "Remplace le texte standard par le clearart du film/de la série."
+      },
+      "flatClearlogo": {
+        "title": "Logo Blanc Plat (Clearlogo)",
+        "description": "Remplace le texte standard par un clearlogo converti en couleur blanche plate pour un meilleur contraste."
+      },
+      "flatClearart": {
+        "title": "Logo Blanc Plat (Clearart)",
+        "description": "Remplace le texte standard par un clearart converti en couleur blanche plate pour un meilleur contraste."
+      },
+      "showTitleSeason": {
+        "title": "Afficher le Titre sur la Saison",
+        "description": "Ajoute le titre de la série (ou le logo) aux affiches de saison à côté du texte de la saison."
+      },
+      "minimalist": {
+        "title": "Affiches Minimalistes",
+        "description": "Désactive entièrement le traitement d'image. Seule l'affiche brute est téléchargée."
+      },
+      "fullOverlays": {
+        "title": "Activer tous les Overlays",
+        "description": "Active les bordures, le texte et les overlays sur toutes les affiches, fonds et cartes de titre."
+      },
+      "resolutionOverlays": {
+        "title": "Overlays de Résolution",
+        "description": "Active les overlays de résolution et HDR/DoVi basés sur les métadonnées."
+      },
+      "onlyBorders": {
+        "title": "Uniquement les Bordures",
+        "description": "Désactive le texte et les overlays, ne rendant que les bordures sur toutes les affiches et cartes."
+      },
+      "onlyText": {
+        "title": "Uniquement le Texte",
+        "description": "Désactive les bordures et les overlays, ne rendant que le texte (ou les logos) sur toutes les affiches et cartes."
+      },
+      "onlyOverlays": {
+        "title": "Uniquement les Overlays",
+        "description": "Désactive le texte et les bordures, ne rendant que les overlays de résolution/notation."
+      },
+      "textless": {
+        "title": "Uniquement Affiches sans Texte",
+        "description": "Configure les langues sur 'xx' pour télécharger uniquement des œuvres sans texte."
+      }
+    },
+    "builder": {
+      "tabPresets": "Préréglages",
+      "tabBuilder": "Constructeur",
+      "tabBuilderDesc": "Créez votre propre blueprint personnalisé en combinant des overlays spécifiques.",
+      "categoryPoster": "Affiche",
+      "categorySeason": "Saison",
+      "categoryTitleCard": "Carte de Titre",
+      "categoryBackground": "Fond",
+      "categoryGlobal": "Paramètres Globaux",
+      "enableProcessing": "Activer le traitement d'image",
+      "enableBorders": "Activer les bordures",
+      "enableText": "Activer le Texte / Logo",
+      "useClearlogo": "Utiliser Clearlogo",
+      "useClearart": "Utiliser Clearart",
+      "useOriginalTitle": "Utiliser le Titre Original",
+      "flatWhiteLogo": "Logo Blanc Plat",
+      "showTitleOnSeason": "Afficher le Titre sur la Saison",
+      "resolutionOverlays": "Overlays de Résolution",
+      "onlyTextless": "Télécharger uniquement des œuvres sans texte",
+      "preview": "Aperçu en Direct",
+      "applyCustom": "Appliquer le Blueprint Personnalisé"
+    }
   }
 }
