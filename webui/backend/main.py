@@ -17,7 +17,7 @@ except ImportError:
     from defaults import setup_default_images
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import json
@@ -2585,6 +2585,80 @@ async def backup_config():
     except Exception as e:
         logger.error(f"Error creating config backup: {e}")
         raise HTTPException(status_code=500, detail="Failed to create config backup")
+
+@app.get("/api/config/export")
+async def export_blueprint():
+    """Export the grouped config.json minus sensitive data"""
+    try:
+        if not CONFIG_PATH.exists():
+            raise HTTPException(status_code=404, detail="Config not found")
+            
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            export_data = json.load(f)
+            
+        # Remove sensitive sections completely
+        for section in ["ApiPart", "PlexPart", "JellyfinPart", "EmbyPart", "Notification", "WebUI"]:
+            export_data.pop(section, None)
+            
+        # Remove specific paths from PrerequisitePart
+        if "PrerequisitePart" in export_data:
+            for path_key in ["AssetPath", "ManualAssetPath", "BackupPath", "magickinstalllocation", "overlayfile"]:
+                export_data["PrerequisitePart"].pop(path_key, None)
+                
+        return JSONResponse(
+            content=export_data,
+            headers={"Content-Disposition": 'attachment; filename="custom_blueprint.json"'}
+        )
+    except Exception as e:
+        logger.error(f"Error exporting blueprint: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/api/config/import")
+async def import_blueprint(request: Request):
+    """Import a grouped config.json (blueprint), create backup, and deep merge"""
+    try:
+        imported_config = await request.json()
+        
+        # 1. Create backup
+        if CONFIG_PATH.exists():
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = BASE_DIR / f"config_backup_{timestamp}.json"
+            shutil.copy2(CONFIG_PATH, backup_path)
+            
+        # 2. Load current config
+        current_config = {}
+        if CONFIG_PATH.exists():
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                current_config = json.load(f)
+                
+        # 3. Deep merge
+        def deep_merge(source, destination):
+            for key, value in source.items():
+                if isinstance(value, dict):
+                    node = destination.setdefault(key, {})
+                    deep_merge(value, node)
+                else:
+                    destination[key] = value
+            return destination
+            
+        new_config = deep_merge(imported_config, current_config)
+        
+        # 4. Save
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(new_config, f, indent=4, ensure_ascii=False)
+            
+        # 5. Sync to database if available
+        try:
+            if 'CONFIG_DATABASE_AVAILABLE' in globals() and 'config_db' in globals():
+                if CONFIG_DATABASE_AVAILABLE and config_db:
+                    config_db.update_all_from_json(str(CONFIG_PATH))
+        except Exception as db_err:
+            logger.warning(f"Failed to sync imported config to database: {db_err}")
+            
+        return {"success": True, "message": "Blueprint imported successfully"}
+    except Exception as e:
+        logger.error(f"Error importing blueprint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/config")
 async def update_config(data: ConfigUpdate):

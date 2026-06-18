@@ -11,7 +11,7 @@ const BLUEPRINTS = [
     title: "Logo (Clearlogo)",
     description: "Replaces standard text with the movie/show clearlogo.",
     icon: Image,
-    images: ["/images/blueprints/clearlogo-instead-of-text_poster.png", "/images/blueprints/clearlogo-instead-of-text_background.png"],
+    images: ["/blueprint-previews/clearlogo-instead-of-text_poster.png", "/blueprint-previews/clearlogo-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -34,7 +34,7 @@ const BLUEPRINTS = [
     title: "Logo (Clearart)",
     description: "Replaces standard text with the movie/show clearart.",
     icon: Image,
-    images: ["/images/blueprints/clearart-instead-of-text_poster.png", "/images/blueprints/clearart-instead-of-text_background.png"],
+    images: ["/blueprint-previews/clearart-instead-of-text_poster.png", "/blueprint-previews/clearart-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -57,7 +57,7 @@ const BLUEPRINTS = [
     title: "Flat White Logo (Clearlogo)",
     description: "Replaces standard text with a clearlogo converted to a flat white color for better contrast.",
     icon: Image,
-    images: ["/images/blueprints/flat-clearlogo-instead-of-text_poster.png", "/images/blueprints/flat-clearlogo-instead-of-text_background.png"],
+    images: ["/blueprint-previews/flat-clearlogo-instead-of-text_poster.png", "/blueprint-previews/flat-clearlogo-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -81,7 +81,7 @@ const BLUEPRINTS = [
     title: "Flat White Logo (Clearart)",
     description: "Replaces standard text with a clearart converted to a flat white color for better contrast.",
     icon: Image,
-    images: ["/images/blueprints/flat-clearart-instead-of-text_poster.png", "/images/blueprints/flat-clearart-instead-of-text_background.png"],
+    images: ["/blueprint-previews/flat-clearart-instead-of-text_poster.png", "/blueprint-previews/flat-clearart-instead-of-text_background.png"],
     updates: {
       flat: {
         UseLogo: "true",
@@ -105,7 +105,7 @@ const BLUEPRINTS = [
     title: "Show Title on Season",
     description: "Adds the show title (or logo if logo settings are enabled) to season posters alongside the season text.",
     icon: Type,
-    images: ["/images/blueprints/show-title-on-season.png"],
+    images: ["/blueprint-previews/show-title-on-season.png"],
     updates: {
       flat: {
         ShowTitleAddShowTitletoSeason: "true"
@@ -120,7 +120,7 @@ const BLUEPRINTS = [
     title: "Minimalist Posters",
     description: "Disables image processing entirely. Only the raw poster gets downloaded and moved to the asset directory.",
     icon: Palette,
-    images: ["/images/blueprints/minimalist-posters_en.png", "/images/blueprints/minimalist-posters_textless.png", "/images/blueprints/minimalist-posters_textless_background.png"],
+    images: ["/blueprint-previews/minimalist-posters_en.png", "/blueprint-previews/minimalist-posters_textless.png", "/blueprint-previews/minimalist-posters_textless_background.png"],
     updates: {
       flat: {
         ImageProcessing: "false"
@@ -135,7 +135,7 @@ const BLUEPRINTS = [
     title: "Enable All Overlays",
     description: "Enables borders, text, and overlays across all standard posters, season posters, backgrounds, and title cards.",
     icon: Layers,
-    images: ["/images/blueprints/full-overlays.png", "/images/blueprints/full-overlays_background-small.png"],
+    images: ["/blueprint-previews/full-overlays.png", "/blueprint-previews/full-overlays_background-small.png"],
     updates: {
       flat: {
         PosterAddBorder: "true",
@@ -167,7 +167,7 @@ const BLUEPRINTS = [
     title: "Only Borders",
     description: "Disables text and overlays, rendering only borders across all posters and cards.",
     icon: Square,
-    images: ["/images/blueprints/only-borders.png", "/images/blueprints/only-borders_background.png"],
+    images: ["/blueprint-previews/only-borders.png", "/blueprint-previews/only-borders_background.png"],
     updates: {
       flat: {
         PosterAddBorder: "true", PosterAddText: "false", PosterAddOverlay: "false",
@@ -191,7 +191,7 @@ const BLUEPRINTS = [
     title: "Only Text",
     description: "Disables borders and overlays, rendering only text (or logos) across all posters and cards.",
     icon: Type,
-    images: ["/images/blueprints/only-text.png", "/images/blueprints/only-text_background.png"],
+    images: ["/blueprint-previews/only-text.png", "/blueprint-previews/only-text_background.png"],
     updates: {
       flat: {
         PosterAddBorder: "false", PosterAddText: "true", PosterAddOverlay: "false",
@@ -215,7 +215,7 @@ const BLUEPRINTS = [
     title: "Only Overlays",
     description: "Disables text and borders, rendering only resolution/rating overlays across all posters and cards.",
     icon: Layers,
-    images: ["/images/blueprints/only-overlays.png", "/images/blueprints/only-overlays_background.png"],
+    images: ["/blueprint-previews/only-overlays.png", "/blueprint-previews/only-overlays_background.png"],
     updates: {
       flat: {
         PosterAddBorder: "false", PosterAddText: "false", PosterAddOverlay: "true",
@@ -239,7 +239,7 @@ const BLUEPRINTS = [
     title: "Textless Posters Only",
     description: "Configures language orders to 'xx' to ensure only textless artwork is downloaded. Skips artwork with text.",
     icon: Languages,
-    images: ["/images/blueprints/minimalist-posters_textless.png", "/images/blueprints/minimalist-posters_textless_background.png"],
+    images: ["/blueprint-previews/minimalist-posters_textless.png", "/blueprint-previews/minimalist-posters_textless_background.png"],
     updates: {
       flat: {
         PreferredLanguageOrder: ["xx"],
@@ -335,43 +335,9 @@ export default function Blueprints() {
   const [isImporting, setIsImporting] = useState(false);
 
   const handleExportBlueprint = () => {
-    if (!config) return;
-
-    // Create a deep copy
-    const exportData = JSON.parse(JSON.stringify(config));
-
-    // Remove sensitive sections completely
-    const sectionsToRemove = [
-      "ApiPart",
-      "PlexPart",
-      "JellyfinPart",
-      "EmbyPart",
-      "Notification",
-      "WebUI"
-    ];
-    
-    sectionsToRemove.forEach(section => {
-      delete exportData[section];
-    });
-
-    // Remove specific paths from PrerequisitePart
-    if (exportData.PrerequisitePart) {
-      const pathsToRemove = [
-        "AssetPath",
-        "ManualAssetPath",
-        "BackupPath",
-        "magickinstalllocation",
-        "overlayfile"
-      ];
-      pathsToRemove.forEach(p => {
-        delete exportData.PrerequisitePart[p];
-      });
-    }
-
-    // Convert to JSON and download
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+    // We now just trigger a download directly from the backend which handles scrubbing the grouped config.
     const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("href", `${API_URL}/config/export`);
     downloadAnchorNode.setAttribute("download", "custom_blueprint.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
@@ -394,39 +360,19 @@ export default function Blueprints() {
       const text = await file.text();
       const importedConfig = JSON.parse(text);
 
-      // 1. Trigger Backup
-      const backupResponse = await fetch(`${API_URL}/config/backup`, { method: "POST" });
-      const backupData = await backupResponse.json();
-      
-      if (!backupData.success) {
-        throw new Error("Failed to create backup: " + backupData.message);
-      }
-      
-      showSuccess(`Backup created: ${backupData.backup_file}`);
-
-      // 2. Merge imported config with current config
-      let updatedConfig = { ...config };
-      
-      for (const [section, fields] of Object.entries(importedConfig)) {
-        updatedConfig[section] = {
-          ...(updatedConfig[section] || {}),
-          ...fields
-        };
-      }
-
-      // 3. Save new config
-      const response = await fetch(`${API_URL}/config`, {
+      // The backend handles backup, deep merging the grouped config, and saving it
+      const response = await fetch(`${API_URL}/config/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: updatedConfig }),
+        body: text,
       });
 
       const data = await response.json();
       if (data.success) {
-        setConfig(updatedConfig);
-        showSuccess("Custom blueprint imported successfully!");
+        showSuccess("Custom blueprint imported successfully and a backup was created!");
+        fetchConfig(); // Reload the UI config state from the newly saved config
       } else {
-        showError("Failed to apply imported configuration");
+        showError("Failed to apply imported configuration: " + data.message);
       }
     } catch (err) {
       showError(`Error importing blueprint: ${err.message}`);
