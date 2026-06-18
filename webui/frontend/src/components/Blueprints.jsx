@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Loader2, Palette, Image, Layers, CheckCircle2, AlertCircle, Type, Square, Languages, Sparkles, Download, Upload, Info, Sliders, LayoutTemplate, ChevronDown, ChevronRight, Settings } from "lucide-react";
+import { Loader2, Palette, Image, Layers, CheckCircle2, AlertCircle, Type, Square, Languages, Sparkles, Download, Upload, Info, Sliders, LayoutTemplate, ChevronDown, ChevronRight, Settings, ImagePlus, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../context/ToastContext";
 
@@ -214,6 +214,7 @@ export default function Blueprints() {
   const [error, setError] = useState(null);
   const [displayNames, setDisplayNames] = useState({});
   const [isImporting, setIsImporting] = useState(false);
+  const [customPreviewImage, setCustomPreviewImage] = useState(null);
 
   // Tabs: "presets" | "builder"
   const [activeTab, setActiveTab] = useState("presets");
@@ -436,6 +437,17 @@ export default function Blueprints() {
     }
   };
 
+  const handleCustomPreview = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => { setCustomPreviewImage(e.target.result); };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetCustomPreview = () => setCustomPreviewImage(null);
+
   const Toggle = ({ label, checked, onChange }) => (
     <label className="flex items-center justify-between cursor-pointer group">
       <span className="text-theme-text group-hover:text-theme-primary transition-colors">{label}</span>
@@ -465,6 +477,51 @@ export default function Blueprints() {
       </div>
     );
   }
+
+  const getStyleObj = (partKey) => {
+    const part = config?.[partKey] || {};
+    const bColor = part.bordercolor || "white";
+    const bWidth = Math.max(2, (parseInt(part.borderwidth) || 30) * 0.15); // scaled
+    const fColor = part.fontcolor || "white";
+    const sColor = part.strokecolor || "black";
+    const sWidth = Math.max(1, (parseInt(part.strokewidth) || 6) * 0.15);
+    const hasStroke = part.AddTextStroke === "true";
+    const gravity = part.TextGravity?.toLowerCase() || "south";
+    const offsetRaw = part.text_offset || "+400";
+    let offset = parseInt(offsetRaw.replace('+', '').replace('-', '')) || 400;
+    offset = Math.max(0, offset * 0.15);
+    
+    return {
+      border: {
+        borderColor: bColor,
+        borderWidth: `${bWidth}px`,
+        borderStyle: 'solid'
+      },
+      text: {
+        color: fColor,
+        WebkitTextStroke: hasStroke ? `${sWidth}px ${sColor}` : undefined,
+        textShadow: hasStroke ? undefined : '0px 4px 10px rgba(0,0,0,0.5)',
+        [gravity === 'north' ? 'top' : 'bottom']: `${offset}px`,
+      }
+    };
+  };
+
+  const previewStyles = getStyleObj(
+    previewType === 'Poster' ? 'PosterOverlayPart' : 
+    previewType === 'Season' ? 'SeasonPosterOverlayPart' : 
+    previewType === 'Background' ? 'BackgroundOverlayPart' : 
+    'TitleCardOverlayPart'
+  );
+
+  const seasonTitleStyles = getStyleObj('ShowTitleOnSeasonPosterPart');
+  const tcTitleStyles = getStyleObj('TitleCardTitleTextPart');
+  const tcEpStyles = getStyleObj('TitleCardEPTextPart');
+
+  const getSampleImage = () => {
+    if (customPreviewImage) return customPreviewImage;
+    if (previewType === 'Background' || previewType === 'TitleCard') return `/images/default_background.jpg?t=${Date.now()}`;
+    return `/images/default_poster.jpg?t=${Date.now()}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -522,20 +579,6 @@ export default function Blueprints() {
                     <div className="flex-grow">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold text-theme-text">{t(blueprint.titleKey)}</h3>
-                        <div className="relative group/info">
-                          <Info className="w-4 h-4 text-theme-muted hover:text-theme-primary cursor-help" />
-                          <div className="absolute z-50 hidden group-hover/info:block bg-theme-bg border border-theme rounded-lg shadow-xl p-3 text-xs w-64 translate-y-2 -left-32 mt-1 max-h-64 overflow-y-auto custom-scrollbar">
-                            <div className="font-semibold text-theme-text mb-2 pb-1 border-b border-theme/50">{t("blueprints.settingsChanged")}</div>
-                            <ul className="space-y-1">
-                              {Object.entries(blueprint.updates.flat).map(([key, val]) => (
-                                <li key={key} className="flex flex-col border-b border-theme/10 pb-1 last:border-0 last:pb-0">
-                                  <span className="text-theme-muted truncate" title={displayNames[key] || key}>{displayNames[key] || key}</span>
-                                  <span className="text-theme-primary font-mono text-right">{val}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -546,8 +589,18 @@ export default function Blueprints() {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-theme-muted flex-grow mb-6">{t(blueprint.descriptionKey)}</p>
-                  <button onClick={() => handleApplyBlueprint(blueprint)} disabled={applyingId !== null} className="w-full flex items-center justify-center gap-2 py-2.5 bg-theme-primary/10 hover:bg-theme-primary/20 text-theme-primary border border-theme-primary/30 rounded-lg font-medium transition-all disabled:opacity-50">
+                  <p className="text-sm text-theme-muted flex-grow mb-4">{t(blueprint.descriptionKey)}</p>
+                  <Accordion title={t("blueprints.settingsChanged", "Settings Changed")} icon={Info}>
+                    <ul className="space-y-1 text-xs">
+                      {Object.entries(blueprint.updates.flat).map(([key, val]) => (
+                        <li key={key} className="flex flex-col border-b border-theme/10 pb-1 last:border-0 last:pb-0">
+                          <span className="text-theme-muted truncate" title={displayNames[key] || key}>{displayNames[key] || key}</span>
+                          <span className="text-theme-primary font-mono text-right">{val}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </Accordion>
+                  <button onClick={() => handleApplyBlueprint(blueprint)} disabled={applyingId !== null} className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 bg-theme-primary/10 hover:bg-theme-primary/20 text-theme-primary border border-theme-primary/30 rounded-lg font-medium transition-all disabled:opacity-50">
                     {isApplying ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
                     <span>{isApplying ? t("blueprints.applying") : t("blueprints.apply")}</span>
                   </button>
@@ -619,14 +672,17 @@ export default function Blueprints() {
 
               {/* CSS Visual Preview Container */}
               <div className="w-full flex items-center justify-center bg-black/40 rounded-xl border border-theme/50 p-4 min-h-[400px]">
-                <div className={`relative bg-gradient-to-br from-indigo-900 to-purple-900 overflow-hidden shadow-2xl transition-all duration-300 ${
+                <div className={`relative overflow-hidden shadow-2xl transition-all duration-300 ${!customPreviewImage ? 'bg-black' : 'bg-black'} ${
                   previewType === 'Poster' || previewType === 'Season' ? 'w-2/3 aspect-[2/3] rounded-sm' : 
                   previewType === 'Background' || previewType === 'TitleCard' ? 'w-full aspect-[16/9] rounded-sm' : ''
                 }`}>
-                  {/* Base Image Placeholder */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-30 mix-blend-overlay">
-                    <Image className="w-16 h-16 mb-2" />
-                    <span className="font-bold text-2xl tracking-widest uppercase">{previewType}</span>
+                  {/* Base Image */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <img src={getSampleImage()} className="w-full h-full object-cover" alt="Preview Base" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                    <div className="hidden flex-col items-center opacity-30 mix-blend-overlay">
+                      <Image className="w-16 h-16 mb-2" />
+                      <span className="font-bold text-2xl tracking-widest uppercase">{previewType}</span>
+                    </div>
                   </div>
 
                   {/* Dynamic Overlays */}
@@ -637,39 +693,39 @@ export default function Blueprints() {
                        (previewType === 'Season' && builderState.Season.AddBorder) ||
                        (previewType === 'Background' && builderState.Background.AddBorder) ||
                        (previewType === 'TitleCard' && builderState.TitleCard.AddBorder) ? (
-                        <div className="absolute inset-0 border-[6px] border-white z-10 m-3 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] rounded-sm pointer-events-none transition-all"></div>
+                        <div className="absolute inset-0 z-10 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] rounded-sm pointer-events-none transition-all" style={{ ...previewStyles.border, margin: previewStyles.border.borderWidth }}></div>
                       ) : null}
 
                       {/* TEXT / LOGO */}
                       {((previewType === 'Poster' && builderState.Poster.AddText) ||
                        (previewType === 'Season' && builderState.Season.AddText) ||
                        (previewType === 'Background' && builderState.Background.AddText)) && (
-                        <div className="absolute bottom-[10%] left-0 w-full flex justify-center z-20 pointer-events-none transition-all">
+                        <div className="absolute left-0 w-full flex justify-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
                           {builderState.Global.UseClearlogo || builderState.Global.UseClearart ? (
-                             <div className={`text-3xl lg:text-4xl font-black italic tracking-tighter ${builderState.Global.FlatWhiteLogo ? 'text-white' : 'text-yellow-400 drop-shadow-md'}`}>
-                               TITLE LOGO
+                             <div className="text-3xl lg:text-4xl font-black italic tracking-tighter" style={{ color: builderState.Global.FlatWhiteLogo ? config?.PrerequisitePart?.LogoFlatColor || 'white' : '#ffd700', textShadow: previewStyles.text.textShadow }}>
+                                TITLE LOGO
                              </div>
                           ) : (
-                             <div className="text-2xl lg:text-3xl font-bold text-white uppercase tracking-widest drop-shadow-md">Movie Title</div>
+                             <div className="text-2xl lg:text-3xl font-bold uppercase tracking-widest">Movie Title</div>
                           )}
                         </div>
                       )}
 
                       {/* SEASON SPECIFIC TEXT */}
                       {previewType === 'Season' && builderState.Season.AddText && (
-                        <div className="absolute bottom-[20%] left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all">
+                        <div className="absolute left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
                           {builderState.Season.ShowTitle && (
-                             <div className="text-lg lg:text-xl font-bold text-white/80 mb-1 drop-shadow-md uppercase tracking-wider">Movie Title</div>
+                             <div className="text-lg lg:text-xl font-bold uppercase tracking-wider mb-2" style={{ ...seasonTitleStyles.text, position: 'static' }}>Movie Title</div>
                           )}
-                          <div className="text-xl lg:text-2xl font-bold text-white uppercase tracking-widest drop-shadow-md">Season 1</div>
+                          <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{config?.SeasonPosterOverlayPart?.SeasonOverrideText || "Season"} 1</div>
                         </div>
                       )}
 
                       {/* TITLE CARD TEXT */}
                       {previewType === 'TitleCard' && (
-                        <div className="absolute bottom-[15%] left-[8%] z-20 pointer-events-none transition-all text-left">
-                          {builderState.TitleCard.AddEPText && <div className="text-lg lg:text-xl font-medium text-white/80 drop-shadow">S01E01</div>}
-                          {builderState.TitleCard.AddEPTitleText && <div className="text-2xl lg:text-3xl font-bold text-white drop-shadow uppercase tracking-wide mt-1">Episode Title</div>}
+                        <div className="absolute left-[8%] z-20 pointer-events-none transition-all text-left w-full h-full">
+                          {builderState.TitleCard.AddEPText && <div className="absolute left-0 text-lg lg:text-xl font-medium" style={tcEpStyles.text}>S01E01</div>}
+                          {builderState.TitleCard.AddEPTitleText && <div className="absolute left-0 text-2xl lg:text-3xl font-bold uppercase tracking-wide mt-1" style={tcTitleStyles.text}>Episode Title</div>}
                         </div>
                       )}
 
@@ -685,6 +741,19 @@ export default function Blueprints() {
                     </>
                   )}
                 </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-center gap-2">
+                 {customPreviewImage ? (
+                    <button onClick={resetCustomPreview} className="px-3 py-1.5 text-xs font-medium bg-theme-hover hover:bg-theme-bg text-theme-muted hover:text-theme-text border border-theme rounded-md flex items-center gap-2 transition-colors shadow-sm">
+                        <RotateCcw className="w-3 h-3" /> {t("overlayAssets.resetSample", "Reset Sample")}
+                    </button>
+                 ) : (
+                    <label className="px-3 py-1.5 text-xs font-medium bg-theme-primary/10 hover:bg-theme-primary/20 text-theme-primary border border-theme-primary/20 rounded-md flex items-center gap-2 cursor-pointer transition-all hover:shadow-sm" title={t("overlayAssets.uploadSample", "Upload Sample Image")}>
+                        <ImagePlus className="w-3 h-3" /> {t("overlayAssets.uploadSample", "Upload Sample Image")}
+                        <input type="file" accept="image/*" onChange={handleCustomPreview} className="hidden" />
+                    </label>
+                 )}
               </div>
 
               <div className="mt-6">
