@@ -277,11 +277,15 @@ export default function Blueprints() {
   const [builderState, setBuilderState] = useState({
     ImageProcessing: true,
     outputQuality: 100,
-    Poster: { AddBorder: false, AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
-    Season: { AddBorder: false, AddText: false, AddTextStroke: false, ShowTitle: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 95, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", ShowFallback: false, OverrideSeasonName: false, SeasonOverrideText: "Season", SpecialSeasonOverrideText: "Specials" },
-    TitleCard: { AddBorder: false, AddOverlay: false, AddEPText: false, AddEPTitleText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 50, maxPointSize: 150, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 280, TextGravity: "south", UseBackgroundAsTitleCard: false, BackgroundFallback: true, SeasonTCText: "Season", EpisodeTCText: "Episode" },
-    Background: { AddBorder: false, AddText: false, AddTextStroke: false, AddOverlay: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200", fontAllCaps: true, minPointSize: 100, maxPointSize: 300, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 500, TextGravity: "south" },
-    Collection: { AddBorder: false, AddText: false, AddTextStroke: false, AddCollectionTitle: true, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", CollectionTitle: "Collection" },
+    Poster: { AddBorder: false, AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+430", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
+    Season: { AddBorder: false, AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 95, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", ShowFallback: false, OverrideSeasonName: false, SeasonOverrideText: "Season", SpecialSeasonOverrideText: "Specials" },
+    SeasonTitle: { ShowTitle: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 45, maxPointSize: 300, MaxWidth: 1900, MaxHeight: 500, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
+    TitleCard: { AddBorder: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, UseBackgroundAsTitleCard: false, BackgroundFallback: true },
+    TitleCardEPTitle: { AddEPTitleText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
+    TitleCardEPText: { AddEPText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+100", lineSpacing: 0, TextGravity: "south", SeasonTCText: "Season", EpisodeTCText: "Episode" },
+    Background: { AddBorder: false, AddText: false, AddTextStroke: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200", fontAllCaps: true, minPointSize: 100, maxPointSize: 300, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 500, TextGravity: "south" },
+    Collection: { AddBorder: false, AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
+    CollectionTitle: { AddCollectionTitle: true, CollectionTitle: "Collection", fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 100, MaxWidth: 1000, MaxHeight: 140, text_offset: "+150", lineSpacing: 0, TextGravity: "south" },
     Global: { 
       UseClearlogo: true, 
       UseClearart: false, 
@@ -356,8 +360,6 @@ export default function Blueprints() {
              AddBorder: data.config.SeasonPosterOverlayPart?.AddBorder === "true",
              AddText: data.config.SeasonPosterOverlayPart?.AddText === "true",
              AddTextStroke: data.config.SeasonPosterOverlayPart?.AddTextStroke === "true",
-             ShowTitle: data.config.ShowTitleOnSeasonPosterPart?.AddShowTitletoSeason === "true",
-             UseResolutionOverlays: data.config.PrerequisitePart?.UseSeasonResolutionOverlays === "true",
              bordercolor: data.config.SeasonPosterOverlayPart?.bordercolor || "#000000",
              borderwidth: parseInt(data.config.SeasonPosterOverlayPart?.borderwidth || 30),
              fontcolor: data.config.SeasonPosterOverlayPart?.fontcolor || "#ffffff",
@@ -376,12 +378,29 @@ export default function Blueprints() {
              SeasonOverrideText: data.config.SeasonPosterOverlayPart?.SeasonOverrideText || "Season",
              SpecialSeasonOverrideText: data.config.SeasonPosterOverlayPart?.SpecialSeasonOverrideText || "Specials"
           },
+          SeasonTitle: {
+             ...prev.SeasonTitle,
+             ShowTitle: data.config.ShowTitleOnSeasonPosterPart?.AddShowTitletoSeason === "true",
+             fontAllCaps: data.config.ShowTitleOnSeasonPosterPart?.fontAllCaps === "true",
+             AddTextStroke: data.config.ShowTitleOnSeasonPosterPart?.AddTextStroke === "true",
+             strokecolor: data.config.ShowTitleOnSeasonPosterPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.ShowTitleOnSeasonPosterPart?.strokewidth || 6),
+             fontcolor: data.config.ShowTitleOnSeasonPosterPart?.fontcolor || "#ffffff",
+             minPointSize: parseInt(data.config.ShowTitleOnSeasonPosterPart?.minPointSize || 45),
+             maxPointSize: parseInt(data.config.ShowTitleOnSeasonPosterPart?.maxPointSize || 300),
+             MaxWidth: parseInt(data.config.ShowTitleOnSeasonPosterPart?.MaxWidth || 1900),
+             MaxHeight: parseInt(data.config.ShowTitleOnSeasonPosterPart?.MaxHeight || 500),
+             text_offset: data.config.ShowTitleOnSeasonPosterPart?.text_offset || "+300",
+             lineSpacing: parseInt(data.config.ShowTitleOnSeasonPosterPart?.lineSpacing || 0),
+             TextGravity: data.config.ShowTitleOnSeasonPosterPart?.TextGravity || "south"
+          },
           Background: {
              ...prev.Background,
              AddBorder: data.config.BackgroundOverlayPart?.AddBorder === "true",
              AddText: data.config.BackgroundOverlayPart?.AddText === "true",
              AddTextStroke: data.config.BackgroundOverlayPart?.AddTextStroke === "true",
              AddOverlay: data.config.BackgroundOverlayPart?.AddOverlay === "true",
+             overlayfile: data.config.PrerequisitePart?.backgroundoverlayfile || "backgroundoverlay-innerglow.png",
              UseResolutionOverlays: data.config.PrerequisitePart?.UseBackgroundResolutionOverlays === "true",
              bordercolor: data.config.BackgroundOverlayPart?.bordercolor || "#000000",
              borderwidth: parseInt(data.config.BackgroundOverlayPart?.borderwidth || 30),
@@ -401,25 +420,44 @@ export default function Blueprints() {
              ...prev.TitleCard,
              AddBorder: data.config.TitleCardOverlayPart?.AddBorder === "true",
              AddOverlay: data.config.TitleCardOverlayPart?.AddOverlay === "true",
-             AddEPText: data.config.TitleCardEPTextPart?.AddEPText === "true",
-             AddEPTitleText: data.config.TitleCardTitleTextPart?.AddEPTitleText === "true",
-             AddTextStroke: data.config.TitleCardTitleTextPart?.AddTextStroke === "true",
+             overlayfile: data.config.PrerequisitePart?.titlecardoverlayfile || "backgroundoverlay-innerglow.png",
              UseResolutionOverlays: data.config.PrerequisitePart?.UseTCResolutionOverlays === "true",
              bordercolor: data.config.TitleCardOverlayPart?.bordercolor || "#000000",
              borderwidth: parseInt(data.config.TitleCardOverlayPart?.borderwidth || 30),
-             fontcolor: data.config.TitleCardTitleTextPart?.fontcolor || "#ffffff",
-             strokecolor: data.config.TitleCardTitleTextPart?.strokecolor || "#000000",
-             strokewidth: parseInt(data.config.TitleCardTitleTextPart?.strokewidth || 6),
-             text_offset: data.config.TitleCardTitleTextPart?.text_offset || "+300",
-             fontAllCaps: data.config.TitleCardTitleTextPart?.fontAllCaps === "true",
-             minPointSize: parseInt(data.config.TitleCardTitleTextPart?.minPointSize || 50),
-             maxPointSize: parseInt(data.config.TitleCardTitleTextPart?.maxPointSize || 150),
-             lineSpacing: parseInt(data.config.TitleCardTitleTextPart?.lineSpacing || 0),
-             MaxWidth: parseInt(data.config.TitleCardTitleTextPart?.MaxWidth || 3640),
-             MaxHeight: parseInt(data.config.TitleCardTitleTextPart?.MaxHeight || 280),
-             TextGravity: data.config.TitleCardTitleTextPart?.TextGravity || "south",
              UseBackgroundAsTitleCard: data.config.TitleCardOverlayPart?.UseBackgroundAsTitleCard === "true",
              BackgroundFallback: data.config.TitleCardOverlayPart?.BackgroundFallback === "true",
+          },
+          TitleCardEPTitle: {
+             ...prev.TitleCardEPTitle,
+             AddEPTitleText: data.config.TitleCardTitleTextPart?.AddEPTitleText === "true",
+             fontAllCaps: data.config.TitleCardTitleTextPart?.fontAllCaps === "true",
+             AddTextStroke: data.config.TitleCardTitleTextPart?.AddTextStroke === "true",
+             strokecolor: data.config.TitleCardTitleTextPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.TitleCardTitleTextPart?.strokewidth || 6),
+             fontcolor: data.config.TitleCardTitleTextPart?.fontcolor || "#ffffff",
+             minPointSize: parseInt(data.config.TitleCardTitleTextPart?.minPointSize || 50),
+             maxPointSize: parseInt(data.config.TitleCardTitleTextPart?.maxPointSize || 150),
+             MaxWidth: parseInt(data.config.TitleCardTitleTextPart?.MaxWidth || 3640),
+             MaxHeight: parseInt(data.config.TitleCardTitleTextPart?.MaxHeight || 280),
+             text_offset: data.config.TitleCardTitleTextPart?.text_offset || "+300",
+             lineSpacing: parseInt(data.config.TitleCardTitleTextPart?.lineSpacing || 0),
+             TextGravity: data.config.TitleCardTitleTextPart?.TextGravity || "south"
+          },
+          TitleCardEPText: {
+             ...prev.TitleCardEPText,
+             AddEPText: data.config.TitleCardEPTextPart?.AddEPText === "true",
+             fontAllCaps: data.config.TitleCardEPTextPart?.fontAllCaps === "true",
+             AddTextStroke: data.config.TitleCardEPTextPart?.AddTextStroke === "true",
+             strokecolor: data.config.TitleCardEPTextPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.TitleCardEPTextPart?.strokewidth || 6),
+             fontcolor: data.config.TitleCardEPTextPart?.fontcolor || "#ffffff",
+             minPointSize: parseInt(data.config.TitleCardEPTextPart?.minPointSize || 50),
+             maxPointSize: parseInt(data.config.TitleCardEPTextPart?.maxPointSize || 150),
+             MaxWidth: parseInt(data.config.TitleCardEPTextPart?.MaxWidth || 3640),
+             MaxHeight: parseInt(data.config.TitleCardEPTextPart?.MaxHeight || 280),
+             text_offset: data.config.TitleCardEPTextPart?.text_offset || "+100",
+             lineSpacing: parseInt(data.config.TitleCardEPTextPart?.lineSpacing || 0),
+             TextGravity: data.config.TitleCardEPTextPart?.TextGravity || "south",
              SeasonTCText: data.config.TitleCardEPTextPart?.SeasonTCText || "Season",
              EpisodeTCText: data.config.TitleCardEPTextPart?.EpisodeTCText || "Episode"
           },
@@ -428,7 +466,6 @@ export default function Blueprints() {
              AddBorder: data.config.CollectionPosterOverlayPart?.AddBorder === "true",
              AddText: data.config.CollectionPosterOverlayPart?.AddText === "true",
              AddTextStroke: data.config.CollectionPosterOverlayPart?.AddTextStroke === "true",
-             AddCollectionTitle: data.config.CollectionTitlePosterPart?.AddCollectionTitle === "true",
              bordercolor: data.config.CollectionPosterOverlayPart?.bordercolor || "#000000",
              borderwidth: parseInt(data.config.CollectionPosterOverlayPart?.borderwidth || 30),
              fontcolor: data.config.CollectionPosterOverlayPart?.fontcolor || "#ffffff",
@@ -441,8 +478,24 @@ export default function Blueprints() {
              lineSpacing: parseInt(data.config.CollectionPosterOverlayPart?.lineSpacing || 0),
              MaxWidth: parseInt(data.config.CollectionPosterOverlayPart?.MaxWidth || 1900),
              MaxHeight: parseInt(data.config.CollectionPosterOverlayPart?.MaxHeight || 500),
-             TextGravity: data.config.CollectionPosterOverlayPart?.TextGravity || "south",
-             CollectionTitle: data.config.CollectionTitlePosterPart?.CollectionTitle || "Collection"
+             TextGravity: data.config.CollectionPosterOverlayPart?.TextGravity || "south"
+          },
+          CollectionTitle: {
+             ...prev.CollectionTitle,
+             AddCollectionTitle: data.config.CollectionTitlePosterPart?.AddCollectionTitle === "true",
+             CollectionTitle: data.config.CollectionTitlePosterPart?.CollectionTitle || "Collection",
+             fontAllCaps: data.config.CollectionTitlePosterPart?.fontAllCaps === "true",
+             AddTextStroke: data.config.CollectionTitlePosterPart?.AddTextStroke === "true",
+             strokecolor: data.config.CollectionTitlePosterPart?.strokecolor || "#000000",
+             strokewidth: parseInt(data.config.CollectionTitlePosterPart?.strokewidth || 6),
+             fontcolor: data.config.CollectionTitlePosterPart?.fontcolor || "#ffffff",
+             minPointSize: parseInt(data.config.CollectionTitlePosterPart?.minPointSize || 50),
+             maxPointSize: parseInt(data.config.CollectionTitlePosterPart?.maxPointSize || 100),
+             MaxWidth: parseInt(data.config.CollectionTitlePosterPart?.MaxWidth || 1000),
+             MaxHeight: parseInt(data.config.CollectionTitlePosterPart?.MaxHeight || 140),
+             text_offset: data.config.CollectionTitlePosterPart?.text_offset || "+150",
+             lineSpacing: parseInt(data.config.CollectionTitlePosterPart?.lineSpacing || 0),
+             TextGravity: data.config.CollectionTitlePosterPart?.TextGravity || "south"
           },
           Global: {
              UseClearlogo: data.config.PrerequisitePart?.UseClearlogo === "true",
@@ -515,9 +568,10 @@ export default function Blueprints() {
         LogoFlatColor: builderState.Global.FlatWhiteLogo ? "white" : undefined,
         SkipAddText: builderState.Global.TextlessOnly ? "true" : "false",
         UsePosterResolutionOverlays: builderState.Poster.UseResolutionOverlays ? "true" : "false",
-        UseSeasonResolutionOverlays: builderState.Season.UseResolutionOverlays ? "true" : "false",
         UseBackgroundResolutionOverlays: builderState.Background.UseResolutionOverlays ? "true" : "false",
         UseTCResolutionOverlays: builderState.TitleCard.UseResolutionOverlays ? "true" : "false",
+        backgroundoverlayfile: builderState.Background.overlayfile,
+        titlecardoverlayfile: builderState.TitleCard.overlayfile
       },
       PosterOverlayPart: {
         AddBorder: builderState.Poster.AddBorder ? "true" : "false",
@@ -562,7 +616,19 @@ export default function Blueprints() {
         SpecialSeasonOverrideText: builderState.Season.SpecialSeasonOverrideText
       },
       ShowTitleOnSeasonPosterPart: {
-        AddShowTitletoSeason: builderState.Season.ShowTitle ? "true" : "false"
+        AddShowTitletoSeason: builderState.SeasonTitle.ShowTitle ? "true" : "false",
+        fontAllCaps: builderState.SeasonTitle.fontAllCaps ? "true" : "false",
+        AddTextStroke: builderState.SeasonTitle.AddTextStroke ? "true" : "false",
+        strokecolor: builderState.SeasonTitle.strokecolor,
+        strokewidth: builderState.SeasonTitle.strokewidth.toString(),
+        fontcolor: builderState.SeasonTitle.fontcolor,
+        minPointSize: builderState.SeasonTitle.minPointSize.toString(),
+        maxPointSize: builderState.SeasonTitle.maxPointSize.toString(),
+        MaxWidth: builderState.SeasonTitle.MaxWidth.toString(),
+        MaxHeight: builderState.SeasonTitle.MaxHeight.toString(),
+        text_offset: builderState.SeasonTitle.text_offset,
+        lineSpacing: builderState.SeasonTitle.lineSpacing.toString(),
+        TextGravity: builderState.SeasonTitle.TextGravity
       },
       BackgroundOverlayPart: {
         AddBorder: builderState.Background.AddBorder ? "true" : "false",
@@ -592,37 +658,52 @@ export default function Blueprints() {
         BackgroundFallback: builderState.TitleCard.BackgroundFallback ? "true" : "false"
       },
       TitleCardTitleTextPart: {
-        AddEPTitleText: builderState.TitleCard.AddEPTitleText ? "true" : "false",
-        AddTextStroke: builderState.TitleCard.AddTextStroke ? "true" : "false",
-        fontcolor: builderState.TitleCard.fontcolor,
-        strokecolor: builderState.TitleCard.strokecolor,
-        strokewidth: builderState.TitleCard.strokewidth.toString(),
-        text_offset: builderState.TitleCard.text_offset,
-        fontAllCaps: builderState.TitleCard.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.TitleCard.minPointSize.toString(),
-        maxPointSize: builderState.TitleCard.maxPointSize.toString(),
-        lineSpacing: builderState.TitleCard.lineSpacing.toString(),
-        MaxWidth: builderState.TitleCard.MaxWidth.toString(),
-        MaxHeight: builderState.TitleCard.MaxHeight.toString(),
-        TextGravity: builderState.TitleCard.TextGravity
+        AddEPTitleText: builderState.TitleCardEPTitle.AddEPTitleText ? "true" : "false",
+        AddTextStroke: builderState.TitleCardEPTitle.AddTextStroke ? "true" : "false",
+        fontcolor: builderState.TitleCardEPTitle.fontcolor,
+        strokecolor: builderState.TitleCardEPTitle.strokecolor,
+        strokewidth: builderState.TitleCardEPTitle.strokewidth.toString(),
+        text_offset: builderState.TitleCardEPTitle.text_offset,
+        fontAllCaps: builderState.TitleCardEPTitle.fontAllCaps ? "true" : "false",
+        minPointSize: builderState.TitleCardEPTitle.minPointSize.toString(),
+        maxPointSize: builderState.TitleCardEPTitle.maxPointSize.toString(),
+        lineSpacing: builderState.TitleCardEPTitle.lineSpacing.toString(),
+        MaxWidth: builderState.TitleCardEPTitle.MaxWidth.toString(),
+        MaxHeight: builderState.TitleCardEPTitle.MaxHeight.toString(),
+        TextGravity: builderState.TitleCardEPTitle.TextGravity
       },
       TitleCardEPTextPart: {
-        AddEPText: builderState.TitleCard.AddEPText ? "true" : "false",
-        AddTextStroke: builderState.TitleCard.AddTextStroke ? "true" : "false",
-        fontcolor: builderState.TitleCard.fontcolor,
-        strokecolor: builderState.TitleCard.strokecolor,
-        strokewidth: builderState.TitleCard.strokewidth.toString(),
-        text_offset: builderState.TitleCard.text_offset,
-        fontAllCaps: builderState.TitleCard.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.TitleCard.minPointSize.toString(),
-        maxPointSize: builderState.TitleCard.maxPointSize.toString(),
-        lineSpacing: builderState.TitleCard.lineSpacing.toString(),
-        SeasonTCText: builderState.TitleCard.SeasonTCText,
-        EpisodeTCText: builderState.TitleCard.EpisodeTCText
+        AddEPText: builderState.TitleCardEPText.AddEPText ? "true" : "false",
+        AddTextStroke: builderState.TitleCardEPText.AddTextStroke ? "true" : "false",
+        fontcolor: builderState.TitleCardEPText.fontcolor,
+        strokecolor: builderState.TitleCardEPText.strokecolor,
+        strokewidth: builderState.TitleCardEPText.strokewidth.toString(),
+        text_offset: builderState.TitleCardEPText.text_offset,
+        fontAllCaps: builderState.TitleCardEPText.fontAllCaps ? "true" : "false",
+        minPointSize: builderState.TitleCardEPText.minPointSize.toString(),
+        maxPointSize: builderState.TitleCardEPText.maxPointSize.toString(),
+        lineSpacing: builderState.TitleCardEPText.lineSpacing.toString(),
+        MaxWidth: builderState.TitleCardEPText.MaxWidth.toString(),
+        MaxHeight: builderState.TitleCardEPText.MaxHeight.toString(),
+        TextGravity: builderState.TitleCardEPText.TextGravity,
+        SeasonTCText: builderState.TitleCardEPText.SeasonTCText,
+        EpisodeTCText: builderState.TitleCardEPText.EpisodeTCText
       },
       CollectionTitlePosterPart: {
-        AddCollectionTitle: builderState.Collection.AddCollectionTitle ? "true" : "false",
-        CollectionTitle: builderState.Collection.CollectionTitle
+        AddCollectionTitle: builderState.CollectionTitle.AddCollectionTitle ? "true" : "false",
+        CollectionTitle: builderState.CollectionTitle.CollectionTitle,
+        fontAllCaps: builderState.CollectionTitle.fontAllCaps ? "true" : "false",
+        AddTextStroke: builderState.CollectionTitle.AddTextStroke ? "true" : "false",
+        strokecolor: builderState.CollectionTitle.strokecolor,
+        strokewidth: builderState.CollectionTitle.strokewidth.toString(),
+        fontcolor: builderState.CollectionTitle.fontcolor,
+        minPointSize: builderState.CollectionTitle.minPointSize.toString(),
+        maxPointSize: builderState.CollectionTitle.maxPointSize.toString(),
+        MaxWidth: builderState.CollectionTitle.MaxWidth.toString(),
+        MaxHeight: builderState.CollectionTitle.MaxHeight.toString(),
+        text_offset: builderState.CollectionTitle.text_offset,
+        lineSpacing: builderState.CollectionTitle.lineSpacing.toString(),
+        TextGravity: builderState.CollectionTitle.TextGravity
       },
       CollectionPosterOverlayPart: {
         AddBorder: builderState.Collection.AddBorder ? "true" : "false",
@@ -826,9 +907,10 @@ export default function Blueprints() {
 
   const previewStyles = getStyleObj(builderState[previewType]);
 
-  const seasonTitleStyles = getStyleObj(builderState.Season);
-  const tcTitleStyles = getStyleObj(builderState.TitleCard);
-  const tcEpStyles = getStyleObj(builderState.TitleCard);
+  const seasonTitleStyles = getStyleObj(builderState.SeasonTitle);
+  const tcTitleStyles = getStyleObj(builderState.TitleCardEPTitle);
+  const tcEpStyles = getStyleObj(builderState.TitleCardEPText);
+  const collectionTitleStyles = getStyleObj(builderState.CollectionTitle);
 
   const getSampleImage = () => {
     if (customPreviewImage) return customPreviewImage;
@@ -960,8 +1042,7 @@ export default function Blueprints() {
                       <>
                         <LayerItem id="Season.Border" label="Border" icon={Square} active={selectedLayer === "Season.Border"} onSelect={setSelectedLayer} enabled={builderState.Season.AddBorder} onToggle={(v) => updateBuilder("Season", "AddBorder", v)} />
                         <LayerItem id="Season.Text" label="Text / Logo" icon={Type} active={selectedLayer === "Season.Text"} onSelect={setSelectedLayer} enabled={builderState.Season.AddText} onToggle={(v) => updateBuilder("Season", "AddText", v)} />
-                        <LayerItem id="Season.ShowTitle" label="Show Title" icon={Type} active={selectedLayer === "Season.ShowTitle"} onSelect={setSelectedLayer} enabled={builderState.Season.ShowTitle} onToggle={(v) => updateBuilder("Season", "ShowTitle", v)} />
-                        <LayerItem id="Season.Resolution" label="Resolution Overlays" icon={Image} active={selectedLayer === "Season.Resolution"} onSelect={setSelectedLayer} enabled={builderState.Season.UseResolutionOverlays} onToggle={(v) => updateBuilder("Season", "UseResolutionOverlays", v)} />
+                        <LayerItem id="SeasonTitle" label="Show Title" icon={Type} active={selectedLayer === "SeasonTitle"} onSelect={setSelectedLayer} enabled={builderState.SeasonTitle.ShowTitle} onToggle={(v) => updateBuilder("SeasonTitle", "ShowTitle", v)} />
                       </>
                     )}
 
@@ -969,7 +1050,7 @@ export default function Blueprints() {
                       <>
                         <LayerItem id="Background.Border" label="Border" icon={Square} active={selectedLayer === "Background.Border"} onSelect={setSelectedLayer} enabled={builderState.Background.AddBorder} onToggle={(v) => updateBuilder("Background", "AddBorder", v)} />
                         <LayerItem id="Background.Text" label="Text / Logo" icon={Type} active={selectedLayer === "Background.Text"} onSelect={setSelectedLayer} enabled={builderState.Background.AddText} onToggle={(v) => updateBuilder("Background", "AddText", v)} />
-                        <LayerItem id="Background.Overlay" label="Darken/Glow" icon={Layers} active={selectedLayer === "Background.Overlay"} onSelect={setSelectedLayer} enabled={builderState.Background.AddOverlay} onToggle={(v) => updateBuilder("Background", "AddOverlay", v)} />
+                        <LayerItem id="Background.Overlay" label="Overlay" icon={Layers} active={selectedLayer === "Background.Overlay"} onSelect={setSelectedLayer} enabled={builderState.Background.AddOverlay} onToggle={(v) => updateBuilder("Background", "AddOverlay", v)} />
                         <LayerItem id="Background.Resolution" label="Resolution Overlays" icon={Image} active={selectedLayer === "Background.Resolution"} onSelect={setSelectedLayer} enabled={builderState.Background.UseResolutionOverlays} onToggle={(v) => updateBuilder("Background", "UseResolutionOverlays", v)} />
                       </>
                     )}
@@ -977,9 +1058,9 @@ export default function Blueprints() {
                     {previewType === "TitleCard" && (
                       <>
                         <LayerItem id="TitleCard.Border" label="Border" icon={Square} active={selectedLayer === "TitleCard.Border"} onSelect={setSelectedLayer} enabled={builderState.TitleCard.AddBorder} onToggle={(v) => updateBuilder("TitleCard", "AddBorder", v)} />
-                        <LayerItem id="TitleCard.Overlay" label="Darken/Glow" icon={Layers} active={selectedLayer === "TitleCard.Overlay"} onSelect={setSelectedLayer} enabled={builderState.TitleCard.AddOverlay} onToggle={(v) => updateBuilder("TitleCard", "AddOverlay", v)} />
-                        <LayerItem id="TitleCard.EPTitleText" label="Episode Title" icon={Type} active={selectedLayer === "TitleCard.EPTitleText"} onSelect={setSelectedLayer} enabled={builderState.TitleCard.AddEPTitleText} onToggle={(v) => updateBuilder("TitleCard", "AddEPTitleText", v)} />
-                        <LayerItem id="TitleCard.EPText" label="SxxExx Text" icon={Type} active={selectedLayer === "TitleCard.EPText"} onSelect={setSelectedLayer} enabled={builderState.TitleCard.AddEPText} onToggle={(v) => updateBuilder("TitleCard", "AddEPText", v)} />
+                        <LayerItem id="TitleCard.Overlay" label="Overlay" icon={Layers} active={selectedLayer === "TitleCard.Overlay"} onSelect={setSelectedLayer} enabled={builderState.TitleCard.AddOverlay} onToggle={(v) => updateBuilder("TitleCard", "AddOverlay", v)} />
+                        <LayerItem id="TitleCardEPTitle" label="Episode Title" icon={Type} active={selectedLayer === "TitleCardEPTitle"} onSelect={setSelectedLayer} enabled={builderState.TitleCardEPTitle.AddEPTitleText} onToggle={(v) => updateBuilder("TitleCardEPTitle", "AddEPTitleText", v)} />
+                        <LayerItem id="TitleCardEPText" label="SxxExx Text" icon={Type} active={selectedLayer === "TitleCardEPText"} onSelect={setSelectedLayer} enabled={builderState.TitleCardEPText.AddEPText} onToggle={(v) => updateBuilder("TitleCardEPText", "AddEPText", v)} />
                         <LayerItem id="TitleCard.Resolution" label="Resolution Overlays" icon={Image} active={selectedLayer === "TitleCard.Resolution"} onSelect={setSelectedLayer} enabled={builderState.TitleCard.UseResolutionOverlays} onToggle={(v) => updateBuilder("TitleCard", "UseResolutionOverlays", v)} />
                       </>
                     )}
@@ -988,7 +1069,7 @@ export default function Blueprints() {
                       <>
                         <LayerItem id="Collection.Border" label="Border" icon={Square} active={selectedLayer === "Collection.Border"} onSelect={setSelectedLayer} enabled={builderState.Collection.AddBorder} onToggle={(v) => updateBuilder("Collection", "AddBorder", v)} />
                         <LayerItem id="Collection.Text" label="Text / Logo" icon={Type} active={selectedLayer === "Collection.Text"} onSelect={setSelectedLayer} enabled={builderState.Collection.AddText} onToggle={(v) => updateBuilder("Collection", "AddText", v)} />
-                        <LayerItem id="Collection.CollectionTitle" label="Collection Title" icon={Type} active={selectedLayer === "Collection.CollectionTitle"} onSelect={setSelectedLayer} enabled={builderState.Collection.AddCollectionTitle} onToggle={(v) => updateBuilder("Collection", "AddCollectionTitle", v)} />
+                        <LayerItem id="CollectionTitle" label="Collection Title" icon={Type} active={selectedLayer === "CollectionTitle"} onSelect={setSelectedLayer} enabled={builderState.CollectionTitle.AddCollectionTitle} onToggle={(v) => updateBuilder("CollectionTitle", "AddCollectionTitle", v)} />
                       </>
                     )}
                   </div>
@@ -1076,8 +1157,8 @@ export default function Blueprints() {
                         {/* SEASON SPECIFIC TEXT */}
                         {previewType === 'Season' && builderState.Season.AddText && (
                           <div className="absolute left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
-                            {builderState.Season.ShowTitle && (
-                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'Season.ShowTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>{sampleText}</div>
+                            {builderState.SeasonTitle.ShowTitle && (
+                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'SeasonTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>{sampleText}</div>
                             )}
                             <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{builderState.Season.OverrideSeasonName ? builderState.Season.SeasonOverrideText : "Season"} 1</div>
                           </div>
@@ -1086,16 +1167,16 @@ export default function Blueprints() {
                         {/* TITLE CARD TEXT */}
                         {previewType === 'TitleCard' && (
                           <div className="absolute left-[8%] z-20 pointer-events-none transition-all text-left w-full h-full">
-                            {builderState.TitleCard.AddEPText && <div className={`absolute left-0 text-lg lg:text-xl font-medium ${selectedLayer === 'TitleCard.EPText' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={tcEpStyles.text}>S01E01</div>}
-                            {builderState.TitleCard.AddEPTitleText && <div className={`absolute left-0 text-2xl lg:text-3xl font-bold uppercase tracking-wide mt-1 ${selectedLayer === 'TitleCard.EPTitleText' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={tcTitleStyles.text}>Episode Title</div>}
+                            {builderState.TitleCardEPText.AddEPText && <div className={`absolute left-0 text-lg lg:text-xl font-medium ${selectedLayer === 'TitleCardEPText' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={tcEpStyles.text}>S01E01</div>}
+                            {builderState.TitleCardEPTitle.AddEPTitleText && <div className={`absolute left-0 text-2xl lg:text-3xl font-bold uppercase tracking-wide mt-1 ${selectedLayer === 'TitleCardEPTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={tcTitleStyles.text}>Episode Title</div>}
                           </div>
                         )}
 
                         {/* COLLECTION SPECIFIC TEXT */}
                         {previewType === 'Collection' && builderState.Collection.AddText && (
                           <div className="absolute left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
-                            {builderState.Collection.AddCollectionTitle && (
-                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'Collection.CollectionTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>{builderState.Collection.CollectionTitle}</div>
+                            {builderState.CollectionTitle.AddCollectionTitle && (
+                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'CollectionTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...collectionTitleStyles.text, position: 'static' }}>{builderState.CollectionTitle.CollectionTitle}</div>
                             )}
                             <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{sampleText}</div>
                           </div>
@@ -1108,6 +1189,17 @@ export default function Blueprints() {
                          (previewType === 'TitleCard' && builderState.TitleCard.UseResolutionOverlays)) && (
                           <div className={`absolute top-0 right-0 z-30 m-0 pointer-events-none transition-all ${selectedLayer?.endsWith('.Resolution') ? 'ring-2 ring-theme-primary ring-inset' : ''}`}>
                             <div className="bg-gradient-to-l from-yellow-500 to-yellow-600 text-black font-black text-[10px] lg:text-xs px-3 py-1 lg:px-4 lg:py-1 rounded-bl-xl shadow-lg">4K ULTRA HD</div>
+                          </div>
+                        )}
+                        {/* MAX WIDTH OUTLINE */}
+                        {(selectedLayer?.endsWith('.Text') || selectedLayer === 'SeasonTitle' || selectedLayer === 'TitleCardEPTitle' || selectedLayer === 'TitleCardEPText' || selectedLayer === 'CollectionTitle') && builderState[selectedLayer.split('.')[0]] && (
+                          <div className="absolute flex justify-center z-10 pointer-events-none transition-all border-2 border-dashed border-red-500/50 bg-red-500/5" 
+                               style={{ 
+                                 width: `${Math.min(100, (builderState[selectedLayer.split('.')[0]].MaxWidth / (previewType === 'Background' || previewType === 'TitleCard' ? 3840 : 2000)) * 100)}%`,
+                                 height: `${Math.min(100, (builderState[selectedLayer.split('.')[0]].MaxHeight / (previewType === 'Background' || previewType === 'TitleCard' ? 2160 : 3000)) * 100)}%`,
+                                 ...getStyleObj(builderState[selectedLayer.split('.')[0]]).text
+                               }}>
+                            <span className="absolute -top-6 bg-red-500/80 text-white text-[10px] px-1 rounded">Max Bounding Box</span>
                           </div>
                         )}
                       </>
@@ -1151,15 +1243,24 @@ export default function Blueprints() {
                     </div>
                   )}
 
-                  {selectedLayer === "Collection.CollectionTitle" && (
+                  {selectedLayer?.endsWith(".Overlay") && (
                     <div className="space-y-4">
-                      <Toggle label="Add Collection Title" checked={builderState.Collection.AddCollectionTitle} onChange={(v) => updateBuilder("Collection", "AddCollectionTitle", v)} />
-                      <TextInput label="Collection Prefix" value={builderState.Collection.CollectionTitle} onChange={(v) => updateBuilder("Collection", "CollectionTitle", v)} placeholder="Collection" />
+                      <TextInput label="Overlay File" value={builderState[selectedLayer.split('.')[0]].overlayfile} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "overlayfile", v)} placeholder="backgroundoverlay-innerglow.png" />
                     </div>
                   )}
 
-                  {selectedLayer?.endsWith(".Text") && (
+                  {selectedLayer === "TitleCard.Border" && (
+                    <div className="space-y-4 border-t border-theme/50 pt-4">
+                      <Toggle label="Use Background as Title Card" checked={builderState.TitleCard.UseBackgroundAsTitleCard} onChange={(v) => updateBuilder("TitleCard", "UseBackgroundAsTitleCard", v)} />
+                      <Toggle label="Background Fallback" checked={builderState.TitleCard.BackgroundFallback} onChange={(v) => updateBuilder("TitleCard", "BackgroundFallback", v)} />
+                    </div>
+                  )}
+
+                  {(selectedLayer?.endsWith(".Text") || selectedLayer === "TitleCardEPTitle" || selectedLayer === "TitleCardEPText" || selectedLayer === "SeasonTitle" || selectedLayer === "CollectionTitle") && (
                     <div className="space-y-4">
+                        {selectedLayer === "SeasonTitle" && (
+                          <Toggle label="Show Title" checked={builderState.SeasonTitle.ShowTitle} onChange={(v) => updateBuilder("SeasonTitle", "ShowTitle", v)} />
+                        )}
                         <Toggle label="All Caps" checked={builderState[selectedLayer.split('.')[0]].fontAllCaps} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "fontAllCaps", v)} />
                         <Toggle label="Enable Stroke" checked={builderState[selectedLayer.split('.')[0]].AddTextStroke} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "AddTextStroke", v)} />
                         
@@ -1194,76 +1295,36 @@ export default function Blueprints() {
                           ]}
                         />
                         <TextInput label="Text Offset Y" value={builderState[selectedLayer.split('.')[0]].text_offset} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "text_offset", v)} placeholder="+400" />
-                    </div>
-                  )}
-
-                  {(selectedLayer === "TitleCard.EPTitleText" || selectedLayer === "TitleCard.EPText") && (
-                    <div className="space-y-4">
-                        <Toggle label="All Caps" checked={builderState.TitleCard.fontAllCaps} onChange={(v) => updateBuilder("TitleCard", "fontAllCaps", v)} />
-                        <Toggle label="Enable Stroke" checked={builderState.TitleCard.AddTextStroke} onChange={(v) => updateBuilder("TitleCard", "AddTextStroke", v)} />
                         
-                        <ColorInput label="Text Color" value={builderState.TitleCard.fontcolor} onChange={(v) => updateBuilder("TitleCard", "fontcolor", v)} />
-                        {builderState.TitleCard.AddTextStroke && (
-                          <>
-                            <ColorInput label="Stroke Color" value={builderState.TitleCard.strokecolor} onChange={(v) => updateBuilder("TitleCard", "strokecolor", v)} />
-                            <NumberInput label="Stroke Width" value={builderState.TitleCard.strokewidth} onChange={(v) => updateBuilder("TitleCard", "strokewidth", v)} />
-                          </>
-                        )}
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <NumberInput label="Min Point Size" value={builderState.TitleCard.minPointSize} onChange={(v) => updateBuilder("TitleCard", "minPointSize", parseInt(v))} />
-                          <NumberInput label="Max Point Size" value={builderState.TitleCard.maxPointSize} onChange={(v) => updateBuilder("TitleCard", "maxPointSize", parseInt(v))} />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <NumberInput label="Max Width" value={builderState.TitleCard.MaxWidth} onChange={(v) => updateBuilder("TitleCard", "MaxWidth", parseInt(v))} />
-                          <NumberInput label="Max Height" value={builderState.TitleCard.MaxHeight} onChange={(v) => updateBuilder("TitleCard", "MaxHeight", parseInt(v))} />
-                        </div>
-
-                        <NumberInput label="Line Spacing" value={builderState.TitleCard.lineSpacing} onChange={(v) => updateBuilder("TitleCard", "lineSpacing", parseInt(v))} />
-                        
-                        {selectedLayer === "TitleCard.EPText" && (
-                          <div className="grid grid-cols-2 gap-4">
-                             <TextInput label="Season Prefix" value={builderState.TitleCard.SeasonTCText} onChange={(v) => updateBuilder("TitleCard", "SeasonTCText", v)} placeholder="Season" />
-                             <TextInput label="Episode Prefix" value={builderState.TitleCard.EpisodeTCText} onChange={(v) => updateBuilder("TitleCard", "EpisodeTCText", v)} placeholder="Episode" />
+                        {selectedLayer === "TitleCardEPText" && (
+                          <div className="grid grid-cols-2 gap-4 border-t border-theme/50 pt-4 mt-4">
+                             <TextInput label="Season Prefix" value={builderState.TitleCardEPText.SeasonTCText} onChange={(v) => updateBuilder("TitleCardEPText", "SeasonTCText", v)} placeholder="Season" />
+                             <TextInput label="Episode Prefix" value={builderState.TitleCardEPText.EpisodeTCText} onChange={(v) => updateBuilder("TitleCardEPText", "EpisodeTCText", v)} placeholder="Episode" />
                           </div>
                         )}
 
-                        <SelectInput 
-                          label="Text Gravity" 
-                          value={builderState.TitleCard.TextGravity} 
-                          onChange={(v) => updateBuilder("TitleCard", "TextGravity", v)}
-                          options={[
-                            {label: "North", value: "north"}, {label: "South", value: "south"}, {label: "Center", value: "center"},
-                            {label: "East", value: "east"}, {label: "West", value: "west"}, {label: "NorthWest", value: "northwest"},
-                            {label: "NorthEast", value: "northeast"}, {label: "SouthWest", value: "southwest"}, {label: "SouthEast", value: "southeast"}
-                          ]}
-                        />
-                        <TextInput label="Text Offset Y" value={builderState.TitleCard.text_offset} onChange={(v) => updateBuilder("TitleCard", "text_offset", v)} placeholder="+400" />
-                    </div>
-                  )}
-                  
-                  {selectedLayer?.endsWith(".Overlay") && (
-                    <div className="space-y-4">
-                      <p className="text-sm text-theme-muted">Enable image processing overlays such as Background glow/darken.</p>
-                      <Toggle label="Enable Processing" checked={builderState[selectedLayer.split('.')[0]].AddOverlay} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "AddOverlay", v)} />
+                        {selectedLayer === "Season.Text" && (
+                          <div className="space-y-4 border-t border-theme/50 pt-4 mt-4">
+                             <Toggle label="Show Fallback Text" checked={builderState.Season.ShowFallback} onChange={(v) => updateBuilder("Season", "ShowFallback", v)} />
+                             <Toggle label="Override Season Name" checked={builderState.Season.OverrideSeasonName} onChange={(v) => updateBuilder("Season", "OverrideSeasonName", v)} />
+                             {builderState.Season.OverrideSeasonName && (
+                               <div className="grid grid-cols-2 gap-4">
+                                  <TextInput label="Season Override" value={builderState.Season.SeasonOverrideText} onChange={(v) => updateBuilder("Season", "SeasonOverrideText", v)} placeholder="Season" />
+                                  <TextInput label="Special Season Override" value={builderState.Season.SpecialSeasonOverrideText} onChange={(v) => updateBuilder("Season", "SpecialSeasonOverrideText", v)} placeholder="Specials" />
+                               </div>
+                             )}
+                          </div>
+                        )}
+                        
+                        {selectedLayer === "CollectionTitle" && (
+                          <div className="space-y-4 border-t border-theme/50 pt-4 mt-4">
+                             <TextInput label="Collection Title Prefix" value={builderState.CollectionTitle.CollectionTitle} onChange={(v) => updateBuilder("CollectionTitle", "CollectionTitle", v)} placeholder="Collection" />
+                          </div>
+                        )}
                     </div>
                   )}
 
-                  {selectedLayer?.endsWith(".ShowTitle") && (
-                    <div className="space-y-4">
-                      <Toggle label="Show Title" checked={builderState.Season.ShowTitle} onChange={(v) => updateBuilder("Season", "ShowTitle", v)} />
-                      <div className="border-t border-theme/50 pt-2 my-2"></div>
-                      <Toggle label="Show Fallback Logo" checked={builderState.Season.ShowFallback} onChange={(v) => updateBuilder("Season", "ShowFallback", v)} />
-                      <Toggle label="Override Season Text" checked={builderState.Season.OverrideSeasonName} onChange={(v) => updateBuilder("Season", "OverrideSeasonName", v)} />
-                      {builderState.Season.OverrideSeasonName && (
-                        <>
-                          <TextInput label="Season Override Text" value={builderState.Season.SeasonOverrideText} onChange={(v) => updateBuilder("Season", "SeasonOverrideText", v)} placeholder="Season" />
-                          <TextInput label="Special Season Override" value={builderState.Season.SpecialSeasonOverrideText} onChange={(v) => updateBuilder("Season", "SpecialSeasonOverrideText", v)} placeholder="Specials" />
-                        </>
-                      )}
-                    </div>
-                  )}
+
 
                   {selectedLayer?.endsWith(".Resolution") && (
                     <div className="space-y-4">
