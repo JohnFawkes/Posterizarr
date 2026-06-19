@@ -298,6 +298,10 @@ export default function Blueprints() {
   // Custom Presets State
   const [customBlueprints, setCustomBlueprints] = useState([]);
   const [savePresetModalState, setSavePresetModalState] = useState(null);
+  
+  // Preview Data State
+  const [sampleText, setSampleText] = useState("Movie Title");
+  const [sampleLogoUrl, setSampleLogoUrl] = useState("https://image.tmdb.org/t/p/w500/b0gA3L7D57Vb1R5GZ7XJpC6jI3Z.png");
 
   useEffect(() => {
     fetchConfig();
@@ -792,17 +796,17 @@ export default function Blueprints() {
     );
   }
 
-  const getStyleObj = (partKey) => {
-    const part = config?.[partKey] || {};
+  const getStyleObj = (categoryState) => {
+    const part = categoryState || {};
     const bColor = part.bordercolor || "white";
     const bWidth = Math.max(2, (parseInt(part.borderwidth) || 30) * 0.15); // scaled
     const fColor = part.fontcolor || "white";
     const sColor = part.strokecolor || "black";
     const sWidth = Math.max(1, (parseInt(part.strokewidth) || 6) * 0.15);
-    const hasStroke = part.AddTextStroke === "true";
+    const hasStroke = part.AddTextStroke;
     const gravity = part.TextGravity?.toLowerCase() || "south";
     const offsetRaw = part.text_offset || "+400";
-    let offset = parseInt(offsetRaw.replace('+', '').replace('-', '')) || 400;
+    let offset = parseInt(String(offsetRaw).replace('+', '').replace('-', '')) || 400;
     offset = Math.max(0, offset * 0.15);
     
     return {
@@ -815,21 +819,16 @@ export default function Blueprints() {
         color: fColor,
         WebkitTextStroke: hasStroke ? `${sWidth}px ${sColor}` : undefined,
         textShadow: hasStroke ? undefined : '0px 4px 10px rgba(0,0,0,0.5)',
-        [gravity === 'north' ? 'top' : 'bottom']: `${offset}px`,
+        [gravity.includes('north') ? 'top' : 'bottom']: `${offset}px`,
       }
     };
   };
 
-  const previewStyles = getStyleObj(
-    previewType === 'Poster' ? 'PosterOverlayPart' : 
-    previewType === 'Season' ? 'SeasonPosterOverlayPart' : 
-    previewType === 'Background' ? 'BackgroundOverlayPart' : 
-    'TitleCardOverlayPart'
-  );
+  const previewStyles = getStyleObj(builderState[previewType]);
 
-  const seasonTitleStyles = getStyleObj('ShowTitleOnSeasonPosterPart');
-  const tcTitleStyles = getStyleObj('TitleCardTitleTextPart');
-  const tcEpStyles = getStyleObj('TitleCardEPTextPart');
+  const seasonTitleStyles = getStyleObj(builderState.Season);
+  const tcTitleStyles = getStyleObj(builderState.TitleCard);
+  const tcEpStyles = getStyleObj(builderState.TitleCard);
 
   const getSampleImage = () => {
     if (customPreviewImage) return customPreviewImage;
@@ -1009,8 +1008,12 @@ export default function Blueprints() {
                     ))}
                   </div>
                   <div className="flex gap-2 z-10">
+                    <div className="flex flex-col gap-1 mr-4 hidden md:flex">
+                        <input type="text" value={sampleText} onChange={(e) => setSampleText(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-32 focus:outline-none focus:border-theme-primary" placeholder="Sample Text" />
+                        <input type="text" value={sampleLogoUrl} onChange={(e) => setSampleLogoUrl(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-32 focus:outline-none focus:border-theme-primary" placeholder="Sample Logo URL" />
+                    </div>
                     {customPreviewImage ? (
-                      <button onClick={resetCustomPreview} className="p-2 text-theme-muted hover:text-white bg-black/60 backdrop-blur-md border border-theme/50 rounded-lg transition-colors shadow-lg" title="Reset Sample">
+                      <button onClick={resetCustomPreview} className="p-2 text-theme-muted hover:text-white bg-black/60 backdrop-blur-md border border-theme/50 rounded-lg transition-colors shadow-lg" title="Reset Sample Image">
                           <RotateCcw className="w-4 h-4" />
                       </button>
                     ) : (
@@ -1057,7 +1060,7 @@ export default function Blueprints() {
                           <div className={`absolute left-0 w-full flex justify-center z-20 pointer-events-none transition-all ${selectedLayer?.endsWith('.Text') ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={previewStyles.text}>
                             {builderState.Global.UseClearlogo || builderState.Global.UseClearart ? (
                                <img 
-                                 src="https://image.tmdb.org/t/p/w500/b0gA3L7D57Vb1R5GZ7XJpC6jI3Z.png" 
+                                 src={sampleLogoUrl}
                                  alt="Sample Logo" 
                                  className="w-2/3 object-contain drop-shadow-2xl transition-all"
                                  style={{ 
@@ -1065,7 +1068,7 @@ export default function Blueprints() {
                                  }} 
                                />
                             ) : (
-                               <div className="text-2xl lg:text-3xl font-bold uppercase tracking-widest text-center" style={{ color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>Movie Title</div>
+                               <div className="text-2xl lg:text-3xl font-bold uppercase tracking-widest text-center" style={{ color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{sampleText}</div>
                             )}
                           </div>
                         )}
@@ -1074,9 +1077,9 @@ export default function Blueprints() {
                         {previewType === 'Season' && builderState.Season.AddText && (
                           <div className="absolute left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
                             {builderState.Season.ShowTitle && (
-                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'Season.ShowTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>Movie Title</div>
+                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'Season.ShowTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>{sampleText}</div>
                             )}
-                            <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{config?.SeasonPosterOverlayPart?.SeasonOverrideText || "Season"} 1</div>
+                            <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{builderState.Season.OverrideSeasonName ? builderState.Season.SeasonOverrideText : "Season"} 1</div>
                           </div>
                         )}
 
@@ -1094,7 +1097,7 @@ export default function Blueprints() {
                             {builderState.Collection.AddCollectionTitle && (
                                <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'Collection.CollectionTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>{builderState.Collection.CollectionTitle}</div>
                             )}
-                            <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">Movie Title</div>
+                            <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{sampleText}</div>
                           </div>
                         )}
 
