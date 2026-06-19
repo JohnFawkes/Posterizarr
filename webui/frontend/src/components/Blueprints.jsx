@@ -1011,8 +1011,29 @@ export default function Blueprints() {
     return `/images/default_poster.jpg?t=${Date.now()}`;
   };
 
+  const getScalingStyle = (settings) => {
+    return {
+      fontSize: `clamp(${settings?.minPointSize || 10}px, min(100cqw, 90cqh), ${settings?.maxPointSize || 200}px)`,
+      textTransform: settings?.fontAllCaps ? 'uppercase' : 'none',
+    };
+  };
+
   return (
     <div className="space-y-6">
+      <style>{`
+        @font-face {
+          font-family: 'PosterFont';
+          src: url('${API_URL}/fonts/download/${config?.PrerequisitePart?.font || 'Impact.ttf'}');
+        }
+        @font-face {
+          font-family: 'BackgroundFont';
+          src: url('${API_URL}/fonts/download/${config?.PrerequisitePart?.backgroundfont || 'Impact.ttf'}');
+        }
+        @font-face {
+          font-family: 'TitleCardFont';
+          src: url('${API_URL}/fonts/download/${config?.PrerequisitePart?.titlecardfont || 'Impact.ttf'}');
+        }
+      `}</style>
       <div className="bg-theme-card border border-theme rounded-xl p-6 shadow-sm">
         <div className="mb-6 flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
