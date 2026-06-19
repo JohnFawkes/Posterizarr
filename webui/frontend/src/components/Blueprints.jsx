@@ -992,8 +992,7 @@ export default function Blueprints() {
       display: 'flex',
       flexDirection: 'column',
       justifyContent,
-      alignItems,
-      containerType: 'size'
+      alignItems
     };
   };
 
@@ -1012,19 +1011,23 @@ export default function Blueprints() {
   };
 
   const getScalingStyle = (settings, text = "") => {
-    // Estimate width character ratio to prevent text from overflowing horizontally and forcing a wrap.
-    // We assume a char aspect ratio of ~0.55. If the text is very long, it scales down smoothly.
-    const charScale = Math.max(1, text.length) * 0.55;
-    const computedMaxCqw = 100 / charScale;
+    const canvasH = (previewType === 'Background' || previewType === 'TitleCard') ? 2160 : 3000;
     
-    // Posterizarr config uses absolute pixels for minPointSize/maxPointSize relative to a 2000x3000 canvas.
-    // Because our web preview is scaled down (e.g. 400x600), raw pixels like "95px" will massively overflow.
-    // We convert these absolute pixels into Container Query Heights (cqh) relative to the red bounding box!
-    const minSizeCqh = ((settings?.minPointSize || 10) / (settings?.MaxHeight || 500)) * 100;
-    const maxSizeCqh = ((settings?.maxPointSize || 200) / (settings?.MaxHeight || 500)) * 100;
+    // Estimate optimal pixel size to fit horizontally
+    const charScale = Math.max(1, text.length) * 0.55;
+    const computedMaxPixels = (settings?.MaxWidth || 1900) / charScale;
+    
+    // Convert absolute canvas pixels to Container Query Heights (cqh) of the master poster wrapper
+    const minCqh = ((settings?.minPointSize || 10) / canvasH) * 100;
+    const maxCqh = ((settings?.maxPointSize || 200) / canvasH) * 100;
+    
+    // Ideal size is constrained by either the bounding box height or the available width
+    const boundingBoxHeightCqh = ((settings?.MaxHeight || 400) / canvasH) * 100;
+    const optimalWidthCqh = (computedMaxPixels / canvasH) * 100;
+    const idealCqh = Math.min(boundingBoxHeightCqh, optimalWidthCqh);
     
     return {
-      fontSize: `clamp(${minSizeCqh}cqh, min(${computedMaxCqw}cqw, 90cqh), ${maxSizeCqh}cqh)`,
+      fontSize: `clamp(${minCqh}cqh, ${idealCqh}cqh, ${maxCqh}cqh)`,
       textTransform: settings?.fontAllCaps ? 'uppercase' : 'none',
       lineHeight: 1 + (settings?.lineSpacing || 0) / 100,
       whiteSpace: 'pre-wrap',
@@ -1238,7 +1241,7 @@ export default function Blueprints() {
                   <div className={`relative overflow-hidden shadow-2xl transition-all duration-300 ${!customPreviewImage ? 'bg-black' : 'bg-black'} ${
                     previewType === 'Poster' || previewType === 'Season' || previewType === 'Collection' ? 'w-2/3 aspect-[2/3] rounded-sm' :
                     previewType === 'Background' || previewType === 'TitleCard' ? 'w-full aspect-[16/9] rounded-sm' : ''
-                  }`}>
+                  }`} style={{ containerType: 'size' }}>
                     {/* Base Image */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <img src={getSampleImage()} className="w-full h-full object-cover" alt="Preview Base" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
