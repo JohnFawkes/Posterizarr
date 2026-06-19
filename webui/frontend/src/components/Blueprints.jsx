@@ -1293,13 +1293,33 @@ export default function Blueprints() {
                           </>
                         )}
 
+                        {/* CUSTOM OVERLAY */}
+                        {((previewType === 'Poster' && builderState.Poster.AddOverlay) ||
+                         (previewType === 'Season' && builderState.Season.AddOverlay) ||
+                         (previewType === 'Background' && builderState.Background.AddOverlay) ||
+                         (previewType === 'TitleCard' && builderState.TitleCard.AddOverlay)) && builderState[previewType]?.overlayfile && (
+                          <div className={`absolute inset-0 pointer-events-none z-[15] overflow-hidden transition-all ${selectedLayer?.endsWith('.Overlay') ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`}>
+                            <img 
+                              src={`${API_URL}/overlayfiles/preview/${builderState[previewType].overlayfile}`} 
+                              alt="Overlay" 
+                              className="w-full h-full object-fill drop-shadow-2xl" 
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          </div>
+                        )}
+
                         {/* RESOLUTION OVERLAYS */}
                         {((previewType === 'Poster' && builderState.Poster.UseResolutionOverlays) ||
                          (previewType === 'Season' && builderState.Season.UseResolutionOverlays) ||
                          (previewType === 'Background' && builderState.Background.UseResolutionOverlays) ||
                          (previewType === 'TitleCard' && builderState.TitleCard.UseResolutionOverlays)) && (
-                          <div className={`absolute top-0 right-0 z-30 m-0 pointer-events-none transition-all ${selectedLayer?.endsWith('.Resolution') ? 'ring-2 ring-theme-primary ring-inset' : ''}`}>
-                            <div className="bg-gradient-to-l from-yellow-500 to-yellow-600 text-black font-black text-[10px] lg:text-xs px-3 py-1 lg:px-4 lg:py-1 rounded-bl-xl shadow-lg">4K ULTRA HD</div>
+                          <div className={`absolute inset-0 pointer-events-none z-[25] overflow-hidden transition-all ${selectedLayer?.endsWith('.Resolution') ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`}>
+                            <img 
+                              src={`${API_URL}/overlayfiles/preview/${previewType === 'Background' ? builderState.ResolutionOverlays.Background4k : previewType === 'TitleCard' ? builderState.ResolutionOverlays.TC4k : builderState.ResolutionOverlays.poster4k}`} 
+                              alt="Resolution Overlay" 
+                              className="w-full h-full object-fill drop-shadow-2xl" 
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
                           </div>
                         )}
                         </>
