@@ -277,14 +277,14 @@ export default function Blueprints() {
   const [builderState, setBuilderState] = useState({
     ImageProcessing: true,
     outputQuality: 100,
-    Poster: { AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+430", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
-    Season: { AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 95, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", ShowFallback: false, OverrideSeasonName: false, SeasonOverrideText: "Season", SpecialSeasonOverrideText: "Specials" },
-    SeasonTitle: { ShowTitle: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 45, maxPointSize: 300, MaxWidth: 1900, MaxHeight: 500, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
+    Poster: { SampleText: "Movie Title",  AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+430", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
+    Season: { SampleText: "Season 1",  AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 95, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", ShowFallback: false, OverrideSeasonName: false, SeasonOverrideText: "Season", SpecialSeasonOverrideText: "Specials" },
+    SeasonTitle: { SampleText: "Show Title",  ShowTitle: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 45, maxPointSize: 300, MaxWidth: 1900, MaxHeight: 500, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
     TitleCard: { AddBorder: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, UseBackgroundAsTitleCard: false, BackgroundFallback: true },
-    TitleCardEPTitle: { AddEPTitleText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
+    TitleCardEPTitle: { SampleText: "Episode Title",  AddEPTitleText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
     TitleCardEPText: { AddEPText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+100", lineSpacing: 0, TextGravity: "south", SeasonTCText: "Season", EpisodeTCText: "Episode" },
-    Background: { AddBorder: false, AddText: false, AddTextStroke: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200", fontAllCaps: true, minPointSize: 100, maxPointSize: 300, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 500, TextGravity: "south" },
-    Collection: { AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
+    Background: { SampleText: "Movie Title",  AddBorder: false, AddText: false, AddTextStroke: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200", fontAllCaps: true, minPointSize: 100, maxPointSize: 300, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 500, TextGravity: "south" },
+    Collection: { SampleText: "Collection Name",  AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
     CollectionTitle: { AddCollectionTitle: true, CollectionTitle: "Collection", fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 100, MaxWidth: 1000, MaxHeight: 140, text_offset: "+150", lineSpacing: 0, TextGravity: "south" },
     ResolutionOverlays: {
       poster4k: "overlay-innerglow.png",
@@ -321,8 +321,8 @@ export default function Blueprints() {
 
   // Preview Data State
   const [sampleText, setSampleText] = useState("Movie Title");
-  const [sampleLogoUrl, setSampleLogoUrl] = useState("https://wsrv.nl/?url=images.fanart.tv/fanart/forrest-gump-5067372b0496a.png");
-  const [sampleArtUrl, setSampleArtUrl] = useState("https://wsrv.nl/?url=images.fanart.tv/fanart/forrest-gump-513da6251196a.png");
+  const [sampleLogoUrl, setSampleLogoUrl] = useState("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgMzAwIj4KICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOTAiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjQiPlNhbXBsZSBMb2dvPC90ZXh0Pgo8L3N2Zz4=");
+  const [sampleArtUrl, setSampleArtUrl] = useState("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgMzAwIj4KICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOTAiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjQiPlNhbXBsZSBBcnQ8L3RleHQ+Cjwvc3ZnPg==");
 
   useEffect(() => {
     fetchConfig();
@@ -352,7 +352,7 @@ export default function Blueprints() {
           ...prev,
           ImageProcessing: data.config.OverlayPart?.ImageProcessing === "true",
           outputQuality: parseInt(data.config.OverlayPart?.outputQuality?.replace('%', '') || 100),
-          Poster: {
+          Poster: { SampleText: "Movie Title", 
              ...prev.Poster,
              AddBorder: data.config.PosterOverlayPart?.AddBorder === "true",
              AddOverlay: data.config.PosterOverlayPart?.AddOverlay === "true",
@@ -374,7 +374,7 @@ export default function Blueprints() {
              MaxHeight: parseInt(data.config.PosterOverlayPart?.MaxHeight || 500),
              TextGravity: data.config.PosterOverlayPart?.TextGravity || "south"
           },
-          Season: {
+          Season: { SampleText: "Season 1", 
              ...prev.Season,
              AddBorder: data.config.SeasonPosterOverlayPart?.AddBorder === "true",
              AddOverlay: data.config.SeasonPosterOverlayPart?.AddOverlay === "true",
@@ -399,7 +399,7 @@ export default function Blueprints() {
              SeasonOverrideText: data.config.SeasonPosterOverlayPart?.SeasonOverrideText || "Season",
              SpecialSeasonOverrideText: data.config.SeasonPosterOverlayPart?.SpecialSeasonOverrideText || "Specials"
           },
-          SeasonTitle: {
+          SeasonTitle: { SampleText: "Show Title", 
              ...prev.SeasonTitle,
              ShowTitle: data.config.ShowTitleOnSeasonPosterPart?.AddShowTitletoSeason === "true",
              fontAllCaps: data.config.ShowTitleOnSeasonPosterPart?.fontAllCaps === "true",
@@ -415,7 +415,7 @@ export default function Blueprints() {
              lineSpacing: parseInt(data.config.ShowTitleOnSeasonPosterPart?.lineSpacing || 0),
              TextGravity: data.config.ShowTitleOnSeasonPosterPart?.TextGravity || "south"
           },
-          Background: {
+          Background: { SampleText: "Movie Title", 
              ...prev.Background,
              AddBorder: data.config.BackgroundOverlayPart?.AddBorder === "true",
              AddText: data.config.BackgroundOverlayPart?.AddText === "true",
@@ -448,7 +448,7 @@ export default function Blueprints() {
              UseBackgroundAsTitleCard: data.config.TitleCardOverlayPart?.UseBackgroundAsTitleCard === "true",
              BackgroundFallback: data.config.TitleCardOverlayPart?.BackgroundFallback === "true",
           },
-          TitleCardEPTitle: {
+          TitleCardEPTitle: { SampleText: "Episode Title", 
              ...prev.TitleCardEPTitle,
              AddEPTitleText: data.config.TitleCardTitleTextPart?.AddEPTitleText === "true",
              fontAllCaps: data.config.TitleCardTitleTextPart?.fontAllCaps === "true",
@@ -482,7 +482,7 @@ export default function Blueprints() {
              SeasonTCText: data.config.TitleCardEPTextPart?.SeasonTCText || "Season",
              EpisodeTCText: data.config.TitleCardEPTextPart?.EpisodeTCText || "Episode"
           },
-          Collection: {
+          Collection: { SampleText: "Collection Name", 
              ...prev.Collection,
              AddBorder: data.config.CollectionPosterOverlayPart?.AddBorder === "true",
              AddOverlay: data.config.CollectionPosterOverlayPart?.AddOverlay === "true",
@@ -1179,18 +1179,11 @@ export default function Blueprints() {
                 {/* Header Dropdown */}
                 <div className="flex justify-between items-center mb-4 z-10">
                   <div className="flex gap-1 bg-black/60 backdrop-blur-md p-1 rounded-lg border border-theme/50 shadow-lg">
-                    {["Poster", "Season", "Background", "TitleCard", "Collection"].map((t) => (
+                    {["Poster", "Season", "Background", "TitleCard"].map((t) => (
                        <button key={t} onClick={() => { setPreviewType(t); setSelectedLayer(null); }} className={`px-4 py-1.5 text-xs lg:text-sm font-medium rounded-md transition-colors ${previewType === t ? 'bg-theme-primary text-white shadow-sm' : 'text-theme-muted hover:text-theme-text hover:bg-white/5'}`}>{t}</button>
                     ))}
                   </div>
                   <div className="flex gap-2 z-10">
-                    <div className="flex flex-col gap-1 mr-4 hidden md:flex">
-                        <input type="text" value={sampleText} onChange={(e) => setSampleText(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-32 focus:outline-none focus:border-theme-primary" placeholder="Sample Text" />
-                        <div className="flex gap-1">
-                          <input type="text" value={sampleLogoUrl} onChange={(e) => setSampleLogoUrl(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-24 focus:outline-none focus:border-theme-primary" placeholder="Clearlogo URL" title="Sample Clearlogo" />
-                          <input type="text" value={sampleArtUrl} onChange={(e) => setSampleArtUrl(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-24 focus:outline-none focus:border-theme-primary" placeholder="Clearart URL" title="Sample Clearart" />
-                        </div>
-                    </div>
                     {customPreviewImage ? (
                       <button onClick={resetCustomPreview} className="p-2 text-theme-muted hover:text-white bg-black/60 backdrop-blur-md border border-theme/50 rounded-lg transition-colors shadow-lg" title="Reset Sample Image">
                           <RotateCcw className="w-4 h-4" />
@@ -1241,7 +1234,7 @@ export default function Blueprints() {
                                <img
                                  src={sampleLogoUrl}
                                  alt="Sample Logo"
-                                 crossOrigin="anonymous"
+                                 
                                  referrerPolicy="no-referrer"
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                  style={{
@@ -1252,12 +1245,12 @@ export default function Blueprints() {
                                <img
                                  src={sampleArtUrl}
                                  alt="Sample Art"
-                                 crossOrigin="anonymous"
+                                 
                                  referrerPolicy="no-referrer"
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                />
                             ) : (
-                               <div className="font-bold tracking-widest text-center leading-none" style={{ fontSize: "min(12cqw, 90cqh)", color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{sampleText}</div>
+                               <div className="font-bold tracking-widest text-center leading-none" style={{ fontSize: "min(12cqw, 90cqh)", color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{builderState[previewType].SampleText}</div>
                             )}
                           </div>
                         )}
@@ -1267,7 +1260,7 @@ export default function Blueprints() {
                           <>
                             {builderState.SeasonTitle.ShowTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'SeasonTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.SeasonTitle), ...seasonTitleStyles.text }}>
-                                  <div className="font-bold tracking-wider leading-none text-center" style={{ fontSize: "min(12cqw, 90cqh)" }}>{sampleText}</div>
+                                  <div className="font-bold tracking-wider leading-none text-center" style={{ fontSize: "min(12cqw, 90cqh)" }}>{builderState.SeasonTitle.SampleText}</div>
                                </div>
                             )}
                           </>
@@ -1278,12 +1271,12 @@ export default function Blueprints() {
                           <>
                             {builderState.TitleCardEPText.AddEPText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPText' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPText), ...tcEpStyles.text }}>
-                                  <div className="font-medium leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{builderState.TitleCardEPText.SeasonTCText} 1 {builderState.TitleCardEPText.EpisodeTCText} 1</div>
+                                  <div className="font-medium leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{builderState.TitleCardEPText.SeasonTCText} 1 • {builderState.TitleCardEPText.EpisodeTCText} 1</div>
                                </div>
                             )}
                             {builderState.TitleCardEPTitle.AddEPTitleText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPTitle), ...tcTitleStyles.text }}>
-                                  <div className="font-bold tracking-wide leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{sampleText}</div>
+                                  <div className="font-bold tracking-wide leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{builderState.TitleCardEPTitle.SampleText}</div>
                                </div>
                             )}
                           </>
@@ -1401,6 +1394,9 @@ export default function Blueprints() {
                         <Toggle label="Enable Stroke" checked={builderState[selectedLayer.split('.')[0]].AddTextStroke} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "AddTextStroke", v)} />
 
                         <ColorInput label="Text Color" value={builderState[selectedLayer.split('.')[0]].fontcolor} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "fontcolor", v)} />
+                        {builderState[selectedLayer.split('.')[0]]?.SampleText !== undefined && (
+                          <TextInput label="Sample Text" value={builderState[selectedLayer.split('.')[0]].SampleText} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "SampleText", v)} placeholder="Type sample text here..." />
+                        )}
                         {selectedLayer === "TitleCardEPText" && (
                           <>
                             <TextInput label="Season Text" value={builderState.TitleCardEPText.SeasonTCText} onChange={(v) => updateBuilder("TitleCardEPText", "SeasonTCText", v)} />
