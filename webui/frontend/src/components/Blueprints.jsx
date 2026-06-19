@@ -183,7 +183,7 @@ const Accordion = ({ title, icon: Icon, children, defaultOpen = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
     <div className="border border-theme rounded-lg overflow-hidden bg-theme-bg/50 mb-4">
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-4 bg-theme-card hover:bg-theme-bg transition-colors"
       >
@@ -238,7 +238,7 @@ const TextInput = ({ label, value, onChange, placeholder = "" }) => (
 );
 
 const LayerItem = ({ id, label, icon: Icon, active, onSelect, enabled, onToggle, showToggle = true }) => (
-  <div 
+  <div
     onClick={() => onSelect(id)}
     className={`flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all duration-200 ${
       active ? 'bg-theme-primary/10 border-theme-primary shadow-sm' : 'bg-theme-bg/50 border-theme hover:bg-theme-card'
@@ -277,19 +277,35 @@ export default function Blueprints() {
   const [builderState, setBuilderState] = useState({
     ImageProcessing: true,
     outputQuality: 100,
-    Poster: { AddBorder: false, AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+430", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
-    Season: { AddBorder: false, AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 95, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", ShowFallback: false, OverrideSeasonName: false, SeasonOverrideText: "Season", SpecialSeasonOverrideText: "Specials" },
+    Poster: { AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+430", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
+    Season: { AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+400", fontAllCaps: true, minPointSize: 95, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south", ShowFallback: false, OverrideSeasonName: false, SeasonOverrideText: "Season", SpecialSeasonOverrideText: "Specials" },
     SeasonTitle: { ShowTitle: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 45, maxPointSize: 300, MaxWidth: 1900, MaxHeight: 500, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
     TitleCard: { AddBorder: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, UseBackgroundAsTitleCard: false, BackgroundFallback: true },
     TitleCardEPTitle: { AddEPTitleText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
     TitleCardEPText: { AddEPText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+100", lineSpacing: 0, TextGravity: "south", SeasonTCText: "Season", EpisodeTCText: "Episode" },
     Background: { AddBorder: false, AddText: false, AddTextStroke: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200", fontAllCaps: true, minPointSize: 100, maxPointSize: 300, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 500, TextGravity: "south" },
-    Collection: { AddBorder: false, AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
+    Collection: { AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
     CollectionTitle: { AddCollectionTitle: true, CollectionTitle: "Collection", fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 100, MaxWidth: 1000, MaxHeight: 140, text_offset: "+150", lineSpacing: 0, TextGravity: "south" },
-    Global: { 
-      UseClearlogo: true, 
-      UseClearart: false, 
-      UseOriginalTitle: false, 
+    ResolutionOverlays: {
+      poster4k: "overlay-innerglow.png",
+      Poster1080p: "overlay-innerglow.png",
+      Background4k: "backgroundoverlay-innerglow.png",
+      Background1080p: "backgroundoverlay-innerglow.png",
+      TC4k: "backgroundoverlay-innerglow.png",
+      TC1080p: "backgroundoverlay-innerglow.png",
+      "4KDoVi": "overlay-innerglow.png",
+      "4KHDR10": "overlay-innerglow.png",
+      "4KDoViHDR10": "overlay-innerglow.png",
+      "4KDoViBackground": "backgroundoverlay-innerglow.png",
+      "4KHDR10Background": "backgroundoverlay-innerglow.png",
+      "4KDoViHDR10Background": "backgroundoverlay-innerglow.png",
+      "4KDoViTC": "backgroundoverlay-innerglow.png",
+      "4KHDR10TC": "backgroundoverlay-innerglow.png"
+    },
+    Global: {
+      UseClearlogo: true,
+      UseClearart: false,
+      UseOriginalTitle: false,
       FlatWhiteLogo: false,
       TextlessOnly: false
     }
@@ -298,15 +314,15 @@ export default function Blueprints() {
   const [previewType, setPreviewType] = useState("Poster"); // "Poster", "Season", "TitleCard", "Background", "Collection"
   const [selectedLayer, setSelectedLayer] = useState("Global");
   const [importBlueprintState, setImportBlueprintState] = useState(null);
-  
+
   // Custom Presets State
   const [customBlueprints, setCustomBlueprints] = useState([]);
   const [savePresetModalState, setSavePresetModalState] = useState(null);
-  
+
   // Preview Data State
   const [sampleText, setSampleText] = useState("Movie Title");
-  const [sampleLogoUrl, setSampleLogoUrl] = useState("https://images.fanart.tv/fanart/forrest-gump-5067372b0496a.png");
-  const [sampleArtUrl, setSampleArtUrl] = useState("https://images.fanart.tv/fanart/forrest-gump-513da6251196a.png");
+  const [sampleLogoUrl, setSampleLogoUrl] = useState("https://wsrv.nl/?url=images.fanart.tv/fanart/forrest-gump-5067372b0496a.png");
+  const [sampleArtUrl, setSampleArtUrl] = useState("https://wsrv.nl/?url=images.fanart.tv/fanart/forrest-gump-513da6251196a.png");
 
   useEffect(() => {
     fetchConfig();
@@ -330,7 +346,7 @@ export default function Blueprints() {
         setConfig(data.config);
         setUsingFlatStructure(data.using_flat_structure || false);
         if (data.display_names) setDisplayNames(data.display_names);
-        
+
         // Populate Builder State from config
         setBuilderState(prev => ({
           ...prev,
@@ -339,6 +355,8 @@ export default function Blueprints() {
           Poster: {
              ...prev.Poster,
              AddBorder: data.config.PosterOverlayPart?.AddBorder === "true",
+             AddOverlay: data.config.PosterOverlayPart?.AddOverlay === "true",
+             overlayfile: data.config.PrerequisitePart?.overlayfile || "overlay-innerglow.png",
              AddText: data.config.PosterOverlayPart?.AddText === "true",
              AddTextStroke: data.config.PosterOverlayPart?.AddTextStroke === "true",
              UseResolutionOverlays: data.config.PrerequisitePart?.UsePosterResolutionOverlays === "true",
@@ -359,6 +377,8 @@ export default function Blueprints() {
           Season: {
              ...prev.Season,
              AddBorder: data.config.SeasonPosterOverlayPart?.AddBorder === "true",
+             AddOverlay: data.config.SeasonPosterOverlayPart?.AddOverlay === "true",
+             overlayfile: data.config.PrerequisitePart?.seasonoverlayfile || "overlay-innerglow.png",
              AddText: data.config.SeasonPosterOverlayPart?.AddText === "true",
              AddTextStroke: data.config.SeasonPosterOverlayPart?.AddTextStroke === "true",
              bordercolor: data.config.SeasonPosterOverlayPart?.bordercolor || "#000000",
@@ -465,6 +485,8 @@ export default function Blueprints() {
           Collection: {
              ...prev.Collection,
              AddBorder: data.config.CollectionPosterOverlayPart?.AddBorder === "true",
+             AddOverlay: data.config.CollectionPosterOverlayPart?.AddOverlay === "true",
+             overlayfile: data.config.PrerequisitePart?.collectionoverlayfile || "overlay-innerglow.png",
              AddText: data.config.CollectionPosterOverlayPart?.AddText === "true",
              AddTextStroke: data.config.CollectionPosterOverlayPart?.AddTextStroke === "true",
              bordercolor: data.config.CollectionPosterOverlayPart?.bordercolor || "#000000",
@@ -498,7 +520,23 @@ export default function Blueprints() {
              lineSpacing: parseInt(data.config.CollectionTitlePosterPart?.lineSpacing || 0),
              TextGravity: data.config.CollectionTitlePosterPart?.TextGravity || "south"
           },
-          Global: {
+          ResolutionOverlays: {
+      poster4k: "overlay-innerglow.png",
+      Poster1080p: "overlay-innerglow.png",
+      Background4k: "backgroundoverlay-innerglow.png",
+      Background1080p: "backgroundoverlay-innerglow.png",
+      TC4k: "backgroundoverlay-innerglow.png",
+      TC1080p: "backgroundoverlay-innerglow.png",
+      "4KDoVi": "overlay-innerglow.png",
+      "4KHDR10": "overlay-innerglow.png",
+      "4KDoViHDR10": "overlay-innerglow.png",
+      "4KDoViBackground": "backgroundoverlay-innerglow.png",
+      "4KHDR10Background": "backgroundoverlay-innerglow.png",
+      "4KDoViHDR10Background": "backgroundoverlay-innerglow.png",
+      "4KDoViTC": "backgroundoverlay-innerglow.png",
+      "4KHDR10TC": "backgroundoverlay-innerglow.png"
+    },
+    Global: {
              UseClearlogo: data.config.PrerequisitePart?.UseClearlogo === "true",
              UseClearart: data.config.PrerequisitePart?.UseClearart === "true",
              UseOriginalTitle: data.config.PrerequisitePart?.UseOriginalTitle === "true",
@@ -557,7 +595,7 @@ export default function Blueprints() {
 
   const generateBlueprintUpdates = () => {
     return {
-      OverlayPart: { 
+      OverlayPart: {
         ImageProcessing: builderState.ImageProcessing ? "true" : "false",
         outputQuality: `${builderState.outputQuality}%`
       },
@@ -571,14 +609,33 @@ export default function Blueprints() {
         UsePosterResolutionOverlays: builderState.Poster.UseResolutionOverlays ? "true" : "false",
         UseBackgroundResolutionOverlays: builderState.Background.UseResolutionOverlays ? "true" : "false",
         UseTCResolutionOverlays: builderState.TitleCard.UseResolutionOverlays ? "true" : "false",
-        backgroundoverlayfile: builderState.Background.overlayfile,
-        titlecardoverlayfile: builderState.TitleCard.overlayfile
+                backgroundoverlayfile: builderState.Background.overlayfile,
+        showbackgroundoverlayfile: builderState.Background.overlayfile,
+        titlecardoverlayfile: builderState.TitleCard.overlayfile,
+        overlayfile: builderState.Poster.overlayfile,
+        showoverlayfile: builderState.Poster.overlayfile,
+        seasonoverlayfile: builderState.Season.overlayfile,
+        collectionoverlayfile: builderState.Collection.overlayfile,
+        poster4k: builderState.ResolutionOverlays.poster4k,
+        Poster1080p: builderState.ResolutionOverlays.Poster1080p,
+        Background4k: builderState.ResolutionOverlays.Background4k,
+        Background1080p: builderState.ResolutionOverlays.Background1080p,
+        TC4k: builderState.ResolutionOverlays.TC4k,
+        TC1080p: builderState.ResolutionOverlays.TC1080p,
+        "4KDoVi": builderState.ResolutionOverlays["4KDoVi"],
+        "4KHDR10": builderState.ResolutionOverlays["4KHDR10"],
+        "4KDoViHDR10": builderState.ResolutionOverlays["4KDoViHDR10"],
+        "4KDoViBackground": builderState.ResolutionOverlays["4KDoViBackground"],
+        "4KHDR10Background": builderState.ResolutionOverlays["4KHDR10Background"],
+        "4KDoViHDR10Background": builderState.ResolutionOverlays["4KDoViHDR10Background"],
+        "4KDoViTC": builderState.ResolutionOverlays["4KDoViTC"],
+        "4KHDR10TC": builderState.ResolutionOverlays["4KHDR10TC"]
       },
       PosterOverlayPart: {
         AddBorder: builderState.Poster.AddBorder ? "true" : "false",
         AddText: builderState.Poster.AddText ? "true" : "false",
         AddTextStroke: builderState.Poster.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Poster.AddBorder ? "true" : "false",
+        AddOverlay: builderState.Poster.AddOverlay ? "true" : "false",
         bordercolor: builderState.Poster.bordercolor,
         borderwidth: builderState.Poster.borderwidth.toString(),
         fontcolor: builderState.Poster.fontcolor,
@@ -597,7 +654,7 @@ export default function Blueprints() {
         AddBorder: builderState.Season.AddBorder ? "true" : "false",
         AddText: builderState.Season.AddText ? "true" : "false",
         AddTextStroke: builderState.Season.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Season.AddBorder ? "true" : "false",
+        AddOverlay: builderState.Season.AddOverlay ? "true" : "false",
         bordercolor: builderState.Season.bordercolor,
         borderwidth: builderState.Season.borderwidth.toString(),
         fontcolor: builderState.Season.fontcolor,
@@ -710,7 +767,7 @@ export default function Blueprints() {
         AddBorder: builderState.Collection.AddBorder ? "true" : "false",
         AddText: builderState.Collection.AddText ? "true" : "false",
         AddTextStroke: builderState.Collection.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Collection.AddBorder ? "true" : "false",
+        AddOverlay: builderState.Collection.AddOverlay ? "true" : "false",
         bordercolor: builderState.Collection.bordercolor,
         borderwidth: builderState.Collection.borderwidth.toString(),
         fontcolor: builderState.Collection.fontcolor,
@@ -732,7 +789,7 @@ export default function Blueprints() {
     const updates = generateBlueprintUpdates();
     setSavePresetModalState({ updates });
   };
-  
+
   const saveCustomPreset = (title, description) => {
     if (!title) return;
     const newBlueprint = {
@@ -789,7 +846,7 @@ export default function Blueprints() {
       if (!parsed.updates && !parsed.PosterOverlayPart) {
         throw new Error("Invalid blueprint format. Missing updates object.");
       }
-      
+
       let updates = parsed;
       if (parsed.updates) {
          updates = parsed.updates.nested || parsed.updates.flat || parsed.updates;
@@ -890,7 +947,7 @@ export default function Blueprints() {
     const offsetRaw = part.text_offset || "+400";
     let offset = parseInt(String(offsetRaw).replace('+', '').replace('-', '')) || 400;
     offset = Math.max(0, offset * 0.15);
-    
+
     return {
       border: {
         borderColor: bColor,
@@ -934,7 +991,8 @@ export default function Blueprints() {
       display: 'flex',
       flexDirection: 'column',
       justifyContent,
-      alignItems
+      alignItems,
+      containerType: 'size'
     };
   };
 
@@ -978,15 +1036,15 @@ export default function Blueprints() {
         </div>
 
         <div className="flex border-b border-theme mb-6">
-          <button 
-            onClick={() => setActiveTab("presets")} 
+          <button
+            onClick={() => setActiveTab("presets")}
             className={`px-6 py-3 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'presets' ? 'border-theme-primary text-theme-primary font-medium' : 'border-transparent text-theme-muted hover:text-theme-text'}`}
           >
             <LayoutTemplate className="w-4 h-4" />
             {t("blueprints.builder.tabPresets", "Presets")}
           </button>
-          <button 
-            onClick={() => setActiveTab("builder")} 
+          <button
+            onClick={() => setActiveTab("builder")}
             className={`px-6 py-3 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'builder' ? 'border-theme-primary text-theme-primary font-medium' : 'border-transparent text-theme-muted hover:text-theme-text'}`}
           >
             <Sliders className="w-4 h-4" />
@@ -1014,12 +1072,12 @@ export default function Blueprints() {
                   {blueprint.images && blueprint.images.length > 0 && (
                     <div className="flex gap-2 mb-4 overflow-x-auto pb-2 custom-scrollbar items-center">
                       {blueprint.images.map((img, idx) => (
-                        <img key={idx} src={img} alt={`${blueprint.customTitle || t(blueprint.titleKey)} preview ${idx + 1}`} className="h-32 object-contain rounded-md bg-black/20 shrink-0 border border-theme/50 shadow-sm" />
+                        <img key={idx} src={img} alt={`${blueprint.customTitle || t(blueprint.titleKey)} preview ${idx + 1}`} className="h-32 object-contain rounded-md bg-black/20 shrink-0 shadow-sm" />
                       ))}
                     </div>
                   )}
                   <p className="text-sm text-theme-muted flex-grow mb-4">{blueprint.customDescription || t(blueprint.descriptionKey)}</p>
-                  
+
                   {blueprint.id.startsWith("custom_") && (
                     <button onClick={(e) => { e.stopPropagation(); deleteCustomPreset(blueprint.id); }} className="text-theme-muted hover:text-red-500 p-1.5 rounded-lg bg-theme-bg/50 hover:bg-red-500/10 transition-colors w-min mb-4 self-end" title="Delete Preset">
                       <Trash2 className="w-5 h-5" />
@@ -1047,7 +1105,7 @@ export default function Blueprints() {
 
         {activeTab === "builder" && (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-            
+
             {/* Left Column: Layers */}
             <div className="xl:col-span-3 space-y-4">
               <div className="bg-theme-bg/50 border border-theme rounded-xl p-4 shadow-sm h-full max-h-[800px] overflow-y-auto custom-scrollbar">
@@ -1063,10 +1121,11 @@ export default function Blueprints() {
 
                   <div className="space-y-2">
                     <h4 className="text-xs font-semibold text-theme-muted uppercase tracking-wider mb-2">{previewType} Overlays</h4>
-                    
+
                     {previewType === "Poster" && (
                       <>
                         <LayerItem id="Poster.Border" label="Border" icon={Square} active={selectedLayer === "Poster.Border"} onSelect={setSelectedLayer} enabled={builderState.Poster.AddBorder} onToggle={(v) => updateBuilder("Poster", "AddBorder", v)} />
+                        <LayerItem id="Poster.Overlay" label="Overlay" icon={Layers} active={selectedLayer === "Poster.Overlay"} onSelect={setSelectedLayer} enabled={builderState.Poster.AddOverlay} onToggle={(v) => updateBuilder("Poster", "AddOverlay", v)} />
                         <LayerItem id="Poster.Text" label="Text / Logo" icon={Type} active={selectedLayer === "Poster.Text"} onSelect={setSelectedLayer} enabled={builderState.Poster.AddText} onToggle={(v) => updateBuilder("Poster", "AddText", v)} />
                         <LayerItem id="Poster.Resolution" label="Resolution Overlays" icon={Image} active={selectedLayer === "Poster.Resolution"} onSelect={setSelectedLayer} enabled={builderState.Poster.UseResolutionOverlays} onToggle={(v) => updateBuilder("Poster", "UseResolutionOverlays", v)} />
                       </>
@@ -1075,6 +1134,7 @@ export default function Blueprints() {
                     {previewType === "Season" && (
                       <>
                         <LayerItem id="Season.Border" label="Border" icon={Square} active={selectedLayer === "Season.Border"} onSelect={setSelectedLayer} enabled={builderState.Season.AddBorder} onToggle={(v) => updateBuilder("Season", "AddBorder", v)} />
+                        <LayerItem id="Season.Overlay" label="Overlay" icon={Layers} active={selectedLayer === "Season.Overlay"} onSelect={setSelectedLayer} enabled={builderState.Season.AddOverlay} onToggle={(v) => updateBuilder("Season", "AddOverlay", v)} />
                         <LayerItem id="Season.Text" label="Text / Logo" icon={Type} active={selectedLayer === "Season.Text"} onSelect={setSelectedLayer} enabled={builderState.Season.AddText} onToggle={(v) => updateBuilder("Season", "AddText", v)} />
                         <LayerItem id="SeasonTitle" label="Show Title" icon={Type} active={selectedLayer === "SeasonTitle"} onSelect={setSelectedLayer} enabled={builderState.SeasonTitle.ShowTitle} onToggle={(v) => updateBuilder("SeasonTitle", "ShowTitle", v)} />
                       </>
@@ -1102,6 +1162,7 @@ export default function Blueprints() {
                     {previewType === "Collection" && (
                       <>
                         <LayerItem id="Collection.Border" label="Border" icon={Square} active={selectedLayer === "Collection.Border"} onSelect={setSelectedLayer} enabled={builderState.Collection.AddBorder} onToggle={(v) => updateBuilder("Collection", "AddBorder", v)} />
+                        <LayerItem id="Collection.Overlay" label="Overlay" icon={Layers} active={selectedLayer === "Collection.Overlay"} onSelect={setSelectedLayer} enabled={builderState.Collection.AddOverlay} onToggle={(v) => updateBuilder("Collection", "AddOverlay", v)} />
                         <LayerItem id="Collection.Text" label="Text / Logo" icon={Type} active={selectedLayer === "Collection.Text"} onSelect={setSelectedLayer} enabled={builderState.Collection.AddText} onToggle={(v) => updateBuilder("Collection", "AddText", v)} />
                         <LayerItem id="CollectionTitle" label="Collection Title" icon={Type} active={selectedLayer === "CollectionTitle"} onSelect={setSelectedLayer} enabled={builderState.CollectionTitle.AddCollectionTitle} onToggle={(v) => updateBuilder("CollectionTitle", "AddCollectionTitle", v)} />
                       </>
@@ -1114,7 +1175,7 @@ export default function Blueprints() {
             {/* Center Column: Canvas */}
             <div className="xl:col-span-6 flex flex-col h-full space-y-4">
               <div className="bg-[#121212] rounded-xl border border-theme p-4 flex-grow flex flex-col shadow-inner relative overflow-hidden" style={{ backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-                
+
                 {/* Header Dropdown */}
                 <div className="flex justify-between items-center mb-4 z-10">
                   <div className="flex gap-1 bg-black/60 backdrop-blur-md p-1 rounded-lg border border-theme/50 shadow-lg">
@@ -1146,7 +1207,7 @@ export default function Blueprints() {
                 {/* CSS Visual Preview Container */}
                 <div className="w-full flex-grow flex items-center justify-center p-4 min-h-[400px] z-10">
                   <div className={`relative overflow-hidden shadow-2xl transition-all duration-300 ${!customPreviewImage ? 'bg-black' : 'bg-black'} ${
-                    previewType === 'Poster' || previewType === 'Season' || previewType === 'Collection' ? 'w-2/3 aspect-[2/3] rounded-sm' : 
+                    previewType === 'Poster' || previewType === 'Season' || previewType === 'Collection' ? 'w-2/3 aspect-[2/3] rounded-sm' :
                     previewType === 'Background' || previewType === 'TitleCard' ? 'w-full aspect-[16/9] rounded-sm' : ''
                   }`}>
                     {/* Base Image */}
@@ -1177,22 +1238,26 @@ export default function Blueprints() {
                          (previewType === 'Background' && builderState.Background.AddText)) && (
                           <div className={`z-20 pointer-events-none transition-all ${selectedLayer?.endsWith('.Text') ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState[previewType]), ...previewStyles.text }}>
                             {builderState.Global.UseClearlogo ? (
-                               <img 
+                               <img
                                  src={sampleLogoUrl}
-                                 alt="Sample Logo" 
+                                 alt="Sample Logo"
+                                 crossOrigin="anonymous"
+                                 referrerPolicy="no-referrer"
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
-                                 style={{ 
-                                    filter: builderState.Global.FlatWhiteLogo ? 'brightness(0) invert(1) drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' : 'drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' 
-                                 }} 
+                                 style={{
+                                    filter: builderState.Global.FlatWhiteLogo ? 'brightness(0) invert(1) drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' : 'drop-shadow(0px 4px 10px rgba(0,0,0,0.8))'
+                                 }}
                                />
                             ) : builderState.Global.UseClearart ? (
-                               <img 
+                               <img
                                  src={sampleArtUrl}
-                                 alt="Sample Art" 
+                                 alt="Sample Art"
+                                 crossOrigin="anonymous"
+                                 referrerPolicy="no-referrer"
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                />
                             ) : (
-                               <div className="text-2xl lg:text-3xl font-bold tracking-widest text-center" style={{ color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{sampleText}</div>
+                               <div className="font-bold tracking-widest text-center leading-none" style={{ fontSize: "min(12cqw, 90cqh)", color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{sampleText}</div>
                             )}
                           </div>
                         )}
@@ -1202,7 +1267,7 @@ export default function Blueprints() {
                           <>
                             {builderState.SeasonTitle.ShowTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'SeasonTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.SeasonTitle), ...seasonTitleStyles.text }}>
-                                  <div className="text-lg lg:text-xl font-bold tracking-wider">{sampleText}</div>
+                                  <div className="font-bold tracking-wider leading-none text-center" style={{ fontSize: "min(12cqw, 90cqh)" }}>{sampleText}</div>
                                </div>
                             )}
                           </>
@@ -1213,12 +1278,12 @@ export default function Blueprints() {
                           <>
                             {builderState.TitleCardEPText.AddEPText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPText' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPText), ...tcEpStyles.text }}>
-                                  <div className="text-lg lg:text-xl font-medium">S01E01</div>
+                                  <div className="font-medium leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{builderState.TitleCardEPText.SeasonTCText} 1 {builderState.TitleCardEPText.EpisodeTCText} 1</div>
                                </div>
                             )}
                             {builderState.TitleCardEPTitle.AddEPTitleText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPTitle), ...tcTitleStyles.text }}>
-                                  <div className="text-2xl lg:text-3xl font-bold tracking-wide">Episode Title</div>
+                                  <div className="font-bold tracking-wide leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{sampleText}</div>
                                </div>
                             )}
                           </>
@@ -1229,7 +1294,7 @@ export default function Blueprints() {
                           <>
                             {builderState.CollectionTitle.AddCollectionTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'CollectionTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.CollectionTitle), ...collectionTitleStyles.text }}>
-                                  <div className="text-lg lg:text-xl font-bold tracking-wider">{builderState.CollectionTitle.CollectionTitle}</div>
+                                  <div className="font-bold tracking-wider leading-none text-center" style={{ fontSize: "min(12cqw, 90cqh)" }}>{builderState.CollectionTitle.CollectionTitle}</div>
                                </div>
                             )}
                           </>
@@ -1285,6 +1350,35 @@ export default function Blueprints() {
                     </div>
                   )}
 
+                  {selectedLayer?.endsWith(".Resolution") && (
+                    <div className="space-y-4">
+                      {previewType === 'Poster' || previewType === 'Season' || previewType === 'Collection' ? (
+                         <>
+                           <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.poster4k} onChange={(v) => updateBuilder("ResolutionOverlays", "poster4k", v)} />
+                           <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Poster1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Poster1080p", v)} />
+                           <TextInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4KDoVi"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoVi", v)} />
+                           <TextInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4KHDR10"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KHDR10", v)} />
+                           <TextInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4KDoViHDR10"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViHDR10", v)} />
+                         </>
+                      ) : previewType === 'Background' ? (
+                         <>
+                           <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.Background4k} onChange={(v) => updateBuilder("ResolutionOverlays", "Background4k", v)} />
+                           <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Background1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Background1080p", v)} />
+                           <TextInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4KDoViBackground"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViBackground", v)} />
+                           <TextInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4KHDR10Background"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KHDR10Background", v)} />
+                           <TextInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4KDoViHDR10Background"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViHDR10Background", v)} />
+                         </>
+                      ) : (
+                         <>
+                           <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.TC4k} onChange={(v) => updateBuilder("ResolutionOverlays", "TC4k", v)} />
+                           <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.TC1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "TC1080p", v)} />
+                           <TextInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4KDoViTC"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViTC", v)} />
+                           <TextInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4KHDR10TC"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KHDR10TC", v)} />
+                         </>
+                      )}
+                    </div>
+                  )}
+
                   {selectedLayer?.endsWith(".Overlay") && (
                     <div className="space-y-4">
                       <TextInput label="Overlay File" value={builderState[selectedLayer.split('.')[0]].overlayfile} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "overlayfile", v)} placeholder="backgroundoverlay-innerglow.png" />
@@ -1305,30 +1399,36 @@ export default function Blueprints() {
                         )}
                         <Toggle label="All Caps" checked={builderState[selectedLayer.split('.')[0]].fontAllCaps} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "fontAllCaps", v)} />
                         <Toggle label="Enable Stroke" checked={builderState[selectedLayer.split('.')[0]].AddTextStroke} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "AddTextStroke", v)} />
-                        
+
                         <ColorInput label="Text Color" value={builderState[selectedLayer.split('.')[0]].fontcolor} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "fontcolor", v)} />
+                        {selectedLayer === "TitleCardEPText" && (
+                          <>
+                            <TextInput label="Season Text" value={builderState.TitleCardEPText.SeasonTCText} onChange={(v) => updateBuilder("TitleCardEPText", "SeasonTCText", v)} />
+                            <TextInput label="Episode Text" value={builderState.TitleCardEPText.EpisodeTCText} onChange={(v) => updateBuilder("TitleCardEPText", "EpisodeTCText", v)} />
+                          </>
+                        )}
                         {builderState[selectedLayer.split('.')[0]].AddTextStroke && (
                           <>
                             <ColorInput label="Stroke Color" value={builderState[selectedLayer.split('.')[0]].strokecolor} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "strokecolor", v)} />
                             <NumberInput label="Stroke Width" value={builderState[selectedLayer.split('.')[0]].strokewidth} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "strokewidth", v)} />
                           </>
                         )}
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <NumberInput label="Min Point Size" value={builderState[selectedLayer.split('.')[0]].minPointSize} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "minPointSize", parseInt(v))} />
                           <NumberInput label="Max Point Size" value={builderState[selectedLayer.split('.')[0]].maxPointSize} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "maxPointSize", parseInt(v))} />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <NumberInput label="Max Width" value={builderState[selectedLayer.split('.')[0]].MaxWidth} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "MaxWidth", parseInt(v))} />
                           <NumberInput label="Max Height" value={builderState[selectedLayer.split('.')[0]].MaxHeight} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "MaxHeight", parseInt(v))} />
                         </div>
 
                         <NumberInput label="Line Spacing" value={builderState[selectedLayer.split('.')[0]].lineSpacing} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "lineSpacing", parseInt(v))} />
-                        
-                        <SelectInput 
-                          label="Text Gravity" 
-                          value={builderState[selectedLayer.split('.')[0]].TextGravity} 
+
+                        <SelectInput
+                          label="Text Gravity"
+                          value={builderState[selectedLayer.split('.')[0]].TextGravity}
                           onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "TextGravity", v)}
                           options={[
                             {label: "North", value: "north"}, {label: "South", value: "south"}, {label: "Center", value: "center"},
@@ -1337,7 +1437,7 @@ export default function Blueprints() {
                           ]}
                         />
                         <TextInput label="Text Offset Y" value={builderState[selectedLayer.split('.')[0]].text_offset} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "text_offset", v)} placeholder="+400" />
-                        
+
                         {selectedLayer === "TitleCardEPText" && (
                           <div className="grid grid-cols-2 gap-4 border-t border-theme/50 pt-4 mt-4">
                              <TextInput label="Season Prefix" value={builderState.TitleCardEPText.SeasonTCText} onChange={(v) => updateBuilder("TitleCardEPText", "SeasonTCText", v)} placeholder="Season" />
@@ -1357,7 +1457,7 @@ export default function Blueprints() {
                              )}
                           </div>
                         )}
-                        
+
                         {selectedLayer === "CollectionTitle" && (
                           <div className="space-y-4 border-t border-theme/50 pt-4 mt-4">
                              <TextInput label="Collection Title Prefix" value={builderState.CollectionTitle.CollectionTitle} onChange={(v) => updateBuilder("CollectionTitle", "CollectionTitle", v)} placeholder="Collection" />
@@ -1378,8 +1478,8 @@ export default function Blueprints() {
 
                 {/* Generate Button Fixed at Bottom of Panel */}
                 <div className="mt-8 pt-4 border-t border-theme">
-                  <button 
-                    onClick={handleSavePresetClick} 
+                  <button
+                    onClick={handleSavePresetClick}
                     className="w-full flex justify-center items-center gap-2 bg-theme-primary text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:bg-theme-primary/90 hover:shadow-theme-primary/30 transition-all disabled:opacity-50"
                   >
                     <Wand2 className="w-5 h-5" />
@@ -1404,7 +1504,7 @@ export default function Blueprints() {
               </h2>
               <button onClick={() => setSavePresetModalState(null)} className="text-theme-muted hover:text-theme-text"><X className="w-6 h-6" /></button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-6">
               <div className="space-y-4">
                 <div className="flex flex-col gap-1">
@@ -1438,18 +1538,18 @@ export default function Blueprints() {
             </div>
 
             <div className="p-6 border-t border-theme bg-theme-bg/50 flex justify-end gap-3">
-              <button 
-                onClick={() => setSavePresetModalState(null)} 
+              <button
+                onClick={() => setSavePresetModalState(null)}
                 className="px-6 py-2.5 rounded-lg font-medium text-theme-text bg-theme-bg border border-theme hover:bg-theme-hover transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
                   const title = document.getElementById('presetTitleInput').value;
                   const desc = document.getElementById('presetDescInput').value;
                   if (title) saveCustomPreset(title, desc);
-                }} 
+                }}
                 className="px-6 py-2.5 rounded-lg font-medium text-white bg-theme-primary hover:bg-theme-primary/90 transition-colors shadow-lg flex items-center gap-2"
               >
                 <Save className="w-5 h-5" /> Save Preset
@@ -1472,7 +1572,7 @@ export default function Blueprints() {
                 {t("blueprints.importConfirmDesc", "The following settings will be modified by this blueprint. Do you want to proceed?")}
               </p>
             </div>
-            
+
             <div className="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-4">
               <div className="bg-theme-bg/50 rounded-lg border border-theme p-4">
                 <h3 className="font-semibold text-theme-text mb-4 border-b border-theme pb-2">Proposed Changes</h3>
@@ -1488,15 +1588,15 @@ export default function Blueprints() {
             </div>
 
             <div className="p-6 border-t border-theme bg-theme-bg/50 flex justify-end gap-3">
-              <button 
-                onClick={() => setImportBlueprintState(null)} 
+              <button
+                onClick={() => setImportBlueprintState(null)}
                 disabled={isImporting}
                 className="px-6 py-2.5 rounded-lg font-medium text-theme-text bg-theme-bg border border-theme hover:bg-theme-hover transition-colors"
               >
                 {t("common.cancel", "Cancel")}
               </button>
-              <button 
-                onClick={confirmImport} 
+              <button
+                onClick={confirmImport}
                 disabled={isImporting}
                 className="flex items-center gap-2 bg-theme-primary text-white px-6 py-2.5 rounded-lg font-medium shadow-lg hover:bg-theme-primary/90 transition-colors disabled:opacity-50"
               >
