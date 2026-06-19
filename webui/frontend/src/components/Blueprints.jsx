@@ -285,8 +285,7 @@ export default function Blueprints() {
     TitleCardEPTitle: { SampleText: "Episode Title",  AddEPTitleText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+300", lineSpacing: 0, TextGravity: "south" },
     TitleCardEPText: { AddEPText: false, fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 150, MaxWidth: 3640, MaxHeight: 280, text_offset: "+100", lineSpacing: 0, TextGravity: "south", SeasonTCText: "Season", EpisodeTCText: "Episode" },
     Background: { SampleText: "Movie Title",  AddBorder: false, AddText: false, AddTextStroke: false, AddOverlay: false, overlayfile: "backgroundoverlay-innerglow.png", UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+200", fontAllCaps: true, minPointSize: 100, maxPointSize: 300, lineSpacing: 0, MaxWidth: 3640, MaxHeight: 500, TextGravity: "south" },
-    Collection: { SampleText: "Collection Name",  AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+300", fontAllCaps: true, minPointSize: 100, maxPointSize: 250, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
-    CollectionTitle: { AddCollectionTitle: true, CollectionTitle: "Collection", fontAllCaps: true, AddTextStroke: false, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", minPointSize: 50, maxPointSize: 100, MaxWidth: 1000, MaxHeight: 140, text_offset: "+150", lineSpacing: 0, TextGravity: "south" },
+
     ResolutionOverlays: {
       poster4k: "overlay-innerglow.png",
       Poster1080p: "overlay-innerglow.png",
@@ -616,7 +615,6 @@ export default function Blueprints() {
         overlayfile: builderState.Poster.overlayfile,
         showoverlayfile: builderState.Poster.overlayfile,
         seasonoverlayfile: builderState.Season.overlayfile,
-        collectionoverlayfile: builderState.Collection.overlayfile,
         poster4k: builderState.ResolutionOverlays.poster4k,
         Poster1080p: builderState.ResolutionOverlays.Poster1080p,
         Background4k: builderState.ResolutionOverlays.Background4k,
@@ -747,41 +745,6 @@ export default function Blueprints() {
         TextGravity: builderState.TitleCardEPText.TextGravity,
         SeasonTCText: builderState.TitleCardEPText.SeasonTCText,
         EpisodeTCText: builderState.TitleCardEPText.EpisodeTCText
-      },
-      CollectionTitlePosterPart: {
-        AddCollectionTitle: builderState.CollectionTitle.AddCollectionTitle ? "true" : "false",
-        CollectionTitle: builderState.CollectionTitle.CollectionTitle,
-        fontAllCaps: builderState.CollectionTitle.fontAllCaps ? "true" : "false",
-        AddTextStroke: builderState.CollectionTitle.AddTextStroke ? "true" : "false",
-        strokecolor: builderState.CollectionTitle.strokecolor,
-        strokewidth: builderState.CollectionTitle.strokewidth.toString(),
-        fontcolor: builderState.CollectionTitle.fontcolor,
-        minPointSize: builderState.CollectionTitle.minPointSize.toString(),
-        maxPointSize: builderState.CollectionTitle.maxPointSize.toString(),
-        MaxWidth: builderState.CollectionTitle.MaxWidth.toString(),
-        MaxHeight: builderState.CollectionTitle.MaxHeight.toString(),
-        text_offset: builderState.CollectionTitle.text_offset,
-        lineSpacing: builderState.CollectionTitle.lineSpacing.toString(),
-        TextGravity: builderState.CollectionTitle.TextGravity
-      },
-      CollectionPosterOverlayPart: {
-        AddBorder: builderState.Collection.AddBorder ? "true" : "false",
-        AddText: builderState.Collection.AddText ? "true" : "false",
-        AddTextStroke: builderState.Collection.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Collection.AddOverlay ? "true" : "false",
-        bordercolor: builderState.Collection.bordercolor,
-        borderwidth: builderState.Collection.borderwidth.toString(),
-        fontcolor: builderState.Collection.fontcolor,
-        strokecolor: builderState.Collection.strokecolor,
-        strokewidth: builderState.Collection.strokewidth.toString(),
-        text_offset: builderState.Collection.text_offset,
-        fontAllCaps: builderState.Collection.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.Collection.minPointSize.toString(),
-        maxPointSize: builderState.Collection.maxPointSize.toString(),
-        lineSpacing: builderState.Collection.lineSpacing.toString(),
-        MaxWidth: builderState.Collection.MaxWidth.toString(),
-        MaxHeight: builderState.Collection.MaxHeight.toString(),
-        TextGravity: builderState.Collection.TextGravity
       }
     };
   };
