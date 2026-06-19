@@ -339,7 +339,152 @@ export default function Blueprints() {
     }
   }, []);
 
-  const populateBuilderStateFromConfig = (configData) => {
+  const unflattenConfig = (flat) => {
+    return {
+      OverlayPart: {
+        ImageProcessing: flat.ImageProcessing,
+        outputQuality: flat.outputQuality
+      },
+      PrerequisitePart: {
+        UseClearlogo: flat.UseClearlogo,
+        UseClearart: flat.UseClearart,
+        UseOriginalTitle: flat.UseOriginalTitle,
+        ConvertLogoColor: flat.ConvertLogoColor,
+        LogoFlatColor: flat.LogoFlatColor,
+        SkipAddText: flat.SkipAddText,
+        UsePosterResolutionOverlays: flat.UsePosterResolutionOverlays,
+        UseBackgroundResolutionOverlays: flat.UseBackgroundResolutionOverlays,
+        UseTCResolutionOverlays: flat.UseTCResolutionOverlays,
+        overlayfile: flat.overlayfile,
+        seasonoverlayfile: flat.seasonoverlayfile,
+        backgroundoverlayfile: flat.backgroundoverlayfile,
+        titlecardoverlayfile: flat.titlecardoverlayfile,
+        font: flat.font,
+        backgroundfont: flat.backgroundfont,
+        titlecardfont: flat.titlecardfont
+      },
+      PosterOverlayPart: {
+        AddBorder: flat.PosterAddBorder,
+        AddOverlay: flat.PosterAddOverlay,
+        AddText: flat.PosterAddText,
+        AddTextStroke: flat.PosterAddTextStroke,
+        bordercolor: flat.Posterbordercolor,
+        borderwidth: flat.Posterborderwidth,
+        fontcolor: flat.Posterfontcolor,
+        strokecolor: flat.Posterstrokecolor,
+        strokewidth: flat.Posterstrokewidth,
+        text_offset: flat.Postertext_offset,
+        fontAllCaps: flat.PosterfontAllCaps,
+        minPointSize: flat.PosterminPointSize,
+        maxPointSize: flat.PostermaxPointSize,
+        lineSpacing: flat.PosterlineSpacing,
+        MaxWidth: flat.PosterMaxWidth,
+        MaxHeight: flat.PosterMaxHeight,
+        TextGravity: flat.PosterTextGravity
+      },
+      SeasonPosterOverlayPart: {
+        AddBorder: flat.SeasonPosterAddBorder,
+        AddOverlay: flat.SeasonPosterAddOverlay,
+        AddText: flat.SeasonPosterAddText,
+        AddTextStroke: flat.SeasonPosterAddTextStroke,
+        bordercolor: flat.SeasonPosterbordercolor,
+        borderwidth: flat.SeasonPosterborderwidth,
+        fontcolor: flat.SeasonPosterfontcolor,
+        strokecolor: flat.SeasonPosterstrokecolor,
+        strokewidth: flat.SeasonPosterstrokewidth,
+        text_offset: flat.SeasonPostertext_offset,
+        fontAllCaps: flat.SeasonPosterfontAllCaps,
+        minPointSize: flat.SeasonPosterminPointSize,
+        maxPointSize: flat.SeasonPostermaxPointSize,
+        lineSpacing: flat.SeasonPosterlineSpacing,
+        MaxWidth: flat.SeasonPosterMaxWidth,
+        MaxHeight: flat.SeasonPosterMaxHeight,
+        TextGravity: flat.SeasonPosterTextGravity,
+        ShowFallback: flat.SeasonPosterShowFallback,
+        OverrideSeasonName: flat.SeasonPosterOverrideSeasonName,
+        SeasonOverrideText: flat.SeasonPosterSeasonOverrideText,
+        SpecialSeasonOverrideText: flat.SeasonPosterSpecialSeasonOverrideText
+      },
+      ShowTitleOnSeasonPosterPart: {
+        AddShowTitletoSeason: flat.ShowTitleAddShowTitletoSeason,
+        fontAllCaps: flat.ShowTitlefontAllCaps,
+        AddTextStroke: flat.ShowTitleAddTextStroke,
+        strokecolor: flat.ShowTitlestrokecolor,
+        strokewidth: flat.ShowTitlestrokewidth,
+        fontcolor: flat.ShowTitlefontcolor,
+        minPointSize: flat.ShowTitleminPointSize,
+        maxPointSize: flat.ShowTitlemaxPointSize,
+        MaxWidth: flat.ShowTitleMaxWidth,
+        MaxHeight: flat.ShowTitleMaxHeight,
+        text_offset: flat.ShowTitletext_offset,
+        lineSpacing: flat.ShowTitlelineSpacing,
+        TextGravity: flat.ShowTitleTextGravity
+      },
+      BackgroundOverlayPart: {
+        AddBorder: flat.BackgroundAddBorder,
+        AddOverlay: flat.BackgroundAddOverlay,
+        AddText: flat.BackgroundAddText,
+        AddTextStroke: flat.BackgroundAddTextStroke,
+        bordercolor: flat.Backgroundbordercolor,
+        borderwidth: flat.Backgroundborderwidth,
+        fontcolor: flat.Backgroundfontcolor,
+        strokecolor: flat.Backgroundstrokecolor,
+        strokewidth: flat.Backgroundstrokewidth,
+        text_offset: flat.Backgroundtext_offset,
+        fontAllCaps: flat.BackgroundfontAllCaps,
+        minPointSize: flat.BackgroundminPointSize,
+        maxPointSize: flat.BackgroundmaxPointSize,
+        lineSpacing: flat.BackgroundlineSpacing,
+        MaxWidth: flat.BackgroundMaxWidth,
+        MaxHeight: flat.BackgroundMaxHeight,
+        TextGravity: flat.BackgroundTextGravity
+      },
+      TitleCardOverlayPart: {
+        AddBorder: flat.TitleCardAddBorder,
+        AddOverlay: flat.TitleCardAddOverlay,
+        bordercolor: flat.TitleCardbordercolor,
+        borderwidth: flat.TitleCardborderwidth,
+        UseBackgroundAsTitleCard: flat.TitleCardUseBackgroundAsTitleCard,
+        BackgroundFallback: flat.TitleCardBackgroundFallback
+      },
+      TitleCardTitleTextPart: {
+        AddEPTitleText: flat.TitleCardTitleAddEPTitleText,
+        AddTextStroke: flat.TitleCardTitleAddTextStroke,
+        fontcolor: flat.TitleCardTitlefontcolor,
+        strokecolor: flat.TitleCardTitlestrokecolor,
+        strokewidth: flat.TitleCardTitlestrokewidth,
+        text_offset: flat.TitleCardTitletext_offset,
+        fontAllCaps: flat.TitleCardTitlefontAllCaps,
+        minPointSize: flat.TitleCardTitleminPointSize,
+        maxPointSize: flat.TitleCardTitlemaxPointSize,
+        lineSpacing: flat.TitleCardTitlelineSpacing,
+        MaxWidth: flat.TitleCardTitleMaxWidth,
+        MaxHeight: flat.TitleCardTitleMaxHeight,
+        TextGravity: flat.TitleCardTitleTextGravity
+      },
+      TitleCardEPTextPart: {
+        AddEPText: flat.TitleCardEPAddEPText,
+        AddTextStroke: flat.TitleCardEPAddTextStroke,
+        fontcolor: flat.TitleCardEPfontcolor,
+        strokecolor: flat.TitleCardEPstrokecolor,
+        strokewidth: flat.TitleCardEPstrokewidth,
+        text_offset: flat.TitleCardEPtext_offset,
+        fontAllCaps: flat.TitleCardEPfontAllCaps,
+        minPointSize: flat.TitleCardEPminPointSize,
+        maxPointSize: flat.TitleCardEPmaxPointSize,
+        lineSpacing: flat.TitleCardEPlineSpacing,
+        MaxWidth: flat.TitleCardEPMaxWidth,
+        MaxHeight: flat.TitleCardEPMaxHeight,
+        TextGravity: flat.TitleCardEPTextGravity,
+        SeasonTCText: flat.TitleCardEPSeasonTCText,
+        EpisodeTCText: flat.TitleCardEPEpisodeTCText
+      }
+    };
+  };
+
+  const populateBuilderStateFromConfig = (configData, isFlat = false) => {
+    if (isFlat) configData = unflattenConfig(configData);
+
     setBuilderState(prev => ({
       ...prev,
           ImageProcessing: configData.OverlayPart?.ImageProcessing !== undefined ? configData.OverlayPart.ImageProcessing === "true" : prev.ImageProcessing,
@@ -549,7 +694,7 @@ export default function Blueprints() {
         setUsingFlatStructure(data.using_flat_structure || false);
         if (data.display_names) setDisplayNames(data.display_names);
 
-        populateBuilderStateFromConfig(data.config);
+        populateBuilderStateFromConfig(data.config, data.using_flat_structure);
       } else {
         setError("Failed to load config");
       }
@@ -604,8 +749,7 @@ export default function Blueprints() {
     
     let fauxConfig = { ...config };
     const updates = usingFlatStructure ? blueprint.updates.flat : blueprint.updates.nested;
-
-    if (usingFlatStructure) {
+if (usingFlatStructure) {
       fauxConfig = { ...fauxConfig, ...updates };
     } else {
       for (const [section, fields] of Object.entries(updates)) {
@@ -616,7 +760,15 @@ export default function Blueprints() {
       }
     }
 
-    populateBuilderStateFromConfig(fauxConfig);
+    // Auto-enable Text/Logo if a preset enforces Clearlogo, Clearart or OriginalTitle
+    const needsText = (fauxConfig.PrerequisitePart?.UseClearlogo === "true" || fauxConfig.PrerequisitePart?.UseClearart === "true" || fauxConfig.PrerequisitePart?.UseOriginalTitle === "true");
+    if (needsText) {
+       fauxConfig.PosterOverlayPart = { ...(fauxConfig.PosterOverlayPart || {}), AddText: "true" };
+       fauxConfig.SeasonPosterOverlayPart = { ...(fauxConfig.SeasonPosterOverlayPart || {}), AddText: "true" };
+       fauxConfig.BackgroundOverlayPart = { ...(fauxConfig.BackgroundOverlayPart || {}), AddText: "true" };
+    }
+
+    populateBuilderStateFromConfig(fauxConfig, usingFlatStructure);
     setActiveTab("builder");
     showSuccess(`Loaded ${blueprint.customTitle || blueprint.name || 'preset'} into Builder!`);
   };
