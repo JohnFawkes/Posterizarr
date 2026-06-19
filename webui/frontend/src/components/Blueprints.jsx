@@ -305,7 +305,8 @@ export default function Blueprints() {
   
   // Preview Data State
   const [sampleText, setSampleText] = useState("Movie Title");
-  const [sampleLogoUrl, setSampleLogoUrl] = useState("https://image.tmdb.org/t/p/w500/b0gA3L7D57Vb1R5GZ7XJpC6jI3Z.png");
+  const [sampleLogoUrl, setSampleLogoUrl] = useState("https://images.fanart.tv/fanart/forrest-gump-5067372b0496a.png");
+  const [sampleArtUrl, setSampleArtUrl] = useState("https://images.fanart.tv/fanart/forrest-gump-513da6251196a.png");
 
   useEffect(() => {
     fetchConfig();
@@ -899,13 +900,46 @@ export default function Blueprints() {
       text: {
         color: fColor,
         WebkitTextStroke: hasStroke ? `${sWidth}px ${sColor}` : undefined,
-        textShadow: hasStroke ? undefined : '0px 4px 10px rgba(0,0,0,0.5)',
-        [gravity.includes('north') ? 'top' : 'bottom']: `${offset}px`,
+        textShadow: hasStroke ? undefined : '0px 4px 10px rgba(0,0,0,0.5)'
       }
     };
   };
 
+
+  const getBoundingBoxStyle = (layer) => {
+    if (!layer) return {};
+    const canvasW = (previewType === 'Background' || previewType === 'TitleCard') ? 3840 : 2000;
+    const canvasH = (previewType === 'Background' || previewType === 'TitleCard') ? 2160 : 3000;
+    const offsetRaw = layer.text_offset || "+400";
+    const offset = parseInt(String(offsetRaw).replace('+', '').replace('-', '')) || 400;
+    const gravity = layer.TextGravity?.toLowerCase() || "south";
+    const offsetPercent = (offset / canvasH) * 100;
+    const w = Math.min(100, (layer.MaxWidth / canvasW) * 100);
+    const h = Math.min(100, (layer.MaxHeight / canvasH) * 100);
+
+    let justifyContent = 'center';
+    let alignItems = 'center';
+    if (gravity.includes('north')) justifyContent = 'flex-start';
+    if (gravity.includes('south')) justifyContent = 'flex-end';
+    if (gravity.includes('west')) alignItems = 'flex-start';
+    if (gravity.includes('east')) alignItems = 'flex-end';
+
+    return {
+      position: 'absolute',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      [gravity.includes('north') ? 'top' : 'bottom']: `${offsetPercent}%`,
+      width: `${w}%`,
+      height: `${h}%`,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent,
+      alignItems
+    };
+  };
+
   const previewStyles = getStyleObj(builderState[previewType]);
+
 
   const seasonTitleStyles = getStyleObj(builderState.SeasonTitle);
   const tcTitleStyles = getStyleObj(builderState.TitleCardEPTitle);
@@ -1091,7 +1125,10 @@ export default function Blueprints() {
                   <div className="flex gap-2 z-10">
                     <div className="flex flex-col gap-1 mr-4 hidden md:flex">
                         <input type="text" value={sampleText} onChange={(e) => setSampleText(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-32 focus:outline-none focus:border-theme-primary" placeholder="Sample Text" />
-                        <input type="text" value={sampleLogoUrl} onChange={(e) => setSampleLogoUrl(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-32 focus:outline-none focus:border-theme-primary" placeholder="Sample Logo URL" />
+                        <div className="flex gap-1">
+                          <input type="text" value={sampleLogoUrl} onChange={(e) => setSampleLogoUrl(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-24 focus:outline-none focus:border-theme-primary" placeholder="Clearlogo URL" title="Sample Clearlogo" />
+                          <input type="text" value={sampleArtUrl} onChange={(e) => setSampleArtUrl(e.target.value)} className="bg-black/60 backdrop-blur-md border border-theme/50 rounded text-xs px-2 py-1 text-white placeholder-white/50 w-24 focus:outline-none focus:border-theme-primary" placeholder="Clearart URL" title="Sample Clearart" />
+                        </div>
                     </div>
                     {customPreviewImage ? (
                       <button onClick={resetCustomPreview} className="p-2 text-theme-muted hover:text-white bg-black/60 backdrop-blur-md border border-theme/50 rounded-lg transition-colors shadow-lg" title="Reset Sample Image">
@@ -1138,48 +1175,64 @@ export default function Blueprints() {
                          (previewType === 'Season' && builderState.Season.AddText) ||
                          (previewType === 'Collection' && builderState.Collection.AddText) ||
                          (previewType === 'Background' && builderState.Background.AddText)) && (
-                          <div className={`absolute left-0 w-full flex justify-center z-20 pointer-events-none transition-all ${selectedLayer?.endsWith('.Text') ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={previewStyles.text}>
-                            {builderState.Global.UseClearlogo || builderState.Global.UseClearart ? (
+                          <div className={`z-20 pointer-events-none transition-all ${selectedLayer?.endsWith('.Text') ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState[previewType]), ...previewStyles.text }}>
+                            {builderState.Global.UseClearlogo ? (
                                <img 
                                  src={sampleLogoUrl}
                                  alt="Sample Logo" 
-                                 className="w-2/3 object-contain drop-shadow-2xl transition-all"
+                                 className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                  style={{ 
                                     filter: builderState.Global.FlatWhiteLogo ? 'brightness(0) invert(1) drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' : 'drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' 
                                  }} 
                                />
+                            ) : builderState.Global.UseClearart ? (
+                               <img 
+                                 src={sampleArtUrl}
+                                 alt="Sample Art" 
+                                 className="w-full h-full object-contain drop-shadow-2xl transition-all"
+                               />
                             ) : (
-                               <div className="text-2xl lg:text-3xl font-bold uppercase tracking-widest text-center" style={{ color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{sampleText}</div>
+                               <div className="text-2xl lg:text-3xl font-bold tracking-widest text-center" style={{ color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{sampleText}</div>
                             )}
                           </div>
                         )}
 
                         {/* SEASON SPECIFIC TEXT */}
-                        {previewType === 'Season' && builderState.Season.AddText && (
-                          <div className="absolute left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
+                        {previewType === 'Season' && (
+                          <>
                             {builderState.SeasonTitle.ShowTitle && (
-                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'SeasonTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...seasonTitleStyles.text, position: 'static' }}>{sampleText}</div>
+                               <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'SeasonTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.SeasonTitle), ...seasonTitleStyles.text }}>
+                                  <div className="text-lg lg:text-xl font-bold tracking-wider">{sampleText}</div>
+                               </div>
                             )}
-                            <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{builderState.Season.OverrideSeasonName ? builderState.Season.SeasonOverrideText : "Season"} 1</div>
-                          </div>
+                          </>
                         )}
 
                         {/* TITLE CARD TEXT */}
                         {previewType === 'TitleCard' && (
-                          <div className="absolute left-[8%] z-20 pointer-events-none transition-all text-left w-full h-full">
-                            {builderState.TitleCardEPText.AddEPText && <div className={`absolute left-0 text-lg lg:text-xl font-medium ${selectedLayer === 'TitleCardEPText' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={tcEpStyles.text}>S01E01</div>}
-                            {builderState.TitleCardEPTitle.AddEPTitleText && <div className={`absolute left-0 text-2xl lg:text-3xl font-bold uppercase tracking-wide mt-1 ${selectedLayer === 'TitleCardEPTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={tcTitleStyles.text}>Episode Title</div>}
-                          </div>
+                          <>
+                            {builderState.TitleCardEPText.AddEPText && (
+                               <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPText' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPText), ...tcEpStyles.text }}>
+                                  <div className="text-lg lg:text-xl font-medium">S01E01</div>
+                               </div>
+                            )}
+                            {builderState.TitleCardEPTitle.AddEPTitleText && (
+                               <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPTitle), ...tcTitleStyles.text }}>
+                                  <div className="text-2xl lg:text-3xl font-bold tracking-wide">Episode Title</div>
+                               </div>
+                            )}
+                          </>
                         )}
 
                         {/* COLLECTION SPECIFIC TEXT */}
                         {previewType === 'Collection' && builderState.Collection.AddText && (
-                          <div className="absolute left-0 w-full flex flex-col items-center z-20 pointer-events-none transition-all" style={previewStyles.text}>
+                          <>
                             {builderState.CollectionTitle.AddCollectionTitle && (
-                               <div className={`text-lg lg:text-xl font-bold uppercase tracking-wider mb-2 ${selectedLayer === 'CollectionTitle' ? 'ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...collectionTitleStyles.text, position: 'static' }}>{builderState.CollectionTitle.CollectionTitle}</div>
+                               <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'CollectionTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.CollectionTitle), ...collectionTitleStyles.text }}>
+                                  <div className="text-lg lg:text-xl font-bold tracking-wider">{builderState.CollectionTitle.CollectionTitle}</div>
+                               </div>
                             )}
-                            <div className="text-xl lg:text-2xl font-bold uppercase tracking-widest">{sampleText}</div>
-                          </div>
+                          </>
                         )}
 
                         {/* RESOLUTION OVERLAYS */}
@@ -1191,18 +1244,7 @@ export default function Blueprints() {
                             <div className="bg-gradient-to-l from-yellow-500 to-yellow-600 text-black font-black text-[10px] lg:text-xs px-3 py-1 lg:px-4 lg:py-1 rounded-bl-xl shadow-lg">4K ULTRA HD</div>
                           </div>
                         )}
-                        {/* MAX WIDTH OUTLINE */}
-                        {(selectedLayer?.endsWith('.Text') || selectedLayer === 'SeasonTitle' || selectedLayer === 'TitleCardEPTitle' || selectedLayer === 'TitleCardEPText' || selectedLayer === 'CollectionTitle') && builderState[selectedLayer.split('.')[0]] && (
-                          <div className="absolute flex justify-center z-10 pointer-events-none transition-all border-2 border-dashed border-red-500/50 bg-red-500/5" 
-                               style={{ 
-                                 width: `${Math.min(100, (builderState[selectedLayer.split('.')[0]].MaxWidth / (previewType === 'Background' || previewType === 'TitleCard' ? 3840 : 2000)) * 100)}%`,
-                                 height: `${Math.min(100, (builderState[selectedLayer.split('.')[0]].MaxHeight / (previewType === 'Background' || previewType === 'TitleCard' ? 2160 : 3000)) * 100)}%`,
-                                 ...getStyleObj(builderState[selectedLayer.split('.')[0]]).text
-                               }}>
-                            <span className="absolute -top-6 bg-red-500/80 text-white text-[10px] px-1 rounded">Max Bounding Box</span>
-                          </div>
-                        )}
-                      </>
+                        </>
                     )}
                   </div>
                 </div>
