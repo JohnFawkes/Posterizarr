@@ -269,6 +269,7 @@ export default function Blueprints() {
   const [displayNames, setDisplayNames] = useState({});
   const [isImporting, setIsImporting] = useState(false);
   const [customPreviewImage, setCustomPreviewImage] = useState(null);
+  const [overlayFiles, setOverlayFiles] = useState([]);
 
   // Tabs: "presets" | "builder"
   const [activeTab, setActiveTab] = useState("presets");
@@ -321,8 +322,8 @@ export default function Blueprints() {
 
   // Preview Data State
   const [sampleText, setSampleText] = useState("Movie Title");
-  const [sampleLogoUrl, setSampleLogoUrl] = useState("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgMzAwIj4KICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOTAiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjQiPlNhbXBsZSBMb2dvPC90ZXh0Pgo8L3N2Zz4=");
-  const [sampleArtUrl, setSampleArtUrl] = useState("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgMzAwIj4KICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOTAiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IndoaXRlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjQiPlNhbXBsZSBBcnQ8L3RleHQ+Cjwvc3ZnPg==");
+  const [sampleLogoUrl, setSampleLogoUrl] = useState("/blueprint-previews/clearlogo.png");
+  const [sampleArtUrl, setSampleArtUrl] = useState("/blueprint-previews/clearart.png");
 
   useEffect(() => {
     fetchConfig();
@@ -1250,7 +1251,7 @@ export default function Blueprints() {
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                />
                             ) : (
-                               <div className="font-bold tracking-widest text-center leading-none" style={{ fontSize: "min(12cqw, 90cqh)", color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{builderState[previewType].SampleText}</div>
+                               <div className="font-bold tracking-widest text-center leading-none" style={{ ...getScalingStyle(builderState[previewType]), color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{builderState[previewType].SampleText}</div>
                             )}
                           </div>
                         )}
@@ -1260,7 +1261,7 @@ export default function Blueprints() {
                           <>
                             {builderState.SeasonTitle.ShowTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'SeasonTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.SeasonTitle), ...seasonTitleStyles.text }}>
-                                  <div className="font-bold tracking-wider leading-none text-center" style={{ fontSize: "min(12cqw, 90cqh)" }}>{builderState.SeasonTitle.SampleText}</div>
+                                  <div className="font-bold tracking-wider leading-none text-center" style={{ ...getScalingStyle(builderState.SeasonTitle) }}>{builderState.SeasonTitle.SampleText}</div>
                                </div>
                             )}
                           </>
@@ -1271,12 +1272,12 @@ export default function Blueprints() {
                           <>
                             {builderState.TitleCardEPText.AddEPText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPText' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPText), ...tcEpStyles.text }}>
-                                  <div className="font-medium leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{builderState.TitleCardEPText.SeasonTCText} 1 • {builderState.TitleCardEPText.EpisodeTCText} 1</div>
+                                  <div className="font-medium leading-none text-center" style={{ ...getScalingStyle(builderState.TitleCardEPText) }}>{builderState.TitleCardEPText.SeasonTCText} 1 • {builderState.TitleCardEPText.EpisodeTCText} 1</div>
                                </div>
                             )}
                             {builderState.TitleCardEPTitle.AddEPTitleText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPTitle), ...tcTitleStyles.text }}>
-                                  <div className="font-bold tracking-wide leading-none text-center" style={{ fontSize: "min(10cqw, 90cqh)" }}>{builderState.TitleCardEPTitle.SampleText}</div>
+                                  <div className="font-bold tracking-wide leading-none text-center" style={{ ...getScalingStyle(builderState.TitleCardEPTitle) }}>{builderState.TitleCardEPTitle.SampleText}</div>
                                </div>
                             )}
                           </>
@@ -1287,7 +1288,7 @@ export default function Blueprints() {
                           <>
                             {builderState.CollectionTitle.AddCollectionTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'CollectionTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.CollectionTitle), ...collectionTitleStyles.text }}>
-                                  <div className="font-bold tracking-wider leading-none text-center" style={{ fontSize: "min(12cqw, 90cqh)" }}>{builderState.CollectionTitle.CollectionTitle}</div>
+                                  <div className="font-bold tracking-wider leading-none text-center" style={{ ...getScalingStyle(builderState.CollectionTitle) }}>{builderState.CollectionTitle.CollectionTitle}</div>
                                </div>
                             )}
                           </>
@@ -1369,24 +1370,24 @@ export default function Blueprints() {
                          <>
                            <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.poster4k} onChange={(v) => updateBuilder("ResolutionOverlays", "poster4k", v)} />
                            <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Poster1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Poster1080p", v)} />
-                           <TextInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4KDoVi"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoVi", v)} />
-                           <TextInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4KHDR10"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KHDR10", v)} />
-                           <TextInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4KDoViHDR10"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViHDR10", v)} />
+                           <SelectInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4K DoVi Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4K HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4K DoVi+HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi+HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                          </>
                       ) : previewType === 'Background' ? (
                          <>
                            <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.Background4k} onChange={(v) => updateBuilder("ResolutionOverlays", "Background4k", v)} />
                            <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Background1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Background1080p", v)} />
-                           <TextInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4KDoViBackground"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViBackground", v)} />
-                           <TextInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4KHDR10Background"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KHDR10Background", v)} />
-                           <TextInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4KDoViHDR10Background"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViHDR10Background", v)} />
+                           <SelectInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4K DoVi Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4K HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4K DoVi+HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi+HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                          </>
                       ) : (
                          <>
                            <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.TC4k} onChange={(v) => updateBuilder("ResolutionOverlays", "TC4k", v)} />
                            <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.TC1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "TC1080p", v)} />
-                           <TextInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4KDoViTC"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KDoViTC", v)} />
-                           <TextInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4KHDR10TC"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4KHDR10TC", v)} />
+                           <SelectInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4K DoVi Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4K HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                          </>
                       )}
                     </div>
@@ -1394,7 +1395,7 @@ export default function Blueprints() {
 
                   {selectedLayer?.endsWith(".Overlay") && (
                     <div className="space-y-4">
-                      <TextInput label="Overlay File" value={builderState[selectedLayer.split('.')[0]].overlayfile} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "overlayfile", v)} placeholder="backgroundoverlay-innerglow.png" />
+                      <SelectInput label="Overlay File" value={builderState[selectedLayer.split('.')[0]].overlayfile} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "overlayfile", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                     </div>
                   )}
 

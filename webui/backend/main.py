@@ -3355,6 +3355,24 @@ async def delete_font_file(filename: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@app.get("/api/fonts/download/{filename}")
+async def download_font_file(filename: str):
+    """Download a font file from Overlayfiles directory for previewing in the UI"""
+    try:
+        safe_filename = "".join(c for c in filename if c.isalnum() or c in "._- ")
+        if not safe_filename:
+            raise HTTPException(status_code=400, detail="Invalid filename")
+            
+        font_path = OVERLAYFILES_DIR / safe_filename
+        
+        if not font_path.exists():
+            raise HTTPException(status_code=404, detail="Font file not found")
+            
+        return FileResponse(font_path)
+    except Exception as e:
+        logger.error(f"Error downloading font: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/fonts/preview/{filename}")
 async def preview_font_file(filename: str, text: str = "Aa"):
     """Generate a preview image for a font file"""
