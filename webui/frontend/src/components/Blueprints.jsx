@@ -339,189 +339,178 @@ export default function Blueprints() {
     }
   }, []);
 
-  const fetchConfig = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_URL}/config`);
-      const data = await response.json();
-      if (data.success) {
-        setConfig(data.config);
-        setUsingFlatStructure(data.using_flat_structure || false);
-        if (data.display_names) setDisplayNames(data.display_names);
-
-        // Populate Builder State from config
-        setBuilderState(prev => ({
-          ...prev,
-          ImageProcessing: data.config.OverlayPart?.ImageProcessing !== undefined ? data.config.OverlayPart.ImageProcessing === "true" : prev.ImageProcessing,
-          outputQuality: parseInt(data.config.OverlayPart?.outputQuality?.replace("%", "") || prev.outputQuality),
+  const populateBuilderStateFromConfig = (configData) => {
+    setBuilderState(prev => ({
+      ...prev,
+          ImageProcessing: configData.OverlayPart?.ImageProcessing !== undefined ? configData.OverlayPart.ImageProcessing === "true" : prev.ImageProcessing,
+          outputQuality: parseInt(configData.OverlayPart?.outputQuality?.replace("%", "") || prev.outputQuality),
           Poster: { SampleText: "Movie Title", 
              ...prev.Poster,
-             AddBorder: data.config.PosterOverlayPart?.AddBorder !== undefined ? data.config.PosterOverlayPart.AddBorder === "true" : prev.Poster.AddBorder,
-             AddOverlay: data.config.PosterOverlayPart?.AddOverlay !== undefined ? data.config.PosterOverlayPart.AddOverlay === "true" : prev.Poster.AddOverlay,
-             overlayfile: data.config.PrerequisitePart?.overlayfile || prev.Poster.overlayfile,
-             AddText: data.config.PosterOverlayPart?.AddText !== undefined ? data.config.PosterOverlayPart.AddText === "true" : prev.Poster.AddText,
-             AddTextStroke: data.config.PosterOverlayPart?.AddTextStroke !== undefined ? data.config.PosterOverlayPart.AddTextStroke === "true" : prev.Poster.AddTextStroke,
-             UseResolutionOverlays: data.config.PrerequisitePart?.UsePosterResolutionOverlays !== undefined ? data.config.PrerequisitePart.UsePosterResolutionOverlays === "true" : prev.Poster.UseResolutionOverlays,
-             bordercolor: data.config.PosterOverlayPart?.bordercolor || prev.Poster.bordercolor,
-             borderwidth: parseInt(data.config.PosterOverlayPart?.borderwidth || prev.Poster.borderwidth),
-             fontcolor: data.config.PosterOverlayPart?.fontcolor || prev.Poster.fontcolor,
-             strokecolor: data.config.PosterOverlayPart?.strokecolor || prev.Poster.strokecolor,
-             strokewidth: parseInt(data.config.PosterOverlayPart?.strokewidth || prev.Poster.strokewidth),
-             text_offset: data.config.PosterOverlayPart?.text_offset || prev.Poster.text_offset,
-             fontAllCaps: data.config.PosterOverlayPart?.fontAllCaps !== undefined ? data.config.PosterOverlayPart.fontAllCaps === "true" : prev.Poster.fontAllCaps,
-             minPointSize: parseInt(data.config.PosterOverlayPart?.minPointSize || prev.Poster.minPointSize),
-             maxPointSize: parseInt(data.config.PosterOverlayPart?.maxPointSize || prev.Poster.maxPointSize),
-             lineSpacing: parseInt(data.config.PosterOverlayPart?.lineSpacing || prev.Poster.lineSpacing),
-             MaxWidth: parseInt(data.config.PosterOverlayPart?.MaxWidth || prev.Poster.MaxWidth),
-             MaxHeight: parseInt(data.config.PosterOverlayPart?.MaxHeight || prev.Poster.MaxHeight),
-             TextGravity: data.config.PosterOverlayPart?.TextGravity || prev.Poster.TextGravity
+             AddBorder: configData.PosterOverlayPart?.AddBorder !== undefined ? configData.PosterOverlayPart.AddBorder === "true" : prev.Poster.AddBorder,
+             AddOverlay: configData.PosterOverlayPart?.AddOverlay !== undefined ? configData.PosterOverlayPart.AddOverlay === "true" : prev.Poster.AddOverlay,
+             overlayfile: configData.PrerequisitePart?.overlayfile || prev.Poster.overlayfile,
+             AddText: configData.PosterOverlayPart?.AddText !== undefined ? configData.PosterOverlayPart.AddText === "true" : prev.Poster.AddText,
+             AddTextStroke: configData.PosterOverlayPart?.AddTextStroke !== undefined ? configData.PosterOverlayPart.AddTextStroke === "true" : prev.Poster.AddTextStroke,
+             UseResolutionOverlays: configData.PrerequisitePart?.UsePosterResolutionOverlays !== undefined ? configData.PrerequisitePart.UsePosterResolutionOverlays === "true" : prev.Poster.UseResolutionOverlays,
+             bordercolor: configData.PosterOverlayPart?.bordercolor || prev.Poster.bordercolor,
+             borderwidth: parseInt(configData.PosterOverlayPart?.borderwidth || prev.Poster.borderwidth),
+             fontcolor: configData.PosterOverlayPart?.fontcolor || prev.Poster.fontcolor,
+             strokecolor: configData.PosterOverlayPart?.strokecolor || prev.Poster.strokecolor,
+             strokewidth: parseInt(configData.PosterOverlayPart?.strokewidth || prev.Poster.strokewidth),
+             text_offset: configData.PosterOverlayPart?.text_offset || prev.Poster.text_offset,
+             fontAllCaps: configData.PosterOverlayPart?.fontAllCaps !== undefined ? configData.PosterOverlayPart.fontAllCaps === "true" : prev.Poster.fontAllCaps,
+             minPointSize: parseInt(configData.PosterOverlayPart?.minPointSize || prev.Poster.minPointSize),
+             maxPointSize: parseInt(configData.PosterOverlayPart?.maxPointSize || prev.Poster.maxPointSize),
+             lineSpacing: parseInt(configData.PosterOverlayPart?.lineSpacing || prev.Poster.lineSpacing),
+             MaxWidth: parseInt(configData.PosterOverlayPart?.MaxWidth || prev.Poster.MaxWidth),
+             MaxHeight: parseInt(configData.PosterOverlayPart?.MaxHeight || prev.Poster.MaxHeight),
+             TextGravity: configData.PosterOverlayPart?.TextGravity || prev.Poster.TextGravity
           },
           Season: { SampleText: "Season 1", 
              ...prev.Season,
-             AddBorder: data.config.SeasonPosterOverlayPart?.AddBorder !== undefined ? data.config.SeasonPosterOverlayPart.AddBorder === "true" : prev.Season.AddBorder,
-             AddOverlay: data.config.SeasonPosterOverlayPart?.AddOverlay !== undefined ? data.config.SeasonPosterOverlayPart.AddOverlay === "true" : prev.Season.AddOverlay,
-             overlayfile: data.config.PrerequisitePart?.seasonoverlayfile || prev.Season.overlayfile,
-             AddText: data.config.SeasonPosterOverlayPart?.AddText !== undefined ? data.config.SeasonPosterOverlayPart.AddText === "true" : prev.Season.AddText,
-             AddTextStroke: data.config.SeasonPosterOverlayPart?.AddTextStroke !== undefined ? data.config.SeasonPosterOverlayPart.AddTextStroke === "true" : prev.Season.AddTextStroke,
-             bordercolor: data.config.SeasonPosterOverlayPart?.bordercolor || prev.Season.bordercolor,
-             borderwidth: parseInt(data.config.SeasonPosterOverlayPart?.borderwidth || prev.Season.borderwidth),
-             fontcolor: data.config.SeasonPosterOverlayPart?.fontcolor || prev.Season.fontcolor,
-             strokecolor: data.config.SeasonPosterOverlayPart?.strokecolor || prev.Season.strokecolor,
-             strokewidth: parseInt(data.config.SeasonPosterOverlayPart?.strokewidth || prev.Season.strokewidth),
-             text_offset: data.config.SeasonPosterOverlayPart?.text_offset || prev.Season.text_offset,
-             fontAllCaps: data.config.SeasonPosterOverlayPart?.fontAllCaps !== undefined ? data.config.SeasonPosterOverlayPart.fontAllCaps === "true" : prev.Season.fontAllCaps,
-             minPointSize: parseInt(data.config.SeasonPosterOverlayPart?.minPointSize || prev.Season.minPointSize),
-             maxPointSize: parseInt(data.config.SeasonPosterOverlayPart?.maxPointSize || prev.Season.maxPointSize),
-             lineSpacing: parseInt(data.config.SeasonPosterOverlayPart?.lineSpacing || prev.Season.lineSpacing),
-             MaxWidth: parseInt(data.config.SeasonPosterOverlayPart?.MaxWidth || prev.Season.MaxWidth),
-             MaxHeight: parseInt(data.config.SeasonPosterOverlayPart?.MaxHeight || prev.Season.MaxHeight),
-             TextGravity: data.config.SeasonPosterOverlayPart?.TextGravity || prev.Season.TextGravity,
-             ShowFallback: data.config.SeasonPosterOverlayPart?.ShowFallback !== undefined ? data.config.SeasonPosterOverlayPart.ShowFallback === "true" : prev.Season.ShowFallback,
-             OverrideSeasonName: data.config.SeasonPosterOverlayPart?.OverrideSeasonName !== undefined ? data.config.SeasonPosterOverlayPart.OverrideSeasonName === "true" : prev.Season.OverrideSeasonName,
-             SeasonOverrideText: data.config.SeasonPosterOverlayPart?.SeasonOverrideText || prev.Season.SeasonOverrideText,
-             SpecialSeasonOverrideText: data.config.SeasonPosterOverlayPart?.SpecialSeasonOverrideText || prev.Season.SpecialSeasonOverrideText
+             AddBorder: configData.SeasonPosterOverlayPart?.AddBorder !== undefined ? configData.SeasonPosterOverlayPart.AddBorder === "true" : prev.Season.AddBorder,
+             AddOverlay: configData.SeasonPosterOverlayPart?.AddOverlay !== undefined ? configData.SeasonPosterOverlayPart.AddOverlay === "true" : prev.Season.AddOverlay,
+             overlayfile: configData.PrerequisitePart?.seasonoverlayfile || prev.Season.overlayfile,
+             AddText: configData.SeasonPosterOverlayPart?.AddText !== undefined ? configData.SeasonPosterOverlayPart.AddText === "true" : prev.Season.AddText,
+             AddTextStroke: configData.SeasonPosterOverlayPart?.AddTextStroke !== undefined ? configData.SeasonPosterOverlayPart.AddTextStroke === "true" : prev.Season.AddTextStroke,
+             bordercolor: configData.SeasonPosterOverlayPart?.bordercolor || prev.Season.bordercolor,
+             borderwidth: parseInt(configData.SeasonPosterOverlayPart?.borderwidth || prev.Season.borderwidth),
+             fontcolor: configData.SeasonPosterOverlayPart?.fontcolor || prev.Season.fontcolor,
+             strokecolor: configData.SeasonPosterOverlayPart?.strokecolor || prev.Season.strokecolor,
+             strokewidth: parseInt(configData.SeasonPosterOverlayPart?.strokewidth || prev.Season.strokewidth),
+             text_offset: configData.SeasonPosterOverlayPart?.text_offset || prev.Season.text_offset,
+             fontAllCaps: configData.SeasonPosterOverlayPart?.fontAllCaps !== undefined ? configData.SeasonPosterOverlayPart.fontAllCaps === "true" : prev.Season.fontAllCaps,
+             minPointSize: parseInt(configData.SeasonPosterOverlayPart?.minPointSize || prev.Season.minPointSize),
+             maxPointSize: parseInt(configData.SeasonPosterOverlayPart?.maxPointSize || prev.Season.maxPointSize),
+             lineSpacing: parseInt(configData.SeasonPosterOverlayPart?.lineSpacing || prev.Season.lineSpacing),
+             MaxWidth: parseInt(configData.SeasonPosterOverlayPart?.MaxWidth || prev.Season.MaxWidth),
+             MaxHeight: parseInt(configData.SeasonPosterOverlayPart?.MaxHeight || prev.Season.MaxHeight),
+             TextGravity: configData.SeasonPosterOverlayPart?.TextGravity || prev.Season.TextGravity,
+             ShowFallback: configData.SeasonPosterOverlayPart?.ShowFallback !== undefined ? configData.SeasonPosterOverlayPart.ShowFallback === "true" : prev.Season.ShowFallback,
+             OverrideSeasonName: configData.SeasonPosterOverlayPart?.OverrideSeasonName !== undefined ? configData.SeasonPosterOverlayPart.OverrideSeasonName === "true" : prev.Season.OverrideSeasonName,
+             SeasonOverrideText: configData.SeasonPosterOverlayPart?.SeasonOverrideText || prev.Season.SeasonOverrideText,
+             SpecialSeasonOverrideText: configData.SeasonPosterOverlayPart?.SpecialSeasonOverrideText || prev.Season.SpecialSeasonOverrideText
           },
           SeasonTitle: { SampleText: "Show Title", 
              ...prev.SeasonTitle,
-             ShowTitle: data.config.ShowTitleOnSeasonPosterPart?.AddShowTitletoSeason !== undefined ? data.config.ShowTitleOnSeasonPosterPart.AddShowTitletoSeason === "true" : prev.SeasonTitle.ShowTitle,
-             fontAllCaps: data.config.ShowTitleOnSeasonPosterPart?.fontAllCaps !== undefined ? data.config.ShowTitleOnSeasonPosterPart.fontAllCaps === "true" : prev.SeasonTitle.fontAllCaps,
-             AddTextStroke: data.config.ShowTitleOnSeasonPosterPart?.AddTextStroke !== undefined ? data.config.ShowTitleOnSeasonPosterPart.AddTextStroke === "true" : prev.SeasonTitle.AddTextStroke,
-             strokecolor: data.config.ShowTitleOnSeasonPosterPart?.strokecolor || prev.SeasonTitle.strokecolor,
-             strokewidth: parseInt(data.config.ShowTitleOnSeasonPosterPart?.strokewidth || prev.SeasonTitle.strokewidth),
-             fontcolor: data.config.ShowTitleOnSeasonPosterPart?.fontcolor || prev.SeasonTitle.fontcolor,
-             minPointSize: parseInt(data.config.ShowTitleOnSeasonPosterPart?.minPointSize || prev.SeasonTitle.minPointSize),
-             maxPointSize: parseInt(data.config.ShowTitleOnSeasonPosterPart?.maxPointSize || prev.SeasonTitle.maxPointSize),
-             MaxWidth: parseInt(data.config.ShowTitleOnSeasonPosterPart?.MaxWidth || prev.SeasonTitle.MaxWidth),
-             MaxHeight: parseInt(data.config.ShowTitleOnSeasonPosterPart?.MaxHeight || prev.SeasonTitle.MaxHeight),
-             text_offset: data.config.ShowTitleOnSeasonPosterPart?.text_offset || prev.SeasonTitle.text_offset,
-             lineSpacing: parseInt(data.config.ShowTitleOnSeasonPosterPart?.lineSpacing || prev.SeasonTitle.lineSpacing),
-             TextGravity: data.config.ShowTitleOnSeasonPosterPart?.TextGravity || prev.SeasonTitle.TextGravity
+             ShowTitle: configData.ShowTitleOnSeasonPosterPart?.AddShowTitletoSeason !== undefined ? configData.ShowTitleOnSeasonPosterPart.AddShowTitletoSeason === "true" : prev.SeasonTitle.ShowTitle,
+             fontAllCaps: configData.ShowTitleOnSeasonPosterPart?.fontAllCaps !== undefined ? configData.ShowTitleOnSeasonPosterPart.fontAllCaps === "true" : prev.SeasonTitle.fontAllCaps,
+             AddTextStroke: configData.ShowTitleOnSeasonPosterPart?.AddTextStroke !== undefined ? configData.ShowTitleOnSeasonPosterPart.AddTextStroke === "true" : prev.SeasonTitle.AddTextStroke,
+             strokecolor: configData.ShowTitleOnSeasonPosterPart?.strokecolor || prev.SeasonTitle.strokecolor,
+             strokewidth: parseInt(configData.ShowTitleOnSeasonPosterPart?.strokewidth || prev.SeasonTitle.strokewidth),
+             fontcolor: configData.ShowTitleOnSeasonPosterPart?.fontcolor || prev.SeasonTitle.fontcolor,
+             minPointSize: parseInt(configData.ShowTitleOnSeasonPosterPart?.minPointSize || prev.SeasonTitle.minPointSize),
+             maxPointSize: parseInt(configData.ShowTitleOnSeasonPosterPart?.maxPointSize || prev.SeasonTitle.maxPointSize),
+             MaxWidth: parseInt(configData.ShowTitleOnSeasonPosterPart?.MaxWidth || prev.SeasonTitle.MaxWidth),
+             MaxHeight: parseInt(configData.ShowTitleOnSeasonPosterPart?.MaxHeight || prev.SeasonTitle.MaxHeight),
+             text_offset: configData.ShowTitleOnSeasonPosterPart?.text_offset || prev.SeasonTitle.text_offset,
+             lineSpacing: parseInt(configData.ShowTitleOnSeasonPosterPart?.lineSpacing || prev.SeasonTitle.lineSpacing),
+             TextGravity: configData.ShowTitleOnSeasonPosterPart?.TextGravity || prev.SeasonTitle.TextGravity
           },
           Background: { SampleText: "Movie Title", 
              ...prev.Background,
-             AddBorder: data.config.BackgroundOverlayPart?.AddBorder !== undefined ? data.config.BackgroundOverlayPart.AddBorder === "true" : prev.Background.AddBorder,
-             AddText: data.config.BackgroundOverlayPart?.AddText !== undefined ? data.config.BackgroundOverlayPart.AddText === "true" : prev.Background.AddText,
-             AddTextStroke: data.config.BackgroundOverlayPart?.AddTextStroke !== undefined ? data.config.BackgroundOverlayPart.AddTextStroke === "true" : prev.Background.AddTextStroke,
-             AddOverlay: data.config.BackgroundOverlayPart?.AddOverlay !== undefined ? data.config.BackgroundOverlayPart.AddOverlay === "true" : prev.Background.AddOverlay,
-             overlayfile: data.config.PrerequisitePart?.backgroundoverlayfile || prev.Background.overlayfile,
-             UseResolutionOverlays: data.config.PrerequisitePart?.UseBackgroundResolutionOverlays !== undefined ? data.config.PrerequisitePart.UseBackgroundResolutionOverlays === "true" : prev.Background.UseResolutionOverlays,
-             bordercolor: data.config.BackgroundOverlayPart?.bordercolor || prev.Background.bordercolor,
-             borderwidth: parseInt(data.config.BackgroundOverlayPart?.borderwidth || prev.Background.borderwidth),
-             fontcolor: data.config.BackgroundOverlayPart?.fontcolor || prev.Background.fontcolor,
-             strokecolor: data.config.BackgroundOverlayPart?.strokecolor || prev.Background.strokecolor,
-             strokewidth: parseInt(data.config.BackgroundOverlayPart?.strokewidth || prev.Background.strokewidth),
-             text_offset: data.config.BackgroundOverlayPart?.text_offset || prev.Background.text_offset,
-             fontAllCaps: data.config.BackgroundOverlayPart?.fontAllCaps !== undefined ? data.config.BackgroundOverlayPart.fontAllCaps === "true" : prev.Background.fontAllCaps,
-             minPointSize: parseInt(data.config.BackgroundOverlayPart?.minPointSize || prev.Background.minPointSize),
-             maxPointSize: parseInt(data.config.BackgroundOverlayPart?.maxPointSize || prev.Background.maxPointSize),
-             lineSpacing: parseInt(data.config.BackgroundOverlayPart?.lineSpacing || prev.Background.lineSpacing),
-             MaxWidth: parseInt(data.config.BackgroundOverlayPart?.MaxWidth || prev.Background.MaxWidth),
-             MaxHeight: parseInt(data.config.BackgroundOverlayPart?.MaxHeight || prev.Background.MaxHeight),
-             TextGravity: data.config.BackgroundOverlayPart?.TextGravity || prev.Background.TextGravity
+             AddBorder: configData.BackgroundOverlayPart?.AddBorder !== undefined ? configData.BackgroundOverlayPart.AddBorder === "true" : prev.Background.AddBorder,
+             AddText: configData.BackgroundOverlayPart?.AddText !== undefined ? configData.BackgroundOverlayPart.AddText === "true" : prev.Background.AddText,
+             AddTextStroke: configData.BackgroundOverlayPart?.AddTextStroke !== undefined ? configData.BackgroundOverlayPart.AddTextStroke === "true" : prev.Background.AddTextStroke,
+             AddOverlay: configData.BackgroundOverlayPart?.AddOverlay !== undefined ? configData.BackgroundOverlayPart.AddOverlay === "true" : prev.Background.AddOverlay,
+             overlayfile: configData.PrerequisitePart?.backgroundoverlayfile || prev.Background.overlayfile,
+             UseResolutionOverlays: configData.PrerequisitePart?.UseBackgroundResolutionOverlays !== undefined ? configData.PrerequisitePart.UseBackgroundResolutionOverlays === "true" : prev.Background.UseResolutionOverlays,
+             bordercolor: configData.BackgroundOverlayPart?.bordercolor || prev.Background.bordercolor,
+             borderwidth: parseInt(configData.BackgroundOverlayPart?.borderwidth || prev.Background.borderwidth),
+             fontcolor: configData.BackgroundOverlayPart?.fontcolor || prev.Background.fontcolor,
+             strokecolor: configData.BackgroundOverlayPart?.strokecolor || prev.Background.strokecolor,
+             strokewidth: parseInt(configData.BackgroundOverlayPart?.strokewidth || prev.Background.strokewidth),
+             text_offset: configData.BackgroundOverlayPart?.text_offset || prev.Background.text_offset,
+             fontAllCaps: configData.BackgroundOverlayPart?.fontAllCaps !== undefined ? configData.BackgroundOverlayPart.fontAllCaps === "true" : prev.Background.fontAllCaps,
+             minPointSize: parseInt(configData.BackgroundOverlayPart?.minPointSize || prev.Background.minPointSize),
+             maxPointSize: parseInt(configData.BackgroundOverlayPart?.maxPointSize || prev.Background.maxPointSize),
+             lineSpacing: parseInt(configData.BackgroundOverlayPart?.lineSpacing || prev.Background.lineSpacing),
+             MaxWidth: parseInt(configData.BackgroundOverlayPart?.MaxWidth || prev.Background.MaxWidth),
+             MaxHeight: parseInt(configData.BackgroundOverlayPart?.MaxHeight || prev.Background.MaxHeight),
+             TextGravity: configData.BackgroundOverlayPart?.TextGravity || prev.Background.TextGravity
           },
           TitleCard: {
              ...prev.TitleCard,
-             AddBorder: data.config.TitleCardOverlayPart?.AddBorder !== undefined ? data.config.TitleCardOverlayPart.AddBorder === "true" : prev.TitleCard.AddBorder,
-             AddOverlay: data.config.TitleCardOverlayPart?.AddOverlay !== undefined ? data.config.TitleCardOverlayPart.AddOverlay === "true" : prev.TitleCard.AddOverlay,
-             overlayfile: data.config.PrerequisitePart?.titlecardoverlayfile || prev.TitleCard.overlayfile,
-             UseResolutionOverlays: data.config.PrerequisitePart?.UseTCResolutionOverlays !== undefined ? data.config.PrerequisitePart.UseTCResolutionOverlays === "true" : prev.TitleCard.UseResolutionOverlays,
-             bordercolor: data.config.TitleCardOverlayPart?.bordercolor || prev.TitleCard.bordercolor,
-             borderwidth: parseInt(data.config.TitleCardOverlayPart?.borderwidth || prev.TitleCard.borderwidth),
-             UseBackgroundAsTitleCard: data.config.TitleCardOverlayPart?.UseBackgroundAsTitleCard !== undefined ? data.config.TitleCardOverlayPart.UseBackgroundAsTitleCard === "true" : prev.TitleCard.UseBackgroundAsTitleCard,
-             BackgroundFallback: data.config.TitleCardOverlayPart?.BackgroundFallback !== undefined ? data.config.TitleCardOverlayPart.BackgroundFallback === "true" : prev.TitleCard.BackgroundFallback,
+             AddBorder: configData.TitleCardOverlayPart?.AddBorder !== undefined ? configData.TitleCardOverlayPart.AddBorder === "true" : prev.TitleCard.AddBorder,
+             AddOverlay: configData.TitleCardOverlayPart?.AddOverlay !== undefined ? configData.TitleCardOverlayPart.AddOverlay === "true" : prev.TitleCard.AddOverlay,
+             overlayfile: configData.PrerequisitePart?.titlecardoverlayfile || prev.TitleCard.overlayfile,
+             UseResolutionOverlays: configData.PrerequisitePart?.UseTCResolutionOverlays !== undefined ? configData.PrerequisitePart.UseTCResolutionOverlays === "true" : prev.TitleCard.UseResolutionOverlays,
+             bordercolor: configData.TitleCardOverlayPart?.bordercolor || prev.TitleCard.bordercolor,
+             borderwidth: parseInt(configData.TitleCardOverlayPart?.borderwidth || prev.TitleCard.borderwidth),
+             UseBackgroundAsTitleCard: configData.TitleCardOverlayPart?.UseBackgroundAsTitleCard !== undefined ? configData.TitleCardOverlayPart.UseBackgroundAsTitleCard === "true" : prev.TitleCard.UseBackgroundAsTitleCard,
+             BackgroundFallback: configData.TitleCardOverlayPart?.BackgroundFallback !== undefined ? configData.TitleCardOverlayPart.BackgroundFallback === "true" : prev.TitleCard.BackgroundFallback,
           },
           TitleCardEPTitle: { SampleText: "Episode Title", 
              ...prev.TitleCardEPTitle,
-             AddEPTitleText: data.config.TitleCardTitleTextPart?.AddEPTitleText !== undefined ? data.config.TitleCardTitleTextPart.AddEPTitleText === "true" : prev.TitleCardEPTitle.AddEPTitleText,
-             fontAllCaps: data.config.TitleCardTitleTextPart?.fontAllCaps !== undefined ? data.config.TitleCardTitleTextPart.fontAllCaps === "true" : prev.TitleCardEPTitle.fontAllCaps,
-             AddTextStroke: data.config.TitleCardTitleTextPart?.AddTextStroke !== undefined ? data.config.TitleCardTitleTextPart.AddTextStroke === "true" : prev.TitleCardEPTitle.AddTextStroke,
-             strokecolor: data.config.TitleCardTitleTextPart?.strokecolor || prev.TitleCardEPTitle.strokecolor,
-             strokewidth: parseInt(data.config.TitleCardTitleTextPart?.strokewidth || prev.TitleCardEPTitle.strokewidth),
-             fontcolor: data.config.TitleCardTitleTextPart?.fontcolor || prev.TitleCardEPTitle.fontcolor,
-             minPointSize: parseInt(data.config.TitleCardTitleTextPart?.minPointSize || prev.TitleCardEPTitle.minPointSize),
-             maxPointSize: parseInt(data.config.TitleCardTitleTextPart?.maxPointSize || prev.TitleCardEPTitle.maxPointSize),
-             MaxWidth: parseInt(data.config.TitleCardTitleTextPart?.MaxWidth || prev.TitleCardEPTitle.MaxWidth),
-             MaxHeight: parseInt(data.config.TitleCardTitleTextPart?.MaxHeight || prev.TitleCardEPTitle.MaxHeight),
-             text_offset: data.config.TitleCardTitleTextPart?.text_offset || prev.TitleCardEPTitle.text_offset,
-             lineSpacing: parseInt(data.config.TitleCardTitleTextPart?.lineSpacing || prev.TitleCardEPTitle.lineSpacing),
-             TextGravity: data.config.TitleCardTitleTextPart?.TextGravity || prev.TitleCardEPTitle.TextGravity
+             AddEPTitleText: configData.TitleCardTitleTextPart?.AddEPTitleText !== undefined ? configData.TitleCardTitleTextPart.AddEPTitleText === "true" : prev.TitleCardEPTitle.AddEPTitleText,
+             fontAllCaps: configData.TitleCardTitleTextPart?.fontAllCaps !== undefined ? configData.TitleCardTitleTextPart.fontAllCaps === "true" : prev.TitleCardEPTitle.fontAllCaps,
+             AddTextStroke: configData.TitleCardTitleTextPart?.AddTextStroke !== undefined ? configData.TitleCardTitleTextPart.AddTextStroke === "true" : prev.TitleCardEPTitle.AddTextStroke,
+             strokecolor: configData.TitleCardTitleTextPart?.strokecolor || prev.TitleCardEPTitle.strokecolor,
+             strokewidth: parseInt(configData.TitleCardTitleTextPart?.strokewidth || prev.TitleCardEPTitle.strokewidth),
+             fontcolor: configData.TitleCardTitleTextPart?.fontcolor || prev.TitleCardEPTitle.fontcolor,
+             minPointSize: parseInt(configData.TitleCardTitleTextPart?.minPointSize || prev.TitleCardEPTitle.minPointSize),
+             maxPointSize: parseInt(configData.TitleCardTitleTextPart?.maxPointSize || prev.TitleCardEPTitle.maxPointSize),
+             MaxWidth: parseInt(configData.TitleCardTitleTextPart?.MaxWidth || prev.TitleCardEPTitle.MaxWidth),
+             MaxHeight: parseInt(configData.TitleCardTitleTextPart?.MaxHeight || prev.TitleCardEPTitle.MaxHeight),
+             text_offset: configData.TitleCardTitleTextPart?.text_offset || prev.TitleCardEPTitle.text_offset,
+             lineSpacing: parseInt(configData.TitleCardTitleTextPart?.lineSpacing || prev.TitleCardEPTitle.lineSpacing),
+             TextGravity: configData.TitleCardTitleTextPart?.TextGravity || prev.TitleCardEPTitle.TextGravity
           },
           TitleCardEPText: {
              ...prev.TitleCardEPText,
-             AddEPText: data.config.TitleCardEPTextPart?.AddEPText !== undefined ? data.config.TitleCardEPTextPart.AddEPText === "true" : prev.TitleCardEPText.AddEPText,
-             fontAllCaps: data.config.TitleCardEPTextPart?.fontAllCaps !== undefined ? data.config.TitleCardEPTextPart.fontAllCaps === "true" : prev.TitleCardEPText.fontAllCaps,
-             AddTextStroke: data.config.TitleCardEPTextPart?.AddTextStroke !== undefined ? data.config.TitleCardEPTextPart.AddTextStroke === "true" : prev.TitleCardEPText.AddTextStroke,
-             strokecolor: data.config.TitleCardEPTextPart?.strokecolor || prev.TitleCardEPText.strokecolor,
-             strokewidth: parseInt(data.config.TitleCardEPTextPart?.strokewidth || prev.TitleCardEPText.strokewidth),
-             fontcolor: data.config.TitleCardEPTextPart?.fontcolor || prev.TitleCardEPText.fontcolor,
-             minPointSize: parseInt(data.config.TitleCardEPTextPart?.minPointSize || prev.TitleCardEPText.minPointSize),
-             maxPointSize: parseInt(data.config.TitleCardEPTextPart?.maxPointSize || prev.TitleCardEPText.maxPointSize),
-             MaxWidth: parseInt(data.config.TitleCardEPTextPart?.MaxWidth || prev.TitleCardEPText.MaxWidth),
-             MaxHeight: parseInt(data.config.TitleCardEPTextPart?.MaxHeight || prev.TitleCardEPText.MaxHeight),
-             text_offset: data.config.TitleCardEPTextPart?.text_offset || prev.TitleCardEPText.text_offset,
-             lineSpacing: parseInt(data.config.TitleCardEPTextPart?.lineSpacing || prev.TitleCardEPText.lineSpacing),
-             TextGravity: data.config.TitleCardEPTextPart?.TextGravity || prev.TitleCardEPText.TextGravity,
-             SeasonTCText: data.config.TitleCardEPTextPart?.SeasonTCText || prev.TitleCardEPText.SeasonTCText,
-             EpisodeTCText: data.config.TitleCardEPTextPart?.EpisodeTCText || prev.TitleCardEPText.EpisodeTCText
+             AddEPText: configData.TitleCardEPTextPart?.AddEPText !== undefined ? configData.TitleCardEPTextPart.AddEPText === "true" : prev.TitleCardEPText.AddEPText,
+             fontAllCaps: configData.TitleCardEPTextPart?.fontAllCaps !== undefined ? configData.TitleCardEPTextPart.fontAllCaps === "true" : prev.TitleCardEPText.fontAllCaps,
+             AddTextStroke: configData.TitleCardEPTextPart?.AddTextStroke !== undefined ? configData.TitleCardEPTextPart.AddTextStroke === "true" : prev.TitleCardEPText.AddTextStroke,
+             strokecolor: configData.TitleCardEPTextPart?.strokecolor || prev.TitleCardEPText.strokecolor,
+             strokewidth: parseInt(configData.TitleCardEPTextPart?.strokewidth || prev.TitleCardEPText.strokewidth),
+             fontcolor: configData.TitleCardEPTextPart?.fontcolor || prev.TitleCardEPText.fontcolor,
+             minPointSize: parseInt(configData.TitleCardEPTextPart?.minPointSize || prev.TitleCardEPText.minPointSize),
+             maxPointSize: parseInt(configData.TitleCardEPTextPart?.maxPointSize || prev.TitleCardEPText.maxPointSize),
+             MaxWidth: parseInt(configData.TitleCardEPTextPart?.MaxWidth || prev.TitleCardEPText.MaxWidth),
+             MaxHeight: parseInt(configData.TitleCardEPTextPart?.MaxHeight || prev.TitleCardEPText.MaxHeight),
+             text_offset: configData.TitleCardEPTextPart?.text_offset || prev.TitleCardEPText.text_offset,
+             lineSpacing: parseInt(configData.TitleCardEPTextPart?.lineSpacing || prev.TitleCardEPText.lineSpacing),
+             TextGravity: configData.TitleCardEPTextPart?.TextGravity || prev.TitleCardEPText.TextGravity,
+             SeasonTCText: configData.TitleCardEPTextPart?.SeasonTCText || prev.TitleCardEPText.SeasonTCText,
+             EpisodeTCText: configData.TitleCardEPTextPart?.EpisodeTCText || prev.TitleCardEPText.EpisodeTCText
           },
           Collection: { SampleText: "Collection Name", 
              ...prev.Collection,
-             AddBorder: data.config.CollectionPosterOverlayPart?.AddBorder === "true",
-             AddOverlay: data.config.CollectionPosterOverlayPart?.AddOverlay === "true",
-             overlayfile: data.config.PrerequisitePart?.collectionoverlayfile || "overlay-innerglow.png",
-             AddText: data.config.CollectionPosterOverlayPart?.AddText === "true",
-             AddTextStroke: data.config.CollectionPosterOverlayPart?.AddTextStroke === "true",
-             bordercolor: data.config.CollectionPosterOverlayPart?.bordercolor || "#000000",
-             borderwidth: parseInt(data.config.CollectionPosterOverlayPart?.borderwidth || 30),
-             fontcolor: data.config.CollectionPosterOverlayPart?.fontcolor || "#ffffff",
-             strokecolor: data.config.CollectionPosterOverlayPart?.strokecolor || "#000000",
-             strokewidth: parseInt(data.config.CollectionPosterOverlayPart?.strokewidth || 6),
-             text_offset: data.config.CollectionPosterOverlayPart?.text_offset || "+300",
-             fontAllCaps: data.config.CollectionPosterOverlayPart?.fontAllCaps === "true",
-             minPointSize: parseInt(data.config.CollectionPosterOverlayPart?.minPointSize || 100),
-             maxPointSize: parseInt(data.config.CollectionPosterOverlayPart?.maxPointSize || 250),
-             lineSpacing: parseInt(data.config.CollectionPosterOverlayPart?.lineSpacing || 0),
-             MaxWidth: parseInt(data.config.CollectionPosterOverlayPart?.MaxWidth || 1900),
-             MaxHeight: parseInt(data.config.CollectionPosterOverlayPart?.MaxHeight || 500),
-             TextGravity: data.config.CollectionPosterOverlayPart?.TextGravity || "south"
+             AddBorder: configData.CollectionPosterOverlayPart?.AddBorder === "true",
+             AddOverlay: configData.CollectionPosterOverlayPart?.AddOverlay === "true",
+             overlayfile: configData.PrerequisitePart?.collectionoverlayfile || "overlay-innerglow.png",
+             AddText: configData.CollectionPosterOverlayPart?.AddText === "true",
+             AddTextStroke: configData.CollectionPosterOverlayPart?.AddTextStroke === "true",
+             bordercolor: configData.CollectionPosterOverlayPart?.bordercolor || "#000000",
+             borderwidth: parseInt(configData.CollectionPosterOverlayPart?.borderwidth || 30),
+             fontcolor: configData.CollectionPosterOverlayPart?.fontcolor || "#ffffff",
+             strokecolor: configData.CollectionPosterOverlayPart?.strokecolor || "#000000",
+             strokewidth: parseInt(configData.CollectionPosterOverlayPart?.strokewidth || 6),
+             text_offset: configData.CollectionPosterOverlayPart?.text_offset || "+300",
+             fontAllCaps: configData.CollectionPosterOverlayPart?.fontAllCaps === "true",
+             minPointSize: parseInt(configData.CollectionPosterOverlayPart?.minPointSize || 100),
+             maxPointSize: parseInt(configData.CollectionPosterOverlayPart?.maxPointSize || 250),
+             lineSpacing: parseInt(configData.CollectionPosterOverlayPart?.lineSpacing || 0),
+             MaxWidth: parseInt(configData.CollectionPosterOverlayPart?.MaxWidth || 1900),
+             MaxHeight: parseInt(configData.CollectionPosterOverlayPart?.MaxHeight || 500),
+             TextGravity: configData.CollectionPosterOverlayPart?.TextGravity || "south"
           },
           CollectionTitle: {
              ...prev.CollectionTitle,
-             AddCollectionTitle: data.config.CollectionTitlePosterPart?.AddCollectionTitle === "true",
-             CollectionTitle: data.config.CollectionTitlePosterPart?.CollectionTitle || "Collection",
-             fontAllCaps: data.config.CollectionTitlePosterPart?.fontAllCaps === "true",
-             AddTextStroke: data.config.CollectionTitlePosterPart?.AddTextStroke === "true",
-             strokecolor: data.config.CollectionTitlePosterPart?.strokecolor || "#000000",
-             strokewidth: parseInt(data.config.CollectionTitlePosterPart?.strokewidth || 6),
-             fontcolor: data.config.CollectionTitlePosterPart?.fontcolor || "#ffffff",
-             minPointSize: parseInt(data.config.CollectionTitlePosterPart?.minPointSize || 50),
-             maxPointSize: parseInt(data.config.CollectionTitlePosterPart?.maxPointSize || 100),
-             MaxWidth: parseInt(data.config.CollectionTitlePosterPart?.MaxWidth || 1000),
-             MaxHeight: parseInt(data.config.CollectionTitlePosterPart?.MaxHeight || 140),
-             text_offset: data.config.CollectionTitlePosterPart?.text_offset || "+150",
-             lineSpacing: parseInt(data.config.CollectionTitlePosterPart?.lineSpacing || 0),
-             TextGravity: data.config.CollectionTitlePosterPart?.TextGravity || "south"
+             AddCollectionTitle: configData.CollectionTitlePosterPart?.AddCollectionTitle === "true",
+             CollectionTitle: configData.CollectionTitlePosterPart?.CollectionTitle || "Collection",
+             fontAllCaps: configData.CollectionTitlePosterPart?.fontAllCaps === "true",
+             AddTextStroke: configData.CollectionTitlePosterPart?.AddTextStroke === "true",
+             strokecolor: configData.CollectionTitlePosterPart?.strokecolor || "#000000",
+             strokewidth: parseInt(configData.CollectionTitlePosterPart?.strokewidth || 6),
+             fontcolor: configData.CollectionTitlePosterPart?.fontcolor || "#ffffff",
+             minPointSize: parseInt(configData.CollectionTitlePosterPart?.minPointSize || 50),
+             maxPointSize: parseInt(configData.CollectionTitlePosterPart?.maxPointSize || 100),
+             MaxWidth: parseInt(configData.CollectionTitlePosterPart?.MaxWidth || 1000),
+             MaxHeight: parseInt(configData.CollectionTitlePosterPart?.MaxHeight || 140),
+             text_offset: configData.CollectionTitlePosterPart?.text_offset || "+150",
+             lineSpacing: parseInt(configData.CollectionTitlePosterPart?.lineSpacing || 0),
+             TextGravity: configData.CollectionTitlePosterPart?.TextGravity || "south"
           },
           ResolutionOverlays: {
       poster4k: "overlay-innerglow.png",
@@ -540,13 +529,27 @@ export default function Blueprints() {
       "4KHDR10TC": "backgroundoverlay-innerglow.png"
     },
     Global: {
-             UseClearlogo: data.config.PrerequisitePart?.UseClearlogo !== undefined ? data.config.PrerequisitePart.UseClearlogo === "true" : prev.Global.UseClearlogo,
-             UseClearart: data.config.PrerequisitePart?.UseClearart !== undefined ? data.config.PrerequisitePart.UseClearart === "true" : prev.Global.UseClearart,
-             UseOriginalTitle: data.config.PrerequisitePart?.UseOriginalTitle === "true",
-             FlatWhiteLogo: data.config.PrerequisitePart?.ConvertLogoColor === "true",
-             TextlessOnly: data.config.PrerequisitePart?.SkipAddText === "true"
+             UseClearlogo: configData.PrerequisitePart?.UseClearlogo !== undefined ? configData.PrerequisitePart.UseClearlogo === "true" : prev.Global.UseClearlogo,
+             UseClearart: configData.PrerequisitePart?.UseClearart !== undefined ? configData.PrerequisitePart.UseClearart === "true" : prev.Global.UseClearart,
+             UseOriginalTitle: configData.PrerequisitePart?.UseOriginalTitle === "true",
+             FlatWhiteLogo: configData.PrerequisitePart?.ConvertLogoColor === "true",
+             TextlessOnly: configData.PrerequisitePart?.SkipAddText === "true"
           }
-        }));
+    }));
+  };
+
+  const fetchConfig = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/config`);
+      const data = await response.json();
+      if (data.success) {
+        setConfig(data.config);
+        setUsingFlatStructure(data.using_flat_structure || false);
+        if (data.display_names) setDisplayNames(data.display_names);
+
+        populateBuilderStateFromConfig(data.config);
       } else {
         setError("Failed to load config");
       }
@@ -595,6 +598,29 @@ export default function Blueprints() {
       setApplyingId(null);
     }
   };
+
+  const handleLoadBlueprintInBuilder = (blueprint) => {
+    if (!config) return;
+    
+    let fauxConfig = { ...config };
+    const updates = usingFlatStructure ? blueprint.updates.flat : blueprint.updates.nested;
+
+    if (usingFlatStructure) {
+      fauxConfig = { ...fauxConfig, ...updates };
+    } else {
+      for (const [section, fields] of Object.entries(updates)) {
+        fauxConfig[section] = {
+          ...(fauxConfig[section] || {}),
+          ...fields
+        };
+      }
+    }
+
+    populateBuilderStateFromConfig(fauxConfig);
+    setActiveTab("builder");
+    showSuccess(`Loaded ${blueprint.customTitle || blueprint.name || 'preset'} into Builder!`);
+  };
+
 
   const generateBlueprintUpdates = (state = builderState) => {
     return {
@@ -1098,10 +1124,16 @@ export default function Blueprints() {
                       ))}
                     </ul>
                   </Accordion>
-                  <button onClick={() => handleApplyBlueprint(blueprint)} disabled={applyingId !== null} className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 bg-theme-primary/10 hover:bg-theme-primary/20 text-theme-primary border border-theme-primary/30 rounded-lg font-medium transition-all disabled:opacity-50">
-                    {isApplying ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                    <span>{isApplying ? t("blueprints.applying") : t("blueprints.apply")}</span>
-                  </button>
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => handleLoadBlueprintInBuilder(blueprint)} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-theme-text">
+                      <Sliders className="w-4 h-4" />
+                      <span>{t("blueprints.loadInBuilder", "Load in Builder")}</span>
+                    </button>
+                    <button onClick={() => handleApplyBlueprint(blueprint)} disabled={applyingId !== null} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-theme-primary/10 hover:bg-theme-primary/20 text-theme-primary border border-theme-primary/30 rounded-lg font-medium transition-all disabled:opacity-50">
+                      {isApplying ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                      <span>{isApplying ? t("blueprints.applying") : t("blueprints.apply")}</span>
+                    </button>
+                  </div>
                 </div>
               );
             })}
