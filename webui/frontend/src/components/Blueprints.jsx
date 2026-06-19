@@ -309,6 +309,7 @@ export default function Blueprints() {
 
   // Tabs: "presets" | "builder"
   const [activeTab, setActiveTab] = useState("presets");
+  const [showOnlyModified, setShowOnlyModified] = useState(false);
 
   // Builder State
   const [builderState, setBuilderState] = useState(JSON.parse(JSON.stringify(DEFAULT_BUILDER_STATE)));
@@ -1555,22 +1556,42 @@ export default function Blueprints() {
               </div>
 
               <div className="bg-theme-bg/50 rounded-lg border border-theme p-4">
-                <h3 className="font-semibold text-theme-text mb-4 border-b border-theme pb-2">Included Settings</h3>
+                <div className="flex justify-between items-center mb-4 border-b border-theme pb-2">
+                  <h3 className="font-semibold text-theme-text">Included Settings</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-theme-muted">Show Only Modified</span>
+                    <button 
+                      onClick={() => setShowOnlyModified(!showOnlyModified)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${showOnlyModified ? 'bg-theme-primary' : 'bg-theme-bg border border-theme'}`}
+                    >
+                      <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${showOnlyModified ? 'translate-x-5' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                </div>
                 <ul className="space-y-2 text-xs">
                   {savePresetModalState.updates && Object.entries(savePresetModalState.updates).map(([section, fields]) => {
                     const defaultUpdates = generateBlueprintUpdates(DEFAULT_BUILDER_STATE);
+                    
+                    const fieldsToRender = Object.entries(fields).filter(([key, val]) => {
+                        const isChanged = String(val) !== String(defaultUpdates[section]?.[key]);
+                        if (showOnlyModified) return isChanged;
+                        return true;
+                    });
+                    
+                    if (fieldsToRender.length === 0) return null;
+                    
                     return (
                     <li key={section} className="flex flex-col border-b border-theme/10 pb-2 last:border-0 last:pb-0">
                       <span className="text-theme-primary font-semibold mb-1">{section}</span>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 pl-2 border-l-2 border-theme-primary/30">
-                        {Object.entries(fields).map(([key, val]) => {
+                        {fieldsToRender.map(([key, val]) => {
                           const isChanged = String(val) !== String(defaultUpdates[section]?.[key]);
                           return (
-                          <div key={key} className={`flex justify-between items-center gap-2 px-1.5 py-0.5 rounded ${isChanged ? 'bg-theme-primary/10' : ''}`}>
-                            <span className={`truncate ${isChanged ? 'text-theme-primary font-medium' : 'text-theme-muted'}`} title={key}>
-                                {key} {isChanged && <span className="text-theme-primary" title="Changed from default">*</span>}
+                          <div key={key} className={`flex justify-between items-center gap-2 px-1.5 py-0.5 rounded ${isChanged ? 'bg-green-500/10 border border-green-500/30' : ''}`}>
+                            <span className={`truncate ${isChanged ? 'text-green-500 font-bold' : 'text-theme-muted'}`} title={key}>
+                                {key} {isChanged && <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-500 text-white" title="Changed from default">MODIFIED</span>}
                             </span>
-                            <span className={`font-mono px-1.5 rounded truncate max-w-[100px] ${isChanged ? 'text-theme-primary font-bold bg-theme-primary/20' : 'text-theme-text bg-theme-bg'}`} title={String(val)}>{String(val)}</span>
+                            <span className={`font-mono px-1.5 rounded truncate max-w-[100px] ${isChanged ? 'text-green-500 font-bold bg-green-500/20' : 'text-theme-text bg-theme-bg'}`} title={String(val)}>{String(val)}</span>
                           </div>
                         )})}
                       </div>
