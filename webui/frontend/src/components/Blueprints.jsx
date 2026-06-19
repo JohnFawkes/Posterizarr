@@ -1011,10 +1011,24 @@ export default function Blueprints() {
     return `/images/default_poster.jpg?t=${Date.now()}`;
   };
 
-  const getScalingStyle = (settings) => {
+  const getScalingStyle = (settings, text = "") => {
+    // Estimate width character ratio to prevent text from overflowing horizontally and forcing a wrap.
+    // We assume a char aspect ratio of ~0.55. If the text is very long, it scales down smoothly.
+    const charScale = Math.max(1, text.length) * 0.55;
+    const computedMaxCqw = 100 / charScale;
+    
+    // Posterizarr config uses absolute pixels for minPointSize/maxPointSize relative to a 2000x3000 canvas.
+    // Because our web preview is scaled down (e.g. 400x600), raw pixels like "95px" will massively overflow.
+    // We convert these absolute pixels into Container Query Heights (cqh) relative to the red bounding box!
+    const minSizeCqh = ((settings?.minPointSize || 10) / (settings?.MaxHeight || 500)) * 100;
+    const maxSizeCqh = ((settings?.maxPointSize || 200) / (settings?.MaxHeight || 500)) * 100;
+    
     return {
-      fontSize: `clamp(${settings?.minPointSize || 10}px, min(100cqw, 90cqh), ${settings?.maxPointSize || 200}px)`,
+      fontSize: `clamp(${minSizeCqh}cqh, min(${computedMaxCqw}cqw, 90cqh), ${maxSizeCqh}cqh)`,
       textTransform: settings?.fontAllCaps ? 'uppercase' : 'none',
+      lineHeight: 1 + (settings?.lineSpacing || 0) / 100,
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-word',
     };
   };
 
@@ -1252,27 +1266,25 @@ export default function Blueprints() {
                          (previewType === 'Collection' && builderState.Collection.AddText) ||
                          (previewType === 'Background' && builderState.Background.AddText)) && (
                           <div className={`z-20 pointer-events-none transition-all ${selectedLayer?.endsWith('.Text') ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState[previewType]), ...previewStyles.text }}>
-                            {builderState.Global.UseClearlogo ? (
+                            {builderState.Global.UseClearlogo && previewType !== 'Season' ? (
                                <img
                                  src={sampleLogoUrl}
                                  alt="Sample Logo"
-                                 
                                  referrerPolicy="no-referrer"
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                  style={{
                                     filter: builderState.Global.FlatWhiteLogo ? 'brightness(0) invert(1) drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' : 'drop-shadow(0px 4px 10px rgba(0,0,0,0.8))'
                                  }}
                                />
-                            ) : builderState.Global.UseClearart ? (
+                            ) : builderState.Global.UseClearart && previewType !== 'Season' ? (
                                <img
                                  src={sampleArtUrl}
                                  alt="Sample Art"
-                                 
                                  referrerPolicy="no-referrer"
                                  className="w-full h-full object-contain drop-shadow-2xl transition-all"
                                />
                             ) : (
-                               <div className="font-bold tracking-widest text-center leading-none" style={{ ...getScalingStyle(builderState[previewType]), color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{builderState[previewType].SampleText}</div>
+                               <div className="font-bold tracking-widest text-center" style={{ ...getScalingStyle(builderState[previewType], builderState[previewType].SampleText), color: previewStyles.text.color, WebkitTextStroke: previewStyles.text.WebkitTextStroke }}>{builderState[previewType].SampleText}</div>
                             )}
                           </div>
                         )}
@@ -1282,7 +1294,26 @@ export default function Blueprints() {
                           <>
                             {builderState.SeasonTitle.ShowTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'SeasonTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.SeasonTitle), ...seasonTitleStyles.text }}>
-                                  <div className="font-bold tracking-wider leading-none text-center" style={{ ...getScalingStyle(builderState.SeasonTitle) }}>{builderState.SeasonTitle.SampleText}</div>
+                                  {builderState.Global.UseClearlogo ? (
+                                    <img
+                                      src={sampleLogoUrl}
+                                      alt="Sample Logo"
+                                      referrerPolicy="no-referrer"
+                                      className="w-full h-full object-contain drop-shadow-2xl transition-all"
+                                      style={{
+                                         filter: builderState.Global.FlatWhiteLogo ? 'brightness(0) invert(1) drop-shadow(0px 4px 10px rgba(0,0,0,0.8))' : 'drop-shadow(0px 4px 10px rgba(0,0,0,0.8))'
+                                      }}
+                                    />
+                                  ) : builderState.Global.UseClearart ? (
+                                    <img
+                                      src={sampleArtUrl}
+                                      alt="Sample Art"
+                                      referrerPolicy="no-referrer"
+                                      className="w-full h-full object-contain drop-shadow-2xl transition-all"
+                                    />
+                                  ) : (
+                                    <div className="font-bold tracking-wider text-center" style={{ ...getScalingStyle(builderState.SeasonTitle, builderState.SeasonTitle.SampleText) }}>{builderState.SeasonTitle.SampleText}</div>
+                                  )}
                                </div>
                             )}
                           </>
@@ -1293,12 +1324,12 @@ export default function Blueprints() {
                           <>
                             {builderState.TitleCardEPText.AddEPText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPText' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPText), ...tcEpStyles.text }}>
-                                  <div className="font-medium leading-none text-center" style={{ ...getScalingStyle(builderState.TitleCardEPText) }}>{builderState.TitleCardEPText.SeasonTCText} 1 • {builderState.TitleCardEPText.EpisodeTCText} 1</div>
+                                  <div className="font-medium text-center" style={{ ...getScalingStyle(builderState.TitleCardEPText, `${builderState.TitleCardEPText.SeasonTCText} 1 • ${builderState.TitleCardEPText.EpisodeTCText} 1`) }}>{builderState.TitleCardEPText.SeasonTCText} 1 • {builderState.TitleCardEPText.EpisodeTCText} 1</div>
                                </div>
                             )}
                             {builderState.TitleCardEPTitle.AddEPTitleText && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'TitleCardEPTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.TitleCardEPTitle), ...tcTitleStyles.text }}>
-                                  <div className="font-bold tracking-wide leading-none text-center" style={{ ...getScalingStyle(builderState.TitleCardEPTitle) }}>{builderState.TitleCardEPTitle.SampleText}</div>
+                                  <div className="font-bold tracking-wide text-center" style={{ ...getScalingStyle(builderState.TitleCardEPTitle, builderState.TitleCardEPTitle.SampleText) }}>{builderState.TitleCardEPTitle.SampleText}</div>
                                </div>
                             )}
                           </>
@@ -1309,7 +1340,7 @@ export default function Blueprints() {
                           <>
                             {builderState.CollectionTitle.AddCollectionTitle && (
                                <div className={`z-20 pointer-events-none transition-all ${selectedLayer === 'CollectionTitle' ? 'border-2 border-dashed border-red-500/50 bg-red-500/5 ring-2 ring-theme-primary ring-inset' : ''}`} style={{ ...getBoundingBoxStyle(builderState.CollectionTitle), ...collectionTitleStyles.text }}>
-                                  <div className="font-bold tracking-wider leading-none text-center" style={{ ...getScalingStyle(builderState.CollectionTitle) }}>{builderState.CollectionTitle.CollectionTitle}</div>
+                                  <div className="font-bold tracking-wider text-center" style={{ ...getScalingStyle(builderState.CollectionTitle, builderState.CollectionTitle.CollectionTitle) }}>{builderState.CollectionTitle.CollectionTitle}</div>
                                </div>
                             )}
                           </>
