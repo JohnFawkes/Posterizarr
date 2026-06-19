@@ -256,26 +256,7 @@ const LayerItem = ({ id, label, icon: Icon, active, onSelect, enabled, onToggle,
   </div>
 );
 
-export default function Blueprints() {
-  const { t } = useTranslation();
-  const { showSuccess, showError } = useToast();
-  const fileInputRef = useRef(null);
-
-  const [config, setConfig] = useState(null);
-  const [usingFlatStructure, setUsingFlatStructure] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [applyingId, setApplyingId] = useState(null);
-  const [error, setError] = useState(null);
-  const [displayNames, setDisplayNames] = useState({});
-  const [isImporting, setIsImporting] = useState(false);
-  const [customPreviewImage, setCustomPreviewImage] = useState(null);
-  const [overlayFiles, setOverlayFiles] = useState([]);
-
-  // Tabs: "presets" | "builder"
-  const [activeTab, setActiveTab] = useState("presets");
-
-  // Builder State
-  const [builderState, setBuilderState] = useState({
+const DEFAULT_BUILDER_STATE = {
     ImageProcessing: true,
     outputQuality: 100,
     Poster: { SampleText: "Movie Title",  AddBorder: false, AddOverlay: false, overlayfile: "overlay-innerglow.png", AddText: false, AddTextStroke: false, UseResolutionOverlays: false, bordercolor: "#ffffff", borderwidth: 30, strokecolor: "#000000", strokewidth: 6, fontcolor: "#ffffff", text_offset: "+430", fontAllCaps: true, minPointSize: 45, maxPointSize: 300, lineSpacing: 0, MaxWidth: 1900, MaxHeight: 500, TextGravity: "south" },
@@ -309,7 +290,28 @@ export default function Blueprints() {
       FlatWhiteLogo: false,
       TextlessOnly: false
     }
-  });
+  };
+
+export default function Blueprints() {
+  const { t } = useTranslation();
+  const { showSuccess, showError } = useToast();
+  const fileInputRef = useRef(null);
+
+  const [config, setConfig] = useState(null);
+  const [usingFlatStructure, setUsingFlatStructure] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [applyingId, setApplyingId] = useState(null);
+  const [error, setError] = useState(null);
+  const [displayNames, setDisplayNames] = useState({});
+  const [isImporting, setIsImporting] = useState(false);
+  const [customPreviewImage, setCustomPreviewImage] = useState(null);
+  const [overlayFiles, setOverlayFiles] = useState([]);
+
+  // Tabs: "presets" | "builder"
+  const [activeTab, setActiveTab] = useState("presets");
+
+  // Builder State
+  const [builderState, setBuilderState] = useState(JSON.parse(JSON.stringify(DEFAULT_BUILDER_STATE)));
 
   const [previewType, setPreviewType] = useState("Poster"); // "Poster", "Season", "TitleCard", "Background", "Collection"
   const [selectedLayer, setSelectedLayer] = useState("Global");
@@ -593,158 +595,158 @@ export default function Blueprints() {
     }
   };
 
-  const generateBlueprintUpdates = () => {
+  const generateBlueprintUpdates = (state = builderState) => {
     return {
       OverlayPart: {
-        ImageProcessing: builderState.ImageProcessing ? "true" : "false",
-        outputQuality: `${builderState.outputQuality}%`
+        ImageProcessing: state.ImageProcessing ? "true" : "false",
+        outputQuality: `${state.outputQuality}%`
       },
       PrerequisitePart: {
-        UseClearlogo: builderState.Global.UseClearlogo ? "true" : "false",
-        UseClearart: builderState.Global.UseClearart ? "true" : "false",
-        UseOriginalTitle: builderState.Global.UseOriginalTitle ? "true" : "false",
-        ConvertLogoColor: builderState.Global.FlatWhiteLogo ? "true" : "false",
-        LogoFlatColor: builderState.Global.FlatWhiteLogo ? "white" : undefined,
-        SkipAddText: builderState.Global.TextlessOnly ? "true" : "false",
-        UsePosterResolutionOverlays: builderState.Poster.UseResolutionOverlays ? "true" : "false",
-        UseBackgroundResolutionOverlays: builderState.Background.UseResolutionOverlays ? "true" : "false",
-        UseTCResolutionOverlays: builderState.TitleCard.UseResolutionOverlays ? "true" : "false",
-                backgroundoverlayfile: builderState.Background.overlayfile,
-        showbackgroundoverlayfile: builderState.Background.overlayfile,
-        titlecardoverlayfile: builderState.TitleCard.overlayfile,
-        overlayfile: builderState.Poster.overlayfile,
-        showoverlayfile: builderState.Poster.overlayfile,
-        seasonoverlayfile: builderState.Season.overlayfile,
-        poster4k: builderState.ResolutionOverlays.poster4k,
-        Poster1080p: builderState.ResolutionOverlays.Poster1080p,
-        Background4k: builderState.ResolutionOverlays.Background4k,
-        Background1080p: builderState.ResolutionOverlays.Background1080p,
-        TC4k: builderState.ResolutionOverlays.TC4k,
-        TC1080p: builderState.ResolutionOverlays.TC1080p,
-        "4KDoVi": builderState.ResolutionOverlays["4KDoVi"],
-        "4KHDR10": builderState.ResolutionOverlays["4KHDR10"],
-        "4KDoViHDR10": builderState.ResolutionOverlays["4KDoViHDR10"],
-        "4KDoViBackground": builderState.ResolutionOverlays["4KDoViBackground"],
-        "4KHDR10Background": builderState.ResolutionOverlays["4KHDR10Background"],
-        "4KDoViHDR10Background": builderState.ResolutionOverlays["4KDoViHDR10Background"],
-        "4KDoViTC": builderState.ResolutionOverlays["4KDoViTC"],
-        "4KHDR10TC": builderState.ResolutionOverlays["4KHDR10TC"]
+        UseClearlogo: state.Global.UseClearlogo ? "true" : "false",
+        UseClearart: state.Global.UseClearart ? "true" : "false",
+        UseOriginalTitle: state.Global.UseOriginalTitle ? "true" : "false",
+        ConvertLogoColor: state.Global.FlatWhiteLogo ? "true" : "false",
+        LogoFlatColor: state.Global.FlatWhiteLogo ? "white" : undefined,
+        SkipAddText: state.Global.TextlessOnly ? "true" : "false",
+        UsePosterResolutionOverlays: state.Poster.UseResolutionOverlays ? "true" : "false",
+        UseBackgroundResolutionOverlays: state.Background.UseResolutionOverlays ? "true" : "false",
+        UseTCResolutionOverlays: state.TitleCard.UseResolutionOverlays ? "true" : "false",
+                backgroundoverlayfile: state.Background.overlayfile,
+        showbackgroundoverlayfile: state.Background.overlayfile,
+        titlecardoverlayfile: state.TitleCard.overlayfile,
+        overlayfile: state.Poster.overlayfile,
+        showoverlayfile: state.Poster.overlayfile,
+        seasonoverlayfile: state.Season.overlayfile,
+        poster4k: state.ResolutionOverlays.poster4k,
+        Poster1080p: state.ResolutionOverlays.Poster1080p,
+        Background4k: state.ResolutionOverlays.Background4k,
+        Background1080p: state.ResolutionOverlays.Background1080p,
+        TC4k: state.ResolutionOverlays.TC4k,
+        TC1080p: state.ResolutionOverlays.TC1080p,
+        "4KDoVi": state.ResolutionOverlays["4KDoVi"],
+        "4KHDR10": state.ResolutionOverlays["4KHDR10"],
+        "4KDoViHDR10": state.ResolutionOverlays["4KDoViHDR10"],
+        "4KDoViBackground": state.ResolutionOverlays["4KDoViBackground"],
+        "4KHDR10Background": state.ResolutionOverlays["4KHDR10Background"],
+        "4KDoViHDR10Background": state.ResolutionOverlays["4KDoViHDR10Background"],
+        "4KDoViTC": state.ResolutionOverlays["4KDoViTC"],
+        "4KHDR10TC": state.ResolutionOverlays["4KHDR10TC"]
       },
       PosterOverlayPart: {
-        AddBorder: builderState.Poster.AddBorder ? "true" : "false",
-        AddText: builderState.Poster.AddText ? "true" : "false",
-        AddTextStroke: builderState.Poster.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Poster.AddOverlay ? "true" : "false",
-        bordercolor: builderState.Poster.bordercolor,
-        borderwidth: builderState.Poster.borderwidth.toString(),
-        fontcolor: builderState.Poster.fontcolor,
-        strokecolor: builderState.Poster.strokecolor,
-        strokewidth: builderState.Poster.strokewidth.toString(),
-        text_offset: builderState.Poster.text_offset,
-        fontAllCaps: builderState.Poster.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.Poster.minPointSize.toString(),
-        maxPointSize: builderState.Poster.maxPointSize.toString(),
-        lineSpacing: builderState.Poster.lineSpacing.toString(),
-        MaxWidth: builderState.Poster.MaxWidth.toString(),
-        MaxHeight: builderState.Poster.MaxHeight.toString(),
-        TextGravity: builderState.Poster.TextGravity
+        AddBorder: state.Poster.AddBorder ? "true" : "false",
+        AddText: state.Poster.AddText ? "true" : "false",
+        AddTextStroke: state.Poster.AddTextStroke ? "true" : "false",
+        AddOverlay: state.Poster.AddOverlay ? "true" : "false",
+        bordercolor: state.Poster.bordercolor,
+        borderwidth: state.Poster.borderwidth.toString(),
+        fontcolor: state.Poster.fontcolor,
+        strokecolor: state.Poster.strokecolor,
+        strokewidth: state.Poster.strokewidth.toString(),
+        text_offset: state.Poster.text_offset,
+        fontAllCaps: state.Poster.fontAllCaps ? "true" : "false",
+        minPointSize: state.Poster.minPointSize.toString(),
+        maxPointSize: state.Poster.maxPointSize.toString(),
+        lineSpacing: state.Poster.lineSpacing.toString(),
+        MaxWidth: state.Poster.MaxWidth.toString(),
+        MaxHeight: state.Poster.MaxHeight.toString(),
+        TextGravity: state.Poster.TextGravity
       },
       SeasonPosterOverlayPart: {
-        AddBorder: builderState.Season.AddBorder ? "true" : "false",
-        AddText: builderState.Season.AddText ? "true" : "false",
-        AddTextStroke: builderState.Season.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Season.AddOverlay ? "true" : "false",
-        bordercolor: builderState.Season.bordercolor,
-        borderwidth: builderState.Season.borderwidth.toString(),
-        fontcolor: builderState.Season.fontcolor,
-        strokecolor: builderState.Season.strokecolor,
-        strokewidth: builderState.Season.strokewidth.toString(),
-        text_offset: builderState.Season.text_offset,
-        fontAllCaps: builderState.Season.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.Season.minPointSize.toString(),
-        maxPointSize: builderState.Season.maxPointSize.toString(),
-        lineSpacing: builderState.Season.lineSpacing.toString(),
-        MaxWidth: builderState.Season.MaxWidth.toString(),
-        MaxHeight: builderState.Season.MaxHeight.toString(),
-        TextGravity: builderState.Season.TextGravity,
-        ShowFallback: builderState.Season.ShowFallback ? "true" : "false",
-        OverrideSeasonName: builderState.Season.OverrideSeasonName ? "true" : "false",
-        SeasonOverrideText: builderState.Season.SeasonOverrideText,
-        SpecialSeasonOverrideText: builderState.Season.SpecialSeasonOverrideText
+        AddBorder: state.Season.AddBorder ? "true" : "false",
+        AddText: state.Season.AddText ? "true" : "false",
+        AddTextStroke: state.Season.AddTextStroke ? "true" : "false",
+        AddOverlay: state.Season.AddOverlay ? "true" : "false",
+        bordercolor: state.Season.bordercolor,
+        borderwidth: state.Season.borderwidth.toString(),
+        fontcolor: state.Season.fontcolor,
+        strokecolor: state.Season.strokecolor,
+        strokewidth: state.Season.strokewidth.toString(),
+        text_offset: state.Season.text_offset,
+        fontAllCaps: state.Season.fontAllCaps ? "true" : "false",
+        minPointSize: state.Season.minPointSize.toString(),
+        maxPointSize: state.Season.maxPointSize.toString(),
+        lineSpacing: state.Season.lineSpacing.toString(),
+        MaxWidth: state.Season.MaxWidth.toString(),
+        MaxHeight: state.Season.MaxHeight.toString(),
+        TextGravity: state.Season.TextGravity,
+        ShowFallback: state.Season.ShowFallback ? "true" : "false",
+        OverrideSeasonName: state.Season.OverrideSeasonName ? "true" : "false",
+        SeasonOverrideText: state.Season.SeasonOverrideText,
+        SpecialSeasonOverrideText: state.Season.SpecialSeasonOverrideText
       },
       ShowTitleOnSeasonPosterPart: {
-        AddShowTitletoSeason: builderState.SeasonTitle.ShowTitle ? "true" : "false",
-        fontAllCaps: builderState.SeasonTitle.fontAllCaps ? "true" : "false",
-        AddTextStroke: builderState.SeasonTitle.AddTextStroke ? "true" : "false",
-        strokecolor: builderState.SeasonTitle.strokecolor,
-        strokewidth: builderState.SeasonTitle.strokewidth.toString(),
-        fontcolor: builderState.SeasonTitle.fontcolor,
-        minPointSize: builderState.SeasonTitle.minPointSize.toString(),
-        maxPointSize: builderState.SeasonTitle.maxPointSize.toString(),
-        MaxWidth: builderState.SeasonTitle.MaxWidth.toString(),
-        MaxHeight: builderState.SeasonTitle.MaxHeight.toString(),
-        text_offset: builderState.SeasonTitle.text_offset,
-        lineSpacing: builderState.SeasonTitle.lineSpacing.toString(),
-        TextGravity: builderState.SeasonTitle.TextGravity
+        AddShowTitletoSeason: state.SeasonTitle.ShowTitle ? "true" : "false",
+        fontAllCaps: state.SeasonTitle.fontAllCaps ? "true" : "false",
+        AddTextStroke: state.SeasonTitle.AddTextStroke ? "true" : "false",
+        strokecolor: state.SeasonTitle.strokecolor,
+        strokewidth: state.SeasonTitle.strokewidth.toString(),
+        fontcolor: state.SeasonTitle.fontcolor,
+        minPointSize: state.SeasonTitle.minPointSize.toString(),
+        maxPointSize: state.SeasonTitle.maxPointSize.toString(),
+        MaxWidth: state.SeasonTitle.MaxWidth.toString(),
+        MaxHeight: state.SeasonTitle.MaxHeight.toString(),
+        text_offset: state.SeasonTitle.text_offset,
+        lineSpacing: state.SeasonTitle.lineSpacing.toString(),
+        TextGravity: state.SeasonTitle.TextGravity
       },
       BackgroundOverlayPart: {
-        AddBorder: builderState.Background.AddBorder ? "true" : "false",
-        AddText: builderState.Background.AddText ? "true" : "false",
-        AddTextStroke: builderState.Background.AddTextStroke ? "true" : "false",
-        AddOverlay: builderState.Background.AddOverlay ? "true" : "false",
-        bordercolor: builderState.Background.bordercolor,
-        borderwidth: builderState.Background.borderwidth.toString(),
-        fontcolor: builderState.Background.fontcolor,
-        strokecolor: builderState.Background.strokecolor,
-        strokewidth: builderState.Background.strokewidth.toString(),
-        text_offset: builderState.Background.text_offset,
-        fontAllCaps: builderState.Background.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.Background.minPointSize.toString(),
-        maxPointSize: builderState.Background.maxPointSize.toString(),
-        lineSpacing: builderState.Background.lineSpacing.toString(),
-        MaxWidth: builderState.Background.MaxWidth.toString(),
-        MaxHeight: builderState.Background.MaxHeight.toString(),
-        TextGravity: builderState.Background.TextGravity
+        AddBorder: state.Background.AddBorder ? "true" : "false",
+        AddText: state.Background.AddText ? "true" : "false",
+        AddTextStroke: state.Background.AddTextStroke ? "true" : "false",
+        AddOverlay: state.Background.AddOverlay ? "true" : "false",
+        bordercolor: state.Background.bordercolor,
+        borderwidth: state.Background.borderwidth.toString(),
+        fontcolor: state.Background.fontcolor,
+        strokecolor: state.Background.strokecolor,
+        strokewidth: state.Background.strokewidth.toString(),
+        text_offset: state.Background.text_offset,
+        fontAllCaps: state.Background.fontAllCaps ? "true" : "false",
+        minPointSize: state.Background.minPointSize.toString(),
+        maxPointSize: state.Background.maxPointSize.toString(),
+        lineSpacing: state.Background.lineSpacing.toString(),
+        MaxWidth: state.Background.MaxWidth.toString(),
+        MaxHeight: state.Background.MaxHeight.toString(),
+        TextGravity: state.Background.TextGravity
       },
       TitleCardOverlayPart: {
-        AddBorder: builderState.TitleCard.AddBorder ? "true" : "false",
-        AddOverlay: builderState.TitleCard.AddOverlay ? "true" : "false",
-        bordercolor: builderState.TitleCard.bordercolor,
-        borderwidth: builderState.TitleCard.borderwidth.toString(),
-        UseBackgroundAsTitleCard: builderState.TitleCard.UseBackgroundAsTitleCard ? "true" : "false",
-        BackgroundFallback: builderState.TitleCard.BackgroundFallback ? "true" : "false"
+        AddBorder: state.TitleCard.AddBorder ? "true" : "false",
+        AddOverlay: state.TitleCard.AddOverlay ? "true" : "false",
+        bordercolor: state.TitleCard.bordercolor,
+        borderwidth: state.TitleCard.borderwidth.toString(),
+        UseBackgroundAsTitleCard: state.TitleCard.UseBackgroundAsTitleCard ? "true" : "false",
+        BackgroundFallback: state.TitleCard.BackgroundFallback ? "true" : "false"
       },
       TitleCardTitleTextPart: {
-        AddEPTitleText: builderState.TitleCardEPTitle.AddEPTitleText ? "true" : "false",
-        AddTextStroke: builderState.TitleCardEPTitle.AddTextStroke ? "true" : "false",
-        fontcolor: builderState.TitleCardEPTitle.fontcolor,
-        strokecolor: builderState.TitleCardEPTitle.strokecolor,
-        strokewidth: builderState.TitleCardEPTitle.strokewidth.toString(),
-        text_offset: builderState.TitleCardEPTitle.text_offset,
-        fontAllCaps: builderState.TitleCardEPTitle.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.TitleCardEPTitle.minPointSize.toString(),
-        maxPointSize: builderState.TitleCardEPTitle.maxPointSize.toString(),
-        lineSpacing: builderState.TitleCardEPTitle.lineSpacing.toString(),
-        MaxWidth: builderState.TitleCardEPTitle.MaxWidth.toString(),
-        MaxHeight: builderState.TitleCardEPTitle.MaxHeight.toString(),
-        TextGravity: builderState.TitleCardEPTitle.TextGravity
+        AddEPTitleText: state.TitleCardEPTitle.AddEPTitleText ? "true" : "false",
+        AddTextStroke: state.TitleCardEPTitle.AddTextStroke ? "true" : "false",
+        fontcolor: state.TitleCardEPTitle.fontcolor,
+        strokecolor: state.TitleCardEPTitle.strokecolor,
+        strokewidth: state.TitleCardEPTitle.strokewidth.toString(),
+        text_offset: state.TitleCardEPTitle.text_offset,
+        fontAllCaps: state.TitleCardEPTitle.fontAllCaps ? "true" : "false",
+        minPointSize: state.TitleCardEPTitle.minPointSize.toString(),
+        maxPointSize: state.TitleCardEPTitle.maxPointSize.toString(),
+        lineSpacing: state.TitleCardEPTitle.lineSpacing.toString(),
+        MaxWidth: state.TitleCardEPTitle.MaxWidth.toString(),
+        MaxHeight: state.TitleCardEPTitle.MaxHeight.toString(),
+        TextGravity: state.TitleCardEPTitle.TextGravity
       },
       TitleCardEPTextPart: {
-        AddEPText: builderState.TitleCardEPText.AddEPText ? "true" : "false",
-        AddTextStroke: builderState.TitleCardEPText.AddTextStroke ? "true" : "false",
-        fontcolor: builderState.TitleCardEPText.fontcolor,
-        strokecolor: builderState.TitleCardEPText.strokecolor,
-        strokewidth: builderState.TitleCardEPText.strokewidth.toString(),
-        text_offset: builderState.TitleCardEPText.text_offset,
-        fontAllCaps: builderState.TitleCardEPText.fontAllCaps ? "true" : "false",
-        minPointSize: builderState.TitleCardEPText.minPointSize.toString(),
-        maxPointSize: builderState.TitleCardEPText.maxPointSize.toString(),
-        lineSpacing: builderState.TitleCardEPText.lineSpacing.toString(),
-        MaxWidth: builderState.TitleCardEPText.MaxWidth.toString(),
-        MaxHeight: builderState.TitleCardEPText.MaxHeight.toString(),
-        TextGravity: builderState.TitleCardEPText.TextGravity,
-        SeasonTCText: builderState.TitleCardEPText.SeasonTCText,
-        EpisodeTCText: builderState.TitleCardEPText.EpisodeTCText
+        AddEPText: state.TitleCardEPText.AddEPText ? "true" : "false",
+        AddTextStroke: state.TitleCardEPText.AddTextStroke ? "true" : "false",
+        fontcolor: state.TitleCardEPText.fontcolor,
+        strokecolor: state.TitleCardEPText.strokecolor,
+        strokewidth: state.TitleCardEPText.strokewidth.toString(),
+        text_offset: state.TitleCardEPText.text_offset,
+        fontAllCaps: state.TitleCardEPText.fontAllCaps ? "true" : "false",
+        minPointSize: state.TitleCardEPText.minPointSize.toString(),
+        maxPointSize: state.TitleCardEPText.maxPointSize.toString(),
+        lineSpacing: state.TitleCardEPText.lineSpacing.toString(),
+        MaxWidth: state.TitleCardEPText.MaxWidth.toString(),
+        MaxHeight: state.TitleCardEPText.MaxHeight.toString(),
+        TextGravity: state.TitleCardEPText.TextGravity,
+        SeasonTCText: state.TitleCardEPText.SeasonTCText,
+        EpisodeTCText: state.TitleCardEPText.EpisodeTCText
       }
     };
   };
@@ -1555,19 +1557,25 @@ export default function Blueprints() {
               <div className="bg-theme-bg/50 rounded-lg border border-theme p-4">
                 <h3 className="font-semibold text-theme-text mb-4 border-b border-theme pb-2">Included Settings</h3>
                 <ul className="space-y-2 text-xs">
-                  {savePresetModalState.updates && Object.entries(savePresetModalState.updates).map(([section, fields]) => (
+                  {savePresetModalState.updates && Object.entries(savePresetModalState.updates).map(([section, fields]) => {
+                    const defaultUpdates = generateBlueprintUpdates(DEFAULT_BUILDER_STATE);
+                    return (
                     <li key={section} className="flex flex-col border-b border-theme/10 pb-2 last:border-0 last:pb-0">
                       <span className="text-theme-primary font-semibold mb-1">{section}</span>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 pl-2 border-l-2 border-theme-primary/30">
-                        {Object.entries(fields).map(([key, val]) => (
-                          <div key={key} className="flex justify-between items-center gap-2">
-                            <span className="text-theme-muted truncate" title={key}>{key}</span>
-                            <span className="text-theme-text font-mono bg-theme-bg px-1.5 rounded truncate max-w-[100px]" title={String(val)}>{String(val)}</span>
+                        {Object.entries(fields).map(([key, val]) => {
+                          const isChanged = String(val) !== String(defaultUpdates[section]?.[key]);
+                          return (
+                          <div key={key} className={`flex justify-between items-center gap-2 px-1.5 py-0.5 rounded ${isChanged ? 'bg-theme-primary/10' : ''}`}>
+                            <span className={`truncate ${isChanged ? 'text-theme-primary font-medium' : 'text-theme-muted'}`} title={key}>
+                                {key} {isChanged && <span className="text-theme-primary" title="Changed from default">*</span>}
+                            </span>
+                            <span className={`font-mono px-1.5 rounded truncate max-w-[100px] ${isChanged ? 'text-theme-primary font-bold bg-theme-primary/20' : 'text-theme-text bg-theme-bg'}`} title={String(val)}>{String(val)}</span>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     </li>
-                  ))}
+                  )})}
                 </ul>
               </div>
             </div>
