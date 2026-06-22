@@ -1,4 +1,4 @@
-﻿param (
+param (
     [switch]$GatherLogs, # Required for Gather Logs trigger
     [switch]$Manual, # Required for Manual trigger
     [switch]$Testing, # Required for Testing trigger
@@ -105,8 +105,13 @@ if (-not (Test-Path -Path "$PSScriptRoot\modules\core\Variables.ps1")) {
     }
 }
 
-# Dot-source Core Modules
-. "$PSScriptRoot\modules\core\Functions.ps1"
+# Dynamically dot-source all separated functions
+$functionFiles = Get-ChildItem -Path "$PSScriptRoot\modules\functions" -Filter "*.ps1"
+foreach ($funcFile in $functionFiles) {
+    . $funcFile.FullName
+}
+
+# Dot-source Core Variables and Prerequisites
 . "$PSScriptRoot\modules\core\Variables.ps1"
 . "$PSScriptRoot\modules\core\PrerequisitesCheck.ps1"
 
