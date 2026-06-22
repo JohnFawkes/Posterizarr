@@ -799,7 +799,7 @@
         $globalState = @{}
         Get-Variable | Where-Object { 
             $_.Options -notmatch 'ReadOnly|Constant' -and 
-            $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata')
+            $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
         } | ForEach-Object {
             $globalState[$_.Name] = $_.Value
         }
@@ -1262,7 +1262,7 @@
         $globalState = @{}
         Get-Variable | Where-Object { 
             $_.Options -notmatch 'ReadOnly|Constant' -and 
-            $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata')
+            $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
         } | ForEach-Object {
             $globalState[$_.Name] = $_.Value
         }
