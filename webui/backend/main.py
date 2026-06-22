@@ -2545,6 +2545,14 @@ async def get_config(request: Request):
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             grouped_config = json.load(f)
 
+        # Get onboarding_completed from DB
+        onboarding_completed = True
+        if CONFIG_DATABASE_AVAILABLE and config_db:
+            val = config_db.get_value('_root', 'onboarding_completed')
+            if val is not None:
+                # Value is stored as integer 0 or 1 in SQLite, convert to bool
+                onboarding_completed = bool(val)
+
         if CONFIG_MAPPER_AVAILABLE:
             flat_config = flatten_config(grouped_config)
 
@@ -2555,6 +2563,7 @@ async def get_config(request: Request):
             return {
                 "success": True,
                 "config": flat_config,  # Actual values returned
+                "_root": {"onboarding_completed": onboarding_completed},
                 "ui_groups": UI_GROUPS,
                 "display_names": display_names_dict,
                 "tooltips": CONFIG_TOOLTIPS,
@@ -2564,6 +2573,7 @@ async def get_config(request: Request):
             return {
                 "success": True,
                 "config": grouped_config,  # Actual values returned
+                "_root": {"onboarding_completed": onboarding_completed},
                 "tooltips": CONFIG_TOOLTIPS,
                 "using_flat_structure": False,
             }
