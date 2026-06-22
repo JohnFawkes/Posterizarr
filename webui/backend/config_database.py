@@ -438,16 +438,24 @@ class ConfigDB:
             cursor.execute("SELECT value FROM config WHERE section='_root' AND key='onboarding_completed'")
             row = cursor.fetchone()
             if not row:
-                cursor.execute("SELECT value FROM config WHERE section='PlexUrl' AND key='PlexUrl'")
+                cursor.execute("SELECT value FROM config WHERE section='PlexPart' AND key='PlexUrl'")
                 plex_row = cursor.fetchone()
-                cursor.execute("SELECT value FROM config WHERE section='JellyfinEmbyUrl' AND key='JellyfinEmbyUrl'")
+                cursor.execute("SELECT value FROM config WHERE section='JellyfinPart' AND key='JellyfinUrl'")
+                jellyfin_row = cursor.fetchone()
+                cursor.execute("SELECT value FROM config WHERE section='EmbyPart' AND key='EmbyUrl'")
                 emby_row = cursor.fetchone()
                 
-                # If Plex or Emby is already configured, skip onboarding for existing users
+                # If Plex, Jellyfin or Emby is already configured (not default values), skip onboarding for existing users
                 is_configured = False
-                if plex_row and plex_row['value'] and plex_row['value'].strip() and plex_row['value'].strip() != "http://localhost:32400":
+                default_plex_urls = ["", "http://localhost:32400", "http://192.168.1.93:32400", '"http://192.168.1.93:32400"']
+                default_jellyfin_urls = ["", "http://localhost:8096", "http://192.168.1.93:8096", '"http://192.168.1.93:8096"']
+                default_emby_urls = ["", "http://localhost:8096", "http://192.168.1.93:8096/emby", '"http://192.168.1.93:8096/emby"']
+                
+                if plex_row and plex_row['value'] and plex_row['value'].strip() and plex_row['value'].strip() not in default_plex_urls:
                     is_configured = True
-                if emby_row and emby_row['value'] and emby_row['value'].strip() and emby_row['value'].strip() != "http://localhost:8096":
+                if jellyfin_row and jellyfin_row['value'] and jellyfin_row['value'].strip() and jellyfin_row['value'].strip() not in default_jellyfin_urls:
+                    is_configured = True
+                if emby_row and emby_row['value'] and emby_row['value'].strip() and emby_row['value'].strip() not in default_emby_urls:
                     is_configured = True
                     
                 self.set_value('_root', 'onboarding_completed', is_configured)
