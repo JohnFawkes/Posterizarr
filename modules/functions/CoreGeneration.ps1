@@ -4031,11 +4031,11 @@ function Invoke-ShowPosterCreation {
                         if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
                             $global:show_name = $episode."Show Name"
                             $global:season_number = $episode."Season Number"
-                            $global:EPResolutions = $episode."Resolutions".Split(",")
+                            if ($null -ne $episode."Resolutions") { $global:EPResolutions = $episode."Resolutions".Split(",") } else { $global:EPResolutions = @() }
                             $global:episode_numbers = $episode."Episodes".Split(",")
-                            $global:episode_ratingkeys = $episode."ratingKeys".Split(",")
+                            if ($null -ne $episode."ratingKeys") { $global:episode_ratingkeys = $episode."ratingKeys".Split(",") } else { $global:episode_ratingkeys = @() }
                             $global:titles = $episode."Title".Split(";")
-                            $global:PlexTitleCardUrls = $episode."PlexTitleCardUrls".Split(",")
+                            if ($null -ne $episode."PlexTitleCardUrls") { $global:PlexTitleCardUrls = $episode."PlexTitleCardUrls".Split(",") } else { $global:PlexTitleCardUrls = @() }
                             if ($UseBackgroundAsTitleCard -eq 'true') {
                                 $global:ImageMagickError = $null
                                 for ($i = 0; $i -lt $global:episode_numbers.Count; $i++) {
@@ -4791,12 +4791,12 @@ function Invoke-ShowPosterCreation {
                                     $LocalAssetMissing = $null
                                     $LocalAddOverlay = $AddTitleCardOverlay
                                     $LocalAddBorder = $AddTitleCardBorder
-                                    $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
-                                    $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
-                                    $global:EPTitle = $($global:titles[$i].Trim())
-                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
-                                    $global:episodenumber = $($global:episode_numbers[$i].Trim())
-                                    $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
+                                    if ($global:PlexTitleCardUrls.Count -gt $i -and $null -ne $global:PlexTitleCardUrls[$i]) { $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim()) } else { $global:PlexTitleCardUrl = $null }
+                                    if ($global:episode_ratingkeys.Count -gt $i -and $null -ne $global:episode_ratingkeys[$i]) { $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim()) } else { $global:episode_ratingkey = $null }
+                                    if ($global:titles.Count -gt $i -and $null -ne $global:titles[$i]) { $global:EPTitle = $($global:titles[$i].Trim()) } else { $global:EPTitle = $null }
+                                    if ($global:EPResolutions.Count -gt $i -and $null -ne $global:EPResolutions[$i]) { $global:EPResolution = $($global:EPResolutions[$i].Trim()) } else { $global:EPResolution = $null }
+                                    if ($global:episode_numbers.Count -gt $i -and $null -ne $global:episode_numbers[$i]) { $global:episodenumber = $($global:episode_numbers[$i].Trim()) } else { $global:episodenumber = $null }
+                                    $global:FileNaming = "S" + "$global:season_number".PadLeft(2, '0') + "E" + "$global:episodenumber".PadLeft(2, '0')
                                     $bullet = [char]0x2022
                                     $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
 
