@@ -810,7 +810,7 @@
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
             }
-            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-MoviePosterCreation -entry $_
@@ -823,7 +823,7 @@
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
             }
-            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-ShowPosterCreation -entry $_
@@ -1273,7 +1273,7 @@
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
             }
-            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-MoviePosterCreation -entry $_
@@ -1290,7 +1290,7 @@
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
             }
-            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-ShowPosterCreation -entry $_

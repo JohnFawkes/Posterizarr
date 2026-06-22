@@ -889,16 +889,12 @@ function Write-Entry {
         $Timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
         $PaddedType = "[" + $log + "]"
         $PaddedType = $PaddedType.PadRight(10)
-        $Linenumber = "L" + "." + "$($MyInvocation.ScriptLineNumber)"
-        if ($Linenumber.Length -eq '4') {
-            $Linenumber = $Linenumber + "   "
+        $ScriptName = ""
+        if ($MyInvocation.ScriptName) {
+            $ScriptName = [System.IO.Path]::GetFileName($MyInvocation.ScriptName) + ":"
         }
-        if ($Linenumber.Length -eq '5') {
-            $Linenumber = $Linenumber + "  "
-        }
-        if ($Linenumber.Length -eq '6') {
-            $Linenumber = $Linenumber + " "
-        }
+        $Linenumber = $ScriptName + "L." + "$($MyInvocation.ScriptLineNumber)"
+        $Linenumber = $Linenumber.PadRight(28)
         $TypeFormatted = "[{0}] {1}|{2}" -f $Timestamp, $PaddedType.ToUpper(), $Linenumber
 
         if ($Message) {

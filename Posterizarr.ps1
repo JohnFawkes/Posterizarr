@@ -106,7 +106,7 @@ if (-not (Test-Path -Path "$PSScriptRoot\modules\core\Variables.ps1")) {
 }
 
 # Dynamically dot-source all separated functions
-$functionFiles = Get-ChildItem -Path "$PSScriptRoot\modules\functions" -Filter "*.ps1"
+$functionFiles = Get-ChildItem -Path "$PSScriptRoot/modules/functions" -Filter "*.ps1"
 foreach ($funcFile in $functionFiles) {
     . $funcFile.FullName
 }
