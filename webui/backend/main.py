@@ -2270,6 +2270,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post("/api/onboarding/complete")
+async def complete_onboarding():
+    """Mark onboarding as completed."""
+    if CONFIG_DATABASE_AVAILABLE and config_db:
+        success = config_db.set_value('_root', 'onboarding_completed', True)
+        if success:
+            logger.info("Onboarding marked as completed by user.")
+            return {"success": True, "message": "Onboarding completed"}
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "Failed to mark onboarding as completed."}
+    )
 
 class ConfigUpdate(BaseModel):
     config: dict

@@ -45,6 +45,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import TestGallery from "./components/TestGallery";
 import QueueView from "./components/QueueView";
 import Blueprints from "./components/Blueprints";
+import OnboardingModal from "./components/OnboardingModal";
 
 function AppContent() {
   const { isCollapsed } = useSidebar();
@@ -53,6 +54,7 @@ function AppContent() {
   const location = useLocation();
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [hasLoggedIn, setHasLoggedIn] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const hasShownStartupScreen = React.useRef(false);
   const isDashboardRoute =
     location.pathname === "/" || location.pathname === "/dashboard";
@@ -150,6 +152,23 @@ function AppContent() {
     }
   }, [isAuthenticated, hasLoggedIn, loading, isAuthEnabled]);
 
+  // Check onboarding status when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetch("/api/config")
+        .then(res => res.json())
+        .then(data => {
+          // If onboarding_completed is explicitly false or doesn't exist but we seeded it, 
+          // check if we need to show the onboarding modal.
+          // In config_database.py we seeded it in _root if it was empty.
+          if (data && data._root && data._root.onboarding_completed === false) {
+            setShowOnboarding(true);
+          }
+        })
+        .catch(err => console.error("Error fetching config for onboarding:", err));
+    }
+  }, [isAuthenticated]);
+
   // Hide loading screen when dashboard is fully loaded (only on dashboard route)
   // OR immediately hide if we're on a non-dashboard route
   useEffect(() => {
@@ -198,6 +217,9 @@ function AppContent() {
   // When showLoadingScreen is true, render the UI but overlay the loading screen
   return (
     <>
+      {/* Onboarding Modal - highest priority */}
+      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+
       {/* Loading Screen Overlay - shown over the UI during login transition */}
       {showLoadingScreen && (
         <div className="fixed inset-0 z-[9999] bg-theme-bg">

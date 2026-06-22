@@ -431,6 +431,33 @@ class ConfigDB:
         else:
             logger.warning(f"Config database sync had issues")
 
+        # Seed onboarding_completed if not present
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM config WHERE section='_root' AND key='onboarding_completed'")
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute("SELECT value FROM config WHERE section='PlexUrl' AND key='PlexUrl'")
+                plex_row = cursor.fetchone()
+                cursor.execute("SELECT value FROM config WHERE section='JellyfinEmbyUrl' AND key='JellyfinEmbyUrl'")
+                emby_row = cursor.fetchone()
+                
+                # If Plex or Emby is already configured, skip onboarding for existing users
+                is_configured = False
+                if plex_row and plex_row['value'] and plex_row['value'].strip() and plex_row['value'].strip() != "http://localhost:32400":
+                    is_configured = True
+                if emby_row and emby_row['value'] and emby_row['value'].strip() and emby_row['value'].strip() != "http://localhost:8096":
+                    is_configured = True
+                    
+                self.set_value('_root', 'onboarding_completed', is_configured)
+                logger.info(f"Seeded onboarding_completed={is_configured}")
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Failed to seed onboarding_completed: {e}")
+            if 'conn' in locals():
+                conn.close()
+
     def get_status(self) -> dict:
         """Get status and metadata, thread-safe"""
         with self.lock:
