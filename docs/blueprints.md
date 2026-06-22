@@ -1,6 +1,6 @@
 # Blueprints & Recipes
 
-Welcome to the Posterizarr Blueprints and Recipes guide! This page provides quick-start configurations for common use cases. 
+Welcome to the Posterizarr Blueprints and Recipes guide! This page provides quick-start configurations for common use cases.
 You can easily find which settings you need to adjust to achieve a specific look or behavior.
 
 ---
@@ -22,7 +22,7 @@ If you prefer to have a movie or show logo on your poster instead of standard ge
      - Set `LogoFlatColor` to `white`.
 
 2. **Poster & Background Settings**
-   - Enable `AddText` in **Poster Settings**: Set to `true`. 
+   - Enable `AddText` in **Poster Settings**: Set to `true`.
    - Enable `AddText` in **Background Settings**: Set to `true`.
 
 By making these changes, Posterizarr will download the specified logo type from Fanart.tv or TMDb and place it onto the poster and backgrounds instead of text.
@@ -36,7 +36,7 @@ By default, season posters might only show the season text (e.g., "Season 1"). I
 ### Required Settings
 
 1. **Show Title on Season Settings**
-   - Enable `AddShowTitletoSeason`: Set to `true`. 
+   - Enable `AddShowTitletoSeason`: Set to `true`.
 
 This will ensure the title/logo is rendered on the season poster alongside the season text.
 
@@ -49,7 +49,7 @@ If you want an extremely clean look and want to disable all borders, text, and o
 ### Required Settings
 
 1. **Image Processing** (Image Processing Settings)
-   - Disable `ImageProcessing`: Set to `false`. 
+   - Disable `ImageProcessing`: Set to `false`.
 
 ---
 
@@ -94,16 +94,13 @@ If you *only* want clean, textless posters and want Posterizarr to skip any post
 *(This configuration is available as a 1-click blueprint in the WebUI!)*
 
 ### 4. Re-Applying Newly Generated Posters to Libraries
-If you've played around with customizations, cleared out your old assets, and generated entirely new posters, Posterizarr won't automatically overwrite the existing images on the media server unless explicitly told to bypass its checks. 
+If you've played around with customizations, cleared out your old assets, and generated entirely new posters, Posterizarr won't automatically overwrite the existing images on the media server unless explicitly told to bypass its checks.
 
 To force Posterizarr to apply the new posters over the old ones on your media server, you need to combine two settings:
 - `UploadExistingAssets`: `true`
 - `DisableHashValidation`: `true`
 
 **Important Note:** You should only enable these settings temporarily when you actually want to replace everything. Because this forces the script to go through and upload *every* asset again, it will take quite a bit of time depending on the size of your library!
-
-### 5. Seamless Script Updates (Docker)
-Good news! If a new version of the Posterizarr script is released, you don't need to redeploy your entire container. Simply restart the container, and the latest script will be pulled automatically since it runs externally from the core image.
 
 ---
 
