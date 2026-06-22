@@ -4904,8 +4904,8 @@ function MassDownloadPlexArtwork {
             Write-Entry -Subtext "'$($TextlessCount.count)' times the script took a Textless image" -Path $global:configLogging -Color Yellow -log Info
         }
         if ($FallbackCount) {
-            Write-Entry -Subtext "'`$FallbackCount' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
-            Write-Entry -Subtext "'$($posterCount-$FallbackCount)' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
+            Write-Entry -Subtext "'$($FallbackCount.count)' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
+            Write-Entry -Subtext "'$($posterCount-$FallbackCount.count)' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
         }
         if ($TextCount) {
             Write-Entry -Subtext "'$($TextCount.count)' times the script took an image with Text" -Path $global:configLogging -Color Yellow -log Info
