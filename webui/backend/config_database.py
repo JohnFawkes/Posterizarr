@@ -445,21 +445,60 @@ class ConfigDB:
                 cursor.execute("SELECT value FROM config WHERE section='EmbyPart' AND key='EmbyUrl'")
                 emby_row = cursor.fetchone()
                 
-                # If Plex, Jellyfin or Emby is already configured (not default values), skip onboarding for existing users
-                is_configured = False
-                default_plex_urls = ["", "http://localhost:32400", "http://192.168.1.93:32400", '"http://192.168.1.93:32400"']
-                default_jellyfin_urls = ["", "http://localhost:8096", "http://192.168.1.93:8096", '"http://192.168.1.93:8096"']
-                default_emby_urls = ["", "http://localhost:8096", "http://192.168.1.93:8096/emby", '"http://192.168.1.93:8096/emby"']
+                # Check for existing runtime history or logs to detect existing users migrating
+                has_history = False
+                try:
+                    import os
+                    from pathlib import Path
+                    
+                    IS_DOCKER = os.getenv("POSTERIZARR_NON_ROOT") == "TRUE"
+                    if IS_DOCKER:
+                        base_dir = Path("/config")
+                    else:
+                        base_dir = Path(__file__).parent.parent.parent
+                        
+                    # Check database
+                    runtime_db_path = base_dir / "database" / "runtime_stats.db"
+                    if runtime_db_path.exists():
+                        r_conn = sqlite3.connect(runtime_db_path)
+                        r_cursor = r_conn.cursor()
+                        r_cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='runtime_stats'")
+                        if r_cursor.fetchone():
+                            r_cursor.execute("SELECT COUNT(*) FROM runtime_stats")
+                            count = r_cursor.fetchone()[0]
+                            if count > 0:
+                                has_history = True
+                        r_conn.close()
+                        
+                    # Check logs directory
+                    logs_dir = base_dir / "Logs"
+                    if logs_dir.exists():
+                        # If there are old json logs or script logs, it's an existing user
+                        for file in logs_dir.glob("*"):
+                            if file.is_file() and (file.name.endswith(".log") or file.name.endswith(".json")):
+                                has_history = True
+                                break
+                except Exception as e:
+                    logger.warning(f"Failed to check history for onboarding logic: {e}")
                 
-                if plex_row and plex_row['value'] and plex_row['value'].strip() and plex_row['value'].strip() not in default_plex_urls:
+                # If Plex, Jellyfin or Emby is already configured (not default values), or there's history, skip onboarding
+                is_configured = False
+                if has_history:
                     is_configured = True
-                if jellyfin_row and jellyfin_row['value'] and jellyfin_row['value'].strip() and jellyfin_row['value'].strip() not in default_jellyfin_urls:
-                    is_configured = True
-                if emby_row and emby_row['value'] and emby_row['value'].strip() and emby_row['value'].strip() not in default_emby_urls:
-                    is_configured = True
+                else:
+                    default_plex_urls = ["", "http://localhost:32400", "http://192.168.1.93:32400", '"http://192.168.1.93:32400"']
+                    default_jellyfin_urls = ["", "http://localhost:8096", "http://192.168.1.93:8096", '"http://192.168.1.93:8096"']
+                    default_emby_urls = ["", "http://localhost:8096", "http://192.168.1.93:8096/emby", '"http://192.168.1.93:8096/emby"']
+                    
+                    if plex_row and plex_row['value'] and plex_row['value'].strip() and plex_row['value'].strip() not in default_plex_urls:
+                        is_configured = True
+                    if jellyfin_row and jellyfin_row['value'] and jellyfin_row['value'].strip() and jellyfin_row['value'].strip() not in default_jellyfin_urls:
+                        is_configured = True
+                    if emby_row and emby_row['value'] and emby_row['value'].strip() and emby_row['value'].strip() not in default_emby_urls:
+                        is_configured = True
                     
                 self.set_value('_root', 'onboarding_completed', is_configured)
-                logger.info(f"Seeded onboarding_completed={is_configured}")
+                logger.info(f"Seeded onboarding_completed={is_configured} (has_history={has_history})")
             conn.close()
         except Exception as e:
             logger.warning(f"Failed to seed onboarding_completed: {e}")
