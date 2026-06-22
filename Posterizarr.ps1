@@ -115,6 +115,8 @@ foreach ($funcFile in $functionFiles) {
 . "$PSScriptRoot\modules\core\Variables.ps1"
 . "$PSScriptRoot\modules\core\PrerequisitesCheck.ps1"
 
+$global:AppRoot = $PSScriptRoot
+
 #### MAIN SCRIPT START ####
 if ($Manual) {
     . "$PSScriptRoot\modules\modes\ManualMode.ps1"
