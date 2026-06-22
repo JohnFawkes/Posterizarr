@@ -102,9 +102,6 @@ To force Posterizarr to apply the new posters over the old ones on your media se
 
 **Important Note:** You should only enable these settings temporarily when you actually want to replace everything. Because this forces the script to go through and upload *every* asset again, it will take quite a bit of time depending on the size of your library!
 
-### 5. Seamless Script Updates (Docker)
-Good news! If a new version of the Posterizarr script is released, you don't need to redeploy your entire container. Simply restart the container, and the latest script will be pulled automatically since it runs externally from the core image.
-
 ---
 
 *Note: You can apply many of these blueprints automatically with a single click using the "Blueprints" feature in the Posterizarr WebUI!*
