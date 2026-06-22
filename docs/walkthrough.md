@@ -134,10 +134,10 @@
     ```
     - Windows:
 
-    Open the Start menu, type Windows PowerShell, select Windows PowerShell, and then select Run as administrator
+    Open the Start menu, type pwsh, select PowerShell 7x, and then select Run as administrator
     ```bash
     cd C:\Github\Posterizarr
-    .\Posterizarr.ps1
+    pwsh .\Posterizarr.ps1
     ```
 1. After that it is recommended to run the script in `-Testing` Mode.
 
@@ -157,7 +157,7 @@
     - Windows (or via Web UI):
         ```bash
         cd C:\Github\Posterizarr
-        .\Posterizarr.ps1 -Testing
+        pwsh .\Posterizarr.ps1 -Testing
         ```
 5. You can now fine tune all the `width, height, color` of `borders, text boxes and text` in config.json (or via Web UI)
     - After each change of a setting just rerun the script in `-Testing` mode so you can see how it looks.
@@ -171,7 +171,7 @@
         - Windows:
             ```bash
             cd C:\Github\Posterizarr
-            .\Posterizarr.ps1
+            pwsh .\Posterizarr.ps1
             ```
     - Configure Scheduled runs:
 
