@@ -1,4 +1,4 @@
-﻿function Invoke-MoviePosterCreation {
+function Invoke-MoviePosterCreation {
     param (
         $entry
     )
@@ -281,7 +281,7 @@
                                             $statusCode = $_.Exception.Message
                                         }
                                         Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                     }
                                     Write-Entry -Subtext "Poster url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -340,7 +340,7 @@
                                     Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                    $CommentlogEntry | Out-File $magickLog -Append
+                                    $CommentlogEntry | Write-MagickLog
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                     if ($global:ImageMagickError -ne 'true') {
                                         if ($UsePosterResolutionOverlays -eq 'true') {
@@ -389,7 +389,7 @@
                                             Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                                         }
                                         $logEntry = "`"$magick`" $Arguments"
-                                        $logEntry | Out-File $magickLog -Append
+                                        $logEntry | Write-MagickLog
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
@@ -446,7 +446,7 @@
                                                 ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                                                                                    $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -458,7 +458,7 @@
                                                             $statusCode = $_.Exception.Message
                                                         }
                                                         Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                     }
                                                     # Only apply color if enabled AND color is defined
                                                     $colorEffect = ""
@@ -480,7 +480,7 @@
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
                                                     $logEntry = "`"$magick`" $Arguments"
-                                                    $logEntry | Out-File $magickLog -Append
+                                                    $logEntry | Write-MagickLog
                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
 
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
@@ -573,7 +573,7 @@
 
                                                         Write-Entry -Subtext "Applying Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                                         $logEntry = "`"$magick`" $Arguments"
-                                                        $logEntry | Out-File $magickLog -Append
+                                                        $logEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                     }
                                                 }
@@ -585,7 +585,7 @@
                                     $Resizeargument = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
                                     Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                     $logEntry = "`"$magick`" $Resizeargument"
-                                    $logEntry | Out-File $magickLog -Append
+                                    $logEntry | Write-MagickLog
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 # Move file back to original naming with Brackets.
@@ -629,7 +629,7 @@
                                                 catch {
                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                    $global:errorCount++
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 }
                                             }
@@ -644,11 +644,11 @@
                                                 # Log the error if the move operation fails
                                                 Write-Entry -Subtext "Failed to move $PosterImage to $PosterImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                             }
                                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                            $posterCount++
+                                            $global:posterCount = Increment-GlobalStat 'posterCount'
                                         }
                                         Else {
                                             Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -687,7 +687,7 @@
                             Else {
                                 Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 $movietemp = New-Object psobject
                                 $movietemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $Titletext
@@ -758,13 +758,13 @@
                                             Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                             Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                         }
-                                        $UploadCount++
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
                                 }
                                 catch {
                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                    $global:errorCount++
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                                 if (Test-Path $PosterImage -ErrorAction SilentlyContinue) {
@@ -992,7 +992,7 @@
                                             $statusCode = $_.Exception.Message
                                         }
                                         Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                     }
                                     Write-Entry -Subtext "Poster url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -1051,7 +1051,7 @@
                                     Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                     $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                     $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                    $CommentlogEntry | Out-File $magickLog -Append
+                                    $CommentlogEntry | Write-MagickLog
                                     InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                     if ($global:ImageMagickError -ne 'true') {
                                         if ($UseBackgroundResolutionOverlays -eq 'true') {
@@ -1100,7 +1100,7 @@
                                             Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                                         }
                                         $logEntry = "`"$magick`" $Arguments"
-                                        $logEntry | Out-File $magickLog -Append
+                                        $logEntry | Write-MagickLog
                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                         if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                             $SkippingText = 'true'
@@ -1157,7 +1157,7 @@
                                                 ElseIf ($global:LogoUrl) {
                                                     $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                    $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                                                                                    $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
                                                         $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                     }
@@ -1169,7 +1169,7 @@
                                                             $statusCode = $_.Exception.Message
                                                         }
                                                         Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                     }
                                                     # Only apply color if enabled AND color is defined
@@ -1192,7 +1192,7 @@
                                                     }
                                                     Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
                                                     $logEntry = "`"$magick`" $Arguments"
-                                                    $logEntry | Out-File $magickLog -Append
+                                                    $logEntry | Write-MagickLog
                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
 
                                                     Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
@@ -1284,7 +1284,7 @@
 
                                                         Write-Entry -Subtext "Applying Background text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                                         $logEntry = "`"$magick`" $Arguments"
-                                                        $logEntry | Out-File $magickLog -Append
+                                                        $logEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                     }
                                                 }
@@ -1296,7 +1296,7 @@
                                     $Resizeargument = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundImage`""
                                     Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                     $logEntry = "`"$magick`" $Resizeargument"
-                                    $logEntry | Out-File $magickLog -Append
+                                    $logEntry | Write-MagickLog
                                     InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                 }
                                 if ($global:ImageMagickError -ne 'true') {
@@ -1340,7 +1340,7 @@
                                                 catch {
                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                    $global:errorCount++
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 }
                                             }
@@ -1355,12 +1355,12 @@
                                                 # Log the error if the move operation fails
                                                 Write-Entry -Subtext "Failed to move $backgroundImage to $backgroundImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                             }
                                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                            $posterCount++
-                                            $BackgroundCount++
+                                            $global:posterCount = Increment-GlobalStat 'posterCount'
+                                            $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
                                         }
                                         Else {
                                             Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -1398,7 +1398,7 @@
                             Else {
                                 Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 $moviebackgroundtemp = New-Object psobject
                                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $Titletext
@@ -1469,13 +1469,13 @@
                                             Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                             Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                         }
-                                        $UploadCount++
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
                                 }
                                 catch {
                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                    $global:errorCount++
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                                 if (Test-Path $backgroundImage -ErrorAction SilentlyContinue) {
@@ -1496,14 +1496,14 @@
                 Write-Entry -Message "Rootfolder value: $($entry.RootFoldername)" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Message "Path value: $($entry.Path)" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Message "Missing RootFolder for: $($entry.title) - you have to manually create the poster for it..." -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
         }
         catch {
             Write-Entry -Subtext "Could not query entries from movies array, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
             write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             if ($global:PosterOnlyTextless) {
                 $moviebackgroundtemp = New-Object psobject
                 $moviebackgroundtemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $Titletext
@@ -1803,7 +1803,7 @@ function Invoke-ShowPosterCreation {
                                         $statusCode = $_.Exception.Message
                                     }
                                     Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
                                 Write-Entry -Subtext "Poster url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -1862,7 +1862,7 @@ function Invoke-ShowPosterCreation {
                                 Write-Entry -Subtext "Processing Poster for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                $CommentlogEntry | Out-File $magickLog -Append
+                                $CommentlogEntry | Write-MagickLog
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                 if ($global:ImageMagickError -ne 'true') {
                                     if ($UsePosterResolutionOverlays -eq 'true') {
@@ -1911,7 +1911,7 @@ function Invoke-ShowPosterCreation {
                                         Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                                     }
                                     $logEntry = "`"$magick`" $Arguments"
-                                    $logEntry | Out-File $magickLog -Append
+                                    $logEntry | Write-MagickLog
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
@@ -1968,7 +1968,7 @@ function Invoke-ShowPosterCreation {
                                             ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                                                                                $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -1980,7 +1980,7 @@ function Invoke-ShowPosterCreation {
                                                         $statusCode = $_.Exception.Message
                                                     }
                                                     Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                 }
                                                 # Only apply color if enabled AND color is defined
@@ -2003,7 +2003,7 @@ function Invoke-ShowPosterCreation {
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
                                                 $logEntry = "`"$magick`" $Arguments"
-                                                $logEntry | Out-File $magickLog -Append
+                                                $logEntry | Write-MagickLog
                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
 
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
@@ -2095,7 +2095,7 @@ function Invoke-ShowPosterCreation {
 
                                                     Write-Entry -Subtext "Applying Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                                     $logEntry = "`"$magick`" $Arguments"
-                                                    $logEntry | Out-File $magickLog -Append
+                                                    $logEntry | Write-MagickLog
                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                 }
                                             }
@@ -2107,7 +2107,7 @@ function Invoke-ShowPosterCreation {
                                 $Resizeargument = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
                                 Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                 $logEntry = "`"$magick`" $Resizeargument"
-                                $logEntry | Out-File $magickLog -Append
+                                $logEntry | Write-MagickLog
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
                             if ($global:ImageMagickError -ne 'true') {
@@ -2151,7 +2151,7 @@ function Invoke-ShowPosterCreation {
                                             catch {
                                                 Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                $global:errorCount++
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'
                                                 Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                             }
                                         }
@@ -2166,11 +2166,11 @@ function Invoke-ShowPosterCreation {
                                             # Log the error if the move operation fails
                                             Write-Entry -Subtext "Failed to move $PosterImage to $PosterImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                             Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                         }
                                         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                        $posterCount++
+                                        $global:posterCount = Increment-GlobalStat 'posterCount'
                                     }
                                     Else {
                                         Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -2208,7 +2208,7 @@ function Invoke-ShowPosterCreation {
                         Else {
                             Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             $showtemp = New-Object psobject
                             $showtemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $Titletext
@@ -2279,13 +2279,13 @@ function Invoke-ShowPosterCreation {
                                         Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                         Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                     }
-                                    $UploadCount++
+                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                 }
                             }
                             catch {
                                 Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                $global:errorCount++
+                                $global:errorCount = Increment-GlobalStat 'errorCount'
                                 Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                             }
                             if (Test-Path $PosterImage -ErrorAction SilentlyContinue) {
@@ -2528,7 +2528,7 @@ function Invoke-ShowPosterCreation {
                                         $statusCode = $_.Exception.Message
                                     }
                                     Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
                                 Write-Entry -Subtext "Poster url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -2587,7 +2587,7 @@ function Invoke-ShowPosterCreation {
                                 Write-Entry -Subtext "Processing background for: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                 $CommentArguments = "`"$backgroundImage`" -set `"comment`" `"created with posterizarr`" `"$backgroundImage`""
                                 $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                $CommentlogEntry | Out-File $magickLog -Append
+                                $CommentlogEntry | Write-MagickLog
                                 InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                 if ($global:ImageMagickError -ne 'true') {
                                     if ($UseBackgroundResolutionOverlays -eq 'true') {
@@ -2636,7 +2636,7 @@ function Invoke-ShowPosterCreation {
                                         Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                                     }
                                     $logEntry = "`"$magick`" $Arguments"
-                                    $logEntry | Out-File $magickLog -Append
+                                    $logEntry | Write-MagickLog
                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                     if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                         $SkippingText = 'true'
@@ -2693,7 +2693,7 @@ function Invoke-ShowPosterCreation {
                                             ElseIf ($global:LogoUrl) {
                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                                                                                $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
                                                 }
@@ -2705,7 +2705,7 @@ function Invoke-ShowPosterCreation {
                                                         $statusCode = $_.Exception.Message
                                                     }
                                                     Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                 }
                                                 # Only apply color if enabled AND color is defined
@@ -2728,7 +2728,7 @@ function Invoke-ShowPosterCreation {
                                                 }
                                                 Write-Entry -Subtext "Applying Logo..." -Path $global:configLogging -Color White -log Info
                                                 $logEntry = "`"$magick`" $Arguments"
-                                                $logEntry | Out-File $magickLog -Append
+                                                $logEntry | Write-MagickLog
                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
 
                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
@@ -2820,7 +2820,7 @@ function Invoke-ShowPosterCreation {
 
                                                     Write-Entry -Subtext "Applying Background text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                                                     $logEntry = "`"$magick`" $Arguments"
-                                                    $logEntry | Out-File $magickLog -Append
+                                                    $logEntry | Write-MagickLog
                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                 }
                                             }
@@ -2832,7 +2832,7 @@ function Invoke-ShowPosterCreation {
                                 $Resizeargument = "`"$backgroundImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$backgroundImage`""
                                 Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                 $logEntry = "`"$magick`" $Resizeargument"
-                                $logEntry | Out-File $magickLog -Append
+                                $logEntry | Write-MagickLog
                                 InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                             }
                             if ($global:ImageMagickError -ne 'true') {
@@ -2876,7 +2876,7 @@ function Invoke-ShowPosterCreation {
                                             catch {
                                                 Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                $global:errorCount++
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'
                                                 Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                             }
                                         }
@@ -2891,12 +2891,12 @@ function Invoke-ShowPosterCreation {
                                             # Log the error if the move operation fails
                                             Write-Entry -Subtext "Failed to move $backgroundImage to $backgroundImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                             Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                         }
-                                        $BackgroundCount++
+                                        $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
                                         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                        $posterCount++
+                                        $global:posterCount = Increment-GlobalStat 'posterCount'
                                     }
                                     Else {
                                         Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -2934,7 +2934,7 @@ function Invoke-ShowPosterCreation {
                         Else {
                             Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             $showbackgroundtemp = New-Object psobject
                             $showbackgroundtemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $Titletext
@@ -3005,13 +3005,13 @@ function Invoke-ShowPosterCreation {
                                         Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                         Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                     }
-                                    $UploadCount++
+                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                 }
                             }
                             catch {
                                 Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                $global:errorCount++
+                                $global:errorCount = Increment-GlobalStat 'errorCount'
                                 Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                             }
                             if (Test-Path $backgroundImage -ErrorAction SilentlyContinue) {
@@ -3421,7 +3421,7 @@ function Invoke-ShowPosterCreation {
                                                 $statusCode = $_.Exception.Message
                                             }
                                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                         }
                                         Write-Entry -Subtext "Poster url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -3461,7 +3461,7 @@ function Invoke-ShowPosterCreation {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         $CommentArguments = "`"$SeasonImage`" -set `"comment`" `"created with posterizarr`" `"$SeasonImage`""
                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                        $CommentlogEntry | Out-File $magickLog -Append
+                                        $CommentlogEntry | Write-MagickLog
                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                         if ($global:ImageMagickError -ne 'true') {
                                             # Logic for SkipAddTextAndOverlay (Skip Overlay, keep Border)
@@ -3498,7 +3498,7 @@ function Invoke-ShowPosterCreation {
                                             }
 
                                             $logEntry = "`"$magick`" $Arguments"
-                                            $logEntry | Out-File $magickLog -Append
+                                            $logEntry | Write-MagickLog
                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                 $SkippingText = 'true'
@@ -3601,7 +3601,7 @@ function Invoke-ShowPosterCreation {
 
                                                         Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
                                                         $logEntry = "`"$magick`" $SeasonArguments"
-                                                        $logEntry | Out-File $magickLog -Append
+                                                        $logEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $SeasonArguments
 
                                                         # Show Part (Logo vs Text)
@@ -3646,7 +3646,7 @@ function Invoke-ShowPosterCreation {
                                                             ElseIf ($global:LogoUrl) {
                                                                 $urlExtension = [System.IO.Path]::GetExtension($global:LogoUrl).Split('?')[0]
                                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
-                                                                $LogoImage = Join-Path $TempPath ("logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
+                                                                                                                                $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
 
                                                                 try {
                                                                     $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
@@ -3659,7 +3659,7 @@ function Invoke-ShowPosterCreation {
                                                                         $statusCode = $_.Exception.Message
                                                                     }
                                                                     Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                                 }
 
                                                                 $colorEffect = ""
@@ -3687,7 +3687,7 @@ function Invoke-ShowPosterCreation {
 
                                                                 Write-Entry -Subtext "Applying Show Logo to Season..." -Path $global:configLogging -Color White -log Info
                                                                 $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                                $logEntry | Out-File $magickLog -Append
+                                                                $logEntry | Write-MagickLog
                                                                 InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
 
                                                                 Remove-Item -LiteralPath $LogoImage -Force -ErrorAction SilentlyContinue | out-null
@@ -3705,7 +3705,7 @@ function Invoke-ShowPosterCreation {
 
                                                             Write-Entry -Subtext "Applying showTitle text: `"$global:ShowTitleOnSeason`"" -Path $global:configLogging -Color White -log Info
                                                             $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                                                            $logEntry | Out-File $magickLog -Append
+                                                            $logEntry | Write-MagickLog
                                                             InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
                                                         }
                                                     }
@@ -3724,7 +3724,7 @@ function Invoke-ShowPosterCreation {
 
                                                         Write-Entry -Subtext "Applying seasonTitle text: `"$global:seasonTitle`"" -Path $global:configLogging -Color White -log Info
                                                         $logEntry = "`"$magick`" $Arguments"
-                                                        $logEntry | Out-File $magickLog -Append
+                                                        $logEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                     }
                                                 }
@@ -3756,7 +3756,7 @@ function Invoke-ShowPosterCreation {
                                                 $statusCode = $_.Exception.Message
                                             }
                                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                         }
                                         Write-Entry -Subtext "Poster url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -3799,7 +3799,7 @@ function Invoke-ShowPosterCreation {
                                         $Resizeargument = "`"$SeasonImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$SeasonImage`""
                                         Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                         $logEntry = "`"$magick`" $Resizeargument"
-                                        $logEntry | Out-File $magickLog -Append
+                                        $logEntry | Write-MagickLog
                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                     }
                                 }
@@ -3844,7 +3844,7 @@ function Invoke-ShowPosterCreation {
                                                 catch {
                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                    $global:errorCount++
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 }
                                             }
@@ -3859,12 +3859,12 @@ function Invoke-ShowPosterCreation {
                                                 # Log the error if the move operation fails
                                                 Write-Entry -Subtext "Failed to move $SeasonImage to $SeasonImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                             }
                                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                            $SeasonCount++
-                                            $posterCount++
+                                            $global:SeasonCount = Increment-GlobalStat 'SeasonCount'
+                                            $global:posterCount = Increment-GlobalStat 'posterCount'
                                         }
                                         Else {
                                             Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -3902,7 +3902,7 @@ function Invoke-ShowPosterCreation {
                             Else {
                                 Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 $seasontemp = New-Object psobject
                                 $seasontemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $($Titletext + " | Season " + $global:SeasonNumber)
@@ -3973,13 +3973,13 @@ function Invoke-ShowPosterCreation {
                                             Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                             Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                         }
-                                        $UploadCount++
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
                                 }
                                 catch {
                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                    $global:errorCount++
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                                 if (Test-Path $SeasonImage -ErrorAction SilentlyContinue) {
@@ -4122,7 +4122,7 @@ function Invoke-ShowPosterCreation {
                                     $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:FileNaming.jpg"
                                     $EpisodeImage = $EpisodeImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
 
-                                    $EpisodeTempImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\temp.jpg"
+                                    $EpisodeTempImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_temp.jpg"
                                     $cjkTitlePattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsThai}]'
 
                                     # Pre-check the title against skipwords
@@ -4316,7 +4316,7 @@ function Invoke-ShowPosterCreation {
                                                                 $statusCode = $_.Exception.Message
                                                             }
                                                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                         }
                                                         if ($global:TempImagecopied -ne 'true') {
@@ -4351,14 +4351,14 @@ function Invoke-ShowPosterCreation {
                                                     # Check temp image
                                                     if ((Get-ChildItem -LiteralPath $EpisodeTempImage -ErrorAction SilentlyContinue).length -eq '0') {
                                                         Write-Entry -Subtext "Temp image is corrupt, cannot proceed" -Path $global:configLogging -Color Red -log Error
-                                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                     }
                                                     Else {
                                                         if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                             $CommentArguments = "`"$EpisodeImage`" -set `"comment`" `"created with posterizarr`" `"$EpisodeImage`""
                                                             $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                                            $CommentlogEntry | Out-File $magickLog -Append
+                                                            $CommentlogEntry | Write-MagickLog
                                                             InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                                             if ($global:ImageMagickError -ne 'true') {
                                                                 if ($UseTCResolutionOverlays -eq 'true') {
@@ -4407,7 +4407,7 @@ function Invoke-ShowPosterCreation {
                                                                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                                                                 }
                                                                 $logEntry = "`"$magick`" $Arguments"
-                                                                $logEntry | Out-File $magickLog -Append
+                                                                $logEntry | Write-MagickLog
                                                                 InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                     $SkippingText = 'true'
@@ -4475,7 +4475,7 @@ function Invoke-ShowPosterCreation {
                                                                         }
                                                                         Write-Entry -Subtext "Applying EPTitle text: `"$global:EPTitle`"" -Path $global:configLogging -Color White -log Info
                                                                         $logEntry = "`"$magick`" $Arguments"
-                                                                        $logEntry | Out-File $magickLog -Append
+                                                                        $logEntry | Write-MagickLog
                                                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                     }
                                                                 }
@@ -4498,7 +4498,7 @@ function Invoke-ShowPosterCreation {
 
                                                                         Write-Entry -Subtext "Applying SeasonEPNumber text: `"$global:SeasonEPNumber`"" -Path $global:configLogging -Color White -log Info
                                                                         $logEntry = "`"$magick`" $Arguments"
-                                                                        $logEntry | Out-File $magickLog -Append
+                                                                        $logEntry | Write-MagickLog
                                                                         InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                     }
                                                                 }
@@ -4530,7 +4530,7 @@ function Invoke-ShowPosterCreation {
                                                                 $statusCode = $_.Exception.Message
                                                             }
                                                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                         }
                                                         Write-Entry -Subtext "Title Card url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -4560,7 +4560,7 @@ function Invoke-ShowPosterCreation {
                                                         $Resizeargument = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$EpisodeImage`""
                                                         Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                                         $logEntry = "`"$magick`" $Resizeargument"
-                                                        $logEntry | Out-File $magickLog -Append
+                                                        $logEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
@@ -4605,7 +4605,7 @@ function Invoke-ShowPosterCreation {
                                                                 catch {
                                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                                    $global:errorCount++
+                                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                                 }
                                                             }
@@ -4620,12 +4620,12 @@ function Invoke-ShowPosterCreation {
                                                                 # Log the error if the move operation fails
                                                                 Write-Entry -Subtext "Failed to move $EpisodeImage to $EpisodeImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                             }
                                                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                                            $EpisodeCount++
-                                                            $posterCount++
+                                                            $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
+                                                            $global:posterCount = Increment-GlobalStat 'posterCount'
                                                         }
                                                         Else {
                                                             Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -4662,7 +4662,7 @@ function Invoke-ShowPosterCreation {
                                             }
                                             Else {
                                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 if ($global:BackgroundOnlyTextless) {
                                                     $episodetemp = New-Object psobject
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $($global:FileNaming + " | " + $global:EPTitle)
@@ -4736,13 +4736,13 @@ function Invoke-ShowPosterCreation {
                                                             Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                                             Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                                         }
-                                                        $UploadCount++
+                                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                                     }
                                                 }
                                                 catch {
                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                    $global:errorCount++
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 }
                                                 if (Test-Path $EpisodeImage -ErrorAction SilentlyContinue) {
@@ -5079,7 +5079,7 @@ function Invoke-ShowPosterCreation {
                                                                 $statusCode = $_.Exception.Message
                                                             }
                                                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                         }
                                                         Write-Entry -Subtext "Title Card url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -5107,7 +5107,7 @@ function Invoke-ShowPosterCreation {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         $CommentArguments = "`"$EpisodeImage`" -set `"comment`" `"created with posterizarr`" `"$EpisodeImage`""
                                                         $CommentlogEntry = "`"$magick`" $CommentArguments"
-                                                        $CommentlogEntry | Out-File $magickLog -Append
+                                                        $CommentlogEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                                                         if ($global:ImageMagickError -ne 'true') {
                                                             if ($UseTCResolutionOverlays -eq 'true') {
@@ -5156,7 +5156,7 @@ function Invoke-ShowPosterCreation {
                                                                 Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                                                             }
                                                             $logEntry = "`"$magick`" $Arguments"
-                                                            $logEntry | Out-File $magickLog -Append
+                                                            $logEntry | Write-MagickLog
                                                             InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                             if (($SkipAddText -eq 'true' -or $SkipAddTextAndOverlay -eq 'true') -and $global:PosterWithText) {
                                                                 $SkippingText = 'true'
@@ -5224,7 +5224,7 @@ function Invoke-ShowPosterCreation {
 
                                                                     Write-Entry -Subtext "Applying EPTitle text: `"$global:EPTitle`"" -Path $global:configLogging -Color White -log Info
                                                                     $logEntry = "`"$magick`" $Arguments"
-                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    $logEntry | Write-MagickLog
                                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 }
                                                             }
@@ -5247,7 +5247,7 @@ function Invoke-ShowPosterCreation {
 
                                                                     Write-Entry -Subtext "Applying SeasonEPNumber text: `"$global:SeasonEPNumber`"" -Path $global:configLogging -Color White -log Info
                                                                     $logEntry = "`"$magick`" $Arguments"
-                                                                    $logEntry | Out-File $magickLog -Append
+                                                                    $logEntry | Write-MagickLog
                                                                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                                                                 }
                                                             }
@@ -5278,7 +5278,7 @@ function Invoke-ShowPosterCreation {
                                                                 $statusCode = $_.Exception.Message
                                                             }
                                                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                         }
                                                         Write-Entry -Subtext "Title Card url: $(RedactMediaServerUrl -url $global:posterurl)" -Path $global:configLogging -Color White -log Info
@@ -5308,7 +5308,7 @@ function Invoke-ShowPosterCreation {
                                                         $Resizeargument = "`"$EpisodeImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$EpisodeImage`""
                                                         Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
                                                         $logEntry = "`"$magick`" $Resizeargument"
-                                                        $logEntry | Out-File $magickLog -Append
+                                                        $logEntry | Write-MagickLog
                                                         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
                                                     }
                                                 }
@@ -5353,7 +5353,7 @@ function Invoke-ShowPosterCreation {
                                                                 catch {
                                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                                    $global:errorCount++
+                                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                                 }
                                                             }
@@ -5368,12 +5368,12 @@ function Invoke-ShowPosterCreation {
                                                                 # Log the error if the move operation fails
                                                                 Write-Entry -Subtext "Failed to move $EpisodeImage to $EpisodeImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                                             }
                                                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                                            $EpisodeCount++
-                                                            $posterCount++
+                                                            $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
+                                                            $global:posterCount = Increment-GlobalStat 'posterCount'
                                                         }
                                                         Else {
                                                             Write-Entry -Subtext "Skipping asset move because text is truncated..." -Path $global:configLogging -Color Yellow -log Warning
@@ -5410,7 +5410,7 @@ function Invoke-ShowPosterCreation {
                                             }
                                             Else {
                                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 if ($global:BackgroundOnlyTextless) {
                                                     $episodetemp = New-Object psobject
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $($global:FileNaming + " | " + $global:EPTitle)
@@ -5484,13 +5484,13 @@ function Invoke-ShowPosterCreation {
                                                             Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
                                                             Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
                                                         }
-                                                        $UploadCount++
+                                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                                     }
                                                 }
                                                 catch {
                                                     Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
 
-                                                    $global:errorCount++
+                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
                                                     Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                 }
                                                 if (Test-Path $EpisodeImage -ErrorAction SilentlyContinue) {
@@ -5517,7 +5517,7 @@ function Invoke-ShowPosterCreation {
             Write-Entry -Message "Rootfolder value: $($entry.RootFoldername)" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Message "Path value: $($entry.Path)" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Message "Missing RootFolder for: $($entry.title) - you have to manually create the poster for it..." -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
     

@@ -1,10 +1,15 @@
-﻿#region Sync Mode
+#region Sync Mode
     # Initialize counter variable
-    $posterCount = 0
-    $SeasonCount = 0
-    $EpisodeCount = 0
-    $BackgroundCount = 0
-    $UploadCount = 0
+    $global:posterCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['posterCount'] = 0 }
+    $global:SeasonCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['SeasonCount'] = 0 }
+    $global:EpisodeCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['EpisodeCount'] = 0 }
+    $global:BackgroundCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['BackgroundCount'] = 0 }
+    $global:UploadCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['UploadCount'] = 0 }
 
     [xml]$Libs = CheckPlexAccess -PlexUrl $PlexUrl -PlexToken $PlexToken
     $LibstoExclude = $config.PlexPart.LibstoExclude
@@ -132,12 +137,12 @@
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
 
                         }
@@ -151,12 +156,12 @@
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -173,12 +178,12 @@
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -191,12 +196,12 @@
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -309,7 +314,7 @@
                 if ($matchestmdb.value) { $tmdbid = $matchestmdb.value.Replace('tmdb://', '') }Else { $tmdbid = $null }
                 if ($matchestvdb.value) { $tvdbid = $matchestvdb.value.Replace('tvdb://', '') }Else { $tvdbid = $null }
 
-                # check if there are more then 1 entry in idÂ´s
+                # check if there are more then 1 entry in id´s
                 if ($tvdbid.count -gt '1') { $tvdbid = $tvdbid[0] }
                 if ($tmdbid.count -gt '1') { $tmdbid = $tmdbid[0] }
                 if ($imdbid.count -gt '1') { $imdbid = $imdbid[0] }
@@ -865,7 +870,7 @@
                     Else {
                         Write-Entry -Message "Could not find Poster URL for '$($entry.title)' in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
                         Write-Entry -Message "Please fix the metadata on the source media server to resolve this issue." -Path $global:configLogging -Color Red -log Error
-                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     }
 
@@ -943,7 +948,7 @@
                     Else {
                         Write-Entry -Message "Could not find Background URL for '$($entry.title)' in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
                         Write-Entry -Message "Please fix the metadata on the source media server to resolve this issue." -Path $global:configLogging -Color Red -log Error
-                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     }
                 }
@@ -953,7 +958,7 @@
             write-Entry -Subtext "For: $MovieTitle in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Could not sync movies to jelly/emby, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
             write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)." -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
     }
@@ -1035,7 +1040,7 @@
                     Else {
                         Write-Entry -Message "Could not find Poster URL for '$($entry.title)' in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
                         Write-Entry -Message "Please fix the metadata on the source media server to resolve this issue." -Path $global:configLogging -Color Red -log Error
-                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     }
 
@@ -1109,7 +1114,7 @@
                     Else {
                         Write-Entry -Message "Could not find Background URL for '$($entry.title)' in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
                         write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)." -Path $global:configLogging -Color Red -log Error
-                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     }
 
@@ -1190,7 +1195,7 @@
                         Else {
                             Write-Entry -Message "Could not find Season URL for '$($entry.Title) - Season $global:SeasonNumber' in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
                             Write-Entry -Message "Please fix the metadata on the source media server to resolve this issue." -Path $global:configLogging -Color Red -log Error
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
 
@@ -1280,7 +1285,7 @@
                                 Else {
                                     Write-Entry -Message "Could not find TitleCard URL for '$($entry.Title) - Season $global:season_number - Episode $global:episodenumber' in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
                                     Write-Entry -Message "Please fix the metadata on the source media server to resolve this issue." -Path $global:configLogging -Color Red -log Error
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
 
@@ -1294,7 +1299,7 @@
             write-Entry -Subtext "For: $ShowTitle in $($entry.'Library Name')" -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Could not sync shows to jelly/emby, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
             write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)." -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
 
@@ -1354,7 +1359,7 @@
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
     if ($global:UptimeKumaUrl) {

@@ -1,4 +1,4 @@
-﻿#region Variables
+#region Variables
 # Set Branch
 if ($dev -or $env:APP_VERSION -match '-dev') {
     $Branch = 'dev'
@@ -92,6 +92,19 @@ try {
     if ($cacheDir -and -not (Test-Path -LiteralPath $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null }
 }
 catch {}
+
+$global:tsHitsBag = [System.Collections.Concurrent.ConcurrentBag[int]]::new()
+$global:tsMissMsBag = [System.Collections.Concurrent.ConcurrentBag[long]]::new()
+
+$global:runspaceStats = [hashtable]::Synchronized(@{
+    errorCount = 0
+    posterCount = 0
+    FallbackCount = 0
+    PosterUnknownCount = 0
+    TruncatedCount = 0
+    BackgroundFallbackCount = 0
+    TextlessImageCount = 0
+})
 
 Write-Entry -Message "Starting..." -Path $global:configLogging -Color Green -log Info
 # Create directories if they don't exist

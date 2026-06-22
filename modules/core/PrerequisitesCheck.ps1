@@ -1,4 +1,4 @@
-﻿#region Prerequisites Check
+#region Prerequisites Check
 $fileExtensions = @(".otf", ".ttf", ".otc", ".ttc", ".png")
 
 # Initialize Other Variables
@@ -41,7 +41,7 @@ if ($ForceRunningDeletion -eq 'true') {
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
 }
@@ -232,7 +232,7 @@ if (-not $module) {
     try {
         Install-Module -Name $moduleName -Force -SkipPublisherCheck -AllowPrerelease -Scope AllUsers
         Write-Entry -Message "FanartTvAPI Module missing, installing it for you..." -Path $global:configLogging -Color Red -log Error
-        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         Write-Entry -Subtext "FanartTvAPI Module installed, importing it now..." -Path $global:configLogging -Color Green -log Info
         Import-Module -Name FanartTvAPI
@@ -301,14 +301,14 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
             else {
                 if ($global:FavProvider -eq 'TVDB') {
                     Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
-                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     # Clear Running File
                     HandleScriptExit -Message "Could not receive a TVDB Token"
                 }
                 Else {
                     Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
-                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     break
                 }

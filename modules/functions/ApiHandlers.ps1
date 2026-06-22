@@ -1,4 +1,4 @@
-﻿function GetTMDBLogo {
+function GetTMDBLogo {
     param(
         [string]$Type
     )
@@ -9,7 +9,7 @@
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
         if ($response) {
             if ($response.images.logos) {
@@ -67,7 +67,7 @@ function GetTVDBLogo {
         }
         catch {
             Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
         if ($response) {
             if ($response.data) {
@@ -443,7 +443,7 @@ function GetTMDBMoviePoster {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/movie/$($global:tmdbid)/images/posters"
 
         }
@@ -586,7 +586,7 @@ function GetTMDBMoviePoster {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/movie/$($global:tmdbid)/images/posters"
 
         }
@@ -655,7 +655,7 @@ function GetTMDBMovieBackground {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/movie/$($global:tmdbid)/images/backdrops"
 
         }
@@ -789,7 +789,7 @@ function GetTMDBMovieBackground {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/movie/$($global:tmdbid)/images/backdrops"
 
         }
@@ -877,7 +877,7 @@ function GetTMDBShowPoster {
             }
             catch {
                 Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                 $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/images/posters"
 
             }
@@ -1011,7 +1011,7 @@ function GetTMDBShowPoster {
             }
             catch {
                 Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                 $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/images/posters"
 
             }
@@ -1083,7 +1083,7 @@ function GetTMDBSeasonPoster {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/season/$global:SeasonNumber/images/posters"
 
         }
@@ -1222,7 +1222,7 @@ function GetTMDBSeasonPoster {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/season/$global:SeasonNumber/images/posters"
 
         }
@@ -1349,7 +1349,7 @@ function GetTMDBShowBackground {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/images/backdrops"
 
         }
@@ -1487,7 +1487,7 @@ function GetTMDBShowBackground {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/images/backdrops"
 
         }
@@ -1568,7 +1568,7 @@ function GetTMDBTitleCard {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/season/$global:season_number/episode/$global:episodenumber/images/backdrops"
         }
         if ($response) {
@@ -1693,7 +1693,7 @@ function GetTMDBTitleCard {
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TMDBAssetChangeUrl = "https://www.themoviedb.org/tv/$($global:tmdbid)/season/$global:season_number/episode/$global:episodenumber/images/backdrops"
 
         }
@@ -2229,7 +2229,7 @@ function GetTVDBMoviePoster {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2320,7 +2320,7 @@ function GetTVDBMoviePoster {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2390,7 +2390,7 @@ function GetTVDBMovieBackground {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2484,7 +2484,7 @@ function GetTVDBMovieBackground {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2556,7 +2556,7 @@ function GetTVDBShowPoster {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2615,7 +2615,7 @@ function GetTVDBShowPoster {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2684,7 +2684,7 @@ function GetTVDBSeasonPoster {
         }
         catch {
             Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
         if ($response) {
@@ -2699,7 +2699,7 @@ function GetTVDBSeasonPoster {
                 }
                 catch {
                     Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                 }
                 if ($Seasonresponse) {
@@ -2789,7 +2789,7 @@ function GetTVDBShowBackground {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2852,7 +2852,7 @@ function GetTVDBShowBackground {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
             if ($response) {
@@ -2935,7 +2935,7 @@ function GetTVDBTitleCard {
             }
             catch {
                 Write-Entry -Subtext "Could not query TVDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                 break
             }
@@ -2957,21 +2957,21 @@ function GetTVDBTitleCard {
                 }
                 Else {
                     Write-Entry -Subtext "No Title Card found on TVDB" -Path $global:configLogging -Color Yellow -log Warning
-                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                     $global:TVDBAssetChangeUrl = "https://thetvdb.com/series/$($allEpisodes.slug)/#artwork"
 
                 }
             }
             Else {
                 Write-Entry -Subtext "No Title Card found on TVDB" -Path $global:configLogging -Color Yellow -log Warning
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                 $global:TVDBAssetChangeUrl = "https://thetvdb.com/series/$($allEpisodes.slug)/#artwork"
 
             }
         }
         Else {
             Write-Entry -Subtext "TVDB API response is null" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             $global:TVDBAssetChangeUrl = "https://thetvdb.com/series/$($response.data.slug)/#artwork"
 
         }
@@ -3035,7 +3035,7 @@ function GetPlexArtwork {
         }
         catch {
             Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; return
+            $global:errorCount = Increment-GlobalStat 'errorCount'; return
         }
     }
 
@@ -3097,7 +3097,7 @@ function CheckPlexAccess {
             else {
                 Write-Entry -Message "Could not access Plex with this URL: $(RedactMediaServerUrl -url "$PlexUrl/library/sections/?X-Plex-Token=$PlexToken")" -Path $global:configLogging -Color Red -Log Error
                 Write-Entry -Subtext "Please check token and access..." -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                 # Clear Running File
                 HandleScriptExit -Message "Could not access plex"
@@ -3162,7 +3162,7 @@ function CheckJellyfinAccess {
             else {
                 Write-Entry -Message "Could not access Jellyfin" -Path $global:configLogging -Color Red -Log Error
                 Write-Entry -Subtext "Please check token and url..." -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                 # Clear Running File
                 HandleScriptExit -Message "Cloud not access jellyfin"
@@ -3193,7 +3193,7 @@ function CheckEmbyAccess {
             else {
                 Write-Entry -Message "Could not access Emby" -Path $global:configLogging -Color Red -Log Error
                 Write-Entry -Subtext "Please check token and url..." -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                 # Clear Running File
                 HandleScriptExit -Message "Cloud not access emby"
@@ -3237,7 +3237,7 @@ function UploadOtherMediaServerArtwork {
                 $response = Invoke-WebRequest -Uri $ImageUrl -OutFile $tempFile -ErrorAction Stop
 
                 $magickcommand = "& `"$magick`" identify -verbose `"$tempFile`""
-                $magickcommand | Out-File $magickLog -Append
+                $magickcommand | Write-MagickLog
                 $value = Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr'
 
                 Remove-Item $tempFile -Force -ErrorAction SilentlyContinue | out-null
@@ -3293,7 +3293,7 @@ function UploadOtherMediaServerArtwork {
                 # Delete the existing image first
                 $response = Invoke-RestMethod -Uri $deleteUrl -Method Delete -ErrorAction Stop
                 Write-Entry -Subtext "Image successfully deleted..." -Path $global:configLogging -Color Green -log Info
-                $UploadCount++
+                $global:UploadCount = Increment-GlobalStat 'UploadCount'
             }
             catch {
                 if ($_.Exception.Response -is [System.Net.Http.HttpResponseMessage] -and $_.Exception.Response.Content) {
@@ -3316,7 +3316,7 @@ function UploadOtherMediaServerArtwork {
                     $response = Invoke-RestMethod -Uri $thumbapiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop
 
                     Write-Entry -Subtext "Thumb Image successfully uploaded..." -Path $global:configLogging -Color Green -log Info
-                    $UploadCount++
+                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
                 }
                 catch {
                     if ($_.Exception.Response -is [System.Net.Http.HttpResponseMessage] -and $_.Exception.Response.Content) {
@@ -3339,7 +3339,7 @@ function UploadOtherMediaServerArtwork {
             $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop
 
             Write-Entry -Subtext "Image successfully uploaded..." -Path $global:configLogging -Color Green -log Info
-            $UploadCount++
+            $global:UploadCount = Increment-GlobalStat 'UploadCount'
         }
         catch {
             if ($_.Exception.Response -is [System.Net.Http.HttpResponseMessage] -and $_.Exception.Response.Content) {
@@ -3401,7 +3401,7 @@ function MassDownloadPlexArtwork {
             }
             catch {
                 Write-Entry -Subtext "Could not download Artwork from plex: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; return
+                $global:errorCount = Increment-GlobalStat 'errorCount'; return
             }
         }
 
@@ -3520,12 +3520,12 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -3538,12 +3538,12 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -3560,12 +3560,12 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -3578,12 +3578,12 @@ function MassDownloadPlexArtwork {
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
-                                $ConnRefusedCount++
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                             }
                             if ($isConnRefused -and $ConnRefusedCount -ge 3) {
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -4060,7 +4060,7 @@ function MassDownloadPlexArtwork {
                                     $statusCode = $_.Exception.Message
                                 }
                                 Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
 
                             }
@@ -4080,17 +4080,17 @@ function MassDownloadPlexArtwork {
                                     # Log the error if the move operation fails
                                     Write-Entry -Subtext "Failed to move $PosterImage to $PosterImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                     Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                $posterCount++
+                                $global:posterCount = Increment-GlobalStat 'posterCount'
                             }
                         }
                         Else {
                             Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -4189,7 +4189,7 @@ function MassDownloadPlexArtwork {
                                     $statusCode = $_.Exception.Message
                                 }
                                 Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             }
 
@@ -4206,18 +4206,18 @@ function MassDownloadPlexArtwork {
                                     # Log the error if the move operation fails
                                     Write-Entry -Subtext "Failed to move $backgroundImage to $backgroundImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                     Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                $posterCount++
-                                $BackgroundCount++
+                                $global:posterCount = Increment-GlobalStat 'posterCount'
+                                $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
                             }
                         }
                         Else {
                             Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -4232,14 +4232,14 @@ function MassDownloadPlexArtwork {
                 Write-Entry -Message "Rootfolder value: $($entry.RootFoldername)" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Message "Path value: $($entry.Path)" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Message "Missing RootFolder for: $($entry.title) - you have to manually create the poster for it..." -Path $global:configLogging -Color Red -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
         }
         catch {
             Write-Entry -Subtext "Could not query entries from movies array, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
             write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
     }
@@ -4383,7 +4383,7 @@ function MassDownloadPlexArtwork {
                                 $statusCode = $_.Exception.Message
                             }
                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                         if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
@@ -4399,18 +4399,18 @@ function MassDownloadPlexArtwork {
                                 # Log the error if the move operation fails
                                 Write-Entry -Subtext "Failed to move $PosterImage to $PosterImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             }
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $posterCount++
+                            $global:posterCount = Increment-GlobalStat 'posterCount'
                         }
 
                     }
                     Else {
                         Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     }
                 }
@@ -4514,7 +4514,7 @@ function MassDownloadPlexArtwork {
                                 $statusCode = $_.Exception.Message
                             }
                             Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                         # Move file back to original naming with Brackets.
@@ -4530,18 +4530,18 @@ function MassDownloadPlexArtwork {
                                 # Log the error if the move operation fails
                                 Write-Entry -Subtext "Failed to move $backgroundImage to $backgroundImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                 Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             }
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $BackgroundCount++
-                            $posterCount++
+                            $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
+                            $global:posterCount = Increment-GlobalStat 'posterCount'
                         }
                     }
                     Else {
                         Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                     }
                 }
@@ -4664,7 +4664,7 @@ function MassDownloadPlexArtwork {
                                     $statusCode = $_.Exception.Message
                                 }
                                 Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             }
                             if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
@@ -4680,18 +4680,18 @@ function MassDownloadPlexArtwork {
                                     # Log the error if the move operation fails
                                     Write-Entry -Subtext "Failed to move $SeasonImage to $SeasonImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                     Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
                                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                $SeasonCount++
-                                $posterCount++
+                                $global:SeasonCount = Increment-GlobalStat 'SeasonCount'
+                                $global:posterCount = Increment-GlobalStat 'posterCount'
                             }
                         }
                         Else {
                             Write-Entry -Subtext "Missing poster URL for: $($entry.title)" -Path $global:configLogging  -Color Red -log Error
                             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
                     }
@@ -4828,7 +4828,7 @@ function MassDownloadPlexArtwork {
                                             $statusCode = $_.Exception.Message
                                         }
                                         Write-Entry -Subtext "An error occurred while downloading the artwork: $statusCode" -Path $global:configLogging -Color Red -log Error
-                                        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                     }
                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
@@ -4844,17 +4844,17 @@ function MassDownloadPlexArtwork {
                                             # Log the error if the move operation fails
                                             Write-Entry -Subtext "Failed to move $EpisodeImage to $EpisodeImageoriginal." -Path $global:configLogging -Color Red -Log Error
                                             Write-Entry -Subtext "Error: $_" -Path $global:configLogging -Color Red -Log Error
-                                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                         }
                                         Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                        $EpisodeCount++
-                                        $posterCount++
+                                        $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
+                                        $global:posterCount = Increment-GlobalStat 'posterCount'
                                     }
                                 }
                                 Else {
                                     Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging  -Color White -log Info
-                                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                 }
 
@@ -4873,7 +4873,7 @@ function MassDownloadPlexArtwork {
             Write-Entry -Message "Rootfolder value: $($entry.RootFoldername)" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Message "Path value: $($entry.Path)" -Path $global:configLogging -Color Cyan -log Debug
             Write-Entry -Message "Missing RootFolder for: $($entry.title) - you have to manually create the poster for it..." -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
     }
@@ -4904,8 +4904,8 @@ function MassDownloadPlexArtwork {
             Write-Entry -Subtext "'$($TextlessCount.count)' times the script took a Textless image" -Path $global:configLogging -Color Yellow -log Info
         }
         if ($FallbackCount) {
-            Write-Entry -Subtext "'$($FallbackCount.count)' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
-            Write-Entry -Subtext "'$($posterCount-$($FallbackCount.count))' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
+            Write-Entry -Subtext "'`$FallbackCount' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
+            Write-Entry -Subtext "'$($posterCount-$FallbackCount)' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
         }
         if ($TextCount) {
             Write-Entry -Subtext "'$($TextCount.count)' times the script took an image with Text" -Path $global:configLogging -Color Yellow -log Info
@@ -4964,7 +4964,7 @@ function MassDownloadPlexArtwork {
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
     if ($global:UptimeKumaUrl) {
@@ -5033,12 +5033,12 @@ function MassDownloadJellyEmbyArtwork {
             if (!(Test-Path -LiteralPath $posterDest)) {
                 try {
                     Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue
-                    $posterCount++
+                    $global:posterCount = Increment-GlobalStat 'posterCount'
                     Write-Entry -Subtext "Added: $posterDest" -Path $global:configLogging -Color Green -Log Info
                 }
                 catch {
                     Write-Entry -Subtext "[ERROR-HERE] Failed to download poster for $($item.Name)" -Path $global:configLogging -Color Red -Log Error
-                    $global:errorCount++
+                    $global:errorCount = Increment-GlobalStat 'errorCount'
                 }
             }
 
@@ -5046,13 +5046,13 @@ function MassDownloadJellyEmbyArtwork {
             if (!(Test-Path -LiteralPath $backdropDest)) {
                 try {
                     Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop?api_key=$OtherMediaServerApiKey" -OutFile $backdropDest -ErrorAction SilentlyContinue
-                    $BackgroundCount++
-                    $posterCount++
+                    $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
+                    $global:posterCount = Increment-GlobalStat 'posterCount'
                     Write-Entry -Subtext "Added: $backdropDest" -Path $global:configLogging -Color Green -Log Info
                 }
                 catch {
                     Write-Entry -Subtext "No backdrop found for $($item.Name)" -Path $global:configLogging -Color Yellow -Log Debug
-                    $global:errorCount++
+                    $global:errorCount = Increment-GlobalStat 'errorCount'
                 }
             }
 
@@ -5069,7 +5069,7 @@ function MassDownloadJellyEmbyArtwork {
                         }
                         catch {
                             Write-Entry -Subtext "No season found for $($item.Name) | Season$sNum" -Path $global:configLogging -Color Yellow -Log Info
-                            $global:errorCount++
+                            $global:errorCount = Increment-GlobalStat 'errorCount'
                         }
                     }
                 }
@@ -5084,13 +5084,13 @@ function MassDownloadJellyEmbyArtwork {
                     if (!(Test-Path -LiteralPath $epDest)) {
                         try {
                             Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $epDest -ErrorAction SilentlyContinue
-                            $EpisodeCount++
-                            $posterCount++
+                            $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
+                            $global:posterCount = Increment-GlobalStat 'posterCount'
                             Write-Entry -Subtext "Added: $epDest" -Path $global:configLogging -Color Green -Log Info
                         }
                         catch {
                             Write-Entry -Subtext "No episode found for $($item.Name) | $naming" -Path $global:configLogging -Color Yellow -Log Error
-                            $global:errorCount++
+                            $global:errorCount = Increment-GlobalStat 'errorCount'
                         }
                     }
                 }
@@ -5156,7 +5156,7 @@ function MassDownloadJellyEmbyArtwork {
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
     if ($global:UptimeKumaUrl) {
@@ -5325,11 +5325,11 @@ function SyncPlexArtwork {
 
         switch ($artworktype) {
             'poster' { $postercount++ }
-            'tc' { $EpisodeCount++ }
-            'background' { $BackgroundCount++ }
-            'season' { $SeasonCount++ }
+            'tc' { $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount' }
+            'background' { $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount' }
+            'season' { $global:SeasonCount = Increment-GlobalStat 'SeasonCount' }
         }
-        $UploadCount++
+        $global:UploadCount = Increment-GlobalStat 'UploadCount'
     }
     catch {
         # Attempt to parse JSON error response

@@ -1,9 +1,14 @@
-﻿#region Manual Mode
-    $posterCount = 0
-    $BackgroundCount = 0
-    $EpisodeCount = 0
-    $SeasonCount = 0
-    $collectionCount = 0
+#region Manual Mode
+    $global:posterCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['posterCount'] = 0 }
+    $global:BackgroundCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['BackgroundCount'] = 0 }
+    $global:EpisodeCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['EpisodeCount'] = 0 }
+    $global:SeasonCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['SeasonCount'] = 0 }
+    $global:collectionCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['collectionCount'] = 0 }
     $Mode = "manual"
 
     Write-Entry -Message "Manual Poster Creation Started" -Path $global:configLogging -Color DarkMagenta -log Info
@@ -14,7 +19,7 @@
     $ExtractedTitleRegex = '^\s*(?:Season\s*\d+\s*\|\s*)?(.*?)(?:\s*\|\s*Season\s*\d+)?\s*$'
 
     # Regex to find "Specials" keywords or the numbers 0/00
-    $specialsPattern = '^(?:Specials|Extras|SpÃ©ciaux|0{1,2}|[Ss]eason ?0{1,2})$' # Add any other language keywords here
+    $specialsPattern = '^(?:Specials|Extras|Spéciaux|0{1,2}|[Ss]eason ?0{1,2})$' # Add any other language keywords here
 
     if ([string]::IsNullOrEmpty($PicturePath)) {
         $TriggeredViaCli = 'true'
@@ -157,7 +162,7 @@
                         catch {
                             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
                             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                         }
                     }
                     Exit
@@ -263,7 +268,7 @@
                         catch {
                             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
                             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                         }
                     }
                     Exit
@@ -443,7 +448,7 @@
 
         $CommentArguments = "`"$PosterImage`" -set `"comment`" `"created with posterizarr`" `"$PosterImage`""
         $CommentlogEntry = "`"$magick`" $CommentArguments"
-        $CommentlogEntry | Out-File $magickLog -Append
+        $CommentlogEntry | Write-MagickLog
         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
         if ($global:ImageMagickError -ne 'true') {
             if ($SeasonPoster) {
@@ -463,7 +468,7 @@
                     $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
-                $SeasonCount++
+                $global:SeasonCount = Increment-GlobalStat 'SeasonCount'
             }
             elseif ($CollectionCard) {
                 if ($AddCollectionBorder -eq 'true' -and $AddCollectionOverlay -eq 'true') {
@@ -482,7 +487,7 @@
                     $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
-                $collectionCount++
+                $global:collectionCount = Increment-GlobalStat 'collectionCount'
             }
             elseif ($TitleCard) {
                 if ($AddTitleCardBorder -eq 'true' -and $AddTitleCardOverlay -eq 'true') {
@@ -501,7 +506,7 @@
                     $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
-                $EpisodeCount++
+                $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
             }
             elseif ($BackgroundCard) {
                 # Resize Image to 2000x3000 and apply Border and overlay
@@ -521,7 +526,7 @@
                     $Arguments = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
-                $BackgroundCount++
+                $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
             }
             Else {
                 # Resize Image to 2000x3000 and apply Border and overlay
@@ -541,10 +546,10 @@
                     $Arguments = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
                     Write-Entry -Subtext "Resizing it" -Path $global:configLogging -Color White -log Info
                 }
-                $posterCount++
+                $global:posterCount = Increment-GlobalStat 'posterCount'
             }
             $logEntry = "`"$magick`" $Arguments"
-            $logEntry | Out-File $magickLog -Append
+            $logEntry | Write-MagickLog
             InvokeMagickCommand -Command $magick -Arguments $Arguments
             # ==============================================================================
             # LOGO DETECTION LOGIC (MANUAL MODE)
@@ -578,9 +583,9 @@
                 }
             }
             if (($isLogo -or $AddText -eq 'true' -or $AddSeasonText -eq 'true' -or $AddTitleCardEPTitleText -eq 'true' -or $AddTitleCardEPText -eq 'true' -or $AddCollectionText -eq 'true' -or $AddBackgroundText -eq 'true') -and -not [string]::IsNullOrWhiteSpace($joinedTitle)) {
-                $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                $joinedTitle = $joinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                 if ($AddShowTitletoSeason -eq 'true' -and $SeasonPoster) {
-                    $ShowjoinedTitle = $ShowjoinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                    $ShowjoinedTitle = $ShowjoinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                     # Loop through each symbol and replace it with a newline
                     if ($NewLineOnSpecificSymbols -eq 'true') {
                         foreach ($symbol in $NewLineSymbols) {
@@ -627,7 +632,7 @@
 
                 }
                 if ($AddCollectionTitle -eq 'true' -and $CollectionCard) {
-                    $CollectionjoinedTitle = $CollectionjoinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                    $CollectionjoinedTitle = $CollectionjoinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                     # Loop through each symbol and replace it with a newline
                     if ($NewLineOnSpecificSymbols -eq 'true') {
                         foreach ($symbol in $NewLineSymbols) {
@@ -674,7 +679,7 @@
 
                 }
                 if ($AddTitleCardEPText -eq 'true' -and $TitleCard) {
-                    $EPNumberjoinedTitle = $EPNumberTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                    $EPNumberjoinedTitle = $EPNumberTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
                     $EPNumberjoinedTitlePointSize = $EPNumberjoinedTitle -replace '""', '""""'
                     $EPNumberoptimalFontSize = Get-OptimalPointSize -text $EPNumberjoinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
                     Write-Entry -Subtext ("Optimal EP Number font size set to: '{0}' [{1}]" -f $EPNumberoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -761,7 +766,7 @@
                     # Execute Season Text Command
                     Write-Entry -Subtext "    Applying Season Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     $logEntry = "`"$magick`" $Arguments"
-                    $logEntry | Out-File $magickLog -Append
+                    $logEntry | Write-MagickLog
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
 
                     # Execute Show Title / Logo Command
@@ -772,7 +777,7 @@
                             Write-Entry -Subtext "    Applying showTitle text: `"$ShowjoinedTitle`"" -Path $global:configLogging -Color White -log Info
                         }
                         $logEntry = "`"$magick`" $ShowOnSeasonArguments"
-                        $logEntry | Out-File $magickLog -Append
+                        $logEntry | Write-MagickLog
                         InvokeMagickCommand -Command $magick -Arguments $ShowOnSeasonArguments
                     }
                 }
@@ -798,12 +803,12 @@
                     }
                     Write-Entry -Subtext "    Applying Collection Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     $logEntry = "`"$magick`" $Arguments"
-                    $logEntry | Out-File $magickLog -Append
+                    $logEntry | Write-MagickLog
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                     if ($AddCollectionTitle -eq 'true') {
                         Write-Entry -Subtext "    Applying collectionTitle text: `"$CollectionjoinedTitle`"" -Path $global:configLogging -Color White -log Info
                         $logEntry = "`"$magick`" $CollectionTitleArguments"
-                        $logEntry | Out-File $magickLog -Append
+                        $logEntry | Write-MagickLog
                         InvokeMagickCommand -Command $magick -Arguments $CollectionTitleArguments
                     }
                 }
@@ -828,12 +833,12 @@
                     }
                     Write-Entry -Subtext "    Applying TitleCard Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     $logEntry = "`"$magick`" $Arguments"
-                    $logEntry | Out-File $magickLog -Append
+                    $logEntry | Write-MagickLog
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                     if ($AddTitleCardEPText -eq 'true') {
                         Write-Entry -Subtext "    Applying Season + EP text: `"$EPNumberjoinedTitle`"" -Path $global:configLogging -Color White -log Info
                         $logEntry = "`"$magick`" $EPNumberArguments"
-                        $logEntry | Out-File $magickLog -Append
+                        $logEntry | Write-MagickLog
                         InvokeMagickCommand -Command $magick -Arguments $EPNumberArguments
                     }
                 }
@@ -872,7 +877,7 @@
                         Write-Entry -Subtext "    Applying Background Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     }
                     $logEntry = "`"$magick`" $Arguments"
-                    $logEntry | Out-File $magickLog -Append
+                    $logEntry | Write-MagickLog
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                 }
                 Elseif ($AddText -eq 'true' -or $isLogo) {
@@ -909,7 +914,7 @@
                         Write-Entry -Subtext "    Applying Poster text: `"$joinedTitle`"" -Path $global:configLogging -Color White -log Info
                     }
                     $logEntry = "`"$magick`" $Arguments"
-                    $logEntry | Out-File $magickLog -Append
+                    $logEntry | Write-MagickLog
                     InvokeMagickCommand -Command $magick -Arguments $Arguments
                 }
             }
@@ -918,27 +923,27 @@
     Else {
         if ($TitleCard) {
             $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
-            $EpisodeCount++
+            $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
         }
         Elseif ($BackgroundCard) {
             $Resizeargument = "`"$PosterImage`" -resize `"$BackgroundSize^`" -gravity center -extent `"$BackgroundSize`" `"$PosterImage`""
-            $BackgroundCount++
+            $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
         }
         Elseif ($SeasonPoster) {
             $Resizeargument = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
-            $SeasonCount++
+            $global:SeasonCount = Increment-GlobalStat 'SeasonCount'
         }
         Elseif ($CollectionCard) {
             $Resizeargument = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
-            $collectionCount++
+            $global:collectionCount = Increment-GlobalStat 'collectionCount'
         }
         Else {
             $Resizeargument = "`"$PosterImage`" -resize `"$PosterSize^`" -gravity center -extent `"$PosterSize`" `"$PosterImage`""
-            $posterCount++
+            $global:posterCount = Increment-GlobalStat 'posterCount'
         }
         Write-Entry -Subtext "Resizing it... " -Path $global:configLogging -Color White -log Info
         $logEntry = "`"$magick`" $Resizeargument"
-        $logEntry | Out-File $magickLog -Append
+        $logEntry | Write-MagickLog
         InvokeMagickCommand -Command $magick -Arguments $Resizeargument
     }
     if ($global:ImageMagickError -ne 'true') {
@@ -1063,7 +1068,7 @@
                             $Upload = Invoke-WebRequest -Uri $uri -Method Post -Headers $extraPlexHeaders -Body $fileContent -ContentType 'application/octet-stream' -ErrorAction Stop
 
                             Write-Entry -Subtext "Manual Plex Upload Success: $PosterImage" -Path $global:configLogging -Color Green -log Info
-                            $UploadCount++
+                            $global:UploadCount = Increment-GlobalStat 'UploadCount'
                         }
                         catch {
                             Write-Entry -Subtext "Manual Plex Upload Failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1072,7 +1077,7 @@
                     else {
                         Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
                         UploadOtherMediaServerArtwork -itemId $FinalTargetID -imageType $FinalImageType -imagePath $PosterImage
-                        $UploadCount++
+                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                     }
                 }
             }
@@ -1157,7 +1162,7 @@
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
     if ($global:UptimeKumaUrl) {

@@ -1,4 +1,19 @@
-﻿function Test-IsPosterizarrAsset {
+function Write-MagickLog {
+    param (
+        [Parameter(ValueFromPipeline=$true)]
+        [string]$Message
+    )
+    $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrMagickLogMutex")
+    try {
+        $mutex.WaitOne() | Out-Null
+        $Message | Out-File $global:magickLog -Append
+    } finally {
+        $mutex.ReleaseMutex()
+        $mutex.Dispose()
+    }
+}
+
+function Test-IsPosterizarrAsset {
     param ([string]$Path)
 
     if (-not (Test-Path -LiteralPath $Path)) { return $false }
@@ -119,7 +134,7 @@ function Get-OptimalPointSize {
         if ($__tsc_Hit) {
             if ($__tsc_Hit.PSObject.Properties.Name -contains 'isTruncated') { $global:IsTruncated = [bool]$__tsc_Hit.isTruncated } else { $global:IsTruncated = $null }
             $script:CurrentTextSizeSource = 'cache'
-            $script:tsHits++   # [stats] count cache hits
+            if ($global:tsHitsBag) { $global:tsHitsBag.Add(1) }   # [stats] count cache hits
             return [int]$__tsc_Hit.pointSize
         }
     }
@@ -136,7 +151,7 @@ function Get-OptimalPointSize {
     # Log the command for debugging purposes
     $cmd | Out-File $magickLog -Append
 
-    # [stats] start timing the ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œmissÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â compute path
+    # [stats] start timing the ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“missÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â compute path
     $tsc_sw = [Diagnostics.Stopwatch]::StartNew()
 
     # Execute the command and get the current point size
@@ -193,7 +208,7 @@ function CheckImageMagick {
             $LatestRelease = [regex]::Matches($result.Content, 'href="(ImageMagick-7[^"]+-portable-Q16-HDRI-x64\.7z)"') | ForEach-Object { $_.Groups[1].Value } | Select-Object -First 1
 
             Write-Entry -Message "ImageMagick missing, please manually install/copy portable Imagemagick from here: https://imagemagick.org/archive/binaries/$LatestRelease" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             Exit
         }
     }
@@ -251,7 +266,7 @@ function CheckOverlayDimensions {
         }
         catch {
             Write-Entry -Subtext "Failed to check dimensions for $OverlayName at path $OverlayPath. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
 
@@ -342,14 +357,14 @@ function InvokeMagickCommand {
                 Write-Entry -Subtext "An error occurred while executing the magick command:" -Path $global:configLogging -Color Red -log Error
                 Write-Entry -Subtext (GetMagickErrorMessage $errorOutput) -Path $global:configLogging -Color Red -log Error
                 Write-Entry -Subtext "$errorOutput" -Path $global:configLogging -Color Cyan -log Debug
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
             }
         }
         catch {
             Write-Entry -Subtext "Failed to start the process or read the error output:" -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext $_.Exception.Message -Path $global:configLogging -Color Red -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
         finally {
@@ -361,18 +376,24 @@ function InvokeMagickCommand {
     catch {
         Write-Entry -Subtext "An unexpected error occurred while setting up the process:" -Path $global:configLogging -Color Red -log Error
         Write-Entry -Subtext $_.Exception.Message -Path $global:configLogging -Color Red -log Error
-        $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
     }
 }
 
 function Write-TextSizeCacheSummary {
     param([string]$Label = "Text-size cache")
-    $total = $script:tsHits + $script:tsMiss
-    $rate = if ($total) { [math]::Round(100 * $script:tsHits / $total, 2) }else { 0 }
-    $avg = if ($script:tsRuns) { [math]::Round($script:tsMs / $script:tsRuns, 2) }else { 0 }
-    $saved = [TimeSpan]::FromMilliseconds([double]($script:tsHits * $avg))
+    $tsHits = if ($global:tsHitsBag) { $global:tsHitsBag.Count } else { 0 }
+    $tsMiss = if ($global:tsMissMsBag) { $global:tsMissMsBag.Count } else { 0 }
+    $tsRuns = $tsMiss
+    $tsMs = 0
+    if ($global:tsMissMsBag) { foreach ($ms in $global:tsMissMsBag) { $tsMs += $ms } }
+
+    $total = $tsHits + $tsMiss
+    $rate = if ($total) { [math]::Round(100 * $tsHits / $total, 2) } else { 0 }
+    $avg = if ($tsRuns) { [math]::Round($tsMs / $tsRuns, 2) } else { 0 }
+    $saved = [TimeSpan]::FromMilliseconds([double]($tsHits * $avg))
     Write-Entry -Subtext ("{0}: hits='{1}', misses='{2}' ({3}%); magick_calls='{4}' in '{5} ms'; est_saved='{6}h {7}m {8}s'" -f `
-            $Label, $script:tsHits, $script:tsMiss, $rate, $script:tsRuns, $script:tsMs, $saved.Hours, $saved.Minutes, $saved.Seconds) `
+            $Label, $tsHits, $tsMiss, $rate, $tsRuns, $tsMs, $saved.Hours, $saved.Minutes, $saved.Seconds) `
         -Path $global:configLogging -Color Green -log Info
 }

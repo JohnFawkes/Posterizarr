@@ -1,4 +1,4 @@
-﻿#region Testing Mode
+#region Testing Mode
     # Helper to create the initial test images
     function New-TestImage-IfNotExists {
         param (
@@ -13,7 +13,7 @@
         if (!(Test-Path $ImagePath)) {
             $arguments = "-size `"$ImageSize`" xc:#FC7E10 -background none `"$ImagePath`""
             $logEntry = "`"$MagickPath`" $arguments"
-            $logEntry | Out-File $CommandLogPath -Append
+            $logEntry | Write-MagickLog
             InvokeMagickCommand -Command $MagickPath -Arguments $arguments
             Write-Entry -Subtext $Message -Path $TestingLogPath -Color Cyan -log Info
         }
@@ -89,7 +89,7 @@
     function Invoke-MagickTestCommand {
         param([string]$Arguments, [string]$CommandLogPath)
         $logEntry = "`"$magick`" $Arguments"
-        $logEntry | Out-File $CommandLogPath -Append
+        $logEntry | Write-MagickLog
         InvokeMagickCommand -Command $magick -Arguments $Arguments
     }
     # =================================================================================
@@ -200,7 +200,8 @@
         Write-Entry -Subtext "Calculating Optimal Font Sizes. This may take a while..." -Path $global:configLogging -Color Cyan -log Info
     }
 
-    $TruncatedCount = 0
+    $global:TruncatedCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['TruncatedCount'] = 0 }
 
     # Use Hashtables to store dynamic font sizes
     $posterFontSizes = @{}
@@ -213,7 +214,7 @@
         Write-Entry -Subtext "Finished Optimal Font Sizes for posters..." -Path $global:configLogging -Color Cyan -log Info
         foreach ($case in $testCases) {
             $posterFontSizes[$case.ID] = Get-OptimalPointSize -text $case.Text -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
-            if ($global:IsTruncated) { $TruncatedCount++ }
+            if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
         }
     }
 
@@ -222,18 +223,18 @@
             # Title
             foreach ($case in $testCases) {
                 $showFontSizes[$case.ID] = Get-OptimalPointSize -text $case.Text -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
-                if ($global:IsTruncated) { $TruncatedCount++ }
+                if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
             }
             # Season
             foreach ($case in $testCases) {
                 $seasonFontSizes[$case.ID] = Get-OptimalPointSize -text $case.Text -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                if ($global:IsTruncated) { $TruncatedCount++ }
+                if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
             }
         }
         Else {
             foreach ($case in $testCases) {
                 $seasonFontSizes[$case.ID] = Get-OptimalPointSize -text $case.Text -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
-                if ($global:IsTruncated) { $TruncatedCount++ }
+                if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
             }
         }
         Write-Entry -Subtext "Finished Optimal Font Sizes for season posters..." -Path $global:configLogging -Color Cyan -log Info
@@ -242,7 +243,7 @@
     if ($AddBackgroundText -eq 'true') {
         foreach ($case in $testCases) {
             $backgroundFontSizes[$case.ID] = Get-OptimalPointSize -text $case.Text -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
-            if ($global:IsTruncated) { $TruncatedCount++ }
+            if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
         }
         Write-Entry -Subtext "Finished Optimal Font Sizes for backgrounds..." -Path $global:configLogging -Color Cyan -log Info
     }
@@ -250,18 +251,18 @@
     if ($AddTitleCardEPTitleText -eq 'true') {
         foreach ($case in $testCases) {
             $titleCardFontSizes[$case.ID] = Get-OptimalPointSize -text $case.Text -font $titlecardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
-            if ($global:IsTruncated) { $TruncatedCount++ }
+            if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
         }
     }
 
     if ($AddTitleCardEPText -eq 'true') {
         $Episodetext = $Episodetext -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
         $TitleCardoptimalFontSizeEpisodetext = Get-OptimalPointSize -text $Episodetext -font $titlecardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-        if ($global:IsTruncated) { $TruncatedCount++ }
+        if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
 
         $EpisodetextCAPS = $EpisodetextCAPS -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
         $TitleCardoptimalFontSizeEpisodetextCAPS = Get-OptimalPointSize -text $EpisodetextCAPS -font $titlecardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
-        if ($global:IsTruncated) { $TruncatedCount++ }
+        if ($global:IsTruncated) { $global:TruncatedCount = Increment-GlobalStat 'TruncatedCount' }
     }
 
     if ($AddText -eq 'true' -or $AddBackgroundText -eq 'true' -or $AddTitleCardEPTitleText -eq 'true' -or $AddTitleCardEPText -eq 'true') {
@@ -565,7 +566,7 @@
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
 

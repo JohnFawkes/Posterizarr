@@ -1,4 +1,33 @@
-﻿function HandleScriptExit {
+function Increment-GlobalStat {
+    param([string]$StatName)
+    $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrStatsMutex")
+    try {
+        $mutex.WaitOne() | Out-Null
+        $val = 0
+        if ($global:runspaceStats.ContainsKey($StatName)) {
+            $val = $global:runspaceStats[$StatName] + 1
+            $global:runspaceStats[$StatName] = $val
+        } else {
+            $val = 1
+            $global:runspaceStats[$StatName] = $val
+        }
+        Set-Variable -Name $StatName -Value $val -Scope Global -Force
+        return $val
+    } finally {
+        $mutex.ReleaseMutex()
+        $mutex.Dispose()
+    }
+}
+
+function Sync-GlobalStats {
+    if ($global:runspaceStats) {
+        foreach ($key in $global:runspaceStats.Keys) {
+            Set-Variable -Name $key -Value $global:runspaceStats[$key] -Scope Global -Force
+        }
+    }
+}
+
+function HandleScriptExit {
     param (
         [string]$Message,
         [string]$Status = "down"
@@ -14,7 +43,7 @@
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++
+            $global:errorCount = Increment-GlobalStat 'errorCount'
         }
     }
 
@@ -846,7 +875,14 @@ function Write-Entry {
 "@
         }
         Write-Host $Header
-        $Header | Out-File $Path -Append
+        $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrLogMutex")
+        try {
+            $mutex.WaitOne() | Out-Null
+            $Header | Out-File $Path -Append
+        } finally {
+            $mutex.ReleaseMutex()
+            $mutex.Dispose()
+        }
         $global:HeaderWritten = $true
     }
     if ($theLog -le $global:logLevel) {
@@ -875,13 +911,22 @@ function Write-Entry {
             $FormattedLineWritehost = "{0}|      " -f ($TypeFormatted)
             Write-Host $FormattedLineWritehost -NoNewline
             Write-Host $Subtext -ForegroundColor $Color
-            $FormattedLine | Out-File $Path -Append
+            $lineToWrite = $FormattedLine
         }
         else {
 
             Write-Host $FormattedLineWritehost -NoNewline
             Write-Host $Message -ForegroundColor $Color
-            $FormattedLine1 | Out-File $Path -Append
+            $lineToWrite = $FormattedLine1
+        }
+        
+        $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrLogMutex")
+        try {
+            $mutex.WaitOne() | Out-Null
+            $lineToWrite | Out-File $Path -Append
+        } finally {
+            $mutex.ReleaseMutex()
+            $mutex.Dispose()
         }
     }
 }
@@ -1077,7 +1122,7 @@ function CheckJsonPaths {
         if ((-not [string]::IsNullOrEmpty($path)) -and (-not (Test-Path -LiteralPath $path.TrimEnd()))) {
             Write-Entry -Message "Could not find file in: $path" -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Check config for typos and make sure that the file is present in scriptroot." -Path $global:configLogging -Color Yellow -log Warning
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
 

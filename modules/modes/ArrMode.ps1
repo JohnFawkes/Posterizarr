@@ -1,5 +1,6 @@
-﻿#region Arr Mode
-    $posterCount = 0
+#region Arr Mode
+    $global:posterCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['posterCount'] = 0 }
     $arrplatform = $arrTriggers['arr_platform']
     $Mode = "arr"
     Write-Entry -Message "ArrTrigger Mode Started..." -Path $global:configLogging -Color White -log Info
@@ -793,12 +794,40 @@
 
         Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
         Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
+        $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
+        
+        $globalState = @{}
+        Get-Variable | Where-Object { 
+            $_.Options -notmatch 'ReadOnly|Constant' -and 
+            $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata')
+        } | ForEach-Object {
+            $globalState[$_.Name] = $_.Value
+        }
+
         # Movie Part
-        foreach ($entry in $AllMovies) { Invoke-MoviePosterCreation -entry $entry }
+        $AllMovies | ForEach-Object -Parallel {
+            $state = $using:globalState
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+
+            Invoke-MoviePosterCreation -entry $_
+        } -ThrottleLimit 5
 
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
-        foreach ($entry in $AllShows) { Invoke-ShowPosterCreation -entry $entry }
+        $AllShows | ForEach-Object -Parallel {
+            $state = $using:globalState
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+
+            Invoke-ShowPosterCreation -entry $_
+        } -ThrottleLimit 5
 
         $endTime = Get-Date
         $executionTime = New-TimeSpan -Start $startTime -End $endTime
@@ -807,7 +836,8 @@
         $minutes = $executionTime.Minutes
         $seconds = $executionTime.Seconds
         $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
-        Write-Entry -Message "Finished, Total images created: $posterCount" -Path $global:configLogging -Color Green -log Info
+    Sync-GlobalStats
+    Write-Entry -Message "Finished, Total images created: $posterCount" -Path $global:configLogging -Color Green -log Info
         if ($UploadCount -ge '1') {
             Write-Entry -Message "Finished, Total images Uploaded: $UploadCount" -Path $global:configLogging -Color Green -log Info
         }
@@ -829,8 +859,8 @@
                 Write-Entry -Subtext "'$($TextlessCount.count)' times the script took a Textless image" -Path $global:configLogging -Color Yellow -log Info
             }
             if ($FallbackCount) {
-                Write-Entry -Subtext "'$($FallbackCount.count)' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
-                Write-Entry -Subtext "'$($posterCount-$($FallbackCount.count))' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
+                Write-Entry -Subtext "'`$FallbackCount' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
+                Write-Entry -Subtext "'$($posterCount-$FallbackCount)' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
             }
             if ($TextCount) {
                 Write-Entry -Subtext "'$($TextCount.count)' times the script took an image with Text" -Path $global:configLogging -Color Yellow -log Info
@@ -857,8 +887,8 @@
                 Write-Entry -Subtext "'$($TextlessCount.count)' times the script took a Textless image" -Path $global:configLogging -Color Yellow -log Info
             }
             if ($FallbackCount) {
-                Write-Entry -Subtext "'$($FallbackCount.count)' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
-                Write-Entry -Subtext "'$($posterCount-$($FallbackCount.count))' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
+                Write-Entry -Subtext "'`$FallbackCount' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
+                Write-Entry -Subtext "'$($posterCount-$FallbackCount)' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
             }
             if ($TextCount) {
                 Write-Entry -Subtext "'$($TextCount.count)' times the script took an image with Text" -Path $global:configLogging -Color Yellow -log Info
@@ -942,7 +972,7 @@
             catch {
                 Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
                 Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             }
         }
         if ($global:UptimeKumaUrl) {
@@ -1227,14 +1257,44 @@
         # Download poster foreach movie
         Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
         Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
-        # Movie Part
-        foreach ($entry in $AllMovies) { Invoke-MoviePosterCreation -entry $entry }
+        $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
+        
+        $globalState = @{}
+        Get-Variable | Where-Object { 
+            $_.Options -notmatch 'ReadOnly|Constant' -and 
+            $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata')
+        } | ForEach-Object {
+            $globalState[$_.Name] = $_.Value
+        }
 
-        $SkipTBACount = 0
-        $SkipJapTitleCount = 0
+        # Movie Part
+        $AllMovies | ForEach-Object -Parallel {
+            $state = $using:globalState
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+
+            Invoke-MoviePosterCreation -entry $_
+        } -ThrottleLimit 5
+
+    $global:SkipTBACount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['SkipTBACount'] = 0 }
+    $global:SkipJapTitleCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['SkipJapTitleCount'] = 0 }
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
-        foreach ($entry in $AllShows) { Invoke-ShowPosterCreation -entry $entry }
+        $AllShows | ForEach-Object -Parallel {
+            $state = $using:globalState
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
+            $functionFiles = Get-ChildItem -Path "$($state['ScriptRoot'])\modules\functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+
+            Invoke-ShowPosterCreation -entry $_
+        } -ThrottleLimit 5
         $endTime = Get-Date
         $executionTime = New-TimeSpan -Start $startTime -End $endTime
         # Format the execution time
@@ -1242,8 +1302,8 @@
         $minutes = $executionTime.Minutes
         $seconds = $executionTime.Seconds
         $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
-
-        Write-Entry -Message "Finished, Total images created: $posterCount" -Path $global:configLogging -Color Green -log Info
+    Sync-GlobalStats
+    Write-Entry -Message "Finished, Total images created: $posterCount" -Path $global:configLogging -Color Green -log Info
         if ($posterCount -ge '1') {
             Write-Entry -Message "Show/Movie Posters created: $($posterCount-$SeasonCount-$BackgroundCount-$EpisodeCount)| Season images created: $SeasonCount | Background images created: $BackgroundCount | TitleCards created: $EpisodeCount" -Path $global:configLogging -Color Green -log Info
         }
@@ -1262,8 +1322,8 @@
                 Write-Entry -Subtext "'$($TextlessCount.count)' times the script took a Textless image" -Path $global:configLogging -Color Yellow -log Info
             }
             if ($FallbackCount) {
-                Write-Entry -Subtext "'$($FallbackCount.count)' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
-                Write-Entry -Subtext "'$($posterCount-$($FallbackCount.count))' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
+                Write-Entry -Subtext "'`$FallbackCount' times the script took a fallback image" -Path $global:configLogging -Color Yellow -log Info
+                Write-Entry -Subtext "'$($posterCount-$FallbackCount)' times the script took the image from fav provider: $global:FavProvider" -Path $global:configLogging -Color Yellow -log Info
             }
             if ($TextCount) {
                 Write-Entry -Subtext "'$($TextCount.count)' times the script took an image with Text" -Path $global:configLogging -Color Yellow -log Info
@@ -1347,7 +1407,7 @@
             catch {
                 Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
                 Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-                $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             }
         }
         if ($global:UptimeKumaUrl) {

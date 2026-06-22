@@ -1,5 +1,6 @@
-﻿#region LogoUpdater Mode
-    $UploadCount = 0
+#region LogoUpdater Mode
+    $global:UploadCount = 0
+    if ($global:runspaceStats) { $global:runspaceStats['UploadCount'] = 0 }
     $matched = 0
     $OriginalLibraryName = $LibraryName
     $Mode = "logoupdater"
@@ -191,12 +192,12 @@
                             try {
                                 Invoke-RestMethod -Method Delete -Uri $deleteUrl -Headers $PlexHeaders
                                 Write-Entry -Subtext "[$title] Successfully deleted via API." -Path $global:configLogging -Color Green -log Info
-                                $UploadCount++
+                                $global:UploadCount = Increment-GlobalStat 'UploadCount'
                             }
                             catch {
                                 if ($_.Exception.Response.StatusCode.value__ -eq 404) {
                                     Write-Entry -Subtext "[$title] Asset unlinked from UI." -Path $global:configLogging -Color Green -log Info
-                                    $UploadCount++
+                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                 }
                                 else {
                                     Write-Entry -Subtext "[$title] Unexpected error during deletion: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -308,7 +309,7 @@
                     if ($magick) {
                         $CommentArguments = "`"$tempLogo`" -set `"comment`" `"created with posterizarr`" `"$tempLogo`""
                         $CommentlogEntry = "`"$magick`" $CommentArguments"
-                        $CommentlogEntry | Out-File $magickLog -Append
+                        $CommentlogEntry | Write-MagickLog
                         InvokeMagickCommand -Command $magick -Arguments $CommentArguments
                     }
 
@@ -387,12 +388,12 @@
 
                     if ($UploadSuccess) {
                         Write-Entry -Subtext "[$title] Logo uploaded successfully!" -Path $global:configLogging -Color Green -log Info
-                        $UploadCount++
+                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                     }
                 }
                 catch {
                     Write-Entry -Subtext "[$title] Processing failed: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                    $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                 }
                 finally {
                     if (Test-Path $tempLogo) {
@@ -432,7 +433,7 @@
         catch {
             Write-Entry -Message "Failed to delete '$CurrentlyRunning'." -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Reason: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Error
-            $global:errorCount++; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
         }
     }
     if ($global:UptimeKumaUrl) {
