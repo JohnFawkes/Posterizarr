@@ -244,6 +244,7 @@ export default function OnboardingModal({ onComplete }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
+        } catch (scheduleErr) {
           console.error("Failed to setup schedule during onboarding", scheduleErr);
         }
       }
@@ -642,7 +643,6 @@ export default function OnboardingModal({ onComplete }) {
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
                 </div>
-              </div>
               </div>
             )}
 
