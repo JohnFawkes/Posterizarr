@@ -28,61 +28,61 @@ const ValidateButton = ({
       switch (type) {
         case "plex":
           requestBody = {
-            url: config.PlexUrl,
-            token: config.PlexToken,
+            url: config.PlexUrl?.trim(),
+            token: config.PlexToken?.trim(),
           };
           break;
 
         case "jellyfin":
           requestBody = {
-            url: config.JellyfinUrl,
-            api_key: config.JellyfinAPIKey,
+            url: config.JellyfinUrl?.trim(),
+            api_key: config.JellyfinAPIKey?.trim(),
           };
           break;
 
         case "emby":
           requestBody = {
-            url: config.EmbyUrl,
-            api_key: config.EmbyAPIKey,
+            url: config.EmbyUrl?.trim(),
+            api_key: config.EmbyAPIKey?.trim(),
           };
           break;
 
         case "tmdb":
           requestBody = {
-            token: config.tmdbtoken,
+            token: config.tmdbtoken?.trim(),
           };
           break;
 
         case "tvdb":
           // Split API key and PIN if formatted as "key#pin"
-          const tvdbParts = config.tvdbapi?.split("#") || [];
+          const tvdbParts = config.tvdbapi?.trim().split("#") || [];
           requestBody = {
-            api_key: tvdbParts[0],
-            pin: tvdbParts[1] || null,
+            api_key: tvdbParts[0]?.trim(),
+            pin: tvdbParts[1]?.trim() || null,
           };
           break;
 
         case "fanart":
           requestBody = {
-            api_key: config.FanartTvAPIKey,
+            api_key: config.FanartTvAPIKey?.trim(),
           };
           break;
 
         case "discord":
           requestBody = {
-            webhook_url: config.Discord,
+            webhook_url: config.Discord?.trim(),
           };
           break;
 
         case "apprise":
           requestBody = {
-            url: config.AppriseUrl,
+            url: config.AppriseUrl?.trim(),
           };
           break;
 
         case "uptimekuma":
           requestBody = {
-            url: config.UptimeKumaUrl,
+            url: config.UptimeKumaUrl?.trim(),
           };
           break;
 

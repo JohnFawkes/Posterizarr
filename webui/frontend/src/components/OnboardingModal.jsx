@@ -132,6 +132,23 @@ export default function OnboardingModal({ onComplete }) {
           // Merge existing config into state so we don't lose anything
           setConfig(prev => {
             const newConfig = { ...prev, ...data.config };
+            
+            // Clear out default example values so they don't get appended to
+            const defaultsToClear = {
+              tmdbtoken: "TMDBTOKEN",
+              tvdbapi: "TVDBAPIKEY",
+              FanartTvAPIKey: "FANARTAPIKEY",
+              Discord: "https://discordapp.com/api/webhooks/",
+              AppriseUrl: "discord://{WebhookID}/{WebhookToken}/",
+              UptimeKumaUrl: "https://uptime-kuma.domain.com"
+            };
+
+            for (const [key, defaultVal] of Object.entries(defaultsToClear)) {
+              if (newConfig[key] === defaultVal) {
+                newConfig[key] = "";
+              }
+            }
+
             if (newConfig.Discord) setNotificationType('discord');
             else if (newConfig.AppriseUrl) setNotificationType('apprise');
             return newConfig;
@@ -282,7 +299,7 @@ export default function OnboardingModal({ onComplete }) {
                   How to find this?
                 </a>
               </label>
-              <input type="password" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
+              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -315,7 +332,7 @@ export default function OnboardingModal({ onComplete }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="password" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
+              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -348,7 +365,7 @@ export default function OnboardingModal({ onComplete }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="password" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
+              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -472,7 +489,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TMDb Token <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="password" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
+                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tmdb" config={config} label="Test Connection" disabled={!config.tmdbtoken} />
                 </div>
@@ -487,7 +504,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TVDb Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="password" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
+                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tvdb" config={config} label="Test Connection" disabled={!config.tvdbapi} />
                 </div>
@@ -502,7 +519,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get Fanart Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="password" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
+                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="fanart" config={config} label="Test Connection" disabled={!config.FanartTvAPIKey} />
                 </div>
@@ -696,7 +713,7 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency !== "interval" && (
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white mb-2">Time (HH:MM)</label>
-                        <input type="time" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
+                        <input type="time" style={{ colorScheme: "dark" }} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
                       </div>
                     )}
                     
