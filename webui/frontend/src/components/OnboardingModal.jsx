@@ -108,6 +108,7 @@ export default function OnboardingModal({ onComplete }) {
     ImageProcessing: "true",
     outputQuality: "92%",
     maxLogs: "5",
+    ParallelJobs: "5",
 
     // Notifications
     SendNotification: "false",
@@ -602,6 +603,14 @@ export default function OnboardingModal({ onComplete }) {
                   <p className="text-sm text-theme-muted">Number of previous run logs to keep</p>
                 </div>
                 <input type="number" min="1" max="50" className="w-24 bg-white border border-theme-border rounded-lg px-3 py-1.5 text-black font-semibold text-right" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
+                <div>
+                  <h4 className="font-semibold text-white">Parallel Jobs</h4>
+                  <p className="text-sm text-theme-muted">Number of concurrent poster creations (Warning: High CPU/RAM usage!)</p>
+                </div>
+                <input type="number" min="1" max="50" className="w-24 bg-white border border-theme-border rounded-lg px-3 py-1.5 text-black font-semibold text-right" value={config.ParallelJobs} onChange={e => handleChange("ParallelJobs", e.target.value)} />
               </div>
             </div>
           </div>
