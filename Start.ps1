@@ -549,8 +549,13 @@ function Ensure-WebUIConfig {
 
 $Header = @"
 ----------------------------------------------------
-Ideas for the container were taken from:
-DapperDrivers, Onedr0p and PJGitHub9 (effect toolkit inspiration)
+Ideas for the container image were taken from:
+DapperDrivers, Onedr0p
+
+And effects toolkit inspiration was taken from:
+PJGitHub9
+
+Thank you to all of them for the great work!
 ----------------------------------------------------
 ======================================================
   _____          _            _
