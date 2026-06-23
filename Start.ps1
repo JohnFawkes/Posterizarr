@@ -621,6 +621,9 @@ foreach ($folder in $folders) {
         }
         catch {
             $ErrorMessage = $_.Exception.Message
+            if ($ErrorMessage -match "already exists") {
+                continue
+            }
             Write-Host "------------------------------------------------------------" -ForegroundColor Red
             if ($ErrorMessage -match "Access to the path|Permission denied") {
                 Write-Host "CRITICAL ERROR: PERMISSION DENIED" -ForegroundColor Red
