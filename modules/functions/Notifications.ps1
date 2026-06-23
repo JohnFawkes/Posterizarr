@@ -1,4 +1,4 @@
-﻿function SendMessage {
+function SendMessage {
     param(
         [string]$type,
         [string]$title,
@@ -40,7 +40,7 @@
 
         # Build the final payload object
         $payloadObject = [PSCustomObject]@{
-            username   = $global:DiscordUserName
+            username   = $(if ([string]::IsNullOrWhiteSpace($global:DiscordUserName)) { "Posterizarr" } else { $global:DiscordUserName })
             avatar_url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
             # content    = ""
             embeds     = @(
@@ -388,7 +388,7 @@ function Send-SummaryNotification {
 
         # Build final payload
         $payloadObject = [PSCustomObject]@{
-            username   = $global:DiscordUserName
+            username   = $(if ([string]::IsNullOrWhiteSpace($global:DiscordUserName)) { "Posterizarr" } else { $global:DiscordUserName })
             avatar_url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
             content    = ""
             embeds     = @(
