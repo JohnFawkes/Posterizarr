@@ -460,10 +460,21 @@ OVERLAYFILES_DIR.mkdir(exist_ok=True)
 # Create uploads directory if it doesn't exist
 UPLOADS_DIR.mkdir(exist_ok=True)
 
-if not CONFIG_PATH.exists() and CONFIG_EXAMPLE_PATH.exists():
+# Try to find the example config file (in /app for Docker, or BASE_DIR for local)
+example_source_path = Path("/app/config.example.json") if IS_DOCKER else CONFIG_EXAMPLE_PATH
+
+if not CONFIG_PATH.exists():
     logger.warning(f"Config file not found at {CONFIG_PATH}")
-    logger.warning(f"Using fallback config.example.json: {CONFIG_EXAMPLE_PATH}")
-    CONFIG_PATH = CONFIG_EXAMPLE_PATH
+    if example_source_path.exists():
+        try:
+            import shutil
+            shutil.copy2(example_source_path, CONFIG_PATH)
+            logger.info(f"Copied default config from {example_source_path} to {CONFIG_PATH}")
+        except Exception as e:
+            logger.error(f"Failed to copy default config: {e}")
+            CONFIG_PATH = example_source_path
+    else:
+        logger.error(f"Fallback config.example.json not found at {example_source_path}!")
 else:
     logger.debug(f"Config path set to: {CONFIG_PATH}")
     logger.debug(f"Config exists: {CONFIG_PATH.exists()}")
@@ -2046,13 +2057,15 @@ async def lifespan(app: FastAPI):
         try:
             logger.info("Initializing config database...")
             CONFIG_DB_PATH = DATABASE_DIR / "config.db"
+            logger.info(f"Target CONFIG_DB_PATH is {CONFIG_DB_PATH}")
 
             config_db = ConfigDB(CONFIG_DB_PATH, CONFIG_PATH)
             config_db.initialize()
 
             logger.info(f"Config database ready: {CONFIG_DB_PATH}")
+            logger.info(f"Does config.db exist on disk now? {CONFIG_DB_PATH.exists()}")
         except Exception as e:
-            logger.error(f"Failed to initialize config database: {e}")
+            logger.error(f"Failed to initialize config database: {e}", exc_info=True)
             config_db = None
     else:
         logger.info("Config database module not available, skipping initialization")
@@ -2544,14 +2557,16 @@ async def get_config(request: Request):
 
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             grouped_config = json.load(f)
-
         # Get onboarding_completed from DB
-        onboarding_completed = True
+        # Default to False if config_db is missing or failed to load, to ensure fresh installs see the modal
+        onboarding_completed = False
         if CONFIG_DATABASE_AVAILABLE and config_db:
             val = config_db.get_value('_root', 'onboarding_completed')
             if val is not None:
                 # Value is stored as integer 0 or 1 in SQLite, convert to bool
                 onboarding_completed = bool(val)
+        
+        # Merge API keys correctly into the final response
 
         if CONFIG_MAPPER_AVAILABLE:
             flat_config = flatten_config(grouped_config)
