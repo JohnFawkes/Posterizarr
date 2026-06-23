@@ -290,7 +290,7 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">Plex URL</label>
-              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexUrl} onChange={e => handleChange("PlexUrl", e.target.value)} />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexUrl} onChange={e => handleChange("PlexUrl", e.target.value)} />
             </div>
             <div>
               <label className="flex items-center justify-between text-sm font-medium text-theme-muted mb-1">
@@ -299,7 +299,7 @@ export default function OnboardingModal({ onComplete }) {
                   How to find this?
                 </a>
               </label>
-              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -328,11 +328,11 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">Jellyfin URL</label>
-              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinUrl} onChange={e => handleChange("JellyfinUrl", e.target.value)} />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinUrl} onChange={e => handleChange("JellyfinUrl", e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -361,11 +361,11 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">Emby URL</label>
-              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyUrl} onChange={e => handleChange("EmbyUrl", e.target.value)} />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyUrl} onChange={e => handleChange("EmbyUrl", e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -489,7 +489,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TMDb Token <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tmdb" config={config} label="Test Connection" disabled={!config.tmdbtoken} />
                 </div>
@@ -504,7 +504,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TVDb Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tvdb" config={config} label="Test Connection" disabled={!config.tvdbapi} />
                 </div>
@@ -519,7 +519,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get Fanart Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="fanart" config={config} label="Test Connection" disabled={!config.FanartTvAPIKey} />
                 </div>
@@ -591,7 +591,7 @@ export default function OnboardingModal({ onComplete }) {
                   <p className="text-sm text-theme-muted">Set JPEG quality compression</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="number" min="1" max="100" className="w-20 bg-theme-bg-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
+                  <input type="number" min="1" max="100" className="w-20 bg-theme-bg-dark border border-theme-border rounded-lg px-3 py-1.5 text-theme-text text-right" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
                   <span className="text-white font-medium">%</span>
                 </div>
               </div>
@@ -601,7 +601,7 @@ export default function OnboardingModal({ onComplete }) {
                   <h4 className="font-semibold text-white">Max Logs Retained</h4>
                   <p className="text-sm text-theme-muted">Number of previous run logs to keep</p>
                 </div>
-                <input type="number" min="1" max="50" className="w-24 bg-theme-bg-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
+                <input type="number" min="1" max="50" className="w-24 bg-theme-bg-dark border border-theme-border rounded-lg px-3 py-1.5 text-theme-text text-right" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
               </div>
             </div>
           </div>
@@ -636,11 +636,11 @@ export default function OnboardingModal({ onComplete }) {
             {notificationType === 'discord' && (
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                 <label className="block text-sm font-medium text-white mb-2">Discord Webhook URL</label>
-                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://discordapp.com/api/webhooks/..." value={config.Discord} onChange={e => handleChange("Discord", e.target.value)} />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://discordapp.com/api/webhooks/..." value={config.Discord} onChange={e => handleChange("Discord", e.target.value)} />
 
                 <div className="mt-4 pt-4 border-t border-theme-border/30">
                   <label className="block text-sm font-medium text-white mb-2">Discord Bot Name</label>
-                  <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.DiscordUserName} onChange={e => handleChange("DiscordUserName", e.target.value)} />
+                  <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.DiscordUserName} onChange={e => handleChange("DiscordUserName", e.target.value)} />
                 </div>
               </div>
             )}
@@ -655,7 +655,7 @@ export default function OnboardingModal({ onComplete }) {
                     How-to guide <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="discord://webhook_id/webhook_token" value={config.AppriseUrl} onChange={e => handleChange("AppriseUrl", e.target.value)} />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="discord://webhook_id/webhook_token" value={config.AppriseUrl} onChange={e => handleChange("AppriseUrl", e.target.value)} />
                 <p className="text-xs text-theme-muted mt-2">Uses Apprise - supports Discord, Slack, Telegram, email, and 70+ more via URL schemes.</p>
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
@@ -679,7 +679,7 @@ export default function OnboardingModal({ onComplete }) {
               {config.UseUptimeKuma === "true" && (
                 <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                   <label className="block text-sm font-medium text-white mb-2">Push URL</label>
-                  <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://uptime-kuma.domain.com/api/push/..." value={config.UptimeKumaUrl} onChange={e => handleChange("UptimeKumaUrl", e.target.value)} />
+                  <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://uptime-kuma.domain.com/api/push/..." value={config.UptimeKumaUrl} onChange={e => handleChange("UptimeKumaUrl", e.target.value)} />
                   <div className="mt-4 flex justify-end">
                     <ValidateButton type="uptimekuma" config={config} label="Test Connection" disabled={!config.UptimeKumaUrl} />
                   </div>
@@ -713,7 +713,7 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency !== "interval" && (
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white mb-2">Time (HH:MM)</label>
-                        <input type="time" style={{ colorScheme: "dark" }} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
+                        <input type="time" style={{ colorScheme: "dark" }} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-theme-text focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
                       </div>
                     )}
                     

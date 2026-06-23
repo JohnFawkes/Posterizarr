@@ -826,7 +826,10 @@
     "excludedCount": "Excluded Libraries ({{count}}):",
     "includedCount": "Included Libraries ({{count}}):",
     "noneExcluded": "No libraries excluded - all libraries will be processed",
-    "allExcluded": "All libraries excluded - no processing will occur"
+    "allExcluded": "All libraries excluded - no processing will occur",
+    "manageLibraries": "Manage Libraries",
+    "manageHelp": "Select which libraries to include or exclude from processing.",
+    "openManager": "Manage Selection"
   },
   "languageOrderSelector": {
     "noLanguages": "No languages selected. Add languages using the dropdown below.",
