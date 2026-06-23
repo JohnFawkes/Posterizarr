@@ -83,6 +83,7 @@
     "UptimeKumaUrl": "https://uptime-kuma.domain.com/api/push/qXpb7Mf1vW"
   },
   "PrerequisitePart": {
+    "ParallelJobs": "5",
     "FileTestOnTrigger": "true",
     "AssetPath": "/assets",
     "SkipAddText": "false",

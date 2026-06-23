@@ -90,6 +90,7 @@
     "DiscordUserName": "Posterizarr"
   },
   "PrerequisitePart": {
+    "ParallelJobs": "5",
     "AssetPath": "/assets",
     "magickinstalllocation": "C:\\PosterTemp\\ImageMagickPortable",
     "maxLogs": "5",
