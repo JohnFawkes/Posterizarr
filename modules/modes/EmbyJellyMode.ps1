@@ -644,7 +644,7 @@
         foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
         Invoke-MoviePosterCreation -entry $_
-    } -ThrottleLimit 5
+    } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
 
     Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
     # Show Part
@@ -657,7 +657,7 @@
         foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
         Invoke-ShowPosterCreation -entry $_
-    } -ThrottleLimit 5
+    } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
     # Asset Cleanup
     if ($AssetCleanup -eq 'true') {
         $ImagesCleared = 0

@@ -378,6 +378,7 @@ CONFIG_GROUPS = {
     "LogoFlatColor": "PrerequisitePart",
     "UseOriginalTitle": "PrerequisitePart",
     "telemetry": "PrerequisitePart",
+    "ParallelJobs": "PrerequisitePart",
     # OverlayPart
     "ImageProcessing": "OverlayPart",
     "outputQuality": "OverlayPart",
@@ -574,6 +575,7 @@ UI_GROUPS = {
         "LogoFlatColor",
         "UseOriginalTitle",
         "telemetry",
+        "ParallelJobs",
     ],
     "API Keys & Tokens": [
         "tvdbapi",

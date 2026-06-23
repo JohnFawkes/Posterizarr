@@ -125,6 +125,8 @@ CONFIG_TOOLTIPS = {
     "LogoFlatColor": "The specific color to use when Convert Logo Color is enabled (e.g., 'white', '#FFFFFF').",
     "UseOriginalTitle": "Set to true to use the original title instead of the localized version.",
     "telemetry": "Set to true to participate in anonymous telemetry that helps the developers understand global usage (sends instance ID, OS, Target, and Country).",
+    "ParallelJobs": "Determines how many poster creations run concurrently. Warning: ImageMagick is highly CPU/RAM intensive. Do not set higher than your logical CPU cores. If running on low-power NAS or Raspberry Pi, lower to 1 or 2 to avoid running out of memory.",
+
 
     # OverlayPart
     "ImageProcessing": "Set to true if you want the ImageMagick part (text, overlay and/or border); if false, it only downloads the posters.",

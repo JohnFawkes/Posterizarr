@@ -814,7 +814,7 @@
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-MoviePosterCreation -entry $_
-        } -ThrottleLimit 5
+        } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
 
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
@@ -827,7 +827,7 @@
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-ShowPosterCreation -entry $_
-        } -ThrottleLimit 5
+        } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
 
         $endTime = Get-Date
         $executionTime = New-TimeSpan -Start $startTime -End $endTime
@@ -1277,7 +1277,7 @@
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-MoviePosterCreation -entry $_
-        } -ThrottleLimit 5
+        } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
 
     $global:SkipTBACount = 0
     if ($global:runspaceStats) { $global:runspaceStats['SkipTBACount'] = 0 }
@@ -1294,7 +1294,7 @@
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
 
             Invoke-ShowPosterCreation -entry $_
-        } -ThrottleLimit 5
+        } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
         $endTime = Get-Date
         $executionTime = New-TimeSpan -Start $startTime -End $endTime
         # Format the execution time
