@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -49,6 +50,7 @@ import OnboardingModal from "./components/OnboardingModal";
 
 function AppContent() {
   const { isCollapsed } = useSidebar();
+  const navigate = useNavigate();
   const { isAuthenticated, loading, login, isAuthEnabled } = useAuth();
   const { isDashboardFullyLoaded, resetLoading } = useDashboardLoading();
   const location = useLocation();
@@ -218,7 +220,7 @@ function AppContent() {
   return (
     <>
       {/* Onboarding Modal - highest priority */}
-      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+      {showOnboarding && <OnboardingModal onComplete={() => { setShowOnboarding(false); navigate("/how-it-works"); }} />}
 
       {/* Loading Screen Overlay - shown over the UI during login transition */}
       {showLoadingScreen && (

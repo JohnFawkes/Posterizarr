@@ -62,9 +62,14 @@ const LibraryExclusionSelector = ({
   useEffect(() => {
     if (!disabled) {
       loadCachedExclusionsForDisplay();
+    } else {
+      // Clear out if it becomes disabled (e.g., token removed)
+      setCachedLibraries([]);
+      setAvailableLibraries([]);
+      setLibrariesFetched(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array = run only once on mount
+  }, [mediaServerType, disabled]); // Re-run if server type or disabled status changes
 
   // THIS IS THE CORRECTED loadCachedExclusionsForDisplay
   const loadCachedExclusionsForDisplay = async () => {
