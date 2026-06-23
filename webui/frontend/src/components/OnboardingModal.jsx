@@ -1,7 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { Check, ChevronRight, ChevronLeft, Save, Server, Key, Settings, Bell, Rocket, Shield, Activity, HardDrive, Database, ExternalLink, Loader2, Clock } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, Save, Server, Key, Settings, Bell, Rocket, Shield, Activity, HardDrive, Database, ExternalLink, Loader2, Clock, Calendar, Zap, RefreshCw, Grid } from "lucide-react";
 import ValidateButton from "./ValidateButton";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
+
+const frequencies = [
+  { id: "daily", label: "Daily" },
+  { id: "weekly", label: "Weekly" },
+  { id: "monthly", label: "Monthly" },
+  { id: "interval", label: "Interval" },
+];
+
+const months = [
+  { id: "*", label: "Every Month" },
+  { id: "1", label: "January" },
+  { id: "2", label: "February" },
+  { id: "3", label: "March" },
+  { id: "4", label: "April" },
+  { id: "5", label: "May" },
+  { id: "6", label: "June" },
+  { id: "7", label: "July" },
+  { id: "8", label: "August" },
+  { id: "9", label: "September" },
+  { id: "10", label: "October" },
+  { id: "11", label: "November" },
+  { id: "12", label: "December" },
+];
+
+const daysOfWeek = [
+  { id: "mon", label: "Monday" },
+  { id: "tue", label: "Tuesday" },
+  { id: "wed", label: "Wednesday" },
+  { id: "thu", label: "Thursday" },
+  { id: "fri", label: "Friday" },
+  { id: "sat", label: "Saturday" },
+  { id: "sun", label: "Sunday" },
+];
+
+const intervalUnits = [
+  { id: "hours", label: "Hours" },
+  { id: "days", label: "Days" },
+  { id: "weeks", label: "Weeks" },
+];
+
+const runModes = [
+  { id: "normal", label: "Normal Run" },
+  { id: "syncjelly", label: "Sync Jellyfin" },
+  { id: "syncemby", label: "Sync Emby" },
+  { id: "backup", label: "System Backup" },
+  { id: "logoupdater", label: "Logo Updater" },
+];
 
 const STEPS = [
   { id: "welcome", title: "Welcome", icon: <Rocket className="w-5 h-5" /> },
@@ -16,13 +63,23 @@ const STEPS = [
 
 export default function OnboardingModal({ onComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
-  
+
   // UI State for selections
   const [primaryServer, setPrimaryServer] = useState(null); // 'plex', 'jellyfin', 'emby'
   const [syncFromPlex, setSyncFromPlex] = useState(false);
   const [plexSyncServer, setPlexSyncServer] = useState(null); // 'jellyfin', 'emby'
-  const [enableBasicSchedule, setEnableBasicSchedule] = useState(false);
-  const [scheduleTime, setScheduleTime] = useState("03:00");
+  const [enableSchedule, setEnableSchedule] = useState(false);
+  const [frequency, setFrequency] = useState("daily");
+  const [dayOfWeek, setDayOfWeek] = useState("mon");
+  const [dayOfMonth, setDayOfMonth] = useState("1");
+  const [newMonth, setNewMonth] = useState("*");
+  const [intervalValue, setIntervalValue] = useState(1);
+  const [intervalUnit, setIntervalUnit] = useState("hours");
+  const [newMode, setNewMode] = useState("normal");
+  const [newTime, setNewTime] = useState("03:00");
+  const [logoLibrary, setLogoLibrary] = useState("all");
+  const [logoForceReplace, setLogoForceReplace] = useState(false);
+  const [logoRevert, setLogoRevert] = useState(false);
   const [notificationType, setNotificationType] = useState('none'); // 'none', 'discord', 'apprise'
 
   const [config, setConfig] = useState({
@@ -36,34 +93,36 @@ export default function OnboardingModal({ onComplete }) {
     EmbyUrl: "http://192.168.1.93:8096/emby",
     EmbyAPIKey: "",
     UseEmby: "false",
-    
+
     // API Keys
     tmdbtoken: "",
     tvdbapi: "",
     FanartTvAPIKey: "",
-    
+
     // Automation
     AssetCleanup: "false",
     SkipJapTitle: "false",
     SkipTBA: "false",
-    
+
     // Performance
     ImageProcessing: "true",
     outputQuality: "92%",
     maxLogs: "5",
-    
+
     // Notifications
     SendNotification: "false",
     Discord: "",
     DiscordUserName: "Posterizarr",
     AppriseUrl: "",
+    UseUptimeKuma: "false",
+    UptimeKumaUrl: "",
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    
+
     // Fetch full config to prevent overwriting missing keys on save
     const fetchConfig = async () => {
       try {
@@ -71,10 +130,12 @@ export default function OnboardingModal({ onComplete }) {
         const data = await response.json();
         if (data.success && data.config) {
           // Merge existing config into state so we don't lose anything
-          const newConfig = { ...data.config, ...prev };
-          setConfig(newConfig);
-          if (newConfig.Discord) setNotificationType('discord');
-          else if (newConfig.AppriseUrl) setNotificationType('apprise');
+          setConfig(prev => {
+            const newConfig = { ...prev, ...data.config };
+            if (newConfig.Discord) setNotificationType('discord');
+            else if (newConfig.AppriseUrl) setNotificationType('apprise');
+            return newConfig;
+          });
         }
       } catch (err) {
         console.error("Failed to fetch initial config", err);
@@ -82,7 +143,7 @@ export default function OnboardingModal({ onComplete }) {
         setLoading(false);
       }
     };
-    
+
     fetchConfig();
 
     return () => {
@@ -110,13 +171,13 @@ export default function OnboardingModal({ onComplete }) {
     setSaving(true);
     try {
       const finalConfig = { ...config };
-      
+
       // Enforce Media Server flags based on UI selections
       finalConfig.UsePlex = (primaryServer === 'plex') ? "true" : "false";
       finalConfig.UseJellyfin = (primaryServer === 'jellyfin') ? "true" : "false";
       finalConfig.UseEmby = (primaryServer === 'emby') ? "true" : "false";
       // Note: If syncFromPlex is true, the secondary server URLs/Tokens are sent, but their 'Use' flag remains false.
-      
+
       // Enforce Notification toggle
       if (notificationType === 'discord') {
           finalConfig.SendNotification = finalConfig.Discord ? "true" : "false";
@@ -130,42 +191,69 @@ export default function OnboardingModal({ onComplete }) {
           finalConfig.Discord = "";
           finalConfig.AppriseUrl = "";
       }
-      
+
+      // Enforce Uptime Kuma toggle
+      if (finalConfig.UseUptimeKuma !== "true") {
+          finalConfig.UptimeKumaUrl = "";
+      }
+
       // Save config updates
       await fetch("/api/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ config: finalConfig }),
       });
-      
+
       // Save Schedule if enabled
-      if (enableBasicSchedule) {
+      if (enableSchedule) {
         try {
           await fetch("/api/scheduler/enable", { method: "POST" });
+          
+          const payload = {
+            time: newTime,
+            description: "Onboarding Schedule",
+            mode: newMode,
+            frequency: frequency,
+            month: newMonth,
+          };
+
+          if (newMode === "logoupdater") {
+            payload.library = logoLibrary;
+            payload.force_replace = logoForceReplace;
+            payload.revert = logoRevert;
+          }
+
+          if (frequency === "weekly") {
+            payload.day_of_week = dayOfWeek;
+            payload.day = "*";
+          } else if (frequency === "monthly") {
+            payload.day = dayOfMonth;
+            payload.day_of_week = "*";
+          } else if (frequency === "interval") {
+            payload.interval_value = intervalValue;
+            payload.interval_unit = intervalUnit;
+            payload.day = "*";
+            payload.day_of_week = "*";
+          } else {
+            payload.day = "*";
+            payload.day_of_week = "*";
+          }
+          
           await fetch("/api/scheduler/schedule", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              time: scheduleTime,
-              frequency: "daily",
-              mode: "normal",
-              description: "Default Onboarding Schedule",
-              month: "*",
-              day: "*",
-              day_of_week: "*"
-            })
+            body: JSON.stringify(payload),
           });
-        } catch (scheduleErr) {
           console.error("Failed to setup schedule during onboarding", scheduleErr);
         }
       }
-      
+
       // Mark onboarding as complete
       await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
-      
+
       onComplete();
     } catch (err) {
       console.error("Failed to complete onboarding", err);
@@ -200,7 +288,7 @@ export default function OnboardingModal({ onComplete }) {
             <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} />
           </div>
           <div className="mt-6 border-t border-theme-border/30 pt-4">
-            <LibraryExclusionSelector 
+            <LibraryExclusionSelector
               value={config.PlexLibstoExclude || []}
               onChange={(val) => handleChange('PlexLibstoExclude', val)}
               label="Library Selection"
@@ -233,7 +321,7 @@ export default function OnboardingModal({ onComplete }) {
             <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} />
           </div>
           <div className="mt-6 border-t border-theme-border/30 pt-4">
-            <LibraryExclusionSelector 
+            <LibraryExclusionSelector
               value={config.JellyfinLibstoExclude || []}
               onChange={(val) => handleChange('JellyfinLibstoExclude', val)}
               label="Library Selection"
@@ -266,7 +354,7 @@ export default function OnboardingModal({ onComplete }) {
             <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} />
           </div>
           <div className="mt-6 border-t border-theme-border/30 pt-4">
-            <LibraryExclusionSelector 
+            <LibraryExclusionSelector
               value={config.EmbyLibstoExclude || []}
               onChange={(val) => handleChange('EmbyLibstoExclude', val)}
               label="Library Selection"
@@ -287,10 +375,9 @@ export default function OnboardingModal({ onComplete }) {
       case 0: // Welcome
         return (
           <div className="flex flex-col items-center justify-center text-center space-y-6 animate-fade-in py-10">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-theme-primary to-theme-accent flex items-center justify-center mb-4 shadow-lg shadow-theme-primary/20">
-              <Rocket className="w-12 h-12 text-white" />
+            <div className="mb-4">
+              <img src="/logo.png" alt="Posterizarr Logo" className="h-24 object-contain" />
             </div>
-            <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-theme-text/70 font-outfit">Welcome to Posterizarr</h2>
             <p className="text-theme-muted max-w-md text-lg">
               The ultimate automated tool for standardizing and enhancing your media server's artwork. Let's get you set up in just a few steps!
             </p>
@@ -301,23 +388,23 @@ export default function OnboardingModal({ onComplete }) {
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">Primary Media Server</h3>
             <p className="text-theme-muted mb-6">Select your primary media server that Posterizarr should scan.</p>
-            
+
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <button 
+              <button
                 onClick={() => setPrimaryServer('plex')}
                 className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'plex' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 <img src="/plex.svg" alt="Plex" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
                 <span className="font-semibold">Plex</span>
               </button>
-              <button 
+              <button
                 onClick={() => setPrimaryServer('jellyfin')}
                 className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 <img src="/jellyfin.svg" alt="Jellyfin" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
                 <span className="font-semibold">Jellyfin</span>
               </button>
-              <button 
+              <button
                 onClick={() => setPrimaryServer('emby')}
                 className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
@@ -348,13 +435,13 @@ export default function OnboardingModal({ onComplete }) {
                   <div className="space-y-4 animate-fade-in">
                     <p className="text-sm text-theme-muted">Select the secondary server to supply its URL/API Key (it will NOT be enabled for primary scanning):</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <button 
+                      <button
                         onClick={() => setPlexSyncServer('jellyfin')}
                         className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
                       >
                         <img src="/jellyfin.svg" alt="Jellyfin" className="w-5 h-5 mr-2 object-contain" /> Jellyfin
                       </button>
-                      <button 
+                      <button
                         onClick={() => setPlexSyncServer('emby')}
                         className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
                       >
@@ -373,14 +460,14 @@ export default function OnboardingModal({ onComplete }) {
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">API Keys</h3>
             <p className="text-theme-muted mb-6">Required to fetch high-quality artwork from external sources.</p>
-            
+
             <div className="space-y-6">
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-sm font-medium text-white flex items-center">
                     <img src="/tmdb.png" alt="TMDb" className="w-6 h-6 mr-2 object-contain rounded" /> TMDb API Token (Required)
                   </label>
-                  <a href="https://developer.themoviedb.org/docs/getting-started" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">
+                  <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">
                     How to get TMDb Token <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
@@ -427,7 +514,7 @@ export default function OnboardingModal({ onComplete }) {
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">Automation Preferences</h3>
             <p className="text-theme-muted mb-6">Configure how Posterizarr processes your items automatically.</p>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 hover:border-theme-primary/50 transition-colors">
                 <div>
@@ -467,7 +554,7 @@ export default function OnboardingModal({ onComplete }) {
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">Performance & Quality</h3>
             <p className="text-theme-muted mb-6">Tune resource usage and output quality.</p>
-            
+
             <div className="space-y-5">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
@@ -485,9 +572,12 @@ export default function OnboardingModal({ onComplete }) {
                   <h4 className="font-semibold text-white">Output Quality</h4>
                   <p className="text-sm text-theme-muted">Set JPEG quality compression</p>
                 </div>
-                <input type="text" className="w-24 bg-theme-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={config.outputQuality} onChange={e => handleChange("outputQuality", e.target.value)} />
+                <div className="flex items-center gap-2">
+                  <input type="number" min="1" max="100" className="w-20 bg-theme-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
+                  <span className="text-white font-medium">%</span>
+                </div>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
                   <h4 className="font-semibold text-white">Max Logs Retained</h4>
@@ -503,21 +593,21 @@ export default function OnboardingModal({ onComplete }) {
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">Notifications</h3>
             <p className="text-theme-muted mb-6">Receive alerts when Posterizarr completes a run.</p>
-            
+
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <button 
+              <button
                 onClick={() => setNotificationType('none')}
                 className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'none' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 None
               </button>
-              <button 
+              <button
                 onClick={() => setNotificationType('discord')}
                 className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'discord' ? 'bg-[#5865F2]/10 border-[#5865F2] text-[#5865F2] shadow-inner shadow-[#5865F2]/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-[#5865F2]/50'}`}
               >
                 Discord
               </button>
-              <button 
+              <button
                 onClick={() => setNotificationType('apprise')}
                 className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'apprise' ? 'bg-green-500/10 border-green-500 text-green-500 shadow-inner shadow-green-500/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-green-500/50'}`}
               >
@@ -529,7 +619,7 @@ export default function OnboardingModal({ onComplete }) {
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                 <label className="block text-sm font-medium text-white mb-2">Discord Webhook URL</label>
                 <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://discordapp.com/api/webhooks/..." value={config.Discord} onChange={e => handleChange("Discord", e.target.value)} />
-                
+
                 <div className="mt-4 pt-4 border-t border-theme-border/30">
                   <label className="block text-sm font-medium text-white mb-2">Discord Bot Name</label>
                   <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.DiscordUserName} onChange={e => handleChange("DiscordUserName", e.target.value)} />
@@ -553,34 +643,144 @@ export default function OnboardingModal({ onComplete }) {
                   <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
                 </div>
               </div>
+              </div>
             )}
+
+            {/* Uptime Kuma Section */}
+            <div className="mt-8 border-t border-theme-border/50 pt-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h4 className="font-semibold text-white">Uptime Kuma Health Check</h4>
+                  <p className="text-sm text-theme-muted">Send a push notification to Uptime Kuma after a successful run.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={config.UseUptimeKuma === "true"} onChange={e => handleChange("UseUptimeKuma", e.target.checked ? "true" : "false")} />
+                  <div className="w-11 h-6 bg-theme-bg peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-primary"></div>
+                </label>
+              </div>
+
+              {config.UseUptimeKuma === "true" && (
+                <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
+                  <label className="block text-sm font-medium text-white mb-2">Push URL</label>
+                  <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://uptime-kuma.domain.com/api/push/..." value={config.UptimeKumaUrl} onChange={e => handleChange("UptimeKumaUrl", e.target.value)} />
+                  <div className="mt-4 flex justify-end">
+                    <ValidateButton type="uptimekuma" config={config} label="Test Connection" disabled={!config.UptimeKumaUrl} />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         );
       case 6: // Schedule
         return (
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">Automated Schedule</h3>
-            <p className="text-theme-muted mb-6">Set up a daily automated run. You can configure more complex schedules later.</p>
-            
+            <p className="text-theme-muted mb-6">Configure exactly when Posterizarr should run.</p>
+
             <div className="space-y-5">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
-                  <h4 className="font-semibold text-white">Enable Daily Automation</h4>
-                  <p className="text-sm text-theme-muted">Run Posterizarr automatically every day</p>
+                  <h4 className="font-semibold text-white">Enable Automation</h4>
+                  <p className="text-sm text-theme-muted">Turn on the scheduler and create a schedule.</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={enableBasicSchedule} onChange={e => setEnableBasicSchedule(e.target.checked)} />
+                  <input type="checkbox" className="sr-only peer" checked={enableSchedule} onChange={e => setEnableSchedule(e.target.checked)} />
                   <div className="w-11 h-6 bg-theme-bg peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-primary"></div>
                 </label>
               </div>
 
-              {enableBasicSchedule && (
-                <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-                  <div>
-                    <h4 className="font-semibold text-white">Daily Run Time</h4>
-                    <p className="text-sm text-theme-muted">Time to start processing (HH:MM)</p>
+              {enableSchedule && (
+                <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in space-y-4">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Time Input */}
+                    {frequency !== "interval" && (
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-white mb-2">Time (HH:MM)</label>
+                        <input type="time" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
+                      </div>
+                    )}
+                    
+                    {/* Mode Selector */}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-white mb-2">Run Mode</label>
+                      <select value={newMode} onChange={(e) => setNewMode(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                        {runModes.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Frequency Selector */}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-white mb-2">Frequency</label>
+                      <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                        {frequencies.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+                      </select>
+                    </div>
                   </div>
-                  <input type="time" className="bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} required />
+
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Interval specifics */}
+                    {frequency === "interval" && (
+                      <div className="flex-1 flex gap-2">
+                        <div className="flex-1">
+                           <label className="block text-sm font-medium text-white mb-2">Every</label>
+                           <input type="number" min="1" value={intervalValue} onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-white mb-2">Unit</label>
+                          <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                            {intervalUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.label}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monthly specifics */}
+                    {frequency === "monthly" && (
+                      <div className="flex-1 flex gap-2">
+                         <div className="flex-1">
+                           <label className="block text-sm font-medium text-white mb-2">Month</label>
+                           <select value={newMonth} onChange={(e) => setNewMonth(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                             {months.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+                           </select>
+                         </div>
+                         <div className="flex-1">
+                           <label className="block text-sm font-medium text-white mb-2">Day(s) of Month</label>
+                           <input type="text" placeholder="e.g. 1,15,30" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
+                         </div>
+                      </div>
+                    )}
+
+                    {/* Weekly specifics */}
+                    {frequency === "weekly" && (
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-white mb-2">Day of Week</label>
+                        <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                          {daysOfWeek.map(day => <option key={day.id} value={day.id}>{day.label}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Logo Updater Options */}
+                  {newMode === "logoupdater" && (
+                    <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-[#c4b5fd] mb-1">Plex Library</label>
+                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder="Library name or 'all'" className="w-full px-3 py-2 bg-theme-dark/80 border border-theme-border rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#a78bfa]" />
+                      </div>
+                      <div className="flex items-center gap-6 pt-5">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" checked={logoForceReplace} onChange={(e) => setLogoForceReplace(e.target.checked)} disabled={logoRevert} className="w-4 h-4 rounded border-theme-border bg-theme-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
+                          <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-white group-hover:text-[#c4b5fd]'} transition-colors`}>Force Replace</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" checked={logoRevert} onChange={(e) => setLogoRevert(e.target.checked)} className="w-4 h-4 rounded border-theme-border bg-theme-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
+                          <span className="text-sm text-white group-hover:text-[#c4b5fd] transition-colors">Revert Mode</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
             </div>
@@ -609,11 +809,11 @@ export default function OnboardingModal({ onComplete }) {
 
   if (loading) {
     return (
-      <div 
+      <div
         className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-sans"
         style={{
-          '--theme-primary': '#e5a00d', 
-          '--theme-primary-hover': '#cc8f0c', 
+          '--theme-primary': '#e5a00d',
+          '--theme-primary-hover': '#cc8f0c',
           '--theme-accent': '#ffc107'
         }}
       >
@@ -626,16 +826,16 @@ export default function OnboardingModal({ onComplete }) {
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-sans"
       style={{
-        '--theme-primary': '#e5a00d', 
-        '--theme-primary-hover': '#cc8f0c', 
+        '--theme-primary': '#e5a00d',
+        '--theme-primary-hover': '#cc8f0c',
         '--theme-accent': '#ffc107'
       }}
     >
       <div className="bg-theme-darker w-full max-w-4xl rounded-2xl shadow-2xl border border-theme-border/50 overflow-hidden flex flex-col md:flex-row h-full max-h-[600px] animate-scale-in">
-        
+
         {/* Left Sidebar - Stepper */}
         <div className="w-full md:w-64 bg-theme-dark border-r border-theme-border/30 p-6 flex flex-col shrink-0 hidden md:flex">
           <div className="mb-8">
@@ -644,14 +844,14 @@ export default function OnboardingModal({ onComplete }) {
               Posterizarr
             </h1>
           </div>
-          
+
           <div className="flex-1 space-y-1">
             {STEPS.map((step, index) => {
               const isActive = index === currentStep;
               const isPast = index < currentStep;
               return (
-                <div 
-                  key={step.id} 
+                <div
+                  key={step.id}
                   className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
                     isActive ? "bg-theme-primary/10 text-theme-primary" :
                     isPast ? "text-white hover:bg-theme-bg/50 cursor-pointer" : "text-theme-muted"
@@ -667,7 +867,7 @@ export default function OnboardingModal({ onComplete }) {
             })}
           </div>
         </div>
-        
+
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-theme-darker to-theme-dark">
           {/* Mobile Stepper (visible only on small screens) */}
@@ -679,22 +879,22 @@ export default function OnboardingModal({ onComplete }) {
           <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-thin scrollbar-thumb-theme-border scrollbar-track-transparent">
             {renderStepContent()}
           </div>
-          
+
           {/* Footer Actions */}
           <div className="p-6 bg-theme-darker border-t border-theme-border/30 flex justify-between items-center shrink-0">
             <button
               onClick={handlePrev}
               disabled={currentStep === 0 || saving}
               className={`flex items-center px-5 py-2.5 rounded-lg font-medium transition-colors ${
-                currentStep === 0 
-                  ? "opacity-0 cursor-default" 
+                currentStep === 0
+                  ? "opacity-0 cursor-default"
                   : "text-theme-muted hover:text-white hover:bg-theme-bg"
               }`}
             >
               <ChevronLeft className="w-5 h-5 mr-1" />
               Back
             </button>
-            
+
             {currentStep < STEPS.length - 1 ? (
               <button
                 onClick={handleNext}
