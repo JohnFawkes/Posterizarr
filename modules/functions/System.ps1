@@ -367,7 +367,10 @@ function Get-TextSizeFromCache {
     param([Parameter(Mandatory)][string]$Key, [string]$Path = $Global:TextSizeCachePath)
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
 
+    $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrTextSizeCacheMutex")
+    $hasMutex = $false
     try {
+        $hasMutex = $mutex.WaitOne(5000)
         $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 -ErrorAction Stop
         if (-not $raw) { return $null }
 
@@ -377,6 +380,12 @@ function Get-TextSizeFromCache {
     catch {
         # If any file read or json parse error occurs, return null (miss)
         return $null
+    }
+    finally {
+        if ($hasMutex) {
+            $mutex.ReleaseMutex()
+        }
+        $mutex.Dispose()
     }
     return $null
 }

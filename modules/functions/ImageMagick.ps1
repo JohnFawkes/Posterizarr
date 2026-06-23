@@ -62,19 +62,12 @@ function Set-TextSizeCacheEntry {
         try { '{}' | Set-Content -LiteralPath $Path -Encoding UTF8 } catch {}
     }
 
-    $lockPath = "$Path.lock"
-    $sw = [Diagnostics.Stopwatch]::StartNew()
-
-    # Wait for lock
-    while (Test-Path -LiteralPath $lockPath) {
-        Start-Sleep -Milliseconds 50
-        if ($sw.ElapsedMilliseconds -gt 5000) { break }
-    }
-
-    # Create lock
-    New-Item -ItemType File -Path $lockPath -Force | Out-Null
+    $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrTextSizeCacheMutex")
+    $hasMutex = $false
 
     try {
+        $hasMutex = $mutex.WaitOne(5000)
+
         $raw = if (Test-Path -LiteralPath $Path) { Get-Content -LiteralPath $Path -Raw -Encoding UTF8 } else { '{}' }
         if (-not $raw) { $raw = '{}' }
 
@@ -96,7 +89,10 @@ function Set-TextSizeCacheEntry {
         Write-Entry -Message "Failed to write to TextSizeCache: $_" -Path $global:configLogging -Color Red -log Error
     }
     finally {
-        Remove-Item -LiteralPath $lockPath -Force -ErrorAction SilentlyContinue
+        if ($hasMutex) {
+            $mutex.ReleaseMutex()
+        }
+        $mutex.Dispose()
     }
 }
 
