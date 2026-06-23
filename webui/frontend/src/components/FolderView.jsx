@@ -655,7 +655,7 @@ function FolderView() {
                     <div
                       className={`${getAssetAspectRatio(
                         asset.asset_type
-                      )} bg-theme-darker relative cursor-pointer overflow-hidden`}
+                      )} bg-theme-bg-dark relative cursor-pointer overflow-hidden`}
                       onClick={() => {
                         if (selectMode) {
                           toggleAssetSelection(asset.path);

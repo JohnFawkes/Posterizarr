@@ -187,7 +187,7 @@ function WebhookSetupContent({ type }) {
                                             <div key={ci} className="space-y-1.5">
                                                 <span className="text-[10px] uppercase font-bold text-theme-muted">{c.label}</span>
                                                 <div className="relative">
-                                                    <pre className="bg-theme-darker p-3 rounded border border-theme text-xs break-all text-theme-text">{c.content}</pre>
+                                                    <pre className="bg-theme-bg-dark p-3 rounded border border-theme text-xs break-all text-theme-text">{c.content}</pre>
                                                     <button
                                                         onClick={() => robustCopy(c.content, `web-${index}-${ci}`, setCopiedCode)}
                                                         className="absolute top-2 right-2 p-1.5 rounded-lg bg-theme-card hover:bg-theme-hover transition-colors"
@@ -364,7 +364,7 @@ function ArrContent({ type }) {
                                                         <div key={codeIndex} className="space-y-1.5 sm:space-y-2">
                                                             {codeBlock.label && <p className="text-xs sm:text-sm font-medium text-theme-text">{codeBlock.label}</p>}
                                                             <div className="relative">
-                                                                <pre className="bg-theme-darker border border-theme rounded-lg p-3 overflow-x-auto text-xs sm:text-sm text-theme-text">
+                                                                <pre className="bg-theme-bg-dark border border-theme rounded-lg p-3 overflow-x-auto text-xs sm:text-sm text-theme-text">
                                                                     <code className="break-all">{codeBlock.content}</code>
                                                                 </pre>
                                                                 <button
@@ -524,7 +524,7 @@ function TautulliContent() {
                         <div key={ci} className="space-y-2 mt-4">
                             {cb.label && <p className="text-sm font-medium">{cb.label}</p>}
                             <div className="relative">
-                                <pre className="bg-theme-darker p-4 rounded text-sm text-theme-text overflow-x-auto"><code className="break-all">{cb.content}</code></pre>
+                                <pre className="bg-theme-bg-dark p-4 rounded text-sm text-theme-text overflow-x-auto"><code className="break-all">{cb.content}</code></pre>
                                 <button onClick={() => handleCopyCode(cb.content, `${index}-${ci}`)} className="absolute top-2 right-2 p-2 bg-theme-card rounded">
                                     {copiedCode === `${index}-${ci}` ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-theme-muted" />}
                                 </button>

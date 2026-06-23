@@ -20,6 +20,7 @@ const LibraryExclusionSelector = ({
   const [loadingLibraries, setLoadingLibraries] = useState(false);
   const [error, setError] = useState(null);
   const [librariesFetched, setLibrariesFetched] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Separate state for DB-cached data (shown in boxes)
   const [cachedLibraries, setCachedLibraries] = useState([]);
@@ -275,182 +276,22 @@ const LibraryExclusionSelector = ({
         </label>
       )}
 
-      {/* Disabled Message */}
-      {disabled && (
-        <div className="flex items-start gap-3 px-4 py-3 bg-theme-muted/10 border border-theme rounded-lg">
-          <AlertCircle className="w-5 h-5 text-theme-muted flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-theme-muted font-medium">
-              {t("libraryExclusion.disabled")}
-            </p>
-            <p className="text-xs text-theme-muted/80 mt-1">
-              {t("libraryExclusion.disabledHint", {
-                server:
-                  mediaServerType.charAt(0).toUpperCase() +
-                  mediaServerType.slice(1),
-              })}
-            </p>
+      {/* Inline Summary View */}
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center bg-theme-bg/30 p-4 border border-theme rounded-lg">
+          <div>
+            <h4 className="text-white font-medium">{t("libraryExclusion.manageLibraries") || "Manage Libraries"}</h4>
+            <p className="text-sm text-theme-muted">{t("libraryExclusion.manageHelp") || "Select which libraries to include or exclude from processing."}</p>
           </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            disabled={disabled}
+            className="px-4 py-2 bg-theme-primary/20 hover:bg-theme-primary/30 text-theme-primary border border-theme-primary/30 rounded-lg font-medium transition-all"
+          >
+            {t("libraryExclusion.openManager") || "Manage Selection"}
+          </button>
         </div>
-      )}
-
-      {/* Fetch Libraries Button */}
-      <div className="flex gap-2">
-        <button
-          onClick={fetchLibraries}
-          disabled={loadingLibraries || disabled}
-          className={`flex items-center gap-2 px-4 py-2.5 bg-theme-primary/20 hover:bg-theme-primary/30 border border-theme-primary/30 rounded-lg font-medium transition-all ${
-            loadingLibraries || disabled ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          {loadingLibraries ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4" />
-          )}
-          <span className="text-sm">
-            {librariesFetched
-              ? t("libraryExclusion.refreshLibraries")
-              : t("libraryExclusion.fetchLibraries")}
-          </span>
-        </button>
-
-        {librariesFetched && availableLibraries.length > 0 && !disabled && (
-          <>
-            <button
-              onClick={clearAll}
-              className="flex items-center gap-2 px-4 py-2 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-sm"
-            >
-              <Check className="w-4 h-4" />
-              {t("libraryExclusion.includeAll")}
-            </button>
-            <button
-              onClick={excludeAll}
-              className="flex items-center gap-2 px-4 py-2 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-sm"
-            >
-              <X className="w-4 h-4" />
-              {t("libraryExclusion.excludeAll")}
-            </button>
-          </>
-        )}
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="flex items-start gap-3 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-red-400 font-medium">
-              {t("libraryExclusion.errorTitle")}
-            </p>
-            <p className="text-xs text-red-400/80 mt-1">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {loadingLibraries && (
-        <div className="flex items-center justify-center py-8 bg-theme-bg/50 border border-theme rounded-lg">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-theme-primary mx-auto mb-2" />
-            <p className="text-sm text-theme-muted">
-              {t("libraryExclusion.fetching", {
-                server: mediaServerType,
-              })}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Libraries List */}
-      {!loadingLibraries &&
-        librariesFetched &&
-        availableLibraries.length > 0 && (
-          <div className="space-y-2">
-            <p
-              className="text-sm text-theme-muted"
-              dangerouslySetInnerHTML={{
-                __html: t("libraryExclusion.selectToExclude"),
-              }}
-            />
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {availableLibraries.map((library) => {
-                const isExcluded = excludedLibraries.includes(library.name);
-                return (
-                  <div
-                    key={library.name}
-                    onClick={() => toggleLibrary(library.name)}
-                    className={`flex items-center gap-3 px-4 py-3 border rounded-lg cursor-pointer transition-all ${
-                      isExcluded
-                        ? "bg-red-500/10 border-red-500/30 hover:bg-red-500/20"
-                        : "bg-green-500/10 border-green-500/30 hover:bg-green-500/20"
-                    }`}
-                  >
-                    {/* Icon */}
-                    <span className="text-2xl flex-shrink-0">
-                      {getLibraryTypeIcon(library.type)}
-                    </span>
-
-                    {/* Library Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-theme-text">
-                          {library.name}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 bg-theme-bg rounded-full text-theme-muted">
-                          {library.type}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Status Indicator */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {isExcluded ? (
-                        <div className="flex items-center gap-1.5 text-red-400 text-sm font-medium">
-                          <X className="w-4 h-4" />
-                          <span>{t("libraryExclusion.excluded")}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-green-400 text-sm font-medium">
-                          <Check className="w-4 h-4" />
-                          <span>{t("libraryExclusion.included")}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-      {/* Empty State - No Libraries Fetched */}
-      {!loadingLibraries && !librariesFetched && (
-        <div className="px-4 py-8 bg-theme-bg/50 border-2 border-dashed border-theme rounded-lg text-center">
-          <p className="text-sm text-theme-muted">
-            {t("libraryExclusion.clickToFetch", {
-              server:
-                mediaServerType.charAt(0).toUpperCase() +
-                mediaServerType.slice(1),
-            })}
-          </p>
-        </div>
-      )}
-
-      {/* Empty State - No Libraries Found */}
-      {!loadingLibraries &&
-        librariesFetched &&
-        availableLibraries.length === 0 &&
-        !error && (
-          <div className="px-4 py-8 bg-theme-bg/50 border border-theme rounded-lg text-center">
-            <p className="text-sm text-theme-muted">
-              {t("libraryExclusion.noLibraries")}
-            </p>
-          </div>
-        )}
-
-      {/* Separator between Fetch section and Status Boxes */}
-      <div className="border-t border-theme-border/30 my-4"></div>
 
       {/* Excluded and Included Libraries - THIS IS THE CORRECTED MATH */}
       <div>
@@ -513,6 +354,202 @@ const LibraryExclusionSelector = ({
 
       {/* Help Text */}
       {helpText && <p className="text-xs text-theme-muted">{helpText}</p>}
+
+      {/* The Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-theme-card border border-theme rounded-xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[85vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-theme flex justify-between items-center shrink-0">
+              <h3 className="font-bold text-lg text-theme-text">
+                {t("libraryExclusion.manageLibraries") || "Manage Libraries"} - {mediaServerType.toUpperCase()}
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-theme-hover rounded-full transition-colors">
+                <X className="w-5 h-5 text-theme-muted hover:text-white" />
+              </button>
+            </div>
+
+            <div className="p-4 flex-1 overflow-y-auto space-y-4">
+              {/* Disabled Message */}
+              {disabled && (
+                <div className="flex items-start gap-3 px-4 py-3 bg-theme-muted/10 border border-theme rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-theme-muted flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-theme-muted font-medium">
+                      {t("libraryExclusion.disabled")}
+                    </p>
+                    <p className="text-xs text-theme-muted/80 mt-1">
+                      {t("libraryExclusion.disabledHint", {
+                        server:
+                          mediaServerType.charAt(0).toUpperCase() +
+                          mediaServerType.slice(1),
+                      })}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Fetch Libraries Button */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={fetchLibraries}
+                  disabled={loadingLibraries || disabled}
+                  className={`flex items-center gap-2 px-4 py-2.5 bg-theme-primary/20 hover:bg-theme-primary/30 border border-theme-primary/30 rounded-lg font-medium transition-all ${
+                    loadingLibraries || disabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {loadingLibraries ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  <span className="text-sm">
+                    {librariesFetched
+                      ? t("libraryExclusion.refreshLibraries")
+                      : t("libraryExclusion.fetchLibraries")}
+                  </span>
+                </button>
+
+                {librariesFetched && availableLibraries.length > 0 && !disabled && (
+                  <>
+                    <button
+                      onClick={clearAll}
+                      className="flex items-center gap-2 px-4 py-2 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-sm"
+                    >
+                      <Check className="w-4 h-4" />
+                      {t("libraryExclusion.includeAll")}
+                    </button>
+                    <button
+                      onClick={excludeAll}
+                      className="flex items-center gap-2 px-4 py-2 bg-theme-bg hover:bg-theme-hover border border-theme rounded-lg font-medium transition-all text-sm"
+                    >
+                      <X className="w-4 h-4" />
+                      {t("libraryExclusion.excludeAll")}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-start gap-3 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-400 font-medium">
+                      {t("libraryExclusion.errorTitle")}
+                    </p>
+                    <p className="text-xs text-red-400/80 mt-1">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {loadingLibraries && (
+                <div className="flex items-center justify-center py-8 bg-theme-bg/50 border border-theme rounded-lg">
+                  <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-theme-primary mx-auto mb-2" />
+                    <p className="text-sm text-theme-muted">
+                      {t("libraryExclusion.fetching", {
+                        server: mediaServerType,
+                      })}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Libraries List */}
+              {!loadingLibraries &&
+                librariesFetched &&
+                availableLibraries.length > 0 && (
+                  <div className="space-y-2 mt-4">
+                    <p
+                      className="text-sm text-theme-muted"
+                      dangerouslySetInnerHTML={{
+                        __html: t("libraryExclusion.selectToExclude"),
+                      }}
+                    />
+                    <div className="space-y-2">
+                      {availableLibraries.map((library) => {
+                        const isExcluded = excludedLibraries.includes(library.name);
+                        return (
+                          <div
+                            key={library.name}
+                            onClick={() => toggleLibrary(library.name)}
+                            className={`flex items-center gap-3 px-4 py-3 border rounded-lg cursor-pointer transition-all ${
+                              isExcluded
+                                ? "bg-red-500/10 border-red-500/30 hover:bg-red-500/20"
+                                : "bg-green-500/10 border-green-500/30 hover:bg-green-500/20"
+                            }`}
+                          >
+                            <span className="text-2xl flex-shrink-0">
+                              {getLibraryTypeIcon(library.type)}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-theme-text">
+                                  {library.name}
+                                </span>
+                                <span className="text-xs px-2 py-0.5 bg-theme-bg rounded-full text-theme-muted">
+                                  {library.type}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {isExcluded ? (
+                                <div className="flex items-center gap-1.5 text-red-400 text-sm font-medium">
+                                  <X className="w-4 h-4" />
+                                  <span>{t("libraryExclusion.excluded")}</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5 text-green-400 text-sm font-medium">
+                                  <Check className="w-4 h-4" />
+                                  <span>{t("libraryExclusion.included")}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              {/* Empty State - No Libraries Fetched */}
+              {!loadingLibraries && !librariesFetched && (
+                <div className="px-4 py-8 bg-theme-bg/50 border-2 border-dashed border-theme rounded-lg text-center mt-4">
+                  <p className="text-sm text-theme-muted">
+                    {t("libraryExclusion.clickToFetch", {
+                      server:
+                        mediaServerType.charAt(0).toUpperCase() +
+                        mediaServerType.slice(1),
+                    })}
+                  </p>
+                </div>
+              )}
+
+              {/* Empty State - No Libraries Found */}
+              {!loadingLibraries &&
+                librariesFetched &&
+                availableLibraries.length === 0 &&
+                !error && (
+                  <div className="px-4 py-8 bg-theme-bg/50 border border-theme rounded-lg text-center mt-4">
+                    <p className="text-sm text-theme-muted">
+                      {t("libraryExclusion.noLibraries")}
+                    </p>
+                  </div>
+                )}
+            </div>
+
+            <div className="p-4 border-t border-theme shrink-0 flex justify-end bg-theme-bg/50 rounded-b-xl">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-6 py-2 bg-theme-primary text-black font-semibold rounded-lg hover:bg-theme-primary/90 transition-colors shadow-lg"
+              >
+                {t("common.done") || "Done"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

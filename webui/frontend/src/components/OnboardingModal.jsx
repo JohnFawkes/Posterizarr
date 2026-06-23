@@ -290,7 +290,7 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">Plex URL</label>
-              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexUrl} onChange={e => handleChange("PlexUrl", e.target.value)} />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexUrl} onChange={e => handleChange("PlexUrl", e.target.value)} />
             </div>
             <div>
               <label className="flex items-center justify-between text-sm font-medium text-theme-muted mb-1">
@@ -299,7 +299,7 @@ export default function OnboardingModal({ onComplete }) {
                   How to find this?
                 </a>
               </label>
-              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -328,11 +328,11 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">Jellyfin URL</label>
-              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinUrl} onChange={e => handleChange("JellyfinUrl", e.target.value)} />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinUrl} onChange={e => handleChange("JellyfinUrl", e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -361,11 +361,11 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">Emby URL</label>
-              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyUrl} onChange={e => handleChange("EmbyUrl", e.target.value)} />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyUrl} onChange={e => handleChange("EmbyUrl", e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="text" className="w-full bg-theme-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
+              <input type="text" className="w-full bg-theme-bg-dark border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
@@ -410,21 +410,21 @@ export default function OnboardingModal({ onComplete }) {
             <div className="grid grid-cols-3 gap-4 mb-6">
               <button
                 onClick={() => setPrimaryServer('plex')}
-                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'plex' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'plex' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 <img src="/plex.svg" alt="Plex" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
                 <span className="font-semibold">Plex</span>
               </button>
               <button
                 onClick={() => setPrimaryServer('jellyfin')}
-                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 <img src="/jellyfin.svg" alt="Jellyfin" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
                 <span className="font-semibold">Jellyfin</span>
               </button>
               <button
                 onClick={() => setPrimaryServer('emby')}
-                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 <img src="/emby.svg" alt="Emby" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
                 <span className="font-semibold">Emby</span>
@@ -455,13 +455,13 @@ export default function OnboardingModal({ onComplete }) {
                     <div className="grid grid-cols-2 gap-4">
                       <button
                         onClick={() => setPlexSyncServer('jellyfin')}
-                        className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                        className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
                       >
                         <img src="/jellyfin.svg" alt="Jellyfin" className="w-5 h-5 mr-2 object-contain" /> Jellyfin
                       </button>
                       <button
                         onClick={() => setPlexSyncServer('emby')}
-                        className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                        className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
                       >
                         <img src="/emby.svg" alt="Emby" className="w-5 h-5 mr-2 object-contain" /> Emby
                       </button>
@@ -489,7 +489,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TMDb Token <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tmdb" config={config} label="Test Connection" disabled={!config.tmdbtoken} />
                 </div>
@@ -504,7 +504,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TVDb Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tvdb" config={config} label="Test Connection" disabled={!config.tvdbapi} />
                 </div>
@@ -519,7 +519,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get Fanart Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="fanart" config={config} label="Test Connection" disabled={!config.FanartTvAPIKey} />
                 </div>
@@ -591,7 +591,7 @@ export default function OnboardingModal({ onComplete }) {
                   <p className="text-sm text-theme-muted">Set JPEG quality compression</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="number" min="1" max="100" className="w-20 bg-theme-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
+                  <input type="number" min="1" max="100" className="w-20 bg-theme-bg-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
                   <span className="text-white font-medium">%</span>
                 </div>
               </div>
@@ -601,7 +601,7 @@ export default function OnboardingModal({ onComplete }) {
                   <h4 className="font-semibold text-white">Max Logs Retained</h4>
                   <p className="text-sm text-theme-muted">Number of previous run logs to keep</p>
                 </div>
-                <input type="number" min="1" max="50" className="w-24 bg-theme-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
+                <input type="number" min="1" max="50" className="w-24 bg-theme-bg-dark border border-theme-border rounded-lg px-3 py-1.5 text-white text-right" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
               </div>
             </div>
           </div>
@@ -615,19 +615,19 @@ export default function OnboardingModal({ onComplete }) {
             <div className="grid grid-cols-3 gap-4 mb-6">
               <button
                 onClick={() => setNotificationType('none')}
-                className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'none' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'none' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
               >
                 None
               </button>
               <button
                 onClick={() => setNotificationType('discord')}
-                className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'discord' ? 'bg-[#5865F2]/10 border-[#5865F2] text-[#5865F2] shadow-inner shadow-[#5865F2]/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-[#5865F2]/50'}`}
+                className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'discord' ? 'bg-[#5865F2]/10 border-[#5865F2] text-[#5865F2] shadow-inner shadow-[#5865F2]/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-[#5865F2]/50'}`}
               >
                 Discord
               </button>
               <button
                 onClick={() => setNotificationType('apprise')}
-                className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'apprise' ? 'bg-green-500/10 border-green-500 text-green-500 shadow-inner shadow-green-500/10' : 'bg-theme-dark border-theme-border text-theme-muted hover:border-green-500/50'}`}
+                className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'apprise' ? 'bg-green-500/10 border-green-500 text-green-500 shadow-inner shadow-green-500/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-green-500/50'}`}
               >
                 Apprise
               </button>
@@ -636,11 +636,11 @@ export default function OnboardingModal({ onComplete }) {
             {notificationType === 'discord' && (
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                 <label className="block text-sm font-medium text-white mb-2">Discord Webhook URL</label>
-                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://discordapp.com/api/webhooks/..." value={config.Discord} onChange={e => handleChange("Discord", e.target.value)} />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://discordapp.com/api/webhooks/..." value={config.Discord} onChange={e => handleChange("Discord", e.target.value)} />
 
                 <div className="mt-4 pt-4 border-t border-theme-border/30">
                   <label className="block text-sm font-medium text-white mb-2">Discord Bot Name</label>
-                  <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.DiscordUserName} onChange={e => handleChange("DiscordUserName", e.target.value)} />
+                  <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.DiscordUserName} onChange={e => handleChange("DiscordUserName", e.target.value)} />
                 </div>
               </div>
             )}
@@ -655,7 +655,7 @@ export default function OnboardingModal({ onComplete }) {
                     How-to guide <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="discord://webhook_id/webhook_token" value={config.AppriseUrl} onChange={e => handleChange("AppriseUrl", e.target.value)} />
+                <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="discord://webhook_id/webhook_token" value={config.AppriseUrl} onChange={e => handleChange("AppriseUrl", e.target.value)} />
                 <p className="text-xs text-theme-muted mt-2">Uses Apprise - supports Discord, Slack, Telegram, email, and 70+ more via URL schemes.</p>
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
@@ -679,7 +679,7 @@ export default function OnboardingModal({ onComplete }) {
               {config.UseUptimeKuma === "true" && (
                 <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                   <label className="block text-sm font-medium text-white mb-2">Push URL</label>
-                  <input type="text" className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://uptime-kuma.domain.com/api/push/..." value={config.UptimeKumaUrl} onChange={e => handleChange("UptimeKumaUrl", e.target.value)} />
+                  <input type="text" className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" placeholder="https://uptime-kuma.domain.com/api/push/..." value={config.UptimeKumaUrl} onChange={e => handleChange("UptimeKumaUrl", e.target.value)} />
                   <div className="mt-4 flex justify-end">
                     <ValidateButton type="uptimekuma" config={config} label="Test Connection" disabled={!config.UptimeKumaUrl} />
                   </div>
@@ -713,14 +713,14 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency !== "interval" && (
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white mb-2">Time (HH:MM)</label>
-                        <input type="time" style={{ colorScheme: "dark" }} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
+                        <input type="time" style={{ colorScheme: "dark" }} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
                       </div>
                     )}
                     
                     {/* Mode Selector */}
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-white mb-2">Run Mode</label>
-                      <select value={newMode} onChange={(e) => setNewMode(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                      <select value={newMode} onChange={(e) => setNewMode(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
                         {runModes.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                       </select>
                     </div>
@@ -728,7 +728,7 @@ export default function OnboardingModal({ onComplete }) {
                     {/* Frequency Selector */}
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-white mb-2">Frequency</label>
-                      <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                      <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
                         {frequencies.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
                       </select>
                     </div>
@@ -740,11 +740,11 @@ export default function OnboardingModal({ onComplete }) {
                       <div className="flex-1 flex gap-2">
                         <div className="flex-1">
                            <label className="block text-sm font-medium text-white mb-2">Every</label>
-                           <input type="number" min="1" value={intervalValue} onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
+                           <input type="number" min="1" value={intervalValue} onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
                         </div>
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-white mb-2">Unit</label>
-                          <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                          <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
                             {intervalUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.label}</option>)}
                           </select>
                         </div>
@@ -756,13 +756,13 @@ export default function OnboardingModal({ onComplete }) {
                       <div className="flex-1 flex gap-2">
                          <div className="flex-1">
                            <label className="block text-sm font-medium text-white mb-2">Month</label>
-                           <select value={newMonth} onChange={(e) => setNewMonth(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                           <select value={newMonth} onChange={(e) => setNewMonth(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
                              {months.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                            </select>
                          </div>
                          <div className="flex-1">
                            <label className="block text-sm font-medium text-white mb-2">Day(s) of Month</label>
-                           <input type="text" placeholder="e.g. 1,15,30" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
+                           <input type="text" placeholder="e.g. 1,15,30" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
                          </div>
                       </div>
                     )}
@@ -771,7 +771,7 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency === "weekly" && (
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white mb-2">Day of Week</label>
-                        <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full bg-theme-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                        <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
                           {daysOfWeek.map(day => <option key={day.id} value={day.id}>{day.label}</option>)}
                         </select>
                       </div>
@@ -783,15 +783,15 @@ export default function OnboardingModal({ onComplete }) {
                     <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-lg">
                       <div className="flex-1">
                         <label className="block text-xs font-medium text-[#c4b5fd] mb-1">Plex Library</label>
-                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder="Library name or 'all'" className="w-full px-3 py-2 bg-theme-dark/80 border border-theme-border rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#a78bfa]" />
+                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder="Library name or 'all'" className="w-full px-3 py-2 bg-theme-bg-dark/80 border border-theme-border rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#a78bfa]" />
                       </div>
                       <div className="flex items-center gap-6 pt-5">
                         <label className="flex items-center gap-2 cursor-pointer group">
-                          <input type="checkbox" checked={logoForceReplace} onChange={(e) => setLogoForceReplace(e.target.checked)} disabled={logoRevert} className="w-4 h-4 rounded border-theme-border bg-theme-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
+                          <input type="checkbox" checked={logoForceReplace} onChange={(e) => setLogoForceReplace(e.target.checked)} disabled={logoRevert} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
                           <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-white group-hover:text-[#c4b5fd]'} transition-colors`}>Force Replace</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer group">
-                          <input type="checkbox" checked={logoRevert} onChange={(e) => setLogoRevert(e.target.checked)} className="w-4 h-4 rounded border-theme-border bg-theme-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
+                          <input type="checkbox" checked={logoRevert} onChange={(e) => setLogoRevert(e.target.checked)} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
                           <span className="text-sm text-white group-hover:text-[#c4b5fd] transition-colors">Revert Mode</span>
                         </label>
                       </div>
@@ -851,10 +851,10 @@ export default function OnboardingModal({ onComplete }) {
         '--theme-accent': '#ffc107'
       }}
     >
-      <div className="bg-theme-darker w-full max-w-4xl rounded-2xl shadow-2xl border border-theme-border/50 overflow-hidden flex flex-col md:flex-row h-full max-h-[600px] animate-scale-in">
+      <div className="bg-theme-bg-dark w-full max-w-4xl rounded-2xl shadow-2xl border border-theme-border/50 overflow-hidden flex flex-col md:flex-row h-full max-h-[600px] animate-scale-in">
 
         {/* Left Sidebar - Stepper */}
-        <div className="w-full md:w-64 bg-theme-dark border-r border-theme-border/30 p-6 flex flex-col shrink-0 hidden md:flex">
+        <div className="w-full md:w-64 bg-theme-bg-dark border-r border-theme-border/30 p-6 flex flex-col shrink-0 hidden md:flex">
           <div className="mb-8">
             <h1 className="text-xl font-bold text-white tracking-tight flex items-center">
               <Rocket className="w-6 h-6 mr-2 text-theme-primary" />
@@ -888,7 +888,7 @@ export default function OnboardingModal({ onComplete }) {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-theme-darker to-theme-dark">
           {/* Mobile Stepper (visible only on small screens) */}
-          <div className="md:hidden flex p-4 border-b border-theme-border/30 items-center justify-between bg-theme-dark">
+          <div className="md:hidden flex p-4 border-b border-theme-border/30 items-center justify-between bg-theme-bg-dark">
             <span className="text-sm font-semibold text-theme-primary">Step {currentStep + 1} of {STEPS.length}</span>
             <span className="text-sm text-theme-muted">{STEPS[currentStep].title}</span>
           </div>
@@ -898,7 +898,7 @@ export default function OnboardingModal({ onComplete }) {
           </div>
 
           {/* Footer Actions */}
-          <div className="p-6 bg-theme-darker border-t border-theme-border/30 flex justify-between items-center shrink-0">
+          <div className="p-6 bg-theme-bg-dark border-t border-theme-border/30 flex justify-between items-center shrink-0">
             <button
               onClick={handlePrev}
               disabled={currentStep === 0 || saving}

@@ -1021,7 +1021,7 @@ function ManualAssets() {
                   <div
                     className={`${getAssetAspectRatio(
                       asset.type
-                    )} bg-theme-darker relative cursor-pointer`}
+                    )} bg-theme-bg-dark relative cursor-pointer`}
                     onClick={() => {
                       if (bulkDeleteMode) {
                         toggleAssetSelection(asset.path);
