@@ -1,5 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { Check, ChevronRight, ChevronLeft, Save, Server, Key, Settings, Bell, Rocket, Shield, Activity, HardDrive, Database, ExternalLink, Loader2, Clock, Calendar, Zap, RefreshCw, Grid } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, Save, Server, Key, Settings, Bell, Rocket, Shield, Activity, HardDrive, Database, ExternalLink, Loader2, Clock, Calendar, Zap, RefreshCw, Grid, X, Eye, EyeOff } from "lucide-react";
+
+const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const showAsPassword = isPassword && !showPassword;
+
+  return (
+    <div className="relative flex items-center">
+      <input
+        type={showAsPassword ? "password" : "text"}
+        className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors pr-20"
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+      <div className="absolute right-2 flex items-center gap-1">
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+            title={showPassword ? "Hide text" : "Show text"}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        )}
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+            title="Clear input"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 import ValidateButton from "./ValidateButton";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 
@@ -288,34 +327,36 @@ export default function OnboardingModal({ onComplete }) {
           <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
             <img src="/plex.svg" alt="Plex" className="w-5 h-5 mr-2 object-contain" /> Plex Configuration
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-theme-muted mb-1">Plex URL</label>
-              <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexUrl} onChange={e => handleChange("PlexUrl", e.target.value)} placeholder="http://192.168.1.93:32400" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-theme-muted mb-1">Plex URL</label>
+                <ClearableInput value={config.PlexUrl} onChange={val => handleChange("PlexUrl", val)} placeholder="http://192.168.1.93:32400" />
+              </div>
+              <div>
+                <label className="flex items-center justify-between text-sm font-medium text-theme-muted mb-1">
+                  Plex Token
+                  <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-xs text-theme-primary hover:underline font-normal">
+                    How to find this?
+                  </a>
+                </label>
+                <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder="Your Plex Token" isPassword />
+              </div>
+              <div className="flex justify-end">
+                <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} />
+              </div>
             </div>
-            <div>
-              <label className="flex items-center justify-between text-sm font-medium text-theme-muted mb-1">
-                Plex Token
-                <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-xs text-theme-primary hover:underline font-normal">
-                  How to find this?
-                </a>
-              </label>
-              <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.PlexToken} onChange={e => handleChange("PlexToken", e.target.value)} placeholder="Your Plex Token" />
+            <div className="border-l border-theme-border/30 pl-6">
+              <LibraryExclusionSelector
+                value={config.PlexLibstoExclude || []}
+                onChange={(val) => handleChange('PlexLibstoExclude', val)}
+                label="Library Selection"
+                helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
+                mediaServerType="plex"
+                config={config}
+                disabled={!config.PlexUrl || !config.PlexToken}
+              />
             </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} />
-          </div>
-          <div className="mt-6 border-t border-theme-border/30 pt-4">
-            <LibraryExclusionSelector
-              value={config.PlexLibstoExclude || []}
-              onChange={(val) => handleChange('PlexLibstoExclude', val)}
-              label="Library Selection"
-              helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
-              mediaServerType="plex"
-              config={config}
-              disabled={!config.PlexUrl || !config.PlexToken}
-            />
           </div>
         </div>
       );
@@ -326,29 +367,31 @@ export default function OnboardingModal({ onComplete }) {
           <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
             <img src="/jellyfin.svg" alt="Jellyfin" className="w-5 h-5 mr-2 object-contain" /> Jellyfin Configuration
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-theme-muted mb-1">Jellyfin URL</label>
-              <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinUrl} onChange={e => handleChange("JellyfinUrl", e.target.value)} placeholder="http://192.168.1.93:8096" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-theme-muted mb-1">Jellyfin URL</label>
+                <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder="http://192.168.1.93:8096" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
+                <ClearableInput value={config.JellyfinAPIKey} onChange={val => handleChange("JellyfinAPIKey", val)} placeholder="Jellyfin API Key" isPassword />
+              </div>
+              <div className="flex justify-end">
+                <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.JellyfinAPIKey} onChange={e => handleChange("JellyfinAPIKey", e.target.value)} placeholder="Jellyfin API Key" />
+            <div className="border-l border-theme-border/30 pl-6">
+              <LibraryExclusionSelector
+                value={config.JellyfinLibstoExclude || []}
+                onChange={(val) => handleChange('JellyfinLibstoExclude', val)}
+                label="Library Selection"
+                helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
+                mediaServerType="jellyfin"
+                config={config}
+                disabled={!config.JellyfinUrl || !config.JellyfinAPIKey}
+              />
             </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} />
-          </div>
-          <div className="mt-6 border-t border-theme-border/30 pt-4">
-            <LibraryExclusionSelector
-              value={config.JellyfinLibstoExclude || []}
-              onChange={(val) => handleChange('JellyfinLibstoExclude', val)}
-              label="Library Selection"
-              helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
-              mediaServerType="jellyfin"
-              config={config}
-              disabled={!config.JellyfinUrl || !config.JellyfinAPIKey}
-            />
           </div>
         </div>
       );
@@ -359,29 +402,31 @@ export default function OnboardingModal({ onComplete }) {
           <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
             <img src="/emby.svg" alt="Emby" className="w-5 h-5 mr-2 object-contain" /> Emby Configuration
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-theme-muted mb-1">Emby URL</label>
-              <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyUrl} onChange={e => handleChange("EmbyUrl", e.target.value)} placeholder="http://192.168.1.93:8096/emby" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-theme-muted mb-1">Emby URL</label>
+                <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder="http://192.168.1.93:8096/emby" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
+                <ClearableInput value={config.EmbyAPIKey} onChange={val => handleChange("EmbyAPIKey", val)} placeholder="Emby API Key" isPassword />
+              </div>
+              <div className="flex justify-end">
+                <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
-              <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.EmbyAPIKey} onChange={e => handleChange("EmbyAPIKey", e.target.value)} placeholder="Emby API Key" />
+            <div className="border-l border-theme-border/30 pl-6">
+              <LibraryExclusionSelector
+                value={config.EmbyLibstoExclude || []}
+                onChange={(val) => handleChange('EmbyLibstoExclude', val)}
+                label="Library Selection"
+                helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
+                mediaServerType="emby"
+                config={config}
+                disabled={!config.EmbyUrl || !config.EmbyAPIKey}
+              />
             </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} />
-          </div>
-          <div className="mt-6 border-t border-theme-border/30 pt-4">
-            <LibraryExclusionSelector
-              value={config.EmbyLibstoExclude || []}
-              onChange={(val) => handleChange('EmbyLibstoExclude', val)}
-              label="Library Selection"
-              helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
-              mediaServerType="emby"
-              config={config}
-              disabled={!config.EmbyUrl || !config.EmbyAPIKey}
-            />
           </div>
         </div>
       );
@@ -480,7 +525,7 @@ export default function OnboardingModal({ onComplete }) {
             <h3 className="text-2xl font-bold text-white mb-2">API Keys</h3>
             <p className="text-theme-muted mb-6">Required to fetch high-quality artwork from external sources.</p>
 
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-sm font-medium text-white flex items-center">
@@ -490,7 +535,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TMDb Token <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tmdbtoken} onChange={e => handleChange("tmdbtoken", e.target.value)} placeholder="v3 API Key / v4 Token" />
+                <ClearableInput value={config.tmdbtoken} onChange={val => handleChange("tmdbtoken", val)} placeholder="v3 API Key / v4 Token" isPassword />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tmdb" config={config} label="Test Connection" disabled={!config.tmdbtoken} />
                 </div>
@@ -505,7 +550,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get TVDb Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.tvdbapi} onChange={e => handleChange("tvdbapi", e.target.value)} placeholder="v4 API Key" />
+                <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder="v4 API Key" isPassword />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="tvdb" config={config} label="Test Connection" disabled={!config.tvdbapi} />
                 </div>
@@ -520,7 +565,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to get Fanart Key <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={config.FanartTvAPIKey} onChange={e => handleChange("FanartTvAPIKey", e.target.value)} placeholder="Personal API Key" />
+                <ClearableInput value={config.FanartTvAPIKey} onChange={val => handleChange("FanartTvAPIKey", val)} placeholder="Personal API Key" isPassword />
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="fanart" config={config} label="Test Connection" disabled={!config.FanartTvAPIKey} />
                 </div>
@@ -534,7 +579,7 @@ export default function OnboardingModal({ onComplete }) {
             <h3 className="text-2xl font-bold text-white mb-2">Automation Preferences</h3>
             <p className="text-theme-muted mb-6">Configure how Posterizarr processes your items automatically.</p>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 hover:border-theme-primary/50 transition-colors">
                 <div>
                   <h4 className="font-semibold text-white">Asset Cleanup</h4>
@@ -574,7 +619,7 @@ export default function OnboardingModal({ onComplete }) {
             <h3 className="text-2xl font-bold text-white mb-2">Performance & Quality</h3>
             <p className="text-theme-muted mb-6">Tune resource usage and output quality.</p>
 
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
                   <h4 className="font-semibold text-white">Image Processing</h4>
@@ -645,11 +690,11 @@ export default function OnboardingModal({ onComplete }) {
             {notificationType === 'discord' && (
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                 <label className="block text-sm font-medium text-white mb-2">Discord Webhook URL</label>
-                <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.Discord} onChange={e => handleChange("Discord", e.target.value)} placeholder="https://discordapp.com/api/webhooks/..." />
+                <ClearableInput value={config.Discord} onChange={val => handleChange("Discord", val)} placeholder="https://discordapp.com/api/webhooks/..." />
 
                 <div className="mt-4 pt-4 border-t border-theme-border/30">
                   <label className="block text-sm font-medium text-white mb-2">Discord Bot Name</label>
-                  <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.DiscordUserName} onChange={e => handleChange("DiscordUserName", e.target.value)} />
+                <ClearableInput value={config.DiscordUserName} onChange={val => handleChange("DiscordUserName", val)} placeholder="" />
                 </div>
               </div>
             )}
@@ -664,7 +709,7 @@ export default function OnboardingModal({ onComplete }) {
                     How-to guide <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.AppriseUrl} onChange={e => handleChange("AppriseUrl", e.target.value)} placeholder="discord://webhook_id/webhook_token"/>
+                <ClearableInput value={config.AppriseUrl} onChange={val => handleChange("AppriseUrl", val)} placeholder="discord://webhook_id/webhook_token" />
                 <p className="text-xs text-theme-muted mt-2">Uses Apprise - supports Discord, Slack, Telegram, email, and 70+ more via URL schemes.</p>
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
@@ -688,7 +733,7 @@ export default function OnboardingModal({ onComplete }) {
               {config.UseUptimeKuma === "true" && (
                 <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                   <label className="block text-sm font-medium text-white mb-2">Push URL</label>
-                  <input type="text" className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors" value={config.UptimeKumaUrl} onChange={e => handleChange("UptimeKumaUrl", e.target.value)} placeholder="https://uptime-kuma.domain.com/api/push/..." />
+                  <ClearableInput value={config.UptimeKumaUrl} onChange={val => handleChange("UptimeKumaUrl", val)} placeholder="https://uptime-kuma.domain.com/api/push/..." />
                   <div className="mt-4 flex justify-end">
                     <ValidateButton type="uptimekuma" config={config} label="Test Connection" disabled={!config.UptimeKumaUrl} />
                   </div>
@@ -860,7 +905,7 @@ export default function OnboardingModal({ onComplete }) {
         '--theme-accent': '#ffc107'
       }}
     >
-      <div className="bg-theme-bg-dark w-full max-w-4xl rounded-2xl shadow-2xl border border-theme-border/50 overflow-hidden flex flex-col md:flex-row h-full max-h-[600px] animate-scale-in">
+      <div className="bg-theme-bg-dark w-full max-w-5xl rounded-2xl shadow-2xl border border-theme-border/50 overflow-hidden flex flex-col md:flex-row h-full max-h-[700px] animate-scale-in">
 
         {/* Left Sidebar - Stepper */}
         <div className="w-full md:w-64 bg-theme-bg-dark border-r border-theme-border/30 p-6 flex flex-col shrink-0 hidden md:flex">
