@@ -121,6 +121,10 @@ export default function OnboardingModal({ onComplete }) {
   const [logoRevert, setLogoRevert] = useState(false);
   const [notificationType, setNotificationType] = useState('none'); // 'none', 'discord', 'apprise'
 
+  const [plexValidated, setPlexValidated] = useState(false);
+  const [jellyfinValidated, setJellyfinValidated] = useState(false);
+  const [embyValidated, setEmbyValidated] = useState(false);
+
   const [config, setConfig] = useState({
     // Server URLs and Tokens
     PlexUrl: "",
@@ -323,38 +327,38 @@ export default function OnboardingModal({ onComplete }) {
   const renderServerForm = (type) => {
     if (type === 'plex') {
       return (
-        <div className="mt-4 p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-          <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
-            <img src="/plex.svg" alt="Plex" className="w-5 h-5 mr-2 object-contain" /> Plex Configuration
+        <div className="mt-3 p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
+          <h4 className="font-semibold text-sm text-theme-primary mb-3 flex items-center">
+            <img src="/plex.svg" alt="Plex" className="w-4 h-4 mr-2 object-contain" /> Plex Configuration
           </h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-theme-muted mb-1">Plex URL</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">Plex URL</label>
                 <ClearableInput value={config.PlexUrl} onChange={val => handleChange("PlexUrl", val)} placeholder="http://192.168.1.93:32400" />
               </div>
               <div>
-                <label className="flex items-center justify-between text-sm font-medium text-theme-muted mb-1">
+                <label className="flex items-center justify-between text-xs font-medium text-theme-muted mb-1">
                   Plex Token
-                  <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-xs text-theme-primary hover:underline font-normal">
+                  <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary hover:underline font-normal">
                     How to find this?
                   </a>
                 </label>
                 <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder="Your Plex Token" isPassword />
               </div>
-              <div className="flex justify-end">
-                <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} />
+              <div className="flex justify-end pt-1">
+                <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} onSuccess={() => setPlexValidated(true)} />
               </div>
             </div>
-            <div className="border-l border-theme-border/30 pl-6">
+            <div className="border-l border-theme-border/30 pl-4 h-full">
               <LibraryExclusionSelector
                 value={config.PlexLibstoExclude || []}
                 onChange={(val) => handleChange('PlexLibstoExclude', val)}
-                label="Library Selection"
-                helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
                 mediaServerType="plex"
                 config={config}
                 disabled={!config.PlexUrl || !config.PlexToken}
+                inlineMode={true}
+                autoFetchTrigger={plexValidated}
               />
             </div>
           </div>
@@ -363,33 +367,33 @@ export default function OnboardingModal({ onComplete }) {
     }
     if (type === 'jellyfin') {
       return (
-        <div className="mt-4 p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-          <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
-            <img src="/jellyfin.svg" alt="Jellyfin" className="w-5 h-5 mr-2 object-contain" /> Jellyfin Configuration
+        <div className="mt-3 p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
+          <h4 className="font-semibold text-sm text-theme-primary mb-3 flex items-center">
+            <img src="/jellyfin.svg" alt="Jellyfin" className="w-4 h-4 mr-2 object-contain" /> Jellyfin Configuration
           </h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-theme-muted mb-1">Jellyfin URL</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">Jellyfin URL</label>
                 <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder="http://192.168.1.93:8096" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">API Key</label>
                 <ClearableInput value={config.JellyfinAPIKey} onChange={val => handleChange("JellyfinAPIKey", val)} placeholder="Jellyfin API Key" isPassword />
               </div>
-              <div className="flex justify-end">
-                <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} />
+              <div className="flex justify-end pt-1">
+                <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} onSuccess={() => setJellyfinValidated(true)} />
               </div>
             </div>
-            <div className="border-l border-theme-border/30 pl-6">
+            <div className="border-l border-theme-border/30 pl-4 h-full">
               <LibraryExclusionSelector
                 value={config.JellyfinLibstoExclude || []}
                 onChange={(val) => handleChange('JellyfinLibstoExclude', val)}
-                label="Library Selection"
-                helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
                 mediaServerType="jellyfin"
                 config={config}
                 disabled={!config.JellyfinUrl || !config.JellyfinAPIKey}
+                inlineMode={true}
+                autoFetchTrigger={jellyfinValidated}
               />
             </div>
           </div>
@@ -398,33 +402,33 @@ export default function OnboardingModal({ onComplete }) {
     }
     if (type === 'emby') {
       return (
-        <div className="mt-4 p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-          <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
-            <img src="/emby.svg" alt="Emby" className="w-5 h-5 mr-2 object-contain" /> Emby Configuration
+        <div className="mt-3 p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
+          <h4 className="font-semibold text-sm text-theme-primary mb-3 flex items-center">
+            <img src="/emby.svg" alt="Emby" className="w-4 h-4 mr-2 object-contain" /> Emby Configuration
           </h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-theme-muted mb-1">Emby URL</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">Emby URL</label>
                 <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder="http://192.168.1.93:8096/emby" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-theme-muted mb-1">API Key</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">API Key</label>
                 <ClearableInput value={config.EmbyAPIKey} onChange={val => handleChange("EmbyAPIKey", val)} placeholder="Emby API Key" isPassword />
               </div>
-              <div className="flex justify-end">
-                <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} />
+              <div className="flex justify-end pt-1">
+                <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} onSuccess={() => setEmbyValidated(true)} />
               </div>
             </div>
-            <div className="border-l border-theme-border/30 pl-6">
+            <div className="border-l border-theme-border/30 pl-4 h-full">
               <LibraryExclusionSelector
                 value={config.EmbyLibstoExclude || []}
                 onChange={(val) => handleChange('EmbyLibstoExclude', val)}
-                label="Library Selection"
-                helpText="Select which libraries Posterizarr should scan. Deselected libraries will be excluded."
                 mediaServerType="emby"
                 config={config}
                 disabled={!config.EmbyUrl || !config.EmbyAPIKey}
+                inlineMode={true}
+                autoFetchTrigger={embyValidated}
               />
             </div>
           </div>
@@ -521,53 +525,59 @@ export default function OnboardingModal({ onComplete }) {
         );
       case 2: // API Keys
         return (
-          <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-2">API Keys</h3>
-            <p className="text-theme-muted mb-6">Required to fetch high-quality artwork from external sources.</p>
+          <div className="space-y-4 animate-fade-in flex flex-col h-full">
+            <h3 className="text-xl font-bold text-white mb-1">API Keys</h3>
+            <p className="text-sm text-theme-muted mb-4">Required to fetch high-quality artwork from external sources.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium text-white flex items-center">
-                    <img src="/tmdb.png" alt="TMDb" className="w-6 h-6 mr-2 object-contain rounded" /> TMDb API Token (Required)
-                  </label>
-                  <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">
-                    How to get TMDb Token <ExternalLink className="w-3 h-3 ml-1" />
-                  </a>
+            <div className="flex flex-col gap-3 flex-1 justify-center max-w-2xl mx-auto w-full">
+              <div className="p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 flex flex-row items-center gap-4 hover:border-theme-primary/30 transition-colors">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-sm font-medium text-white flex items-center">
+                      <img src="/tmdb.png" alt="TMDb" className="w-5 h-5 mr-2 object-contain rounded" /> TMDb API Token (Required)
+                    </label>
+                    <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">
+                      How to get <ExternalLink className="w-3 h-3 ml-1" />
+                    </a>
+                  </div>
+                  <ClearableInput value={config.tmdbtoken} onChange={val => handleChange("tmdbtoken", val)} placeholder="v3 API Key / v4 Token" isPassword />
                 </div>
-                <ClearableInput value={config.tmdbtoken} onChange={val => handleChange("tmdbtoken", val)} placeholder="v3 API Key / v4 Token" isPassword />
-                <div className="mt-4 flex justify-end">
-                  <ValidateButton type="tmdb" config={config} label="Test Connection" disabled={!config.tmdbtoken} />
+                <div className="mt-6">
+                  <ValidateButton type="tmdb" config={config} label="Test" disabled={!config.tmdbtoken} />
                 </div>
               </div>
 
-              <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium text-white flex items-center">
-                    <img src="/tvdb.png" alt="TVDb" className="w-6 h-6 mr-2 object-contain rounded bg-white/10 p-0.5" /> TVDb API Key (Required)
-                  </label>
-                  <a href="https://thetvdb.com/api-information" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">
-                    How to get TVDb Key <ExternalLink className="w-3 h-3 ml-1" />
-                  </a>
+              <div className="p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 flex flex-row items-center gap-4 hover:border-theme-primary/30 transition-colors">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-sm font-medium text-white flex items-center">
+                      <img src="/tvdb.png" alt="TVDb" className="w-5 h-5 mr-2 object-contain rounded bg-white/10 p-0.5" /> TVDb API Key (Required)
+                    </label>
+                    <a href="https://thetvdb.com/api-information" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">
+                      How to get <ExternalLink className="w-3 h-3 ml-1" />
+                    </a>
+                  </div>
+                  <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder="v4 API Key" isPassword />
                 </div>
-                <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder="v4 API Key" isPassword />
-                <div className="mt-4 flex justify-end">
-                  <ValidateButton type="tvdb" config={config} label="Test Connection" disabled={!config.tvdbapi} />
+                <div className="mt-6">
+                  <ValidateButton type="tvdb" config={config} label="Test" disabled={!config.tvdbapi} />
                 </div>
               </div>
 
-              <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium text-white flex items-center">
-                    <img src="/fanart.png" alt="Fanart" className="w-6 h-6 mr-2 object-contain rounded" /> Fanart.tv API Key (Required)
-                  </label>
-                  <a href="https://fanart.tv/get-an-api-key/" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">
-                    How to get Fanart Key <ExternalLink className="w-3 h-3 ml-1" />
-                  </a>
+              <div className="p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 flex flex-row items-center gap-4 hover:border-theme-primary/30 transition-colors">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-sm font-medium text-white flex items-center">
+                      <img src="/fanart.png" alt="Fanart" className="w-5 h-5 mr-2 object-contain rounded" /> Fanart.tv API Key (Required)
+                    </label>
+                    <a href="https://fanart.tv/get-an-api-key/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">
+                      How to get <ExternalLink className="w-3 h-3 ml-1" />
+                    </a>
+                  </div>
+                  <ClearableInput value={config.FanartTvAPIKey} onChange={val => handleChange("FanartTvAPIKey", val)} placeholder="Personal API Key" isPassword />
                 </div>
-                <ClearableInput value={config.FanartTvAPIKey} onChange={val => handleChange("FanartTvAPIKey", val)} placeholder="Personal API Key" isPassword />
-                <div className="mt-4 flex justify-end">
-                  <ValidateButton type="fanart" config={config} label="Test Connection" disabled={!config.FanartTvAPIKey} />
+                <div className="mt-6">
+                  <ValidateButton type="fanart" config={config} label="Test" disabled={!config.FanartTvAPIKey} />
                 </div>
               </div>
             </div>
