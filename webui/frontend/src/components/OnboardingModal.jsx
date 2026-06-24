@@ -9,7 +9,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
     <div className="relative flex items-center">
       <input
         type={showAsPassword ? "password" : "text"}
-        className="w-full bg-theme-bg-dark/50 border border-transparent rounded-md px-3 py-1.5 text-sm text-white font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all pr-14 placeholder-white/30 hover:bg-theme-bg-dark/70"
+        className="w-full bg-white border-transparent rounded-md px-3 py-1.5 text-sm text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all pr-14 placeholder-gray-500 hover:bg-gray-50"
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -653,7 +653,7 @@ export default function OnboardingModal({ onComplete }) {
                   <p className="text-sm text-theme-muted">Set JPEG quality compression</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="number" min="1" max="100" className="w-20 bg-white border border-theme-border rounded-lg px-3 py-1.5 text-black font-semibold text-right" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
+                  <input type="number" min="1" max="100" className="w-20 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-3 py-1.5 text-gray-900 font-semibold text-right focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
                   <span className="text-white font-medium">%</span>
                 </div>
               </div>
@@ -663,7 +663,7 @@ export default function OnboardingModal({ onComplete }) {
                   <h4 className="font-semibold text-white">Max Logs Retained</h4>
                   <p className="text-sm text-theme-muted">Number of previous run logs to keep</p>
                 </div>
-                <input type="number" min="1" max="50" className="w-24 bg-white border border-theme-border rounded-lg px-3 py-1.5 text-black font-semibold text-right" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
+                <input type="number" min="1" max="50" className="w-24 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-3 py-1.5 text-gray-900 font-semibold text-right focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
               </div>
 
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
@@ -671,7 +671,7 @@ export default function OnboardingModal({ onComplete }) {
                   <h4 className="font-semibold text-white">Parallel Jobs</h4>
                   <p className="text-sm text-theme-muted">Number of concurrent poster creations (Warning: High CPU/RAM usage!)</p>
                 </div>
-                <input type="number" min="1" max="50" className="w-24 bg-white border border-theme-border rounded-lg px-3 py-1.5 text-black font-semibold text-right" value={config.ParallelJobs} onChange={e => handleChange("ParallelJobs", e.target.value)} />
+                <input type="number" min="1" max="50" className="w-24 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-3 py-1.5 text-gray-900 font-semibold text-right focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={config.ParallelJobs} onChange={e => handleChange("ParallelJobs", e.target.value)} />
               </div>
             </div>
           </div>
@@ -783,14 +783,14 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency !== "interval" && (
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white mb-2">Time (HH:MM)</label>
-                        <input type="time" style={{ colorScheme: "dark" }} className="w-full bg-white border border-theme-border rounded-lg px-4 py-2.5 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" value={newTime} onChange={e => setNewTime(e.target.value)} required />
+                        <input type="time" className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={newTime} onChange={e => setNewTime(e.target.value)} required />
                       </div>
                     )}
 
                     {/* Mode Selector */}
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-white mb-2">Run Mode</label>
-                      <select value={newMode} onChange={(e) => setNewMode(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                      <select value={newMode} onChange={(e) => setNewMode(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                         {runModes.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                       </select>
                     </div>
@@ -798,7 +798,7 @@ export default function OnboardingModal({ onComplete }) {
                     {/* Frequency Selector */}
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-white mb-2">Frequency</label>
-                      <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                      <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                         {frequencies.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
                       </select>
                     </div>
@@ -810,11 +810,11 @@ export default function OnboardingModal({ onComplete }) {
                       <div className="flex-1 flex gap-2">
                         <div className="flex-1">
                            <label className="block text-sm font-medium text-white mb-2">Every</label>
-                           <input type="number" min="1" value={intervalValue} onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
+                           <input type="number" min="1" value={intervalValue} onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" />
                         </div>
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-white mb-2">Unit</label>
-                          <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                          <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                             {intervalUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.label}</option>)}
                           </select>
                         </div>
@@ -826,13 +826,13 @@ export default function OnboardingModal({ onComplete }) {
                       <div className="flex-1 flex gap-2">
                          <div className="flex-1">
                            <label className="block text-sm font-medium text-white mb-2">Month</label>
-                           <select value={newMonth} onChange={(e) => setNewMonth(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                           <select value={newMonth} onChange={(e) => setNewMonth(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                              {months.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                            </select>
                          </div>
                          <div className="flex-1">
                            <label className="block text-sm font-medium text-white mb-2">Day(s) of Month</label>
-                           <input type="text" placeholder="e.g. 1,15,30" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all" />
+                           <input type="text" placeholder="e.g. 1,15,30" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary placeholder-gray-500" />
                          </div>
                       </div>
                     )}
@@ -841,7 +841,7 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency === "weekly" && (
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-white mb-2">Day of Week</label>
-                        <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full bg-theme-bg-dark/50 border border-theme-border rounded-lg px-4 py-2.5 text-white focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all appearance-none">
+                        <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                           {daysOfWeek.map(day => <option key={day.id} value={day.id}>{day.label}</option>)}
                         </select>
                       </div>
@@ -853,7 +853,7 @@ export default function OnboardingModal({ onComplete }) {
                     <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-lg">
                       <div className="flex-1">
                         <label className="block text-xs font-medium text-[#c4b5fd] mb-1">Plex Library</label>
-                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder="Library name or 'all'" className="w-full px-3 py-2 bg-theme-bg-dark/80 border border-theme-border rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#a78bfa]" />
+                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder="Library name or 'all'" className="w-full px-3 py-2 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-md text-sm text-gray-900 font-medium focus:outline-none focus:ring-1 focus:border-theme-primary focus:ring-theme-primary placeholder-gray-500" />
                       </div>
                       <div className="flex items-center gap-6 pt-5">
                         <label className="flex items-center gap-2 cursor-pointer group">
