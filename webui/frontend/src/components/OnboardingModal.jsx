@@ -9,7 +9,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
     <div className="relative flex items-center">
       <input
         type={showAsPassword ? "password" : "text"}
-        className="w-full bg-white border border-theme-border rounded-lg px-4 py-2 text-black font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-colors pr-20"
+        className="w-full bg-theme-bg-dark/50 border border-transparent rounded-md px-3 py-1.5 text-sm text-white font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all pr-14 placeholder-white/30 hover:bg-theme-bg-dark/70"
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -22,7 +22,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
             className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
             title={showPassword ? "Hide text" : "Show text"}
           >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
         )}
         {value && (
@@ -32,7 +32,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
             className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
             title="Clear input"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
@@ -327,12 +327,12 @@ export default function OnboardingModal({ onComplete }) {
   const renderServerForm = (type) => {
     if (type === 'plex') {
       return (
-        <div className="mt-3 p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-          <h4 className="font-semibold text-sm text-theme-primary mb-3 flex items-center">
+        <div className="mt-2 p-3 bg-theme-bg/30 rounded-xl animate-fade-in flex flex-col h-full overflow-hidden">
+          <h4 className="font-semibold text-sm text-theme-primary mb-2 flex items-center shrink-0">
             <img src="/plex.svg" alt="Plex" className="w-4 h-4 mr-2 object-contain" /> Plex Configuration
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
+            <div className="space-y-3 shrink-0">
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">Plex URL</label>
                 <ClearableInput value={config.PlexUrl} onChange={val => handleChange("PlexUrl", val)} placeholder="http://192.168.1.93:32400" />
@@ -346,11 +346,11 @@ export default function OnboardingModal({ onComplete }) {
                 </label>
                 <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder="Your Plex Token" isPassword />
               </div>
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-1 shrink-0">
                 <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} onSuccess={() => setPlexValidated(true)} />
               </div>
             </div>
-            <div className="border-l border-theme-border/30 pl-4 h-full">
+            <div className="pl-4 h-full min-h-[160px] max-h-full border-l border-white/5">
               <LibraryExclusionSelector
                 value={config.PlexLibstoExclude || []}
                 onChange={(val) => handleChange('PlexLibstoExclude', val)}
@@ -367,12 +367,12 @@ export default function OnboardingModal({ onComplete }) {
     }
     if (type === 'jellyfin') {
       return (
-        <div className="mt-3 p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-          <h4 className="font-semibold text-sm text-theme-primary mb-3 flex items-center">
+        <div className="mt-2 p-3 bg-theme-bg/30 rounded-xl animate-fade-in flex flex-col h-full overflow-hidden">
+          <h4 className="font-semibold text-sm text-theme-primary mb-2 flex items-center shrink-0">
             <img src="/jellyfin.svg" alt="Jellyfin" className="w-4 h-4 mr-2 object-contain" /> Jellyfin Configuration
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
+            <div className="space-y-3 shrink-0">
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">Jellyfin URL</label>
                 <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder="http://192.168.1.93:8096" />
@@ -381,11 +381,11 @@ export default function OnboardingModal({ onComplete }) {
                 <label className="block text-xs font-medium text-theme-muted mb-1">API Key</label>
                 <ClearableInput value={config.JellyfinAPIKey} onChange={val => handleChange("JellyfinAPIKey", val)} placeholder="Jellyfin API Key" isPassword />
               </div>
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-1 shrink-0">
                 <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} onSuccess={() => setJellyfinValidated(true)} />
               </div>
             </div>
-            <div className="border-l border-theme-border/30 pl-4 h-full">
+            <div className="pl-4 h-full min-h-[160px] max-h-full border-l border-white/5">
               <LibraryExclusionSelector
                 value={config.JellyfinLibstoExclude || []}
                 onChange={(val) => handleChange('JellyfinLibstoExclude', val)}
@@ -402,12 +402,12 @@ export default function OnboardingModal({ onComplete }) {
     }
     if (type === 'emby') {
       return (
-        <div className="mt-3 p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-          <h4 className="font-semibold text-sm text-theme-primary mb-3 flex items-center">
+        <div className="mt-2 p-3 bg-theme-bg/30 rounded-xl animate-fade-in flex flex-col h-full overflow-hidden">
+          <h4 className="font-semibold text-sm text-theme-primary mb-2 flex items-center shrink-0">
             <img src="/emby.svg" alt="Emby" className="w-4 h-4 mr-2 object-contain" /> Emby Configuration
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
+            <div className="space-y-3 shrink-0">
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">Emby URL</label>
                 <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder="http://192.168.1.93:8096/emby" />
@@ -416,11 +416,11 @@ export default function OnboardingModal({ onComplete }) {
                 <label className="block text-xs font-medium text-theme-muted mb-1">API Key</label>
                 <ClearableInput value={config.EmbyAPIKey} onChange={val => handleChange("EmbyAPIKey", val)} placeholder="Emby API Key" isPassword />
               </div>
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-1 shrink-0">
                 <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} onSuccess={() => setEmbyValidated(true)} />
               </div>
             </div>
-            <div className="border-l border-theme-border/30 pl-4 h-full">
+            <div className="pl-4 h-full min-h-[160px] max-h-full border-l border-white/5">
               <LibraryExclusionSelector
                 value={config.EmbyLibstoExclude || []}
                 onChange={(val) => handleChange('EmbyLibstoExclude', val)}
@@ -453,42 +453,48 @@ export default function OnboardingModal({ onComplete }) {
         );
       case 1: // Server
         return (
-          <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-2">Primary Media Server</h3>
-            <p className="text-theme-muted mb-6">Select your primary media server that Posterizarr should scan.</p>
+          <div className="animate-fade-in flex flex-col h-full">
+            {!primaryServer && (
+              <div className="shrink-0 mb-4 animate-fade-in">
+                <h3 className="text-xl font-bold text-white mb-1">Primary Media Server</h3>
+                <p className="text-sm text-theme-muted">Select your primary media server that Posterizarr should scan.</p>
+              </div>
+            )}
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className={`grid grid-cols-3 gap-3 shrink-0 transition-all duration-300 ${primaryServer ? 'mb-2' : 'mb-6'}`}>
               <button
                 onClick={() => setPrimaryServer('plex')}
-                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'plex' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-2 px-3 rounded-xl flex flex-row items-center justify-center transition-all ${primaryServer === 'plex' ? 'bg-theme-primary/15 text-theme-primary shadow-sm ring-1 ring-theme-primary/50' : 'bg-theme-bg-dark/40 text-theme-muted hover:bg-theme-bg-dark/60'}`}
               >
-                <img src="/plex.svg" alt="Plex" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
-                <span className="font-semibold">Plex</span>
+                <img src="/plex.svg" alt="Plex" className="w-5 h-5 mr-2 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
+                <span className="font-semibold text-sm">Plex</span>
               </button>
               <button
                 onClick={() => setPrimaryServer('jellyfin')}
-                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-2 px-3 rounded-xl flex flex-row items-center justify-center transition-all ${primaryServer === 'jellyfin' ? 'bg-theme-primary/15 text-theme-primary shadow-sm ring-1 ring-theme-primary/50' : 'bg-theme-bg-dark/40 text-theme-muted hover:bg-theme-bg-dark/60'}`}
               >
-                <img src="/jellyfin.svg" alt="Jellyfin" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
-                <span className="font-semibold">Jellyfin</span>
+                <img src="/jellyfin.svg" alt="Jellyfin" className="w-5 h-5 mr-2 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
+                <span className="font-semibold text-sm">Jellyfin</span>
               </button>
               <button
                 onClick={() => setPrimaryServer('emby')}
-                className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center transition-all ${primaryServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-lg shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                className={`py-2 px-3 rounded-xl flex flex-row items-center justify-center transition-all ${primaryServer === 'emby' ? 'bg-theme-primary/15 text-theme-primary shadow-sm ring-1 ring-theme-primary/50' : 'bg-theme-bg-dark/40 text-theme-muted hover:bg-theme-bg-dark/60'}`}
               >
-                <img src="/emby.svg" alt="Emby" className="w-12 h-12 mb-3 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
-                <span className="font-semibold">Emby</span>
+                <img src="/emby.svg" alt="Emby" className="w-5 h-5 mr-2 object-contain drop-shadow-md opacity-90 transition-transform hover:scale-110" />
+                <span className="font-semibold text-sm">Emby</span>
               </button>
             </div>
 
-            {primaryServer && renderServerForm(primaryServer)}
+            <div className="flex-1 flex flex-col min-h-0">
+              {primaryServer && renderServerForm(primaryServer)}
+            </div>
 
             {primaryServer === 'plex' && (
-              <div className="mt-6 border-t border-theme-border/30 pt-6 animate-fade-in">
-                <div className="flex items-center justify-between mb-4">
+              <div className="mt-4 border-t border-white/5 pt-4 animate-fade-in shrink-0">
+                <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="font-semibold text-white">Sync from Plex?</h4>
-                    <p className="text-sm text-theme-muted">Do you sync media metadata from Plex to another media server?</p>
+                    <h4 className="font-semibold text-sm text-white">Sync from Plex?</h4>
+                    <p className="text-xs text-theme-muted">Do you sync media metadata from Plex to another media server?</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" checked={syncFromPlex} onChange={(e) => {
@@ -500,20 +506,20 @@ export default function OnboardingModal({ onComplete }) {
                 </div>
 
                 {syncFromPlex && (
-                  <div className="space-y-4 animate-fade-in">
-                    <p className="text-sm text-theme-muted">Select the secondary server to supply its URL/API Key (it will NOT be enabled for primary scanning):</p>
+                  <div className="space-y-3 animate-fade-in">
+                    <p className="text-xs text-theme-muted">Select the secondary server to supply its URL/API Key (it will NOT be enabled for primary scanning):</p>
                     <div className="grid grid-cols-2 gap-4">
                       <button
                         onClick={() => setPlexSyncServer('jellyfin')}
-                        className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'jellyfin' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                        className={`py-2 px-3 rounded-xl flex items-center justify-center transition-all font-medium text-sm ${plexSyncServer === 'jellyfin' ? 'bg-theme-primary/15 text-theme-primary shadow-sm' : 'bg-theme-bg-dark/40 text-theme-muted hover:bg-theme-bg-dark/60'}`}
                       >
-                        <img src="/jellyfin.svg" alt="Jellyfin" className="w-5 h-5 mr-2 object-contain" /> Jellyfin
+                        <img src="/jellyfin.svg" alt="Jellyfin" className="w-4 h-4 mr-2 object-contain" /> Jellyfin
                       </button>
                       <button
                         onClick={() => setPlexSyncServer('emby')}
-                        className={`py-3 px-4 rounded-lg border flex items-center justify-center transition-all font-medium ${plexSyncServer === 'emby' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
+                        className={`py-2 px-3 rounded-xl flex items-center justify-center transition-all font-medium text-sm ${plexSyncServer === 'emby' ? 'bg-theme-primary/15 text-theme-primary shadow-sm' : 'bg-theme-bg-dark/40 text-theme-muted hover:bg-theme-bg-dark/60'}`}
                       >
-                        <img src="/emby.svg" alt="Emby" className="w-5 h-5 mr-2 object-contain" /> Emby
+                        <img src="/emby.svg" alt="Emby" className="w-4 h-4 mr-2 object-contain" /> Emby
                       </button>
                     </div>
                     {plexSyncServer && renderServerForm(plexSyncServer)}
@@ -530,7 +536,7 @@ export default function OnboardingModal({ onComplete }) {
             <p className="text-sm text-theme-muted mb-4">Required to fetch high-quality artwork from external sources.</p>
 
             <div className="flex flex-col gap-3 flex-1 justify-center max-w-2xl mx-auto w-full">
-              <div className="p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 flex flex-row items-center gap-4 hover:border-theme-primary/30 transition-colors">
+              <div className="p-3 bg-theme-bg/30 rounded-xl flex flex-row items-center gap-4 hover:bg-theme-bg/50 transition-colors">
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
@@ -547,7 +553,7 @@ export default function OnboardingModal({ onComplete }) {
                 </div>
               </div>
 
-              <div className="p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 flex flex-row items-center gap-4 hover:border-theme-primary/30 transition-colors">
+              <div className="p-3 bg-theme-bg/30 rounded-xl flex flex-row items-center gap-4 hover:bg-theme-bg/50 transition-colors">
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
@@ -564,7 +570,7 @@ export default function OnboardingModal({ onComplete }) {
                 </div>
               </div>
 
-              <div className="p-3 bg-theme-bg/50 rounded-xl border border-theme-border/50 flex flex-row items-center gap-4 hover:border-theme-primary/30 transition-colors">
+              <div className="p-3 bg-theme-bg/30 rounded-xl flex flex-row items-center gap-4 hover:bg-theme-bg/50 transition-colors">
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
@@ -950,63 +956,63 @@ export default function OnboardingModal({ onComplete }) {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-theme-darker to-theme-dark">
-          {/* Mobile Stepper (visible only on small screens) */}
-          <div className="md:hidden flex p-4 border-b border-theme-border/30 items-center justify-between bg-theme-bg-dark">
-            <span className="text-sm font-semibold text-theme-primary">Step {currentStep + 1} of {STEPS.length}</span>
-            <span className="text-sm text-theme-muted">{STEPS[currentStep].title}</span>
-          </div>
+          <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-theme-darker to-theme-dark h-full">
+            {/* Mobile Stepper (visible only on small screens) */}
+            <div className="md:hidden flex p-4 border-b border-theme-border/30 items-center justify-between bg-theme-bg-dark shrink-0">
+              <span className="text-sm font-semibold text-theme-primary">Step {currentStep + 1} of {STEPS.length}</span>
+              <span className="text-sm text-theme-muted">{STEPS[currentStep].title}</span>
+            </div>
 
-          <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-thin scrollbar-thumb-theme-border scrollbar-track-transparent">
-            {renderStepContent()}
-          </div>
+            <div className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-theme-border scrollbar-track-transparent">
+              {renderStepContent()}
+            </div>
 
-          {/* Footer Actions */}
-          <div className="p-6 bg-theme-bg-dark border-t border-theme-border/30 flex justify-between items-center shrink-0">
-            <button
-              onClick={handlePrev}
-              disabled={currentStep === 0 || saving}
-              className={`flex items-center px-5 py-2.5 rounded-lg font-medium transition-colors ${
-                currentStep === 0
-                  ? "opacity-0 cursor-default"
-                  : "text-theme-muted hover:text-white hover:bg-theme-bg"
-              }`}
-            >
-              <ChevronLeft className="w-5 h-5 mr-1" />
-              Back
-            </button>
-
-            {currentStep < STEPS.length - 1 ? (
+            {/* Footer Actions */}
+            <div className="px-6 py-4 bg-theme-bg-dark border-t border-theme-border/30 flex justify-between items-center shrink-0">
               <button
-                onClick={handleNext}
-                disabled={
-                  (currentStep === 1 && !primaryServer) ||
-                  (currentStep === 2 && (!config.tmdbtoken || !config.tvdbapi || !config.FanartTvAPIKey))
-                }
-                className="flex items-center px-6 py-2.5 bg-theme-primary text-white rounded-lg font-medium shadow-lg shadow-theme-primary/20 hover:bg-theme-accent hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handlePrev}
+                disabled={currentStep === 0 || saving}
+                className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                  currentStep === 0
+                    ? "opacity-0 cursor-default"
+                    : "text-theme-muted hover:text-white hover:bg-theme-bg"
+                }`}
               >
-                Continue
-                <ChevronRight className="w-5 h-5 ml-1" />
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Back
               </button>
-            ) : (
-              <button
-                onClick={handleFinish}
-                disabled={saving}
-                className="flex items-center px-8 py-2.5 bg-gradient-to-r from-theme-primary to-theme-accent text-white rounded-lg font-bold shadow-lg shadow-theme-primary/30 hover:shadow-theme-primary/50 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <span className="flex items-center">
-                    <Activity className="w-5 h-5 mr-2 animate-spin" /> Saving...
-                  </span>
-                ) : (
-                  <span className="flex items-center">
-                    Finish Setup <Save className="w-5 h-5 ml-2" />
-                  </span>
-                )}
-              </button>
-            )}
+
+              {currentStep < STEPS.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  disabled={
+                    (currentStep === 1 && !primaryServer) ||
+                    (currentStep === 2 && (!config.tmdbtoken || !config.tvdbapi || !config.FanartTvAPIKey))
+                  }
+                  className="flex items-center px-5 py-2 bg-theme-primary text-black rounded-lg font-semibold shadow-md shadow-theme-primary/20 hover:bg-theme-accent hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  Continue
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleFinish}
+                  disabled={saving}
+                  className="flex items-center px-6 py-2 bg-gradient-to-r from-theme-primary to-theme-accent text-black rounded-lg font-bold shadow-md shadow-theme-primary/30 hover:shadow-theme-primary/50 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  {saving ? (
+                    <span className="flex items-center">
+                      <Activity className="w-4 h-4 mr-2 animate-spin" /> Saving...
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      Finish Setup <Save className="w-4 h-4 ml-2" />
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
       </div>
     </div>
   );

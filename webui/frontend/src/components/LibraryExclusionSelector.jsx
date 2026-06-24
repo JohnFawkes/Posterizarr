@@ -357,12 +357,10 @@ const LibraryExclusionSelector = ({
             return (
               <div
                 key={library.name}
-                onClick={() => toggleLibrary(library.name)}
-                className={`flex items-center justify-between px-3 py-2 border rounded-md cursor-pointer transition-all ${
-                  isExcluded
-                    ? "bg-theme-bg/30 border-theme-border/30 hover:border-theme-border/60 opacity-60 grayscale"
-                    : "bg-theme-bg-dark border-theme-primary/30 hover:border-theme-primary shadow-sm"
-                }`}
+                onClick={() => !disabled && toggleLibrary(library.name)}
+                className={`flex items-center justify-between p-2 rounded-lg transition-all cursor-pointer ${
+                  disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-theme-bg-dark/50"
+                } ${isExcluded ? "bg-theme-bg-dark/20 text-theme-muted" : "bg-theme-bg-dark/40"}`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="text-base flex-shrink-0">
@@ -412,8 +410,8 @@ const LibraryExclusionSelector = ({
       )}
 
       {inlineMode ? (
-        <div className="flex-1 bg-theme-bg-dark/40 border border-theme-border/40 rounded-xl p-4 flex flex-col h-[280px]">
-          <div className="flex justify-between items-center mb-3 shrink-0">
+        <div className="flex-1 bg-theme-bg/10 rounded-xl p-3 flex flex-col h-full min-h-[150px]">
+          <div className="flex justify-between items-center mb-2 shrink-0">
             <div>
               <h4 className="text-sm font-semibold text-white">Select Libraries</h4>
               {helpText && <p className="text-[11px] text-theme-muted">{helpText}</p>}

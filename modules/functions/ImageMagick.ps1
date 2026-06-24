@@ -165,9 +165,9 @@ function Get-OptimalPointSize {
 
     # [stats] stop timer and record miss metrics
     $tsc_sw.Stop()
-    $script:tsMiss++
-    $script:tsRuns++
-    $script:tsMs += $tsc_sw.ElapsedMilliseconds
+    if ($global:tsMissMsBag -ne $null) {
+        $global:tsMissMsBag.Add($tsc_sw.ElapsedMilliseconds)
+    }
 
     # Wrapped in try/catch to ensure saving errors don't crash script
     try {
@@ -387,9 +387,9 @@ function Write-TextSizeCacheSummary {
 
     $total = $tsHits + $tsMiss
     $rate = if ($total) { [math]::Round(100 * $tsHits / $total, 2) } else { 0 }
-    $avg = if ($tsRuns) { [math]::Round($tsMs / $tsRuns, 2) } else { 0 }
+    $avg = if ($tsRuns) { [math]::Round($tsMs / $tsRuns, 2) } else { 150 } # default to 150ms per magick call if cache hits 100%
     $saved = [TimeSpan]::FromMilliseconds([double]($tsHits * $avg))
-    Write-Entry -Subtext ("{0}: hits='{1}', misses='{2}' ({3}%); magick_calls='{4}' in '{5} ms'; est_saved='{6}h {7}m {8}s'" -f `
+    Write-Entry -Subtext ("{0}: {1} Hits, {2} Misses ({3}% Hit Rate) | ImageMagick Calls: {4} (Total {5} ms) | Estimated Time Saved: {6}h {7}m {8}s" -f `
             $Label, $tsHits, $tsMiss, $rate, $tsRuns, $tsMs, $saved.Hours, $saved.Minutes, $saved.Seconds) `
         -Path $global:configLogging -Color Green -log Info
 }
