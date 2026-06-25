@@ -59,7 +59,10 @@ nav:
     - 'Platform & Tools': 'platformandtools.md'
     - 'API Endpoints': 'endpoints.md'
     - 'Telemetry Server': 'telemetry.md'
+  - 'Developer Guide':
     - 'PowerShell Scripts': 'powershell_scripts.md'
+    - 'Backend Python': 'backend_python.md'
+    - 'Frontend Components': 'frontend_components.md'
   - 'Reference':
     - 'Showcase': 'showcase.md'
 
