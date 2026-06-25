@@ -385,6 +385,12 @@
     $Episodedata = [System.Collections.Generic.List[object]]::new()
     $TempShowLibs = $Libraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
+        # Initialize lists to hold season properties for the show object
+        $showSeasonIds = [System.Collections.Generic.List[string]]::new()
+        $showSeasonNumbers = [System.Collections.Generic.List[string]]::new()
+        $showSeasonNames = [System.Collections.Generic.List[string]]::new()
+        $showSeasonUrls = [System.Collections.Generic.List[string]]::new()
+
         # Iterate through all shows
         $seasons = $AllEpisodes.Items | Where-Object { $_.SeriesId -eq $show.id } | Group-Object -Property SeasonName | Sort-Object -Property Name
         foreach ($Season in $Seasons) {
@@ -447,6 +453,13 @@
                 $SeasonId = $null
             }
 
+            $OtherMediaServerTitleCardUrlsList = [System.Collections.Generic.List[string]]::new()
+            foreach ($epId in ($EpisodeIds -split ',')) {
+                if ($epId) {
+                    $OtherMediaServerTitleCardUrlsList.Add("$OtherMediaServerUrl/Items/$epId/Images/Primary?api_key=$OtherMediaServerApiKey")
+                }
+            }
+            $OtherMediaServerTitleCardUrls = $OtherMediaServerTitleCardUrlsList -join ','
 
             # Create an object for the current season
             $seasonObject = [PSCustomObject]@{
@@ -467,13 +480,26 @@
                 "SeasonName"                   = $Season.Name
                 "Episodes"                     = $Episodes
                 "Title"                        = $EpisodeTitles
+                "OtherMediaServerTitleCardUrls"= $OtherMediaServerTitleCardUrls
                 "OtherMediaServerTitleCardTag" = $Thumbs
                 "OtherMediaServerSeasonTag"    = $SeasonEpisodes[0].SeriesPrimaryImageTag
             }
 
             # Add the season object to the array
             $Episodedata.Add($seasonObject)
+            
+            # Add to show-level collections
+            if ($SeasonId) { $showSeasonIds.Add($SeasonId) }
+            $showSeasonNumbers.Add($SeasonEpisodes[0].ParentIndexNumber)
+            $showSeasonNames.Add($Season.Name)
+            if ($SeasonId) { $showSeasonUrls.Add("$OtherMediaServerUrl/Items/$SeasonId/Images/Primary?api_key=$OtherMediaServerApiKey") }
         }
+        
+        # Append collected season metadata to the parent show object
+        $show | Add-Member -MemberType NoteProperty -Name "SeasonNames" -Value ($showSeasonNames -join ';') -Force
+        $show | Add-Member -MemberType NoteProperty -Name "SeasonRatingKeys" -Value ($showSeasonIds -join ',') -Force
+        $show | Add-Member -MemberType NoteProperty -Name "seasonNumbers" -Value ($showSeasonNumbers -join ',') -Force
+        $show | Add-Member -MemberType NoteProperty -Name "OtherMediaServerSeasonUrls" -Value ($showSeasonUrls -join ',') -Force
     }
     # Create an empty array to hold the custom objects
     $FormattedData = [System.Collections.Generic.List[object]]::new()
@@ -536,6 +562,7 @@
                 'SeasonName'                   = $data.'SeasonName'
                 'Episodes'                     = $data.'Episodes'
                 'Title'                        = $data.'Title'
+                'OtherMediaServerTitleCardUrls'= $data.'OtherMediaServerTitleCardUrls'
                 'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
                 'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
             })

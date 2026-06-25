@@ -136,6 +136,9 @@ function Invoke-MoviePosterCreation {
                                     $Arturl = $plexurl + $entry.PlexPosterUrl
                                 }
                             }
+                            elseif ($entry.OtherMediaServerPosterUrl) {
+                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/?api_key=$OtherMediaServerApiKey"
+                            }
 
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
@@ -238,7 +241,7 @@ function Invoke-MoviePosterCreation {
                                             $global:IsFallback = $true
                                         }
                                         Else {
-                                            Write-Entry -Subtext "Plex Poster Url empty, cannot search on plex, likely there is no artwork on plex..." -Path $global:configLogging -Color Yellow -log Warning
+                                            Write-Entry -Subtext "MediaServer Poster Url empty, cannot search on MediaServer, likely there is no artwork..." -Path $global:configLogging -Color Yellow -log Warning
                                         }
                                     }
                                     if (!$global:posterurl -and $global:imdbid -and !$global:PosterOnlyTextless) {
@@ -592,6 +595,10 @@ function Invoke-MoviePosterCreation {
                                 if ($global:ImageMagickError -ne 'true') {
                                     if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
+                                            if ($UseOtherMediaServer -eq 'true' -and $entry.Id) {
+                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($entry.Id)" -Path $global:configLogging -Color Cyan -log Debug
+                                                UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImage
+                                            }
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -868,6 +875,9 @@ function Invoke-MoviePosterCreation {
                                     $Arturl = $plexurl + $entry.PlexBackgroundUrl
                                 }
                             }
+                            elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                            }
 
                             foreach ($ext in $allowedExtensions) {
                                 $filePath = "$ManualTestPath$ext"
@@ -953,7 +963,7 @@ function Invoke-MoviePosterCreation {
                                             }
                                         }
                                         Else {
-                                            Write-Entry -Subtext "Plex Background Url empty, cannot search on plex, likely there is no artwork on plex..." -Path $global:configLogging -Color Yellow -log Warning
+                                            Write-Entry -Subtext "MediaServer Background Url empty, cannot search on MediaServer, likely there is no artwork on MediaServer..." -Path $global:configLogging -Color Yellow -log Warning
                                         }
                                         if (!$global:posterurl) {
                                             Write-Entry -Subtext "Could not find a Background on any site" -Path $global:configLogging -Color Red -log Error
@@ -1303,6 +1313,10 @@ function Invoke-MoviePosterCreation {
                                     # Move file back to original naming with Brackets.
                                     if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                         if ($global:IsTruncated -ne $true) {
+                                            if ($UseOtherMediaServer -eq 'true' -and $entry.Id) {
+                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($entry.Id)" -Path $global:configLogging -Color Cyan -log Debug
+                                                UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Backdrop" -imagePath $backgroundImage
+                                            }
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -1433,6 +1447,9 @@ function Invoke-MoviePosterCreation {
                                     Else {
                                         $Arturl = $plexurl + $entry.PlexBackgroundUrl
                                     }
+                                }
+                                elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
                                 }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
@@ -1674,6 +1691,9 @@ function Invoke-ShowPosterCreation {
                                 $Arturl = $plexurl + $entry.PlexPosterUrl
                             }
                         }
+                        elseif ($entry.OtherMediaServerPosterUrl) {
+                            $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/?api_key=$OtherMediaServerApiKey"
+                        }
                         foreach ($ext in $allowedExtensions) {
                             $filePath = "$ManualTestPath$ext"
                             if (Test-Path -LiteralPath $filePath) {
@@ -1746,7 +1766,7 @@ function Invoke-ShowPosterCreation {
                                         $global:plexalreadysearched = $True
                                     }
                                     Else {
-                                        Write-Entry -Subtext "Plex Poster Url empty, cannot search on plex, likely there is no artwork on plex..." -Path $global:configLogging -Color Yellow -log Warning
+                                        Write-Entry -Subtext "MediaServer Poster Url empty, cannot search on MediaServer, likely there is no artwork..." -Path $global:configLogging -Color Yellow -log Warning
                                     }
                                     if (!$global:posterurl) {
                                         Write-Entry -Subtext "Could not find a poster on any site" -Path $global:configLogging -Color Red -log Error
@@ -1760,7 +1780,7 @@ function Invoke-ShowPosterCreation {
                                     $global:plexalreadysearched = $True
                                 }
                                 Else {
-                                    Write-Entry -Subtext "Plex Poster Url empty, cannot search on plex, likely there is no artwork on plex..." -Path $global:configLogging -Color Yellow -log Warning
+                                    Write-Entry -Subtext "MediaServer Poster Url empty, cannot search on MediaServer, likely there is no artwork..." -Path $global:configLogging -Color Yellow -log Warning
                                 }
                                 if (!$global:posterurl) {
                                     Write-Entry -Subtext "Could not find a poster on any site" -Path $global:configLogging -Color Red -log Error
@@ -2114,6 +2134,10 @@ function Invoke-ShowPosterCreation {
                                 if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
                                     if ($global:IsTruncated -ne $true) {
+                                        if ($UseOtherMediaServer -eq 'true' -and $entry.Id) {
+                                            Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($entry.Id)" -Path $global:configLogging -Color Cyan -log Debug
+                                            UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImage
+                                        }
                                         if ($Upload2Plex -eq 'true') {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -2398,6 +2422,9 @@ function Invoke-ShowPosterCreation {
                             Else {
                                 $Arturl = $plexurl + $entry.PlexBackgroundUrl
                             }
+                        }
+                        elseif ($entry.OtherMediaServerBackgroundUrl) {
+                            $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
                         }
 
                         foreach ($ext in $allowedExtensions) {
@@ -2839,6 +2866,10 @@ function Invoke-ShowPosterCreation {
                                 # Move file back to original naming with Brackets.
                                 if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
                                     if ($global:IsTruncated -ne $true) {
+                                        if ($UseOtherMediaServer -eq 'true' -and $entry.Id) {
+                                            Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($entry.Id)" -Path $global:configLogging -Color Cyan -log Debug
+                                            UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Backdrop" -imagePath $backgroundImage
+                                        }
                                         if ($Upload2Plex -eq 'true') {
                                             try {
                                                 Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -2970,6 +3001,9 @@ function Invoke-ShowPosterCreation {
                                     $Arturl = $plexurl + $entry.PlexBackgroundUrl
                                 }
                             }
+                            elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                            }
                             Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                             try {
                                 GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
@@ -3045,6 +3079,7 @@ function Invoke-ShowPosterCreation {
                     $global:SeasonRatingKeys = $entry.SeasonRatingKeys -split ','
                     $global:seasonNumbers = $entry.seasonNumbers -split ','
                     $global:PlexSeasonUrls = $entry.PlexSeasonUrls -split ','
+                    if ($null -ne $entry.OtherMediaServerSeasonUrls) { $global:OtherMediaServerSeasonUrls = $entry.OtherMediaServerSeasonUrls.Split(",") } else { $global:OtherMediaServerSeasonUrls = @() }
                     for ($i = 0; $i -lt $global:seasonNames.Count; $i++) {
                         $SkippingText = 'false'
                         $Seasonpostersearchtext = $null
@@ -3165,6 +3200,9 @@ function Invoke-ShowPosterCreation {
                                 Else {
                                     $Arturl = $plexurl + $global:PlexSeasonUrl
                                 }
+                            }
+                            elseif ($global:OtherMediaServerSeasonUrls.Count -gt $i -and $global:OtherMediaServerSeasonUrls[$i]) {
+                                $Arturl = $global:OtherMediaServerSeasonUrls[$i]
                             }
                             foreach ($ext in $allowedExtensions) {
                                 $manualFile = "$ManualTestPath$ext"
@@ -3807,6 +3845,10 @@ function Invoke-ShowPosterCreation {
                                     if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
                                         if ($global:IsTruncated -ne $true) {
+                                            if ($UseOtherMediaServer -eq 'true' -and $global:SeasonRatingKey) {
+                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:SeasonRatingKey)" -Path $global:configLogging -Color Cyan -log Debug
+                                                UploadOtherMediaServerArtwork -itemId $global:SeasonRatingKey -imageType "Primary" -imagePath $SeasonImage
+                                            }
                                             if ($Upload2Plex -eq 'true') {
                                                 try {
                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -3938,6 +3980,9 @@ function Invoke-ShowPosterCreation {
                                         $Arturl = $plexurl + $global:PlexSeasonUrl
                                     }
                                 }
+                                elseif ($global:OtherMediaServerSeasonUrls.Count -gt $i -and $global:OtherMediaServerSeasonUrls[$i]) {
+                                    $Arturl = $global:OtherMediaServerSeasonUrls[$i]
+                                }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
                                     GetPlexArtwork -Type " $Titletext | $global:seasontmp Artwork."  -ArtUrl $Arturl -TempImage $SeasonImage
@@ -4036,6 +4081,7 @@ function Invoke-ShowPosterCreation {
                             if ($null -ne $episode."ratingKeys") { $global:episode_ratingkeys = $episode."ratingKeys".Split(",") } else { $global:episode_ratingkeys = @() }
                             $global:titles = $episode."Title".Split(";")
                             if ($null -ne $episode."PlexTitleCardUrls") { $global:PlexTitleCardUrls = $episode."PlexTitleCardUrls".Split(",") } else { $global:PlexTitleCardUrls = @() }
+                            if ($null -ne $episode."OtherMediaServerTitleCardUrls") { $global:OtherMediaServerTitleCardUrls = $episode."OtherMediaServerTitleCardUrls".Split(",") } else { $global:OtherMediaServerTitleCardUrls = @() }
                             if ($UseBackgroundAsTitleCard -eq 'true') {
                                 $global:ImageMagickError = $null
                                 for ($i = 0; $i -lt $global:episode_numbers.Count; $i++) {
@@ -4154,6 +4200,12 @@ function Invoke-ShowPosterCreation {
                                                 Else {
                                                     $Arturl = $plexurl + $global:PlexTitleCardUrl
                                                 }
+                                            }
+                                            elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
+                                                $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
+                                            }
+                                            elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
                                             }
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile = "$ManualTestPath$ext"
@@ -4568,6 +4620,10 @@ function Invoke-ShowPosterCreation {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
+                                                            if ($UseOtherMediaServer -eq 'true' -and $global:episode_ratingkey) {
+                                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                                                UploadOtherMediaServerArtwork -itemId $global:episode_ratingkey -imageType "Primary" -imagePath $EpisodeImage
+                                                            }
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -4700,6 +4756,12 @@ function Invoke-ShowPosterCreation {
                                                     Else {
                                                         $Arturl = $plexurl + $global:PlexTitleCardUrl
                                                     }
+                                                }
+                                                elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
+                                                    $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
+                                                }
+                                                elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
@@ -4874,6 +4936,12 @@ function Invoke-ShowPosterCreation {
                                                 Else {
                                                     $Arturl = $plexurl + $global:PlexTitleCardUrl
                                                 }
+                                            }
+                                            elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
+                                                $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
+                                            }
+                                            elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
                                             }
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile = "$ManualTestPath$ext"
@@ -5316,6 +5384,10 @@ function Invoke-ShowPosterCreation {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
+                                                            if ($UseOtherMediaServer -eq 'true' -and $global:episode_ratingkey) {
+                                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                                                UploadOtherMediaServerArtwork -itemId $global:episode_ratingkey -imageType "Primary" -imagePath $EpisodeImage
+                                                            }
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
@@ -5448,6 +5520,12 @@ function Invoke-ShowPosterCreation {
                                                     Else {
                                                         $Arturl = $plexurl + $global:PlexTitleCardUrl
                                                     }
+                                                }
+                                                elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
+                                                    $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
+                                                }
+                                                elseif ($entry.OtherMediaServerBackgroundUrl) {
+                                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
