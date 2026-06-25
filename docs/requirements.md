@@ -1,5 +1,4 @@
-!!! important
-    **Requirements:**
+!!! warning "Requirements"
 
     Before you begin, make sure you have:
 

@@ -148,17 +148,15 @@
     - `SkipTBA` : If set to `true`, TitleCard creation will be skipped when TitleText contains any word from `SkipWords`.
     - `SkipJapTitle` : Set to `true` to skip TitleCard creation if the Titletext is `Jap or Chinese`.
     - `AssetCleanup` : Set to `true` to cleanup Assets that are no longer in Plex.
-        ```diff
-        - !! IMPORTANT !! -
 
-        Risk of Data Loss from excluded Libraries:
+        !!! danger "Risk of Data Loss from excluded Libraries"
 
-        When you exclude libraries, any assets within these locations may be inadvertently deleted.
+            When you exclude libraries, any assets within these locations may be inadvertently deleted.
 
-        This happens because the script interprets these assets as "not needed anymore" during its execution since they are not found or listed as part of the active scan.
+            This happens because the script interprets these assets as "not needed anymore" during its execution since they are not found or listed as part of the active scan.
 
-        Ensure that all active asset libraries are included when using that setting on true to prevent unintended deletions.
-        ```
+            Ensure that all active asset libraries are included when using that setting on true to prevent unintended deletions.
+
     - `UseLogo` : Set to `true` to apply logos instead of title text to Posters.
     - `UseBGLogo` : Set to `true` to apply logos instead of title text to Backgrounds.
     - `UseOriginalTitle`: Set to `true` to use the original title instead of the localized version.
@@ -363,7 +361,7 @@
 | **Resizing**                             | - Automatically resizes all **poster images** to **2000x3000** for optimized media server use.                                                                                                                                                                                                                                                                                                                                                 |
 | **Preferred Language Selection**         | - Configure **language preferences** for media metadata, supporting multi-language ordering.<br> &nbsp; - **Season-specific language preferences** allow finer control over metadata for localized season information.                                                                                                                                                                                                                         |
 | **Poster and Background Minimum Size**   | - Set minimum dimensions for **posters** (2000x3000) and **backgrounds/title cards** (3840x2160), ensuring only high-quality images are used.                                                                                                                                                                                                                                                                                                  |
-| **Overlay Effects**                      | - Applies optional **overlays** to downloaded images:<br> &nbsp; - **Borders**: Adds polished framing.<br> &nbsp; - **Text**: Customizable title text.<br> &nbsp; - **Gradient Overlay**: Stylish gradient effect (custom options via **[gradient pack](gradient_background_poster_overlays.zip)**).                                                                                                                                           |
+| **Overlay Effects**                      | - Applies optional **overlays** to downloaded images:<br> &nbsp; - **Borders**: Adds polished framing.<br> &nbsp; - **Text**: Customizable title text.<br> &nbsp; - **Gradient Overlay**: Stylish gradient effect (custom options via **[gradient pack](https://raw.githubusercontent.com/fscorrupt/posterizarr/refs/heads/main/Overlayfiles/gradient_background_poster_overlays.zip)**).                                                                                                                                           |
 | **Automatic Library Search**             | - Autonomously scans **Plex**, **Jellyfin**, or **Emby** server for libraries, simplifying setup.                                                                                                                                                                                                                                                                                                                                              |
 | **Handling Multiple Versions**           | - Manages **multiple versions** of movies/shows (e.g., theatrical cuts, director’s cuts), ensuring complete coverage for all available versions.                                                                                                                                                                                                                                                                                               |
 | **CSV Export**                           | - Generates a **CSV file** with queried movie/show data:<br> &nbsp; - **Plex**: `$ScriptRoot\logs\PlexLibexport.csv`<br> &nbsp; - **Other Media Servers (Jellyfin/Emby)**: `$ScriptRoot\logs\OtherMediaServerLibExport.csv`                                                                                                                                                                                                                    |

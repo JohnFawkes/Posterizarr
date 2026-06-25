@@ -6,7 +6,7 @@
 
 The Posterizarr Plugin acts as a local asset proxy for Jellyfin. It is designed to work alongside the [Posterizarr](https://github.com/fscorrupt/posterizarr) automation script, allowing your media server to utilize locally generated or managed assets (posters, backgrounds, title cards) as metadata.
 
-!!! important
+!!! tip "Middleware purpose"
     This middleware does not allow you to browse, search, or download assets.
     Its sole purpose is to replace the default artwork by mapping library items to your local file system.
 

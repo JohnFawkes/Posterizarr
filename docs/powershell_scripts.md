@@ -6,8 +6,9 @@ This document provides a comprehensive technical overview of all `.ps1` (PowerSh
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 Posterizarr relies on a modular PowerShell architecture:
+
 1. **Entry Points (`Root` & `modes`)**: Scripts that initialize the environment and dictate the operational flow (e.g., processing an entire library vs. a single item from an Arr webhook).
 2. **Core Settings (`core`)**: Setup prerequisites and define global configuration state (`$global:` variables).
 3. **Business Logic (`functions`)**: Reusable modules split by domain (API integrations, Image Processing, System Utilities, Notifications).
@@ -16,12 +17,15 @@ Posterizarr relies on a modular PowerShell architecture:
 
 ## 1. Root Execution Scripts
 
-### `Posterizarr.ps1`
+### Posterizarr.ps1
+
 **Purpose**: The primary entry point for manual execution or scheduled tasks. It bootstraps the application, dot-sources the required modules, and launches the appropriate mode script based on user arguments or configuration.
 
-### `Start.ps1`
+### Start.ps1
+
 **Purpose**: An initialization and maintenance wrapper, commonly used in Docker or scheduled environments.
 **Key Functions:**
+
 - `ScriptSchedule`: Keeps the script running in a loop based on the user's configured schedule interval.
 - `GetLatestScriptVersion` / `CompareScriptVersion`: Checks the GitHub API for new releases and compares it against the local version.
 - `CopyAssetFiles`: Ensures that default assets (like borders or overlay images) are copied to the active directory.
@@ -31,11 +35,13 @@ Posterizarr relies on a modular PowerShell architecture:
 
 ## 2. Core Modules (`modules\core\`)
 
-### `PrerequisitesCheck.ps1`
-**Purpose**: A linear script that validates the host environment before execution. It ensures that necessary commands (like `magick`), environment variables, and folder structures exist. 
+### PrerequisitesCheck.ps1
+
+**Purpose**: A linear script that validates the host environment before execution. It ensures that necessary commands (like `magick`), environment variables, and folder structures exist.
 *Contribution Tip*: If you introduce a new binary dependency or require a specific OS permission, add the check here.
 
-### `Variables.ps1`
+### Variables.ps1
+
 **Purpose**: Initializes and defines the `$global:` scope variables and configuration paths. It reads the user's `config.json` and maps it to variables used throughout the script.
 *Contribution Tip*: If you add a new configuration parameter to `config.json`, map it to a global variable in this script so other modules can consume it safely.
 
@@ -43,40 +49,50 @@ Posterizarr relies on a modular PowerShell architecture:
 
 ## 3. Domain Functions (`modules\functions\`)
 
-### `ApiHandlers.ps1`
+### ApiHandlers.ps1
+
 **Purpose**: The integration layer for external services. Handles HTTP requests to Metadata providers (TMDB, TVDB, Fanart) to fetch raw images, and to Media Servers (Plex, Jellyfin, Emby) to upload the finished assets.
 **Key Functions:**
+
 - `GetTMDBLogo`, `GetTVDBLogo`, `GetFanartLogo`: Queries the respective APIs for clearlogos. They handle language priorities and vote sorting based on global configs.
 - `GetTMDBMoviePoster`, `GetTMDBShowBackground`, etc.: Functions specifically tailored to endpoint structures for fetching raw posters and backgrounds.
 - `GetPlexArtwork`, `CheckPlexAccess`: Validates API keys and fetches current metadata from Plex.
 - `MassDownloadPlexArtwork`, `MassDownloadJellyEmbyArtwork`: Loops over media libraries to pull down existing artwork for local processing.
 - `SyncPlexArtwork`: The critical function that pushes the final generated Posterizarr images via API `POST` requests back to the media server.
 
-### `CoreGeneration.ps1`
+### CoreGeneration.ps1
+
 **Purpose**: The orchestration engine for image creation. It glues together `ApiHandlers` and `ImageMagick`.
 **Key Functions:**
+
 - `Invoke-MoviePosterCreation`: Orchestrates the movie poster workflow: Fetches the raw background -> Determines text/logo overlay -> Calls `ImageMagick` to apply borders/text -> Returns the path to the completed poster.
 - `Invoke-ShowPosterCreation`: Similar orchestration for TV Shows, with added complexity for Season-level and Episode-level (Title Card) variations.
 
-### `ImageMagick.ps1`
+### ImageMagick.ps1
+
 **Purpose**: A wrapper around the `magick` CLI. It abstracts the complex ImageMagick arguments into reusable PowerShell functions.
 **Key Functions:**
+
 - `InvokeMagickCommand`: The central wrapper that actually executes `magick.exe`. Captures stdout/stderr for logging.
 - `Get-OptimalPointSize`: Dynamically calculates the maximum font size that will fit a given text string within a constrained pixel bounding box. Very useful for title generation.
 - `New-TextSizeCacheKey`, `Set-TextSizeCacheEntry`: Caches calculated font sizes to speed up future runs for the same titles.
 - `CheckOverlayDimensions`, `Test-Dimension`: Ensures that user-provided border or overlay images match the aspect ratio and resolution of the base poster before combining them.
 
-### `Notifications.ps1`
+### Notifications.ps1
+
 **Purpose**: Manages all outbound communications and telemetry.
 **Key Functions:**
+
 - `SendMessage`: A router function that determines which notification channels (Discord, Webhooks) are enabled.
 - `Build-DiscordPayload`, `Push-ObjectToDiscord`: Constructs the rich embed JSON for Discord webhooks and sends it.
 - `Send-UptimeKumaWebhook`: Pings a health check endpoint.
 - `Send-PosterizarrTelemetry`: Sends anonymized usage statistics (if opted-in).
 
-### `System.ps1`
+### System.ps1
+
 **Purpose**: General utility and helper functions.
 **Key Functions:**
+
 - `Test-PathPermissions`: Validates read/write access to media folders before attempting generation.
 - `CheckJson`, `CheckJsonPaths`: Schema validation and path sanitization for config files.
 - `RotateLogs`, `Write-Entry`: Centralized logging engine with color-coded console output and file rotation.
@@ -103,8 +119,9 @@ These scripts represent the different "Modes" the application can run in. They d
 
 ---
 
-## 🤝 Contribution Guidelines
+## Contribution Guidelines
 When making a Pull Request:
+
 1. **New API sources** (like adding Trakt or OMDB) should be placed in `modules\functions\ApiHandlers.ps1`.
 2. **New Image manipulation logic** (like adding a drop-shadow effect) should be added to `modules\functions\ImageMagick.ps1`.
 3. **If you add a new CLI parameter or Config item**, ensure it is parsed in `modules\core\Variables.ps1` and validated in `modules\functions\System.ps1`.
