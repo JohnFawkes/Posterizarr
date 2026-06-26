@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"; // Added useMemo
+import React, { useState, useEffect, useMemo } from "react";
 import { X, RefreshCw, Loader2, AlertCircle, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -13,10 +13,10 @@ const LibraryExclusionSelector = ({
   showIncluded = false, // New prop to show included libraries section
   inlineMode = false,
   autoFetchTrigger = false,
+  onValidStateChange = null,
 }) => {
   const { t } = useTranslation();
 
-  // --- All useState hooks must come first ---
   const [excludedLibraries, setExcludedLibraries] = useState([]);
   const [availableLibraries, setAvailableLibraries] = useState([]);
   const [loadingLibraries, setLoadingLibraries] = useState(false);
@@ -28,7 +28,6 @@ const LibraryExclusionSelector = ({
   const [cachedLibraries, setCachedLibraries] = useState([]);
   const [cachedExclusions, setCachedExclusions] = useState([]);
 
-  // --- THEN, the useMemo hooks that depend on state ---
   // Create a Set of all valid library names from the server list
   const validLibraryNames = React.useMemo(() => {
     return new Set(cachedLibraries.map((lib) => lib.name));
@@ -47,11 +46,16 @@ const LibraryExclusionSelector = ({
     return cachedLibraries.filter((lib) => !exclusionSet.has(lib.name));
   }, [cachedLibraries, validExclusions]);
 
-  // --- FINALLY, the variables that depend on the useMemo hooks ---
   const excludedCount = validExclusions.length;
   const includedCount = validIncluded.length;
 
-  // --- The rest of your code (useEffect, functions, return) ---
+
+
+  useEffect(() => {
+    if (onValidStateChange) {
+      onValidStateChange(includedCount > 0);
+    }
+  }, [includedCount, onValidStateChange]);
 
   // Initialize from value prop
   useEffect(() => {
@@ -79,7 +83,6 @@ const LibraryExclusionSelector = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaServerType, disabled]); // Re-run if server type or disabled status changes
 
-  // THIS IS THE CORRECTED loadCachedExclusionsForDisplay
   const loadCachedExclusionsForDisplay = async () => {
     try {
       const response = await fetch(`/api/libraries/${mediaServerType}/cached`);
@@ -91,7 +94,6 @@ const LibraryExclusionSelector = ({
           setCachedLibraries(data.libraries);
         }
 
-        // --- NEW LOGIC ---
         // Trust the 'value' prop (from the main config) as the source of truth
         const exclusions =
           Array.isArray(value) && value.length > 0
@@ -105,7 +107,6 @@ const LibraryExclusionSelector = ({
         if (JSON.stringify(exclusions) !== JSON.stringify(value)) {
           onChange(exclusions);
         }
-        // --- END NEW LOGIC ---
       }
     } catch (err) {
       console.log("No cached data in database, using config 'value'");
@@ -138,7 +139,6 @@ const LibraryExclusionSelector = ({
     return null;
   };
 
-  // THIS IS THE CORRECTED fetchLibraries
   const fetchLibraries = async () => {
     setLoadingLibraries(true);
     setError(null);
@@ -170,12 +170,10 @@ const LibraryExclusionSelector = ({
       if (data.success && data.libraries) {
         const allFetchedLibraries = data.libraries; // Full list (e.g., 12 libs)
 
-        // --- PRUNING LOGIC ---
         // Prune the stale list (14 items) against the fresh list (12 items)
         const freshLibraryNames = new Set(allFetchedLibraries.map(lib => lib.name));
         // This creates the list of 10 valid exclusions
         const validExclusions = staleExclusions.filter(name => freshLibraryNames.has(name));
-        // --- END PRUNING LOGIC ---
 
         // Set the UI list to show ALL fetched libraries
         setAvailableLibraries(allFetchedLibraries);
@@ -203,7 +201,6 @@ const LibraryExclusionSelector = ({
     }
   };
 
-  // THIS IS THE CORRECTED toggleLibrary
   const toggleLibrary = (libraryName) => {
     // Removed 'async'
     let newExcluded;
@@ -237,7 +234,6 @@ const LibraryExclusionSelector = ({
     }
   };
 
-  // THIS IS THE CORRECTED clearAll
   const clearAll = () => {
     // Removed 'async'
     setExcludedLibraries([]);
@@ -245,7 +241,6 @@ const LibraryExclusionSelector = ({
     onChange([]);
   };
 
-  // THIS IS THE CORRECTED excludeAll
   const excludeAll = () => {
     // Removed 'async'
     const allLibraryNames = availableLibraries.map((lib) => lib.name);
@@ -254,7 +249,6 @@ const LibraryExclusionSelector = ({
     onChange(allLibraryNames);
   };
 
-  // THIS IS THE CORRECTED getLibraryTypeIcon
   const getLibraryTypeIcon = (type) => {
     if (type === "movie" || type === "movies") {
       return "🎬"; // Movie

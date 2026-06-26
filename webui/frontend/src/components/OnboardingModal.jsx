@@ -125,6 +125,10 @@ export default function OnboardingModal({ onComplete }) {
   const [jellyfinValidated, setJellyfinValidated] = useState(false);
   const [embyValidated, setEmbyValidated] = useState(false);
 
+  const [plexLibsValid, setPlexLibsValid] = useState(false);
+  const [jellyfinLibsValid, setJellyfinLibsValid] = useState(false);
+  const [embyLibsValid, setEmbyLibsValid] = useState(false);
+
   const [config, setConfig] = useState({
     // Server URLs and Tokens
     PlexUrl: "",
@@ -998,7 +1002,7 @@ export default function OnboardingModal({ onComplete }) {
                 <button
                   onClick={handleNext}
                   disabled={
-                    (currentStep === 1 && !primaryServer) ||
+                    (currentStep === 1 && !((plexValidated && plexLibsValid) || (jellyfinValidated && jellyfinLibsValid) || (embyValidated && embyLibsValid))) ||
                     (currentStep === 2 && (!config.tmdbtoken || !config.tvdbapi || !config.FanartTvAPIKey))
                   }
                   className="flex items-center px-5 py-2 bg-theme-primary text-black rounded-lg font-semibold shadow-md shadow-theme-primary/20 hover:bg-theme-accent hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
