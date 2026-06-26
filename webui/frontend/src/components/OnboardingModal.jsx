@@ -373,6 +373,12 @@ export default function OnboardingModal({ onComplete }) {
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
             <div className="space-y-3 shrink-0">
+              <div className="text-xs text-theme-muted bg-theme-primary/10 border border-theme-primary/20 p-2 rounded-lg flex items-start gap-2">
+                <Rocket className="w-4 h-4 shrink-0 text-theme-primary" />
+                <div>
+                  Note: An official <a href="https://fscorrupt.github.io/posterizarr/jellyfin_plugin/" target="_blank" rel="noreferrer" className="text-theme-primary hover:underline font-medium flex items-center gap-1 inline-flex">Jellyfin Plugin <ExternalLink className="w-3 h-3" /></a> is available to act as an asset middleware for Posterizarr.
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">Jellyfin URL</label>
                 <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder="http://192.168.1.93:8096" />
@@ -408,6 +414,12 @@ export default function OnboardingModal({ onComplete }) {
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
             <div className="space-y-3 shrink-0">
+              <div className="text-xs text-theme-muted bg-theme-primary/10 border border-theme-primary/20 p-2 rounded-lg flex items-start gap-2">
+                <Rocket className="w-4 h-4 shrink-0 text-theme-primary" />
+                <div>
+                  Note: An official <a href="https://fscorrupt.github.io/posterizarr/emby_plugin/" target="_blank" rel="noreferrer" className="text-theme-primary hover:underline font-medium flex items-center gap-1 inline-flex">Emby Plugin <ExternalLink className="w-3 h-3" /></a> is available to act as an asset middleware for Posterizarr.
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">Emby URL</label>
                 <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder="http://192.168.1.93:8096/emby" />
