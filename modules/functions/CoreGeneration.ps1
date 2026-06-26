@@ -525,8 +525,8 @@
                                                     if ($global:direction -eq "RTL") {
                                                         $fontImagemagick = $RTLfontImagemagick
                                                     }
-                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
-                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
+                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                     # Loop through each symbol and replace it with a newline
                                                     if ($NewLineOnSpecificSymbols -eq 'true') {
                                                         foreach ($symbol in $NewLineSymbols) {
@@ -567,7 +567,7 @@
                                                             }
                                                         }
                                                     }
-                                                    $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
+                                                    $joinedTitlePointSize = $joinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
 
                                                     if ($global:IsTruncated -ne $true) {
@@ -1275,8 +1275,8 @@
                                                     if ($global:direction -eq "RTL") {
                                                         $backgroundfontImagemagick = $RTLfontImagemagick
                                                     }
-                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
-                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
+                                                    $joinedTitle = $joinedTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                     # Loop through each symbol and replace it with a newline
                                                     if ($NewLineOnSpecificSymbols -eq 'true') {
                                                         foreach ($symbol in $NewLineSymbols) {
@@ -1317,7 +1317,7 @@
                                                             }
                                                         }
                                                     }
-                                                    $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
+                                                    $joinedTitlePointSize = $joinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
                                                     if ($global:IsTruncated -ne $true) {
                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -2127,7 +2127,7 @@ function Invoke-ShowPosterCreation {
                                                 if ($global:direction -eq "RTL") {
                                                     $fontImagemagick = $RTLfontImagemagick
                                                 }
-                                                $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                $joinedTitle = $joinedTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
 
                                                 # Loop through each symbol and replace it with a newline
                                                 if ($NewLineOnSpecificSymbols -eq 'true') {
@@ -2169,7 +2169,7 @@ function Invoke-ShowPosterCreation {
                                                         }
                                                     }
                                                 }
-                                                $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
+                                                $joinedTitlePointSize = $joinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $MaxWidth  -box_height $MaxHeight -min_pointsize $minPointSize -max_pointsize $maxPointSize -lineSpacing $lineSpacing
                                                 if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -2890,7 +2890,7 @@ function Invoke-ShowPosterCreation {
                                                 if ($global:direction -eq "RTL") {
                                                     $backgroundfontImagemagick = $RTLfontImagemagick
                                                 }
-                                                $joinedTitle = $joinedTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                $joinedTitle = $joinedTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
 
                                                 # Loop through each symbol and replace it with a newline
                                                 if ($NewLineOnSpecificSymbols -eq 'true') {
@@ -2932,7 +2932,7 @@ function Invoke-ShowPosterCreation {
                                                         }
                                                     }
                                                 }
-                                                $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
+                                                $joinedTitlePointSize = $joinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $backgroundfontImagemagick -box_width $BackgroundMaxWidth  -box_height $BackgroundMaxHeight -min_pointsize $BackgroundminPointSize -max_pointsize $BackgroundmaxPointSize -lineSpacing $BackgroundlineSpacing
                                                 if ($global:IsTruncated -ne $true) {
                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -3698,12 +3698,12 @@ function Invoke-ShowPosterCreation {
                                                 Write-Entry -Subtext "Skipping 'AddText' because poster already has text." -Path $global:configLogging -Color Yellow -log Info
                                             }
                                             if ($AddSeasonText -eq 'true' -and $SkippingText -eq 'false') {
-                                                $global:seasonTitle = $global:seasonTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                $global:seasonTitle = $global:seasonTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                 if ($ShowOnSeasonfontAllCaps -eq 'true') {
-                                                    $global:ShowTitleOnSeason = $titletext.ToUpper() -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                    $global:ShowTitleOnSeason = $titletext.ToUpper() -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                 }
                                                 Else {
-                                                    $global:ShowTitleOnSeason = $titletext -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                    $global:ShowTitleOnSeason = $titletext -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                 }
                                                 # Loop through each symbol and replace it with a newline
                                                 if ($NewLineOnSpecificSymbols -eq 'true') {
@@ -3751,8 +3751,8 @@ function Invoke-ShowPosterCreation {
                                                         }
                                                     }
                                                 }
-                                                $joinedTitlePointSize = $global:seasonTitle -replace '""', '""""'
-                                                $joinedShowTitlePointSize = $global:ShowTitleOnSeason -replace '""', '""""'
+                                                $joinedTitlePointSize = $global:seasonTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
+                                                $joinedShowTitlePointSize = $global:ShowTitleOnSeason -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                 if ($AddShowTitletoSeason -eq 'true') {
                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
                                                     $ShowoptimalFontSize = Get-OptimalPointSize -text $joinedShowTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
@@ -4641,7 +4641,7 @@ function Invoke-ShowPosterCreation {
                                                                     if ($TitleCardEPTitlefontAllCaps -eq 'true') {
                                                                         $global:EPTitle = $global:EPTitle.ToUpper()
                                                                     }
-                                                                    $global:EPTitle = $global:EPTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                                    $global:EPTitle = $global:EPTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
 
                                                                     if ($global:direction -eq "RTL") {
                                                                         $TitleCardfontImagemagick = $RTLfontImagemagick
@@ -4686,7 +4686,7 @@ function Invoke-ShowPosterCreation {
                                                                             }
                                                                         }
                                                                     }
-                                                                    $joinedTitlePointSize = $global:EPTitle -replace '""', '""""'
+                                                                    $joinedTitlePointSize = $global:EPTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
                                                                     if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -4707,8 +4707,8 @@ function Invoke-ShowPosterCreation {
                                                                     if ($TitleCardEPfontAllCaps -eq 'true') {
                                                                         $global:SeasonEPNumber = $global:SeasonEPNumber.ToUpper()
                                                                     }
-                                                                    $global:SeasonEPNumber = $global:SeasonEPNumber -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
-                                                                    $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
+                                                                    $global:SeasonEPNumber = $global:SeasonEPNumber -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
+                                                                    $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
                                                                     if ($global:IsTruncated -ne $true) {
                                                                         Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -5407,7 +5407,7 @@ function Invoke-ShowPosterCreation {
                                                                 if ($TitleCardEPTitlefontAllCaps -eq 'true') {
                                                                     $global:EPTitle = $global:EPTitle.ToUpper()
                                                                 }
-                                                                $global:EPTitle = $global:EPTitle -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
+                                                                $global:EPTitle = $global:EPTitle -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                                 if ($global:direction -eq "RTL") {
                                                                     $TitleCardfontImagemagick = $RTLfontImagemagick
                                                                 }
@@ -5451,7 +5451,7 @@ function Invoke-ShowPosterCreation {
                                                                         }
                                                                     }
                                                                 }
-                                                                $joinedTitlePointSize = $global:EPTitle -replace '""', '""""' -replace '`', ''
+                                                                $joinedTitlePointSize = $global:EPTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPTitleMaxWidth  -box_height $TitleCardEPTitleMaxHeight -min_pointsize $TitleCardEPTitleminPointSize -max_pointsize $TitleCardEPTitlemaxPointSize -lineSpacing $TitleCardEPTitlelineSpacing
                                                                 if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
@@ -5473,8 +5473,8 @@ function Invoke-ShowPosterCreation {
                                                                 if ($TitleCardEPfontAllCaps -eq 'true') {
                                                                     $global:SeasonEPNumber = $global:SeasonEPNumber.ToUpper()
                                                                 }
-                                                                $global:SeasonEPNumber = $global:SeasonEPNumber -replace 'â€ž', '"' -replace 'â€', '"' -replace 'â€œ', '"' -replace '"', '""' -replace '`', ''
-                                                                $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""'
+                                                                $global:SeasonEPNumber = $global:SeasonEPNumber -replace 'â€ž', '''' -replace 'â€', '"' -replace 'â€œ', '''' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
+                                                                $joinedTitlePointSize = $global:SeasonEPNumber -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                                                                 $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
                                                                 if ($global:IsTruncated -ne $true) {
                                                                     Write-Entry -Subtext ("Optimal font size set to: '{0}' [{1}]" -f $optimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info

@@ -899,13 +899,17 @@ function Write-Entry {
         $Timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
         $PaddedType = "[" + $log + "]"
         $PaddedType = $PaddedType.PadRight(10)
+        
+        $ThreadId = [System.Threading.Thread]::CurrentThread.ManagedThreadId.ToString().PadLeft(2, '0')
+        $ThreadTag = "[T$ThreadId] "
+        
         $ScriptName = ""
         if ($MyInvocation.ScriptName) {
             $ScriptName = [System.IO.Path]::GetFileName($MyInvocation.ScriptName) + ":"
         }
         $Linenumber = $ScriptName + "L." + "$($MyInvocation.ScriptLineNumber)"
         $Linenumber = $Linenumber.PadRight(28)
-        $TypeFormatted = "[{0}] {1}|{2}" -f $Timestamp, $PaddedType.ToUpper(), $Linenumber
+        $TypeFormatted = "[{0}] {1} {2}|{3}" -f $Timestamp, $PaddedType.ToUpper(), $ThreadTag, $Linenumber
 
         if ($Message) {
             $FormattedLine1 = "{0}| {1}" -f ($TypeFormatted, $Message)
@@ -915,20 +919,26 @@ function Write-Entry {
         if ($Subtext) {
             $FormattedLine = "{0}|      {1}" -f ($TypeFormatted, $Subtext)
             $FormattedLineWritehost = "{0}|      " -f ($TypeFormatted)
-            Write-Host $FormattedLineWritehost -NoNewline
-            Write-Host $Subtext -ForegroundColor $Color
             $lineToWrite = $FormattedLine
         }
         else {
-
-            Write-Host $FormattedLineWritehost -NoNewline
-            Write-Host $Message -ForegroundColor $Color
+            $FormattedLineWritehost = "{0}| " -f ($TypeFormatted)
             $lineToWrite = $FormattedLine1
         }
         
         $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrLogMutex")
         try {
             $mutex.WaitOne() | Out-Null
+            
+            if ($Subtext) {
+                Write-Host $FormattedLineWritehost -NoNewline
+                Write-Host $Subtext -ForegroundColor $Color
+            }
+            else {
+                Write-Host $FormattedLineWritehost -NoNewline
+                Write-Host $Message -ForegroundColor $Color
+            }
+            
             $lineToWrite | Out-File $Path -Append
         } finally {
             $mutex.ReleaseMutex()

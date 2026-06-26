@@ -583,9 +583,9 @@
                 }
             }
             if (($isLogo -or $AddText -eq 'true' -or $AddSeasonText -eq 'true' -or $AddTitleCardEPTitleText -eq 'true' -or $AddTitleCardEPText -eq 'true' -or $AddCollectionText -eq 'true' -or $AddBackgroundText -eq 'true') -and -not [string]::IsNullOrWhiteSpace($joinedTitle)) {
-                $joinedTitle = $joinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
+                $joinedTitle = $joinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                 if ($AddShowTitletoSeason -eq 'true' -and $SeasonPoster) {
-                    $ShowjoinedTitle = $ShowjoinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
+                    $ShowjoinedTitle = $ShowjoinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                     # Loop through each symbol and replace it with a newline
                     if ($NewLineOnSpecificSymbols -eq 'true') {
                         foreach ($symbol in $NewLineSymbols) {
@@ -626,13 +626,13 @@
                             }
                         }
                     }
-                    $ShowjoinedTitlePointSize = $ShowjoinedTitle -replace '""', '""""'
+                    $ShowjoinedTitlePointSize = $ShowjoinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                     $showoptimalFontSize = Get-OptimalPointSize -text $ShowjoinedTitlePointSize -font $fontImagemagick -box_width $ShowOnSeasonMaxWidth  -box_height $ShowOnSeasonMaxHeight -min_pointsize $ShowOnSeasonminPointSize -max_pointsize $ShowOnSeasonmaxPointSize -lineSpacing $ShowOnSeasonlineSpacing
                     Write-Entry -Subtext ("Optimal Show font size set to: '{0}' [{1}]" -f $showoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                 }
                 if ($AddCollectionTitle -eq 'true' -and $CollectionCard) {
-                    $CollectionjoinedTitle = $CollectionjoinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
+                    $CollectionjoinedTitle = $CollectionjoinedTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
                     # Loop through each symbol and replace it with a newline
                     if ($NewLineOnSpecificSymbols -eq 'true') {
                         foreach ($symbol in $NewLineSymbols) {
@@ -673,14 +673,14 @@
                             }
                         }
                     }
-                    $CollectionjoinedTitlePointSize = $CollectionjoinedTitle -replace '""', '""""'
+                    $CollectionjoinedTitlePointSize = $CollectionjoinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                     $CollectionTitleoptimalFontSize = Get-OptimalPointSize -text $CollectionjoinedTitlePointSize -font $CollectionfontImagemagick -box_width $CollectionTitleMaxWidth  -box_height $CollectionTitleMaxHeight -min_pointsize $CollectionTitleminPointSize -max_pointsize $CollectionTitlemaxPointSize -lineSpacing $CollectionTitlelineSpacing
                     Write-Entry -Subtext ("Optimal Collection Title font size set to: '{0}' [{1}]" -f $CollectionTitleoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
                 }
                 if ($AddTitleCardEPText -eq 'true' -and $TitleCard) {
-                    $EPNumberjoinedTitle = $EPNumberTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '""' -replace '`', ''
-                    $EPNumberjoinedTitlePointSize = $EPNumberjoinedTitle -replace '""', '""""'
+                    $EPNumberjoinedTitle = $EPNumberTitle -replace '„', '"' -replace '”', '"' -replace '“', '"' -replace '"', '''' -replace '“', '''' -replace '”', '''' -replace '„', '''' -replace '`', ''
+                    $EPNumberjoinedTitlePointSize = $EPNumberjoinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
                     $EPNumberoptimalFontSize = Get-OptimalPointSize -text $EPNumberjoinedTitlePointSize -font $TitleCardfontImagemagick -box_width $TitleCardEPMaxWidth  -box_height $TitleCardEPMaxHeight -min_pointsize $TitleCardEPminPointSize -max_pointsize $TitleCardEPmaxPointSize -lineSpacing $TitleCardEPlineSpacing
                     Write-Entry -Subtext ("Optimal EP Number font size set to: '{0}' [{1}]" -f $EPNumberoptimalFontSize, $(if ($null -eq $script:CurrentTextSizeSource) { 'calculated' } else { $script:CurrentTextSizeSource })) -Path $global:configLogging -Color White -log Info
 
@@ -726,7 +726,7 @@
                     }
                 }
 
-                $joinedTitlePointSize = $joinedTitle -replace '""', '""""'
+                $joinedTitlePointSize = $joinedTitle -replace '""', '""""' -replace '“', '''' -replace '”', '''' -replace '„', ''''
 
                 if ($SeasonPoster -and $AddSeasonText -eq 'true') {
                     $optimalFontSize = Get-OptimalPointSize -text $joinedTitlePointSize -font $fontImagemagick -box_width $SeasonMaxWidth  -box_height $SeasonMaxHeight -min_pointsize $SeasonminPointSize -max_pointsize $SeasonmaxPointSize -lineSpacing $SeasonlineSpacing
