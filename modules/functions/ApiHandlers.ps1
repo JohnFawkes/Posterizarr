@@ -114,10 +114,10 @@ function GetTVDBLogo {
 }
 
 function GetFanartLogo {
-    if (-not $global:FanartTvAPIKey) { return }
     param(
         [string]$Type
     )
+    if (-not $global:FanartTvAPIKey) { return }
     $global:Fallback = $null
     Write-Entry -Subtext "Searching on Fanart.tv for a Logo" -Path $global:configLogging -Color Cyan -log Info
     $ids = @($global:tmdbid, $global:imdbid)
