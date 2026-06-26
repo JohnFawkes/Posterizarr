@@ -37,6 +37,7 @@ import {
 import { useTranslation } from "react-i18next";
 import ValidateButton from "./ValidateButton";
 import LanguageOrderSelector from "./LanguageOrderSelector";
+import ProviderOrderSelector from "./ProviderOrderSelector";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 import { useToast } from "../context/ToastContext";
 import ConfirmDialog from "./ConfirmDialog";
@@ -1077,6 +1078,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
         }
 
         // Selectors
+        if (settingKey === "ProviderOrder") return <ProviderOrderSelector value={Array.isArray(value) ? value : []} onChange={(newValue) => updateValue(fieldKey, newValue)} label={getDisplayName(settingKey)} helpText={tooltips[settingKey]} />;
         if (settingKey.includes("LanguageOrder")) return <LanguageOrderSelector value={Array.isArray(value) ? value : []} onChange={(newValue) => updateValue(fieldKey, newValue)} label={getDisplayName(settingKey)} helpText={tooltips[settingKey]} />;
         if (settingKey.includes("LibstoExclude")) {
             const type = settingKey.includes("Plex") ? "plex" : settingKey.includes("Jellyfin") ? "jellyfin" : "emby";
