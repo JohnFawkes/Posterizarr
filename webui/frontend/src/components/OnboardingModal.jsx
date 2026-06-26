@@ -42,6 +42,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
   );
 };
 import ValidateButton from "./ValidateButton";
+import LanguageSwitcher from "./LanguageSwitcher";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 
 export default function OnboardingModal({ onComplete }) {
@@ -981,6 +982,11 @@ const STEPS = [
 
         {/* Main Content Area */}
           <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-theme-darker to-theme-dark h-full">
+              {/* Language Switcher */}
+              <div className="absolute top-4 right-6 z-50">
+                <LanguageSwitcher compact={true} />
+              </div>
+
             {/* Mobile Stepper (visible only on small screens) */}
             <div className="md:hidden flex p-4 border-b border-theme-border/30 items-center justify-between bg-theme-bg-dark shrink-0">
               <span className="text-sm font-semibold text-theme-primary">Step {currentStep + 1} of {STEPS.length}</span>
