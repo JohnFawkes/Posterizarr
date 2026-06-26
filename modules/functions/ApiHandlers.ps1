@@ -127,7 +127,7 @@ function GetFanartLogo {
 
         try { $entrytemp = Get-FanartTv -Type $Type -id $id -ErrorAction SilentlyContinue } catch { 
 
-            Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+            Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
 
             $entrytemp = $null
 
@@ -1772,7 +1772,7 @@ function GetFanartMoviePoster {
         foreach ($id in $ids) {
             if ($id) {
                 try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
-                    Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                    Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                     $entrytemp = $null
                 }
                 if ($entrytemp -and $entrytemp.movieposter) {
@@ -1827,7 +1827,7 @@ function GetFanartMoviePoster {
         foreach ($id in $ids) {
             if ($id) {
                 try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
-                    Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                    Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                     $entrytemp = $null
                 }
                 if ($entrytemp -and $entrytemp.movieposter) {
@@ -1874,7 +1874,7 @@ function GetFanartMovieBackground {
     foreach ($id in $ids) {
         if ($id) {
             try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
-                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
             if ($entrytemp -and $entrytemp.moviebackground) {
@@ -1932,7 +1932,7 @@ function GetFanartShowPoster {
         $entrytemp = $null
         if ($id) {
             try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
-                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
             if ($entrytemp -and $entrytemp.tvposter) {
@@ -1995,7 +1995,7 @@ function GetFanartShowPoster {
 
         if ($id) {
             try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
-                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
             if ($entrytemp -and $entrytemp.tvposter) {
@@ -2043,7 +2043,7 @@ function GetFanartShowBackground {
 
     if ($id) {
         try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
-            Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+            Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
             $entrytemp = $null
         }
         if ($entrytemp -and $entrytemp.showbackground) {
@@ -2099,7 +2099,7 @@ function GetFanartSeasonPoster {
     if ($global:SeasonPreferTextless -eq $true) {
         if ($id) {
             try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
-                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
             if ($entrytemp.seasonposter) {
@@ -2202,7 +2202,7 @@ function GetFanartSeasonPoster {
     Else {
         if ($id) {
             try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
-                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
             if ($entrytemp.seasonposter) {
