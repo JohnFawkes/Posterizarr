@@ -4228,7 +4228,7 @@ function Invoke-ShowPosterCreation {
                         $global:TextlessPoster = $null
                         $global:EPResolutions = $null
 
-                        if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
+                        if ($episode.'Library Name' -eq $entry.'Library Name' -and (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -or ($episode.'Show Name' -eq $entry.title -or $episode.'Show Name' -eq $entry.originalTitle))) {
                             $global:show_name = $episode."Show Name"
                             $global:season_number = $episode."Season Number"
                             if ($null -ne $episode."Resolutions") { $global:EPResolutions = $episode."Resolutions".Split(",") } else { $global:EPResolutions = @() }
