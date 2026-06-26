@@ -345,6 +345,11 @@ if ($UseEmby -eq 'true') {
     $global:ReplaceThumbwithBackdrop = $config.EmbyPart.ReplaceThumbwithBackdrop.tolower()
 }
 
+$global:OtherMediaServerHeaders = @{}
+if ($OtherMediaServerApiKey) {
+    $global:OtherMediaServerHeaders["Authorization"] = "MediaBrowser Token=\"$OtherMediaServerApiKey\""
+}
+
 # Count how many media servers are enabled
 $enabledServers = 0
 if ($UseEmby -eq 'true') { $enabledServers++ }
