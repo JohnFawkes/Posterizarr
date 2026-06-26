@@ -44,6 +44,9 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
 import ValidateButton from "./ValidateButton";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 
+export default function OnboardingModal({ onComplete }) {
+  const { t } = useTranslation();
+
 const frequencies = [
   { id: "daily", label: t("onboarding.daily") },
   { id: "weekly", label: t("onboarding.weekly") },
@@ -102,7 +105,7 @@ const STEPS = [
   { id: "finish", title: "Ready", icon: <Check className="w-5 h-5" /> },
 ];
 
-export default function OnboardingModal({ onComplete }) {
+
   const [currentStep, setCurrentStep] = useState(0);
 
   // UI State for selections
