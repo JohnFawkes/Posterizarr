@@ -363,6 +363,7 @@ export default function OnboardingModal({ onComplete }) {
                 disabled={!config.PlexUrl || !config.PlexToken}
                 inlineMode={true}
                 autoFetchTrigger={plexValidated}
+                onValidStateChange={setPlexLibsValid}
               />
             </div>
           </div>
@@ -404,6 +405,7 @@ export default function OnboardingModal({ onComplete }) {
                 disabled={!config.JellyfinUrl || !config.JellyfinAPIKey}
                 inlineMode={true}
                 autoFetchTrigger={jellyfinValidated}
+                onValidStateChange={setJellyfinLibsValid}
               />
             </div>
           </div>
@@ -445,6 +447,7 @@ export default function OnboardingModal({ onComplete }) {
                 disabled={!config.EmbyUrl || !config.EmbyAPIKey}
                 inlineMode={true}
                 autoFetchTrigger={embyValidated}
+                onValidStateChange={setEmbyLibsValid}
               />
             </div>
           </div>
@@ -1033,3 +1036,4 @@ export default function OnboardingModal({ onComplete }) {
     </div>
   );
 }
+
