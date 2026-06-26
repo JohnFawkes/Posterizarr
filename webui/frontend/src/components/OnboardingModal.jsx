@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, ChevronRight, ChevronLeft, Save, Server, Key, Settings, Bell, Rocket, Shield, Activity, HardDrive, Database, ExternalLink, Loader2, Clock, Calendar, Zap, RefreshCw, Grid, X, Eye, EyeOff } from "lucide-react";
 
 const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const showAsPassword = isPassword && !showPassword;
 
@@ -30,7 +32,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
             type="button"
             onClick={() => onChange("")}
             className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
-            title="Clear input"
+            title={t("onboarding.clearInput")}
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -43,10 +45,10 @@ import ValidateButton from "./ValidateButton";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 
 const frequencies = [
-  { id: "daily", label: "Daily" },
-  { id: "weekly", label: "Weekly" },
-  { id: "monthly", label: "Monthly" },
-  { id: "interval", label: "Interval" },
+  { id: "daily", label: t("onboarding.daily") },
+  { id: "weekly", label: t("onboarding.weekly") },
+  { id: "monthly", label: t("onboarding.monthly") },
+  { id: "interval", label: t("onboarding.interval") },
 ];
 
 const months = [
@@ -66,18 +68,18 @@ const months = [
 ];
 
 const daysOfWeek = [
-  { id: "mon", label: "Monday" },
-  { id: "tue", label: "Tuesday" },
-  { id: "wed", label: "Wednesday" },
-  { id: "thu", label: "Thursday" },
-  { id: "fri", label: "Friday" },
-  { id: "sat", label: "Saturday" },
-  { id: "sun", label: "Sunday" },
+  { id: "mon", label: t("onboarding.monday") },
+  { id: "tue", label: t("onboarding.tuesday") },
+  { id: "wed", label: t("onboarding.wednesday") },
+  { id: "thu", label: t("onboarding.thursday") },
+  { id: "fri", label: t("onboarding.friday") },
+  { id: "sat", label: t("onboarding.saturday") },
+  { id: "sun", label: t("onboarding.sunday") },
 ];
 
 const intervalUnits = [
-  { id: "hours", label: "Hours" },
-  { id: "days", label: "Days" },
+  { id: "hours", label: t("onboarding.hours") },
+  { id: "days", label: t("onboarding.days") },
   { id: "weeks", label: "Weeks" },
 ];
 
@@ -338,7 +340,7 @@ export default function OnboardingModal({ onComplete }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
             <div className="space-y-3 shrink-0">
               <div>
-                <label className="block text-xs font-medium text-theme-muted mb-1">Plex URL</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.plexUrl")}</label>
                 <ClearableInput value={config.PlexUrl} onChange={val => handleChange("PlexUrl", val)} placeholder="http://192.168.1.93:32400" />
               </div>
               <div>
@@ -348,7 +350,7 @@ export default function OnboardingModal({ onComplete }) {
                     How to find this?
                   </a>
                 </label>
-                <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder="Your Plex Token" isPassword />
+                <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder={t("onboarding.yourPlexToken")} isPassword />
               </div>
               <div className="flex justify-end pt-1 shrink-0">
                 <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} onSuccess={() => setPlexValidated(true)} />
@@ -385,11 +387,11 @@ export default function OnboardingModal({ onComplete }) {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-theme-muted mb-1">Jellyfin URL</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.jellyfinUrl")}</label>
                 <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder="http://192.168.1.93:8096" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-theme-muted mb-1">API Key</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.apiKey")}</label>
                 <ClearableInput value={config.JellyfinAPIKey} onChange={val => handleChange("JellyfinAPIKey", val)} placeholder="Jellyfin API Key" isPassword />
               </div>
               <div className="flex justify-end pt-1 shrink-0">
@@ -427,11 +429,11 @@ export default function OnboardingModal({ onComplete }) {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-theme-muted mb-1">Emby URL</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.embyUrl")}</label>
                 <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder="http://192.168.1.93:8096/emby" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-theme-muted mb-1">API Key</label>
+                <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.apiKey")}</label>
                 <ClearableInput value={config.EmbyAPIKey} onChange={val => handleChange("EmbyAPIKey", val)} placeholder="Emby API Key" isPassword />
               </div>
               <div className="flex justify-end pt-1 shrink-0">
@@ -475,8 +477,8 @@ export default function OnboardingModal({ onComplete }) {
           <div className="animate-fade-in flex flex-col h-full">
             {!primaryServer && (
               <div className="shrink-0 mb-4 animate-fade-in">
-                <h3 className="text-xl font-bold text-white mb-1">Primary Media Server</h3>
-                <p className="text-sm text-theme-muted">Select your primary media server that Posterizarr should scan.</p>
+                <h3 className="text-xl font-bold text-white mb-1">{t("onboarding.primaryMediaServer")}</h3>
+                <p className="text-sm text-theme-muted">{t("onboarding.selectPrimaryServer")}</p>
               </div>
             )}
 
@@ -512,8 +514,8 @@ export default function OnboardingModal({ onComplete }) {
               <div className="mt-4 border-t border-white/5 pt-4 animate-fade-in shrink-0">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="font-semibold text-sm text-white">Sync from Plex?</h4>
-                    <p className="text-xs text-theme-muted">Do you sync media metadata from Plex to another media server?</p>
+                    <h4 className="font-semibold text-sm text-white">{t("onboarding.syncFromPlex")}</h4>
+                    <p className="text-xs text-theme-muted">{t("onboarding.syncFromPlexDesc")}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" checked={syncFromPlex} onChange={(e) => {
@@ -526,7 +528,7 @@ export default function OnboardingModal({ onComplete }) {
 
                 {syncFromPlex && (
                   <div className="space-y-3 animate-fade-in">
-                    <p className="text-xs text-theme-muted">Select the secondary server to supply its URL/API Key (it will NOT be enabled for primary scanning):</p>
+                    <p className="text-xs text-theme-muted">{t("onboarding.selectSecondaryServer")}</p>
                     <div className="grid grid-cols-2 gap-4">
                       <button
                         onClick={() => setPlexSyncServer('jellyfin')}
@@ -551,8 +553,8 @@ export default function OnboardingModal({ onComplete }) {
       case 2: // API Keys
         return (
           <div className="space-y-4 animate-fade-in flex flex-col h-full">
-            <h3 className="text-xl font-bold text-white mb-1">API Keys</h3>
-            <p className="text-sm text-theme-muted mb-4">Required to fetch high-quality artwork from external sources.</p>
+            <h3 className="text-xl font-bold text-white mb-1">{t("onboarding.apiKeys")}</h3>
+            <p className="text-sm text-theme-muted mb-4">{t("onboarding.requiredToFetchArtwork")}</p>
 
             <div className="flex flex-col gap-3 flex-1 justify-center max-w-2xl mx-auto w-full">
               <div className="p-3 bg-theme-bg/30 rounded-xl flex flex-row items-center gap-4 hover:bg-theme-bg/50 transition-colors">
@@ -565,7 +567,7 @@ export default function OnboardingModal({ onComplete }) {
                       How to get <ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
-                  <ClearableInput value={config.tmdbtoken} onChange={val => handleChange("tmdbtoken", val)} placeholder="v3 API Key / v4 Token" isPassword />
+                  <ClearableInput value={config.tmdbtoken} onChange={val => handleChange("tmdbtoken", val)} placeholder={t("onboarding.v3ApiKeyV4Token")} isPassword />
                 </div>
                 <div className="mt-6">
                   <ValidateButton type="tmdb" config={config} label="Test" disabled={!config.tmdbtoken} />
@@ -582,7 +584,7 @@ export default function OnboardingModal({ onComplete }) {
                       How to get <ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
-                  <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder="v4 API Key" isPassword />
+                  <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder={t("onboarding.v4ApiKey")} isPassword />
                 </div>
                 <div className="mt-6">
                   <ValidateButton type="tvdb" config={config} label="Test" disabled={!config.tvdbapi} />
@@ -599,7 +601,7 @@ export default function OnboardingModal({ onComplete }) {
                       How to get <ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
-                  <ClearableInput value={config.FanartTvAPIKey} onChange={val => handleChange("FanartTvAPIKey", val)} placeholder="Personal API Key" isPassword />
+                  <ClearableInput value={config.FanartTvAPIKey} onChange={val => handleChange("FanartTvAPIKey", val)} placeholder={t("onboarding.personalApiKey")} isPassword />
                 </div>
                 <div className="mt-6">
                   <ValidateButton type="fanart" config={config} label="Test" disabled={!config.FanartTvAPIKey} />
@@ -611,14 +613,14 @@ export default function OnboardingModal({ onComplete }) {
       case 3: // Automation
         return (
           <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-2">Automation Preferences</h3>
-            <p className="text-theme-muted mb-6">Configure how Posterizarr processes your items automatically.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">{t("onboarding.automationPreferences")}</h3>
+            <p className="text-theme-muted mb-6">{t("onboarding.configureHowPosterizarrProcesses")}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 hover:border-theme-primary/50 transition-colors">
                 <div>
-                  <h4 className="font-semibold text-white">Asset Cleanup</h4>
-                  <p className="text-sm text-theme-muted">Remove unused assets from storage to free space</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.assetCleanup")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.removeUnusedAssets")}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={config.AssetCleanup === "true"} onChange={e => handleChange("AssetCleanup", e.target.checked ? "true" : "false")} />
@@ -627,8 +629,8 @@ export default function OnboardingModal({ onComplete }) {
               </div>
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 hover:border-theme-primary/50 transition-colors">
                 <div>
-                  <h4 className="font-semibold text-white">Skip Japanese/Chinese Titles</h4>
-                  <p className="text-sm text-theme-muted">Skip processing Asian media</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.skipAsianTitles")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.skipProcessingAsianMedia")}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={config.SkipJapTitle === "true"} onChange={e => handleChange("SkipJapTitle", e.target.checked ? "true" : "false")} />
@@ -637,8 +639,8 @@ export default function OnboardingModal({ onComplete }) {
               </div>
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 hover:border-theme-primary/50 transition-colors">
                 <div>
-                  <h4 className="font-semibold text-white">Skip TBA Items</h4>
-                  <p className="text-sm text-theme-muted">Skip items that are "To Be Announced"</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.skipTbaItems")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.skipItemsToBeAnnounced")}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={config.SkipTBA === "true"} onChange={e => handleChange("SkipTBA", e.target.checked ? "true" : "false")} />
@@ -651,14 +653,14 @@ export default function OnboardingModal({ onComplete }) {
       case 4: // Performance
         return (
           <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-2">Performance & Quality</h3>
-            <p className="text-theme-muted mb-6">Tune resource usage and output quality.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">{t("onboarding.performanceQuality")}</h3>
+            <p className="text-theme-muted mb-6">{t("onboarding.tuneResourceUsage")}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
-                  <h4 className="font-semibold text-white">Image Processing</h4>
-                  <p className="text-sm text-theme-muted">Use advanced ImageMagick processing</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.imageProcessing")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.useAdvancedImageMagickProcessing")}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={config.ImageProcessing === "true"} onChange={e => handleChange("ImageProcessing", e.target.checked ? "true" : "false")} />
@@ -668,8 +670,8 @@ export default function OnboardingModal({ onComplete }) {
 
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
-                  <h4 className="font-semibold text-white">Output Quality</h4>
-                  <p className="text-sm text-theme-muted">Set JPEG quality compression</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.outputQuality")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.setJpegQualityCompression")}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="number" min="1" max="100" className="w-20 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-3 py-1.5 text-gray-900 font-semibold text-right focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={(config.outputQuality || "92").replace('%', '')} onChange={e => handleChange("outputQuality", `${e.target.value}%`)} />
@@ -679,16 +681,16 @@ export default function OnboardingModal({ onComplete }) {
 
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
-                  <h4 className="font-semibold text-white">Max Logs Retained</h4>
-                  <p className="text-sm text-theme-muted">Number of previous run logs to keep</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.maxLogsRetained")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.previousRunLogsToKeep")}</p>
                 </div>
                 <input type="number" min="1" max="50" className="w-24 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-3 py-1.5 text-gray-900 font-semibold text-right focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={config.maxLogs} onChange={e => handleChange("maxLogs", e.target.value)} />
               </div>
 
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
-                  <h4 className="font-semibold text-white">Parallel Jobs</h4>
-                  <p className="text-sm text-theme-muted">Number of concurrent poster creations (Warning: High CPU/RAM usage!)</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.parallelJobs")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.concurrentPosterCreations")}</p>
                 </div>
                 <input type="number" min="1" max="50" className="w-24 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-3 py-1.5 text-gray-900 font-semibold text-right focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={config.ParallelJobs} onChange={e => handleChange("ParallelJobs", e.target.value)} />
               </div>
@@ -698,8 +700,8 @@ export default function OnboardingModal({ onComplete }) {
       case 5: // Notifications
         return (
           <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-2">Notifications</h3>
-            <p className="text-theme-muted mb-6">Receive alerts when Posterizarr completes a run.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">{t("onboarding.notifications")}</h3>
+            <p className="text-theme-muted mb-6">{t("onboarding.receiveAlertsWhenPosterizarrCompletes")}</p>
 
             <div className="grid grid-cols-3 gap-4 mb-6">
               <button
@@ -724,11 +726,11 @@ export default function OnboardingModal({ onComplete }) {
 
             {notificationType === 'discord' && (
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-                <label className="block text-sm font-medium text-white mb-2">Discord Webhook URL</label>
+                <label className="block text-sm font-medium text-white mb-2">{t("onboarding.discordWebhookUrl")}</label>
                 <ClearableInput value={config.Discord} onChange={val => handleChange("Discord", val)} placeholder="https://discordapp.com/api/webhooks/..." />
 
                 <div className="mt-4 pt-4 border-t border-theme-border/30">
-                  <label className="block text-sm font-medium text-white mb-2">Discord Bot Name</label>
+                  <label className="block text-sm font-medium text-white mb-2">{t("onboarding.discordBotName")}</label>
                 <ClearableInput value={config.DiscordUserName} onChange={val => handleChange("DiscordUserName", val)} placeholder="" />
                 </div>
               </div>
@@ -744,8 +746,8 @@ export default function OnboardingModal({ onComplete }) {
                     How-to guide <ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
-                <ClearableInput value={config.AppriseUrl} onChange={val => handleChange("AppriseUrl", val)} placeholder="discord://webhook_id/webhook_token" />
-                <p className="text-xs text-theme-muted mt-2">Uses Apprise - supports Discord, Slack, Telegram, email, and 70+ more via URL schemes.</p>
+                <ClearableInput value={config.AppriseUrl} onChange={val => handleChange("AppriseUrl", val)} placeholder={t("onboarding.discordWebhookUrlExample")} />
+                <p className="text-xs text-theme-muted mt-2">{t("onboarding.usesAppriseSupportsDiscord")}</p>
                 <div className="mt-4 flex justify-end">
                   <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
                 </div>
@@ -756,8 +758,8 @@ export default function OnboardingModal({ onComplete }) {
             <div className="mt-8 border-t border-theme-border/50 pt-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h4 className="font-semibold text-white">Uptime Kuma Health Check</h4>
-                  <p className="text-sm text-theme-muted">Send a push notification to Uptime Kuma after a successful run.</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.uptimeKumaHealthCheck")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.sendPushNotificationToUptimeKuma")}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={config.UseUptimeKuma === "true"} onChange={e => handleChange("UseUptimeKuma", e.target.checked ? "true" : "false")} />
@@ -767,8 +769,8 @@ export default function OnboardingModal({ onComplete }) {
 
               {config.UseUptimeKuma === "true" && (
                 <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
-                  <label className="block text-sm font-medium text-white mb-2">Push URL</label>
-                  <ClearableInput value={config.UptimeKumaUrl} onChange={val => handleChange("UptimeKumaUrl", val)} placeholder="https://uptime-kuma.domain.com/api/push/..." />
+                  <label className="block text-sm font-medium text-white mb-2">{t("onboarding.pushUrl")}</label>
+                  <ClearableInput value={config.UptimeKumaUrl} onChange={val => handleChange("UptimeKumaUrl", val)} placeholder={t("onboarding.uptimeKumaPushUrlExample")} />
                   <div className="mt-4 flex justify-end">
                     <ValidateButton type="uptimekuma" config={config} label="Test Connection" disabled={!config.UptimeKumaUrl} />
                   </div>
@@ -780,14 +782,14 @@ export default function OnboardingModal({ onComplete }) {
       case 6: // Schedule
         return (
           <div className="space-y-6 animate-fade-in">
-            <h3 className="text-2xl font-bold text-white mb-2">Automated Schedule</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">{t("onboarding.automatedSchedule")}</h3>
             <p className="text-theme-muted mb-6">Configure exactly when Posterizarr should run.</p>
 
             <div className="space-y-5">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
                 <div>
-                  <h4 className="font-semibold text-white">Enable Automation</h4>
-                  <p className="text-sm text-theme-muted">Turn on the scheduler and create a schedule.</p>
+                  <h4 className="font-semibold text-white">{t("onboarding.enableAutomation")}</h4>
+                  <p className="text-sm text-theme-muted">{t("onboarding.turnOnScheduler")}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={enableSchedule} onChange={e => setEnableSchedule(e.target.checked)} />
@@ -801,14 +803,14 @@ export default function OnboardingModal({ onComplete }) {
                     {/* Time Input */}
                     {frequency !== "interval" && (
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-white mb-2">Time (HH:MM)</label>
+                        <label className="block text-sm font-medium text-white mb-2">{t("onboarding.timeHhMm")}</label>
                         <input type="time" className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-semibold focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" value={newTime} onChange={e => setNewTime(e.target.value)} required />
                       </div>
                     )}
 
                     {/* Mode Selector */}
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-white mb-2">Run Mode</label>
+                      <label className="block text-sm font-medium text-white mb-2">{t("onboarding.runMode")}</label>
                       <select value={newMode} onChange={(e) => setNewMode(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                         {runModes.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                       </select>
@@ -816,7 +818,7 @@ export default function OnboardingModal({ onComplete }) {
 
                     {/* Frequency Selector */}
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-white mb-2">Frequency</label>
+                      <label className="block text-sm font-medium text-white mb-2">{t("onboarding.frequency")}</label>
                       <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                         {frequencies.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
                       </select>
@@ -828,11 +830,11 @@ export default function OnboardingModal({ onComplete }) {
                     {frequency === "interval" && (
                       <div className="flex-1 flex gap-2">
                         <div className="flex-1">
-                           <label className="block text-sm font-medium text-white mb-2">Every</label>
+                           <label className="block text-sm font-medium text-white mb-2">{t("onboarding.every")}</label>
                            <input type="number" min="1" value={intervalValue} onChange={(e) => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary" />
                         </div>
                         <div className="flex-1">
-                          <label className="block text-sm font-medium text-white mb-2">Unit</label>
+                          <label className="block text-sm font-medium text-white mb-2">{t("onboarding.unit")}</label>
                           <select value={intervalUnit} onChange={(e) => setIntervalUnit(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                             {intervalUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.label}</option>)}
                           </select>
@@ -850,8 +852,8 @@ export default function OnboardingModal({ onComplete }) {
                            </select>
                          </div>
                          <div className="flex-1">
-                           <label className="block text-sm font-medium text-white mb-2">Day(s) of Month</label>
-                           <input type="text" placeholder="e.g. 1,15,30" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary placeholder-gray-500" />
+                           <label className="block text-sm font-medium text-white mb-2">{t("onboarding.daysOfMonth")}</label>
+                           <input type="text" placeholder={t("onboarding.eg1_15_30")} value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary placeholder-gray-500" />
                          </div>
                       </div>
                     )}
@@ -859,7 +861,7 @@ export default function OnboardingModal({ onComplete }) {
                     {/* Weekly specifics */}
                     {frequency === "weekly" && (
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-white mb-2">Day of Week</label>
+                        <label className="block text-sm font-medium text-white mb-2">{t("onboarding.dayOfWeek")}</label>
                         <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full bg-white border border-transparent hover:bg-gray-50 transition-all rounded-lg px-4 py-2.5 text-gray-900 font-medium focus:border-theme-primary focus:ring-1 focus:ring-theme-primary appearance-none">
                           {daysOfWeek.map(day => <option key={day.id} value={day.id}>{day.label}</option>)}
                         </select>
@@ -871,17 +873,17 @@ export default function OnboardingModal({ onComplete }) {
                   {newMode === "logoupdater" && (
                     <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-[#c4b5fd] mb-1">Plex Library</label>
-                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder="Library name or 'all'" className="w-full px-3 py-2 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-md text-sm text-gray-900 font-medium focus:outline-none focus:ring-1 focus:border-theme-primary focus:ring-theme-primary placeholder-gray-500" />
+                        <label className="block text-xs font-medium text-[#c4b5fd] mb-1">{t("onboarding.plexLibrary")}</label>
+                        <input type="text" value={logoLibrary} onChange={(e) => setLogoLibrary(e.target.value)} placeholder={t("onboarding.libraryNameOrAll")} className="w-full px-3 py-2 bg-white border border-transparent hover:bg-gray-50 transition-all rounded-md text-sm text-gray-900 font-medium focus:outline-none focus:ring-1 focus:border-theme-primary focus:ring-theme-primary placeholder-gray-500" />
                       </div>
                       <div className="flex items-center gap-6 pt-5">
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input type="checkbox" checked={logoForceReplace} onChange={(e) => setLogoForceReplace(e.target.checked)} disabled={logoRevert} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
-                          <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-white group-hover:text-[#c4b5fd]'} transition-colors`}>Force Replace</span>
+                          <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-white group-hover:text-[#c4b5fd]'} transition-colors`}>{t("onboarding.forceReplace")}</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input type="checkbox" checked={logoRevert} onChange={(e) => setLogoRevert(e.target.checked)} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
-                          <span className="text-sm text-white group-hover:text-[#c4b5fd] transition-colors">Revert Mode</span>
+                          <span className="text-sm text-white group-hover:text-[#c4b5fd] transition-colors">{t("onboarding.revertMode")}</span>
                         </label>
                       </div>
                     </div>
@@ -898,7 +900,7 @@ export default function OnboardingModal({ onComplete }) {
             <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-4 text-green-500 ring-4 ring-green-500/10">
               <Check className="w-10 h-10" />
             </div>
-            <h2 className="text-3xl font-bold text-white">All Set!</h2>
+            <h2 className="text-3xl font-bold text-white">{t("onboarding.allSet")}</h2>
             <p className="text-theme-muted max-w-md">
               Your configuration has been prepared. Click finish to save these settings and start exploring PosterizarrUI.
             </p>
@@ -925,7 +927,7 @@ export default function OnboardingModal({ onComplete }) {
       >
         <div className="flex flex-col items-center">
           <Loader2 className="w-10 h-10 animate-spin text-theme-primary mb-4" />
-          <p className="text-white font-medium">Preparing environment...</p>
+          <p className="text-white font-medium">{t("onboarding.preparingEnvironment")}</p>
         </div>
       </div>
     );
