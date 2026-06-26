@@ -234,11 +234,11 @@ if ($global:tvdbapi -match '#') {
     $global:tvdbpin = $global:tvdbapi.split('#')[1]
     $global:tvdbapi = $global:tvdbapi.split('#')[0]
 }
-$global:tmdbtoken = $config.ApiPart.tmdbtoken
-$FanartTvAPIKey = $config.ApiPart.FanartTvAPIKey
-$PlexToken = $config.ApiPart.PlexToken
-$JellyfinAPIKey = $config.ApiPart.JellyfinAPIKey
-$EmbyAPIKey = $config.ApiPart.EmbyAPIKey
+$global:tmdbtoken = if ($config.ApiPart.tmdbtoken) { $config.ApiPart.tmdbtoken.Trim() } else { $null }
+$FanartTvAPIKey = if ($config.ApiPart.FanartTvAPIKey) { $config.ApiPart.FanartTvAPIKey.Trim() } else { $null }
+$PlexToken = if ($config.ApiPart.PlexToken) { $config.ApiPart.PlexToken.Trim() } else { $null }
+$JellyfinAPIKey = if ($config.ApiPart.JellyfinAPIKey) { $config.ApiPart.JellyfinAPIKey.Trim() } else { $null }
+$EmbyAPIKey = if ($config.ApiPart.EmbyAPIKey) { $config.ApiPart.EmbyAPIKey.Trim() } else { $null }
 $global:WidthHeightFilter = $config.ApiPart.WidthHeightFilter.tolower()
 $global:PosterMinWidth = $config.ApiPart.PosterMinWidth
 $global:PosterMinHeight = $config.ApiPart.PosterMinHeight

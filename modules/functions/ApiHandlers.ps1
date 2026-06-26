@@ -125,7 +125,13 @@ function GetFanartLogo {
     foreach ($id in $ids) {
         if (-not $id) { continue }
 
-        $entrytemp = Get-FanartTv -Type $Type -id $id -ErrorAction SilentlyContinue
+        try { $entrytemp = Get-FanartTv -Type $Type -id $id -ErrorAction SilentlyContinue } catch { 
+
+            Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+
+            $entrytemp = $null
+
+        }
         if (-not $entrytemp) { continue }
 
         $field = if ($global:UseClearart -eq 'true') {
@@ -1765,7 +1771,10 @@ function GetFanartMoviePoster {
 
         foreach ($id in $ids) {
             if ($id) {
-                $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue
+                try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
+                    Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                    $entrytemp = $null
+                }
                 if ($entrytemp -and $entrytemp.movieposter) {
                     if (!($entrytemp.movieposter | Where-Object lang -eq '00')) {
                         Write-Entry -Subtext "PreferTextless Value: $global:PosterPreferTextless" -Path $global:configLogging -Color Cyan -log Debug
@@ -1817,7 +1826,10 @@ function GetFanartMoviePoster {
 
         foreach ($id in $ids) {
             if ($id) {
-                $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue
+                try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
+                    Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                    $entrytemp = $null
+                }
                 if ($entrytemp -and $entrytemp.movieposter) {
                     foreach ($lang in $global:PreferredLanguageOrderFanart) {
                         if (($entrytemp.movieposter | Where-Object lang -eq "$lang")) {
@@ -1861,7 +1873,10 @@ function GetFanartMovieBackground {
 
     foreach ($id in $ids) {
         if ($id) {
-            $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue
+            try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
+                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                $entrytemp = $null
+            }
             if ($entrytemp -and $entrytemp.moviebackground) {
                 if (!($entrytemp.moviebackground | Where-Object lang -eq '')) {
                     Write-Entry -Subtext "PreferTextless Value: $global:BackgroundPreferTextless" -Path $global:configLogging -Color Cyan -log Debug
@@ -1916,7 +1931,10 @@ function GetFanartShowPoster {
         $id = $global:tvdbid
         $entrytemp = $null
         if ($id) {
-            $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                $entrytemp = $null
+            }
             if ($entrytemp -and $entrytemp.tvposter) {
                 if (!($entrytemp.tvposter | Where-Object lang -eq '00')) {
                     Write-Entry -Subtext "PreferTextless Value: $global:PosterPreferTextless" -Path $global:configLogging -Color Cyan -log Debug
@@ -1976,7 +1994,10 @@ function GetFanartShowPoster {
         $entrytemp = $null
 
         if ($id) {
-            $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                $entrytemp = $null
+            }
             if ($entrytemp -and $entrytemp.tvposter) {
                 foreach ($lang in $global:PreferredSeasonLanguageOrderFanart) {
                     if (($entrytemp.tvposter | Where-Object lang -eq "$lang")) {
@@ -2021,7 +2042,10 @@ function GetFanartShowBackground {
     $entrytemp = $null
 
     if ($id) {
-        $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue
+        try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+            Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+            $entrytemp = $null
+        }
         if ($entrytemp -and $entrytemp.showbackground) {
             if (!($entrytemp.showbackground | Where-Object lang -eq '')) {
                 Write-Entry -Subtext "PreferTextless Value: $global:BackgroundPreferTextless" -Path $global:configLogging -Color Cyan -log Debug
@@ -2074,7 +2098,10 @@ function GetFanartSeasonPoster {
     $entrytemp = $null
     if ($global:SeasonPreferTextless -eq $true) {
         if ($id) {
-            $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                $entrytemp = $null
+            }
             if ($entrytemp.seasonposter) {
                 if ($global:SeasonNumber -match '\b\d{1,2}\b') {
                     $NoLangPoster = ($entrytemp.seasonposter | Where-Object { $_.lang -eq '00' -and $_.Season -eq $global:SeasonNumber } | Sort-Object likes)
@@ -2174,7 +2201,10 @@ function GetFanartSeasonPoster {
     }
     Else {
         if ($id) {
-            $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+                Write-Entry -Subtext 'Fanart.tv error: ' + $_.Exception.Message -Path $global:configLogging -Color Yellow -log Warning
+                $entrytemp = $null
+            }
             if ($entrytemp.seasonposter) {
                 foreach ($lang in $global:PreferredSeasonLanguageOrderFanart) {
                     $FoundPoster = ($entrytemp.seasonposter | Where-Object { $_.lang -eq "$lang" -and $_.Season -eq $global:SeasonNumber } | Sort-Object likes)

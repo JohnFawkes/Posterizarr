@@ -53,6 +53,7 @@ function HandleScriptExit {
     }
 
     # Exit the script entirely
+    Write-Entry -Message "Exiting Posterizarr run..." -Path $global:configLogging -Color Red -log Error
     exit
 }
 

@@ -2644,6 +2644,14 @@
     "included": "Incluso",
     "testConnectionToLoad": "Testa la connessione per caricare le librerie.",
     "fetchingLibraries": "Recupero librerie in corso...",
-    "noLibrariesFound": "Nessuna libreria trovata."
+    "noLibrariesFound": "Nessuna libreria trovata.",
+    "providerOrderSelector": {
+      "addProvider": "Add Provider",
+      "currentOrder": "Current Priority Order:",
+      "placeholder": "Select providers to determine the search priority.",
+      "moveUp": "Move Up",
+      "moveDown": "Move Down",
+      "removeProvider": "Remove Provider"
+    }
   }
 }

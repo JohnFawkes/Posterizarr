@@ -151,7 +151,7 @@ const ProviderOrderSelector = ({ value = [], onChange, label, helpText }) => {
                       ? "text-theme-muted/30 cursor-not-allowed"
                       : "text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10"
                   }`}
-                  title="Move Up"
+                  title={t("onboarding.providerOrderSelector.moveUp")}
                 >
                   <svg
                     className="w-4 h-4"
@@ -175,7 +175,7 @@ const ProviderOrderSelector = ({ value = [], onChange, label, helpText }) => {
                       ? "text-theme-muted/30 cursor-not-allowed"
                       : "text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10"
                   }`}
-                  title="Move Down"
+                  title={t("onboarding.providerOrderSelector.moveDown")}
                 >
                   <svg
                     className="w-4 h-4"
@@ -197,7 +197,7 @@ const ProviderOrderSelector = ({ value = [], onChange, label, helpText }) => {
               <button
                 onClick={() => removeProvider(providerCode)}
                 className="p-1.5 text-red-500 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
-                title="Remove Provider"
+                title={t("onboarding.providerOrderSelector.removeProvider")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -216,7 +216,7 @@ const ProviderOrderSelector = ({ value = [], onChange, label, helpText }) => {
             <div className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               <span className="text-sm">
-                {t("languageOrderSelector.addProvider")}
+                {t("onboarding.providerOrderSelector.addProvider")}
               </span>
             </div>
             <ChevronDown
@@ -268,7 +268,7 @@ const ProviderOrderSelector = ({ value = [], onChange, label, helpText }) => {
       {selectedProviders.length > 0 && (
         <div className="px-4 py-3 bg-theme-bg/50 border border-theme rounded-lg">
           <p className="text-xs text-theme-muted mb-1">
-            {t("languageOrderSelector.currentOrder")}
+            {t("onboarding.providerOrderSelector.currentOrder")}
           </p>
           <p className="text-sm font-mono text-theme-text">
             {selectedProviders.join(", ")}
