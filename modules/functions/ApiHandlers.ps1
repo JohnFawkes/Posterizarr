@@ -114,6 +114,7 @@ function GetTVDBLogo {
 }
 
 function GetFanartLogo {
+    if (-not $global:FanartTvAPIKey) { return }
     param(
         [string]$Type
     )
@@ -1763,6 +1764,7 @@ function GetTMDBTitleCard {
 }
 
 function GetFanartMoviePoster {
+    if (-not $global:FanartTvAPIKey) { return }
     $global:Fallback = $null
     Write-Entry -Subtext "Searching on Fanart.tv for a movie poster" -Path $global:configLogging -Color Cyan -log Info
     if ($global:PosterPreferTextless -eq $true) {
@@ -1866,6 +1868,7 @@ function GetFanartMoviePoster {
 }
 
 function GetFanartMovieBackground {
+    if (-not $global:FanartTvAPIKey) { return }
     $global:Fallback = $null
     Write-Entry -Subtext "Searching on Fanart.tv for a Background poster" -Path $global:configLogging -Color Cyan -log Info
     $ids = @($global:tmdbid, $global:imdbid)
@@ -1925,6 +1928,7 @@ function GetFanartMovieBackground {
 }
 
 function GetFanartShowPoster {
+    if (-not $global:FanartTvAPIKey) { return }
     $global:Fallback = $null
     Write-Entry -Subtext "Searching on Fanart.tv for a show poster" -Path $global:configLogging -Color Cyan -log Info
     if ($global:PosterPreferTextless -eq $true) {
@@ -2036,6 +2040,7 @@ function GetFanartShowPoster {
 }
 
 function GetFanartShowBackground {
+    if (-not $global:FanartTvAPIKey) { return }
     $global:Fallback = $null
     Write-Entry -Subtext "Searching on Fanart.tv for a Background poster" -Path $global:configLogging -Color Cyan -log Info
     $id = $global:tvdbid
@@ -2093,6 +2098,7 @@ function GetFanartShowBackground {
 }
 
 function GetFanartSeasonPoster {
+    if (-not $global:FanartTvAPIKey) { return }
     Write-Entry -Subtext "Searching on Fanart.tv for Season '$global:SeasonNumber' poster" -Path $global:configLogging -Color Cyan -log Info
     $id = $global:tvdbid
     $entrytemp = $null

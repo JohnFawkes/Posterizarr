@@ -669,6 +669,10 @@
         }
         $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
         foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+        if ($state['FanartTvAPIKey']) {
+            Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+            Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+        }
 
         Invoke-MoviePosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
@@ -682,6 +686,10 @@
         }
         $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
         foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+        if ($state['FanartTvAPIKey']) {
+            Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+            Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+        }
 
         Invoke-ShowPosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
