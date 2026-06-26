@@ -2629,6 +2629,12 @@
     "sunday": "Sunday",
     "minutes": "Minutes",
     "hours": "Hours",
-    "days": "Days"
+    "days": "Days",
+    "welcome": "Welcome",
+    "mediaServer": "Media Server",
+    "automation": "Automation",
+    "performance": "Performance",
+    "schedule": "Schedule",
+    "ready": "Ready"
   }
 }

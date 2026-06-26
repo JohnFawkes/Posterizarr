@@ -48,7 +48,18 @@ import LibraryExclusionSelector from "./LibraryExclusionSelector";
 export default function OnboardingModal({ onComplete }) {
   const { t } = useTranslation();
 
-const frequencies = [
+const STEPS = [
+  { id: "welcome", title: t("onboarding.welcome"), icon: <Rocket className="w-5 h-5" /> },
+  { id: "server", title: t("onboarding.mediaServer"), icon: <Server className="w-5 h-5" /> },
+  { id: "keys", title: t("onboarding.apiKeys"), icon: <Key className="w-5 h-5" /> },
+  { id: "auto", title: t("onboarding.automation"), icon: <Settings className="w-5 h-5" /> },
+  { id: "perf", title: t("onboarding.performance"), icon: <Activity className="w-5 h-5" /> },
+  { id: "notif", title: t("onboarding.notifications"), icon: <Bell className="w-5 h-5" /> },
+  { id: "schedule", title: t("onboarding.schedule"), icon: <Clock className="w-5 h-5" /> },
+  { id: "finish", title: t("onboarding.ready"), icon: <Check className="w-5 h-5" /> },
+];
+
+  const frequencies = [
   { id: "daily", label: t("onboarding.daily") },
   { id: "weekly", label: t("onboarding.weekly") },
   { id: "monthly", label: t("onboarding.monthly") },
@@ -95,16 +106,7 @@ const runModes = [
   { id: "logoupdater", label: "Logo Updater" },
 ];
 
-const STEPS = [
-  { id: "welcome", title: "Welcome", icon: <Rocket className="w-5 h-5" /> },
-  { id: "server", title: "Media Server", icon: <Server className="w-5 h-5" /> },
-  { id: "keys", title: "API Keys", icon: <Key className="w-5 h-5" /> },
-  { id: "auto", title: "Automation", icon: <Settings className="w-5 h-5" /> },
-  { id: "perf", title: "Performance", icon: <Activity className="w-5 h-5" /> },
-  { id: "notif", title: "Notifications", icon: <Bell className="w-5 h-5" /> },
-  { id: "schedule", title: "Schedule", icon: <Clock className="w-5 h-5" /> },
-  { id: "finish", title: "Ready", icon: <Check className="w-5 h-5" /> },
-];
+
 
 
   const [currentStep, setCurrentStep] = useState(0);

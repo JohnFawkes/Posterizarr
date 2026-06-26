@@ -2680,6 +2680,12 @@
     "sunday": "Sonntag",
     "minutes": "Minuten",
     "hours": "Stunden",
-    "days": "Tage"
+    "days": "Tage",
+    "welcome": "Willkommen",
+    "mediaServer": "Medienserver",
+    "automation": "Automatisierung",
+    "performance": "Leistung",
+    "schedule": "Zeitplan",
+    "ready": "Bereit"
   }
 }

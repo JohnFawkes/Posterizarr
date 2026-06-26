@@ -2623,6 +2623,12 @@
     "sunday": "Domingo",
     "minutes": "Minutos",
     "hours": "Horas",
-    "days": "Dias"
+    "days": "dias",
+    "welcome": "Bem-vindo",
+    "mediaServer": "Servidor de Mídia",
+    "automation": "Automação",
+    "performance": "Desempenho",
+    "schedule": "Agendamento",
+    "ready": "Pronto"
   }
 }

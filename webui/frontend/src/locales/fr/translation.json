@@ -2628,6 +2628,12 @@
     "sunday": "Dimanche",
     "minutes": "Minutes",
     "hours": "Heures",
-    "days": "Jours"
+    "days": "jours",
+    "welcome": "Bienvenue",
+    "mediaServer": "Serveur Multimédia",
+    "automation": "Automatisation",
+    "performance": "Performances",
+    "schedule": "Planification",
+    "ready": "Prêt"
   }
 }
