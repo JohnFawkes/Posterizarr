@@ -2509,5 +2509,13 @@
       "preview": "Pré-visualização ao Vivo",
       "applyCustom": "Aplicar Blueprint Personalizado"
     }
+  },
+  "providerOrderSelector": {
+    "noProviders": "Selecione os provedores para determinar a prioridade de pesquisa.",
+    "moveUp": "Mover para cima",
+    "moveDown": "Mover para baixo",
+    "removeProvider": "Remover provedor",
+    "addProvider": "Adicionar provedor",
+    "currentOrder": "Ordem atual:"
   }
 }

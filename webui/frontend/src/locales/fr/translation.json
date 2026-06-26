@@ -2514,5 +2514,13 @@
       "preview": "Aperçu en Direct",
       "applyCustom": "Appliquer le Blueprint Personnalisé"
     }
+  },
+  "providerOrderSelector": {
+    "noProviders": "Sélectionnez des fournisseurs pour déterminer la priorité de recherche.",
+    "moveUp": "Déplacer vers le haut",
+    "moveDown": "Déplacer vers le bas",
+    "removeProvider": "Supprimer le fournisseur",
+    "addProvider": "Ajouter un fournisseur",
+    "currentOrder": "Ordre actuel :"
   }
 }

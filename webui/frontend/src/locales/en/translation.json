@@ -2515,5 +2515,13 @@
       "preview": "Live Preview",
       "applyCustom": "Apply Custom Blueprint"
     }
+  },
+  "providerOrderSelector": {
+    "noProviders": "Select providers to determine the search priority.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "removeProvider": "Remove provider",
+    "addProvider": "Add Provider",
+    "currentOrder": "Current Order:"
   }
 }

@@ -2513,5 +2513,13 @@
       "preview": "Anteprima dal Vivo",
       "applyCustom": "Applica Blueprint Personalizzato"
     }
+  },
+  "providerOrderSelector": {
+    "noProviders": "Seleziona i provider per determinare la priorità di ricerca.",
+    "moveUp": "Sposta su",
+    "moveDown": "Sposta giù",
+    "removeProvider": "Rimuovi provider",
+    "addProvider": "Aggiungi provider",
+    "currentOrder": "Ordine attuale:"
   }
 }
