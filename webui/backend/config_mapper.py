@@ -266,6 +266,8 @@ CONFIG_GROUPS = {
     "FanartTvAPIKey": "ApiPart",
     "PlexToken": "ApiPart",
     "FavProvider": "ApiPart",
+    "OverrideProviderOrder": "ApiPart",
+    "ProviderOrder": "ApiPart",
     "PreferredLanguageOrder": "ApiPart",
     "PreferredSeasonLanguageOrder": "ApiPart",
     "LogoLanguageOrder": "ApiPart",
@@ -582,6 +584,8 @@ UI_GROUPS = {
         "tmdbtoken",
         "FanartTvAPIKey",
         "FavProvider",
+        "OverrideProviderOrder",
+        "ProviderOrder",
         "tmdb_vote_sorting",
     ],
     "Language & Preferences": [
@@ -994,6 +998,8 @@ DISPLAY_NAMES = {
     "JellyfinAPIKey": "Jellyfin API Key",
     "EmbyAPIKey": "Emby API Key",
     "FavProvider": "Favorite Provider",
+    "OverrideProviderOrder": "Override Provider Order",
+    "ProviderOrder": "Provider Custom Order",
     "tmdb_vote_sorting": "TMDB Vote Sorting",
     # Language & Preferences
     "PreferredLanguageOrder": "Preferred Language Order",

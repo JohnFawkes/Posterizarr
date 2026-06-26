@@ -12,6 +12,13 @@
     "JellyfinAPIKey": "JELLYFINAPIKEY",
     "EmbyAPIKey": "EMBYAPIKEY",
     "FavProvider": "tmdb",
+    "OverrideProviderOrder": false,
+    "ProviderOrder": [
+      "TMDB",
+      "TVDB",
+      "Fanart",
+      "Plex"
+    ],
     "WidthHeightFilter": "false",
     "PosterMinWidth": "2000",
     "PosterMinHeight": "3000",

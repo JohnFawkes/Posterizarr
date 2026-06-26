@@ -245,8 +245,12 @@ $global:PosterMinHeight = $config.ApiPart.PosterMinHeight
 $global:BgTcMinWidth = $config.ApiPart.BgTcMinWidth
 $global:BgTcMinHeight = $config.ApiPart.BgTcMinHeight
 $global:FavProvider = $config.ApiPart.FavProvider.ToUpper()
+$global:OverrideProviderOrder = if ($null -ne $config.ApiPart.OverrideProviderOrder) { $config.ApiPart.OverrideProviderOrder.ToString().ToLower() -eq 'true' } else { $false }
+$global:ProviderOrder = if ($null -ne $config.ApiPart.ProviderOrder) { $config.ApiPart.ProviderOrder } else { @("TMDB", "TVDB", "Fanart", "Plex") }
+if ($global:ProviderOrder) {
+    $global:ProviderOrder = $global:ProviderOrder | ForEach-Object { $_.ToUpper() }
+}
 $global:TMDBVoteSorting = $config.ApiPart.tmdb_vote_sorting.tolower()
-
 if (!$global:TMDBVoteSorting) {
     Write-Entry -Message "TMDB Sorting option not set in config, setting it to 'vote_average' for you" -Path $global:configLogging -Color Yellow -log Warning
     $global:TMDBVoteSorting = "vote_average"

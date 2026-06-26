@@ -7,6 +7,13 @@
     "JellyfinAPIKey": "xxxxxxxxxxxxx",
     "EmbyAPIKey": "xxxxxxxxxxxxx",
     "FavProvider": "tmdb",
+    "OverrideProviderOrder": false,
+    "ProviderOrder": [
+      "TMDB",
+      "TVDB",
+      "Fanart",
+      "Plex"
+    ],
     "PreferredLanguageOrder": [
       "xx",
       "en",

@@ -18,6 +18,8 @@ CONFIG_TOOLTIPS = {
     "JellyfinAPIKey": "Your Jellyfin API key. You can create an API key from inside Jellyfin at Settings > Advanced > Api Keys.",
     "EmbyAPIKey": "Your Emby API key. You can create an API key from inside Emby at Settings > Advanced > Api Keys.",
     "FavProvider": "Set your preferred provider (default is tmdb). Possible values are tmdb (recommended), fanart, tvdb, or plex (not recommended). Plex should act as a last resort, especially if you prefer textless artwork, as it cannot be queried for text.",
+    "OverrideProviderOrder": "If true, Posterizarr will use the Provider Custom Order array to sequentially check providers for artwork instead of strictly adhering to FavProvider's single-provider logic.",
+    "ProviderOrder": "The sequential order in which Posterizarr searches for artwork when Override Provider Order is true. Valid values: TMDB, TVDB, Fanart, Plex.",
     "tmdb_vote_sorting": "Picture sorting via TMDB api, either by vote_average, vote_count or by primary (default tmdb view like on the website). Default is vote_average.",
     "PreferredLanguageOrder": "Specify language preferences. Default is xx,en,de (xx is Textless). Use 2-digit ISO 3166-1 language codes. If you set it to xx you tell the script it should only search for textless, posters with text will be skipped.",
     "PreferredSeasonLanguageOrder": "Specify language preferences for seasons. Default is xx,en,de (xx is Textless). Use 2-digit ISO 3166-1 language codes.",

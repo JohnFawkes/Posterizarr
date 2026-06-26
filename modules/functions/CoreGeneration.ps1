@@ -1,4 +1,4 @@
-function Invoke-MoviePosterCreation {
+﻿function Invoke-MoviePosterCreation {
     param (
         $entry
     )
@@ -158,6 +158,36 @@ function Invoke-MoviePosterCreation {
                             }
                             Else {
                                 Write-Entry -Message "Start Poster Search for: $Titletext" -Path $global:configLogging -Color White -log Info
+                            if ($global:OverrideProviderOrder) {
+                                $global:LoopFallbackPosterUrl = $null
+                                foreach ($provider in $global:ProviderOrder) {
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) { break }
+                                    switch -Wildcard ($provider) {
+                                        'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBMoviePoster } }
+                                        'TVDB' { if ($entry.tvdbid) { $global:posterurl = GetTVDBMoviePoster } }
+                                        'FANART' { $global:posterurl = GetFanartMoviePoster }
+                                        'PLEX' { if ($ArtUrl) { GetPlexArtwork -Type ' a Movie Poster' -ArtUrl $Arturl -TempImage $PosterImage } }
+                                    }
+
+                                    if ($global:posterurl -and $global:PosterPreferTextless -eq $true -and !$global:TextlessPoster) {
+                                        if (!$global:LoopFallbackPosterUrl) { $global:LoopFallbackPosterUrl = $global:posterurl }
+                                        $global:posterurl = $null
+                                        $global:IsFallback = $true
+                                    }
+
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) {
+                                        Write-Entry -Subtext "Took image from custom provider loop: $provider" -Path $global:configLogging -Color Cyan -log Info
+                                        if ($provider -ne $global:ProviderOrder[0]) {
+                                            $global:IsFallback = $true
+                                        }
+                                    }
+                                }
+                                if (!$global:posterurl -and $global:LoopFallbackPosterUrl -and $global:PosterOnlyTextless -ne $true) {
+                                    $global:posterurl = $global:LoopFallbackPosterUrl
+                                    Write-Entry -Subtext "Took fallback image with text from custom provider loop because no textless poster was found." -Path $global:configLogging -Color Cyan -log Info
+                                }
+                            }
+                            Else {
                                 switch -Wildcard ($global:FavProvider) {
                                     'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBMoviePoster }Else { Write-Entry -Subtext "Can't search on TMDB, missing ID..." -Path $global:configLogging -Color Yellow -log Warning; $global:posterurl = GetFanartMoviePoster } }
                                     'FANART' { $global:posterurl = GetFanartMoviePoster }
@@ -253,6 +283,7 @@ function Invoke-MoviePosterCreation {
                                         }
                                     }
                                 }
+                            }
                             }
                             if ($fontAllCaps -eq 'true') {
                                 $joinedTitle = $Titletext.ToUpper()
@@ -897,6 +928,36 @@ function Invoke-MoviePosterCreation {
                             }
                             Else {
                                 Write-Entry -Message "Start Background Search for: $Titletext" -Path $global:configLogging -Color White -log Info
+                            if ($global:OverrideProviderOrder) {
+                                $global:LoopFallbackPosterUrl = $null
+                                foreach ($provider in $global:ProviderOrder) {
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) { break }
+                                    switch -Wildcard ($provider) {
+                                        'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBMovieBackground } }
+                                        'TVDB' { if ($entry.tvdbid) { $global:posterurl = GetTVDBMovieBackground } }
+                                        'FANART' { $global:posterurl = GetFanartMovieBackground }
+                                        'PLEX' { if ($ArtUrl) { GetPlexArtwork -Type ' a Movie Background' -ArtUrl $Arturl -TempImage $backgroundImage } }
+                                    }
+
+                                    if ($global:posterurl -and $global:BackgroundPreferTextless -eq 'true' -and !$global:TextlessPoster) {
+                                        if (!$global:LoopFallbackPosterUrl) { $global:LoopFallbackPosterUrl = $global:posterurl }
+                                        $global:posterurl = $null
+                                        $global:IsFallback = $true
+                                    }
+
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) {
+                                        Write-Entry -Subtext "Took image from custom provider loop: $provider" -Path $global:configLogging -Color Cyan -log Info
+                                        if ($provider -ne $global:ProviderOrder[0]) {
+                                            $global:IsFallback = $true
+                                        }
+                                    }
+                                }
+                                if (!$global:posterurl -and $global:LoopFallbackPosterUrl -and $global:BackgroundOnlyTextless -ne $true) {
+                                    $global:posterurl = $global:LoopFallbackPosterUrl
+                                    Write-Entry -Subtext "Took fallback image with text from custom provider loop because no textless background was found." -Path $global:configLogging -Color Cyan -log Info
+                                }
+                            }
+                            Else {
                                 switch -Wildcard ($global:FavProvider) {
                                     'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBMovieBackground }Else { Write-Entry -Subtext "Can't search on TMDB, missing ID..." -Path $global:configLogging -Color Yellow -log Warning; $global:posterurl = GetFanartMovieBackground } }
                                     'FANART' { $global:posterurl = GetFanartMovieBackground }
@@ -971,6 +1032,7 @@ function Invoke-MoviePosterCreation {
                                     }
                                 }
 
+                            }
                                 if ($BackgroundfontAllCaps -eq 'true') {
                                     $joinedTitle = $Titletext.ToUpper()
                                 }
@@ -1711,6 +1773,36 @@ function Invoke-ShowPosterCreation {
                         }
                         Else {
                             Write-Entry -Message "Start Poster Search for: $Titletext" -Path $global:configLogging -Color White -log Info
+                            if ($global:OverrideProviderOrder) {
+                                $global:LoopFallbackPosterUrl = $null
+                                foreach ($provider in $global:ProviderOrder) {
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) { break }
+                                    switch -Wildcard ($provider) {
+                                        'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBShowPoster } }
+                                        'TVDB' { if ($entry.tvdbid) { $global:posterurl = GetTVDBShowPoster } }
+                                        'FANART' { $global:posterurl = GetFanartShowPoster }
+                                        'PLEX' { if ($ArtUrl) { GetPlexArtwork -Type ' a Show Poster' -ArtUrl $Arturl -TempImage $PosterImage } }
+                                    }
+
+                                    if ($global:posterurl -and $global:PosterPreferTextless -eq $true -and !$global:TextlessPoster) {
+                                        if (!$global:LoopFallbackPosterUrl) { $global:LoopFallbackPosterUrl = $global:posterurl }
+                                        $global:posterurl = $null
+                                        $global:IsFallback = $true
+                                    }
+
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) {
+                                        Write-Entry -Subtext "Took image from custom provider loop: $provider" -Path $global:configLogging -Color Cyan -log Info
+                                        if ($provider -ne $global:ProviderOrder[0]) {
+                                            $global:IsFallback = $true
+                                        }
+                                    }
+                                }
+                                if (!$global:posterurl -and $global:LoopFallbackPosterUrl -and $global:PosterOnlyTextless -ne $true) {
+                                    $global:posterurl = $global:LoopFallbackPosterUrl
+                                    Write-Entry -Subtext "Took fallback image with text from custom provider loop because no textless poster was found." -Path $global:configLogging -Color Cyan -log Info
+                                }
+                            }
+                            Else {
                             switch -Wildcard ($global:FavProvider) {
                                 'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBShowPoster }Else { Write-Entry -Subtext "Can't search on TMDB, missing ID..." -Path $global:configLogging -Color Yellow -log Warning; $global:posterurl = GetFanartShowPoster } }
                                 'FANART' { $global:posterurl = GetFanartShowPoster }
@@ -1793,6 +1885,7 @@ function Invoke-ShowPosterCreation {
                                 $global:posterurl = $global:fanartfallbackposterurl
                             }
                         }
+                            }
                         if ($fontAllCaps -eq 'true') {
                             $joinedTitle = $Titletext.ToUpper()
                         }
@@ -2444,6 +2537,36 @@ function Invoke-ShowPosterCreation {
                         }
                         Else {
                             Write-Entry -Message "Start Background Search for: $Titletext" -Path $global:configLogging -Color White -log Info
+                            if ($global:OverrideProviderOrder) {
+                                $global:LoopFallbackPosterUrl = $null
+                                foreach ($provider in $global:ProviderOrder) {
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) { break }
+                                    switch -Wildcard ($provider) {
+                                        'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBShowBackground } }
+                                        'TVDB' { if ($entry.tvdbid) { $global:posterurl = GetTVDBShowBackground } }
+                                        'FANART' { $global:posterurl = GetFanartShowBackground }
+                                        'PLEX' { if ($ArtUrl) { GetPlexArtwork -Type ' a Show Background' -ArtUrl $Arturl -TempImage $backgroundImage } }
+                                    }
+
+                                    if ($global:posterurl -and $global:BackgroundPreferTextless -eq 'true' -and !$global:TextlessPoster) {
+                                        if (!$global:LoopFallbackPosterUrl) { $global:LoopFallbackPosterUrl = $global:posterurl }
+                                        $global:posterurl = $null
+                                        $global:IsFallback = $true
+                                    }
+
+                                    if ($global:posterurl -or $global:PlexartworkDownloaded) {
+                                        Write-Entry -Subtext "Took image from custom provider loop: $provider" -Path $global:configLogging -Color Cyan -log Info
+                                        if ($provider -ne $global:ProviderOrder[0]) {
+                                            $global:IsFallback = $true
+                                        }
+                                    }
+                                }
+                                if (!$global:posterurl -and $global:LoopFallbackPosterUrl -and $global:BackgroundOnlyTextless -ne $true) {
+                                    $global:posterurl = $global:LoopFallbackPosterUrl
+                                    Write-Entry -Subtext "Took fallback image with text from custom provider loop because no textless background was found." -Path $global:configLogging -Color Cyan -log Info
+                                }
+                            }
+                            Else {
                             switch -Wildcard ($global:FavProvider) {
                                 'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBShowBackground }Else { Write-Entry -Subtext "Can't search on TMDB, missing ID..." -Path $global:configLogging -Color Yellow -log Warning; $global:posterurl = GetFanartShowBackground } }
                                 'FANART' { $global:posterurl = GetFanartShowBackground }
@@ -2525,6 +2648,7 @@ function Invoke-ShowPosterCreation {
 
                             }
                         }
+                            }
                         if ($BackgroundfontAllCaps -eq 'true') {
                             $joinedTitle = $Titletext.ToUpper()
                         }
@@ -3237,6 +3361,36 @@ function Invoke-ShowPosterCreation {
                             Else {
                                 if (!$Seasonpostersearchtext) {
                                     Write-Entry -Message "Start Season Poster Search for: $Titletext | $global:seasonTitle" -Path $global:configLogging -Color White -log Info
+                                if ($global:OverrideProviderOrder) {
+                                    $global:LoopFallbackPosterUrl = $null
+                                    foreach ($provider in $global:ProviderOrder) {
+                                        if ($global:posterurl -or $global:PlexartworkDownloaded) { break }
+                                        switch -Wildcard ($provider) {
+                                            'TMDB' { if ($entry.tmdbid) { $global:posterurl = GetTMDBSeasonPoster } }
+                                            'TVDB' { if ($entry.tvdbid) { $global:posterurl = GetTVDBSeasonPoster } }
+                                            'FANART' { $global:posterurl = GetFanartSeasonPoster }
+                                            'PLEX' { if ($ArtUrl) { GetPlexArtwork -Type ' a Season Poster' -ArtUrl $Arturl -TempImage $SeasonImage } }
+                                        }
+
+                                        if ($global:posterurl -and $global:SeasonPreferTextless -eq $true -and !$global:TextlessPoster) {
+                                            if (!$global:LoopFallbackPosterUrl) { $global:LoopFallbackPosterUrl = $global:posterurl }
+                                            $global:posterurl = $null
+                                            $global:IsFallback = $true
+                                        }
+
+                                        if ($global:posterurl -or $global:PlexartworkDownloaded) {
+                                            Write-Entry -Subtext "Took image from custom provider loop: $provider" -Path $global:configLogging -Color Cyan -log Info
+                                            if ($provider -ne $global:ProviderOrder[0]) {
+                                                $global:IsFallback = $true
+                                            }
+                                        }
+                                    }
+                                    if (!$global:posterurl -and $global:LoopFallbackPosterUrl -and $global:SeasonOnlyTextless -ne $true) {
+                                        $global:posterurl = $global:LoopFallbackPosterUrl
+                                        Write-Entry -Subtext "Took fallback image with text from custom provider loop because no textless poster was found." -Path $global:configLogging -Color Cyan -log Info
+                                    }
+                                }
+                                Else {
                                     $Seasonpostersearchtext = $true
                                 }
                                 switch -Wildcard ($global:FavProvider) {
@@ -3433,6 +3587,7 @@ function Invoke-ShowPosterCreation {
                                 }
 
                             }
+                                }
                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
                                 $global:IsTruncated = $null
                                 if ($global:ImageProcessing -eq 'true') {
@@ -4245,6 +4400,23 @@ function Invoke-ShowPosterCreation {
                                                 }
                                                 if ($global:TempImagecopied -ne 'true') {
                                                     # now search for TitleCards
+                                                if ($global:OverrideProviderOrder) {
+                                                    foreach ($provider in $global:ProviderOrder) {
+                                                        if ($global:posterurl -or $global:PlexartworkDownloaded) { break }
+                                                        switch -Wildcard ($provider) {
+                                                            'TMDB' { if ($episode.tmdbid) { $global:posterurl = GetTMDBTitleCard } }
+                                                            'TVDB' { if ($episode.tvdbid) { $global:posterurl = GetTVDBTitleCard } }
+                                                            'PLEX' { if ($ArtUrl) { GetPlexArtwork -Type ": `$global:show_name 'Season `$global:season_number - Episode `$global:episodenumber' Title Card" -ArtUrl $ArtUrl -TempImage $EpisodeImage } }
+                                                        }
+                                                        if ($global:posterurl -or $global:PlexartworkDownloaded) {
+                                                            Write-Entry -Subtext "Took image from custom provider loop: $provider" -Path $global:configLogging -Color Cyan -log Info
+                                                            if ($provider -ne $global:ProviderOrder[0]) {
+                                                                $global:IsFallback = $true
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                Else {
                                                     if ($global:FavProvider -eq 'TMDB') {
                                                         if ($episode.tmdbid) {
                                                             $global:posterurl = GetTMDBShowBackground
@@ -5121,6 +5293,7 @@ function Invoke-ShowPosterCreation {
                                                     }
                                                 }
                                             }
+                                                }
                                             if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
                                                 $global:IsTruncated = $null
                                                 if ($global:ImageProcessing -eq 'true') {

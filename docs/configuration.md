@@ -29,6 +29,12 @@
 
         [Search order in script](searchorder.md)
 
+    - `OverrideProviderOrder`: If set to `true`, Posterizarr will ignore the legacy `FavProvider` hardcoded priority lists and instead strictly follow the array you define in `ProviderOrder`.
+    - `ProviderOrder`: A list specifying the exact sequential order in which Posterizarr searches for artwork when `OverrideProviderOrder` is true.
+        - Possible values: `"TMDB"`, `"TVDB"`, `"Fanart"`, `"Plex"`
+        - Example: `["TMDB", "TVDB", "Fanart", "Plex"]`
+
+
     - `WidthHeightFilter`: If set to `true`, an additional resolution filter will be applied to Posters/Backgrounds (TMDB and TVDB) and Titlecards (only on TMDB) searches.
     - `PosterMinWidth`: Minimum poster width filter—greater than or equal to: `2000` (default value)
     - `PosterMinHeight`: Minimum poster height filter—greater than or equal to: `3000` (default value)
