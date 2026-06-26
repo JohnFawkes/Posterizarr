@@ -3191,7 +3191,7 @@ function CheckJellyfinAccess {
     if ($JellyfinAPI) {
         Write-Entry -Message "Checking Jellyfin access now..." -Path $global:configLogging -Color White -log Info
         try {
-            $response = Invoke-RestMethod -Method Get -Uri "$JellyfinUrl/System/Info" -ErrorAction Stop -Headers @{ "Authorization" = "MediaBrowser Token=\"$JellyfinAPI\"" }
+            $response = Invoke-RestMethod -Method Get -Uri "$JellyfinUrl/System/Info" -ErrorAction Stop -Headers @{ "Authorization" = "MediaBrowser Token=`"$JellyfinAPI`"" }
             if ($response.version) {
                 Write-Entry -Subtext "Jellyfin access is working..." -Path $global:configLogging -Color Green -log Info
             }
@@ -3222,7 +3222,7 @@ function CheckEmbyAccess {
     if ($EmbyAPI) {
         Write-Entry -Message "Checking Emby access now..." -Path $global:configLogging -Color White -log Info
         try {
-            $response = Invoke-RestMethod -Method Get -Uri "$EmbyUrl/System/Info" -ErrorAction Stop -Headers @{ "Authorization" = "MediaBrowser Token=\"$EmbyAPI\"" }
+            $response = Invoke-RestMethod -Method Get -Uri "$EmbyUrl/System/Info" -ErrorAction Stop -Headers @{ "Authorization" = "MediaBrowser Token=`"$EmbyAPI`"" }
             if ($response.version) {
                 Write-Entry -Subtext "Emby access is working..." -Path $global:configLogging -Color Green -log Info
             }
@@ -5013,13 +5013,13 @@ function MassDownloadJellyEmbyArtwork {
         CheckJellyfinAccess -JellyfinUrl $JellyfinUrl -JellyfinApi $JellyfinAPIKey
         $OtherMediaServerUrl = $JellyfinUrl
         $OtherMediaServerApiKey = $JellyfinAPIKey
-        $global:OtherMediaServerHeaders = @{ "Authorization" = "MediaBrowser Token=\"$JellyfinAPIKey\"" }
+        $global:OtherMediaServerHeaders = @{ "Authorization" = "MediaBrowser Token=`"$JellyfinAPIKey`"" }
     }
     if ($UseEmby -eq 'true') {
         CheckEmbyAccess -EmbyUrl $EmbyUrl -EmbyAPI $EmbyAPIKey
         $OtherMediaServerUrl = $EmbyUrl
         $OtherMediaServerApiKey = $EmbyAPIKey
-        $global:OtherMediaServerHeaders = @{ "Authorization" = "MediaBrowser Token=\"$EmbyAPIKey\"" }
+        $global:OtherMediaServerHeaders = @{ "Authorization" = "MediaBrowser Token=`"$EmbyAPIKey`"" }
     }
 
     $Mode = "backup"

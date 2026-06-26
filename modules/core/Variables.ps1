@@ -347,7 +347,7 @@ if ($UseEmby -eq 'true') {
 
 $global:OtherMediaServerHeaders = @{}
 if ($OtherMediaServerApiKey) {
-    $global:OtherMediaServerHeaders["Authorization"] = "MediaBrowser Token=\"$OtherMediaServerApiKey\""
+    $global:OtherMediaServerHeaders["Authorization"] = "MediaBrowser Token=`"$OtherMediaServerApiKey`""
 }
 
 # Count how many media servers are enabled

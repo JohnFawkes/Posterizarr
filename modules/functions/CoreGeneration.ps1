@@ -97,7 +97,7 @@
                     Write-Entry -Message "Manual Test Path is: $ManualTestPath" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Message "Resolved Manual Test Path is: $Manualtestpath" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Message "Resolved Manual Full Test Path is: $fullManualTestPath" -Path $global:configLogging -Color Cyan -log Debug
-                    $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername).jpg"
+                    $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername).jpg"
                     $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
 
                     # Now we can start the Poster Part
@@ -868,7 +868,7 @@
                             }
                         }
 
-                        $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
+                        $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername)_background.jpg"
                         $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                         $checkedItems.Add($hashtestpath)
                         if (($null -ne $FileTestOnTrigger -and $FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
@@ -1737,7 +1737,7 @@ function Invoke-ShowPosterCreation {
                 Write-Entry -Message "Resolved Manual Test Path is: $Manualtestpath" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Message "Resolved Manual Full Test Path is: $fullManualTestPath" -Path $global:configLogging -Color Cyan -log Debug
 
-                $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername).jpg"
+                $PosterImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername).jpg"
                 $PosterImage = $PosterImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
 
                 # Now we can start the Poster Part
@@ -2476,7 +2476,7 @@ function Invoke-ShowPosterCreation {
                     Write-Entry -Message "Resolved Manual Test Path is: $Manualtestpath" -Path $global:configLogging -Color Cyan -log Debug
                     Write-Entry -Message "Resolved Manual Full Test Path is: $fullManualTestPath" -Path $global:configLogging -Color Cyan -log Debug
 
-                    $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_background.jpg"
+                    $backgroundImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername)_background.jpg"
                     $backgroundImage = $backgroundImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                     $checkedItems.Add($hashtestpath)
 
@@ -3311,7 +3311,7 @@ function Invoke-ShowPosterCreation {
                         Write-Entry -Message "Resolved Manual Test Path is: $Manualtestpath" -Path $global:configLogging -Color Cyan -log Debug
                         Write-Entry -Message "Resolved Manual Full Test Path is: $fullManualTestPath" -Path $global:configLogging -Color Cyan -log Debug
 
-                        $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:seasontmp.jpg"
+                        $SeasonImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername)_$global:seasontmp.jpg"
                         $SeasonImage = $SeasonImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                         $checkedItems.Add($hashtestpath)
 
@@ -4320,10 +4320,10 @@ function Invoke-ShowPosterCreation {
                                     Write-Entry -Message "Resolved Manual Test Path is: $Manualtestpath" -Path $global:configLogging -Color Cyan -log Debug
                                     Write-Entry -Message "Resolved Manual Full Test Path is: $fullManualTestPath" -Path $global:configLogging -Color Cyan -log Debug
 
-                                    $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:FileNaming.jpg"
+                                    $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername)_$global:FileNaming.jpg"
                                     $EpisodeImage = $EpisodeImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
 
-                                    $EpisodeTempImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_temp.jpg"
+                                    $EpisodeTempImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername)_temp.jpg"
                                     $cjkTitlePattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsThai}]'
 
                                     # Pre-check the title against skipwords
@@ -5075,7 +5075,7 @@ function Invoke-ShowPosterCreation {
                                         }
                                     }
 
-                                    $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:FileNaming.jpg"
+                                    $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.ratingKey)_$($entry.RootFoldername)_$global:FileNaming.jpg"
                                     $EpisodeImage = $EpisodeImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                                     $cjkTitlePattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsThai}]'
 
