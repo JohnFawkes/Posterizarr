@@ -3710,12 +3710,11 @@ async def validate_jellyfin(request: JellyfinValidationRequest):
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             base_url = f"{request.url.rstrip('/')}/System/Info"
-            params = {"api_key": request.api_key}
-            
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
             logger.info(f"[REQUEST] Sending request to Jellyfin API...")
             logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(base_url, params=params)
+            response = await client.get(base_url, headers=headers)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3791,12 +3790,11 @@ async def validate_emby(request: EmbyValidationRequest):
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             base_url = f"{request.url.rstrip('/')}/System/Info"
-            params = {"api_key": request.api_key}
-            
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
             logger.info(f"[REQUEST] Sending request to Emby API...")
             logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(base_url, params=params)
+            response = await client.get(base_url, headers=headers)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -4727,8 +4725,9 @@ async def get_emby_libraries(request: EmbyValidationRequest):
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/Library/VirtualFolders?api_key={request.api_key}"
-            response = await client.get(url)
+            url = f"{request.url}/Library/VirtualFolders"
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
+            response = await client.get(url, headers=headers)
 
             if response.status_code == 200:
                 data = response.json()

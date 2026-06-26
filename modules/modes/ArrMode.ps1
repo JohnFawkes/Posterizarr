@@ -18,7 +18,7 @@
                 $ServerType = if ($UseJellyfin -eq 'true') { "Jellyfin" } else { "Emby" }
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
                 # Search for all matching series
-                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&SearchTerm=$seriesTitle&api_key=$OtherMediaServerApiKey"
+                $seriesSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Series&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&SearchTerm=$seriesTitle" -Headers $global:OtherMediaServerHeaders
                 $seriesMatches = $seriesSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($seriesYear)) -or ($_.ProductionYear -eq $seriesYear) }
 
                 if (-not $seriesMatches) {
@@ -37,7 +37,7 @@
                 }
                 else {
                     # Find the library matching the Sonarr path
-                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
 
                     foreach ($lib in $libsResponse) {
                         foreach ($location in $lib.Locations) {
@@ -68,7 +68,7 @@
                 Write-Entry -Message "Proceeding with: $($seriesItem.Name) (ID: $seriesId)" -Path $global:configLogging -Color Green -log Info
 
                 # Get Season
-                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Season&api_key=$OtherMediaServerApiKey"
+                $seasons = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seriesId&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Season" -Headers $global:OtherMediaServerHeaders
                 $seasonItem = $seasons.Items | Where-Object { $_.IndexNumber -eq $seasonIndex }
 
                 if (-not $seasonItem) {
@@ -77,7 +77,7 @@
 
                 # Get Episode
                 $seasonId = $seasonItem.Id
-                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
+                $episodes = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?ParentId=$seasonId&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode" -Headers $global:OtherMediaServerHeaders
                 $episodeItem = $episodes.Items | Where-Object { $_.IndexNumber -eq $episodeIndex }
 
                 if (-not $episodeItem) {
@@ -153,7 +153,7 @@
                 Write-Entry -Message "Using $ServerType media server" -Path $global:configLogging -Color Green -log Info
 
                 # 1. Search for matching movies
-                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&SearchTerm=$movieTitle&api_key=$OtherMediaServerApiKey"
+                $movieSearch = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&SearchTerm=$movieTitle" -Headers $global:OtherMediaServerHeaders
                 $movieMatches = $movieSearch.Items | Where-Object { ([string]::IsNullOrWhiteSpace($movieYear)) -or ($_.ProductionYear -eq $movieYear) }
 
                 if (-not $movieMatches) {
@@ -172,7 +172,7 @@
                 }
                 else {
                     # Multiple results: Determine which library matches the Radarr/Arr path
-                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
 
                     $MatchingPath = $null
                     $MatchingLib = $null
@@ -254,15 +254,15 @@
     }
     $Libraries = [System.Collections.Generic.List[object]]::new()
     if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
-        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
+        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration").PreferredMetadataLanguage ?? "en" -Headers $global:OtherMediaServerHeaders
         foreach ($Movie in $AllMovies.Items) {
             $Resolution = $null
             if ($UseEmby -eq 'true') {
-                $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+                $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
                 $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
 
-                $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery
+                $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders"
+                $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders
                 $librariestemp = $librarytemp | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations, LibraryOptions -Unique
 
                 foreach ($singlelibrary in $librariestemp) {
@@ -378,11 +378,11 @@
                 }
             }
             Else {
-                $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+                $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
                 $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
 
-                $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-                $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery
+                $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders"
+                $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders
                 $librariestemp = $librarytemp | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations -Unique
 
                 foreach ($singlelibrary in $librariestemp) {
@@ -491,11 +491,11 @@
             }
         }
         foreach ($Show in $AllShows.Items) {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
 
-            $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-            $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery
+            $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders"
+            $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders
             if ($UseEmby -eq 'true') {
                 $librariestemp = $librarytemp | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations, LibraryOptions -Unique
             }

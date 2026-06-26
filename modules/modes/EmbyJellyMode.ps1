@@ -25,9 +25,9 @@
 
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
-    $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-    $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration").PreferredMetadataLanguage ?? "en" -Headers $global:OtherMediaServerHeaders
+    $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders"
+    $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders
 
     write-Entry -Subtext "Found '$($AllLibs.count)' libs and '$($LibstoExclude.count)' are excluded..." -Path $global:configLogging -Color Cyan -log Info
     $IncludedLibraryNames = ($AllLibs | Where-Object { $_.Name -notin $LibstoExclude }).Name -join ', '
@@ -49,16 +49,16 @@
         if ($slib.Name -notin $LibstoExclude) {
             if ($slib.CollectionType -eq 'movies') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Movie"
-                $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
+                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Movie"
+                $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery -Headers $global:OtherMediaServerHeaders
                 $AllMovies.Add($Querytemp)
             }
             if ($slib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($slib.Name)] with item id [$($slib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Series"
-                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode"
-                $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
-                $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
+                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&IncludeItemTypes=Series"
+                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($slib.ItemId)&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags,Width,Height,MediaStreams&IncludeItemTypes=Episode"
+                $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery -Headers $global:OtherMediaServerHeaders
+                $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery -Headers $global:OtherMediaServerHeaders
                 $AllShows.Add($Querytempshow)
                 $AllEpisodes.Add($QuerytempEpisodes)
             }
@@ -69,7 +69,7 @@
     foreach ($Movie in $AllMovies.Items) {
         $Resolution = $null
         if ($UseEmby -eq 'true') {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
 
             $librariestemp = $AllLibs  | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations, LibraryOptions -Unique
@@ -187,7 +187,7 @@
             }
         }
         Else {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
 
             $librariestemp = $AllLibs  | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations -Unique
@@ -298,7 +298,7 @@
         }
     }
     foreach ($Show in $AllShows.Items) {
-        $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+        $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
         $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
 
         if ($UseEmby -eq 'true') {
@@ -456,7 +456,7 @@
             $OtherMediaServerTitleCardUrlsList = [System.Collections.Generic.List[string]]::new()
             foreach ($epId in ($EpisodeIds -split ',')) {
                 if ($epId) {
-                    $OtherMediaServerTitleCardUrlsList.Add("$OtherMediaServerUrl/Items/$epId/Images/Primary?api_key=$OtherMediaServerApiKey")
+                    $OtherMediaServerTitleCardUrlsList.Add("$OtherMediaServerUrl/Items/$epId/Images/Primary")
                 }
             }
             $OtherMediaServerTitleCardUrls = $OtherMediaServerTitleCardUrlsList -join ','
@@ -492,7 +492,7 @@
             if ($SeasonId) { $showSeasonIds.Add($SeasonId) }
             $showSeasonNumbers.Add($SeasonEpisodes[0].ParentIndexNumber)
             $showSeasonNames.Add($Season.Name)
-            if ($SeasonId) { $showSeasonUrls.Add("$OtherMediaServerUrl/Items/$SeasonId/Images/Primary?api_key=$OtherMediaServerApiKey") }
+            if ($SeasonId) { $showSeasonUrls.Add("$OtherMediaServerUrl/Items/$SeasonId/Images/Primary") }
         }
         
         # Append collected season metadata to the parent show object

@@ -423,9 +423,9 @@
     # Query Jellyfin/Emby
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration?api_key=$OtherMediaServerApiKey").PreferredMetadataLanguage ?? "en"
-    $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
-    $OtherAllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration").PreferredMetadataLanguage ?? "en" -Headers $global:OtherMediaServerHeaders
+    $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders"
+    $OtherAllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders
 
     write-Entry -Subtext "Found '$($OtherAllLibs.count)' libs and '$($LibstoExclude.count)' are excluded..." -Path $global:configLogging -Color Cyan -log Info
     $IncludedLibraryNames = ($OtherAllLibs | Where-Object { $_.Name -notin $LibstoExclude }).Name -join ', '
@@ -449,16 +449,16 @@
         if ($otherlib.Name -notin $LibstoExclude) {
             if ($otherlib.CollectionType -eq 'movies') {
                 Write-Entry -Subtext "Getting all Itmes from [$($otherlib.Name)] with item id [$($otherlib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags&IncludeItemTypes=Movie"
-                $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery
+                $allMoviesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&Recursive=true&Fields=ProviderIds,OriginalTitle,Settings,Path,Overview,ProductionYear,Tags&IncludeItemTypes=Movie"
+                $Querytemp = Invoke-RestMethod -Method Get -Uri $allMoviesquery -Headers $global:OtherMediaServerHeaders
                 $OtherAllMovies.Add($Querytemp)
             }
             if ($otherlib.CollectionType -eq 'tvshows') {
                 Write-Entry -Subtext "Getting all Itmes from [$($otherlib.Name)] with item id [$($otherlib.ItemId)]" -Path $global:configLogging -Color Cyan -log Debug
-                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags&IncludeItemTypes=Series"
-                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&api_key=$OtherMediaServerApiKey&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags&IncludeItemTypes=Episode"
-                $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery
-                $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery
+                $allShowsquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags&IncludeItemTypes=Series"
+                $allEpisodesquery = "$OtherMediaServerUrl/Items?ParentId=$($otherlib.ItemId)&Recursive=true&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,Settings,Tags&IncludeItemTypes=Episode"
+                $Querytempshow = Invoke-RestMethod -Method Get -Uri $allShowsquery -Headers $global:OtherMediaServerHeaders
+                $QuerytempEpisodes = Invoke-RestMethod -Method Get -Uri $allEpisodesquery -Headers $global:OtherMediaServerHeaders
                 $OtherAllShows.Add($Querytempshow)
                 $OtherAllEpisodes.Add($QuerytempEpisodes)
             }
@@ -468,7 +468,7 @@
     $OtherLibraries = [System.Collections.Generic.List[object]]::new()
     foreach ($Movie in $OtherAllMovies.Items) {
         if ($SyncEmby) {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
 
             $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations, LibraryOptions -Unique
@@ -536,7 +536,7 @@
         }
         Else {
             Write-Entry -Subtext "Processing - '$($Movie.Name)'" -Path $global:configLogging -Color Cyan -log Debug
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
 
             $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations -Unique
@@ -602,7 +602,7 @@
         }
     }
     foreach ($Show in $OtherAllShows.Items) {
-        $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors?api_key=$OtherMediaServerApiKey"
+        $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
         $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
 
 
@@ -845,13 +845,13 @@
                             Write-Entry -Message "Type: $imageType" -Path $global:configLogging -Color Cyan -log Debug
                             if ($matchingMovie.id.Count -gt 1) {
                                 foreach ($id in $matchingMovie.id) {
-                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/"
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $MovieTitle -artworktype 'poster'
                                     Write-Entry -Subtext "Movie ID: $id" -Path $global:configLogging -Color Cyan -log Debug
                                 }
                             }
                             Else {
-                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingMovie.id)/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingMovie.id)/images/$imageType/"
                                 if ($matchingMovie.id) {
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $MovieTitle -artworktype 'poster'
                                     Write-Entry -Subtext "Movie ID: $($matchingMovie.id)" -Path $global:configLogging -Color Cyan -log Debug
@@ -923,13 +923,13 @@
                             Write-Entry -Message "Type: $imageType" -Path $global:configLogging -Color Cyan -log Debug
                             if ($matchingMovie.id.Count -gt 1) {
                                 foreach ($id in $matchingMovie.id) {
-                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/"
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $MovieTitle -artworktype 'background'
                                     Write-Entry -Subtext "Movie ID: $id" -Path $global:configLogging -Color Cyan -log Debug
                                 }
                             }
                             Else {
-                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingMovie.id)/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingMovie.id)/images/$imageType/"
                                 if ($matchingMovie.id) {
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $MovieTitle -artworktype 'background'
                                     Write-Entry -Subtext "Movie ID: $($matchingMovie.id)" -Path $global:configLogging -Color Cyan -log Debug
@@ -1015,13 +1015,13 @@
                             Write-Entry -Message "Type: $imageType" -Path $global:configLogging -Color Cyan -log Debug
                             if ($matchingShow.id.Count -gt 1) {
                                 foreach ($id in $matchingShow.id) {
-                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/"
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'poster'
                                     Write-Entry -Subtext "Show ID: $id" -Path $global:configLogging -Color Cyan -log Debug
                                 }
                             }
                             Else {
-                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingShow.id)/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingShow.id)/images/$imageType/"
                                 if ($matchingShow.id) {
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'poster'
                                     Write-Entry -Subtext "Show ID: $($matchingShow.id)" -Path $global:configLogging -Color Cyan -log Debug
@@ -1089,13 +1089,13 @@
                             Write-Entry -Message "Type: $imageType" -Path $global:configLogging -Color Cyan -log Debug
                             if ($matchingShow.id.Count -gt 1) {
                                 foreach ($id in $matchingShow.id) {
-                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                    $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/"
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'background'
                                     Write-Entry -Subtext "Show ID: $id" -Path $global:configLogging -Color Cyan -log Debug
                                 }
                             }
                             Else {
-                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingShow.id)/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                $DestUrl = "$OtherMediaServerUrl/items/$($matchingShow.id)/images/$imageType/"
                                 if ($matchingShow.id) {
                                     SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'background'
                                     Write-Entry -Subtext "Show ID: $($matchingShow.id)" -Path $global:configLogging -Color Cyan -log Debug
@@ -1170,13 +1170,13 @@
                                 Write-Entry -Message "Type: $imageType" -Path $global:configLogging -Color Cyan -log Debug
                                 if ($matchingSeason.SeasonId.Count -gt 1) {
                                     foreach ($id in $matchingSeason.SeasonId) {
-                                        $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                        $DestUrl = "$OtherMediaServerUrl/items/$id/images/$imageType/"
                                         SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'season'
                                         Write-Entry -Subtext "Season ID: $id" -Path $global:configLogging -Color Cyan -log Debug
                                     }
                                 }
                                 Else {
-                                    $DestUrl = "$OtherMediaServerUrl/items/$($matchingSeason.SeasonId)/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                    $DestUrl = "$OtherMediaServerUrl/items/$($matchingSeason.SeasonId)/images/$imageType/"
                                     if ($matchingSeason.SeasonId) {
                                         SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'season'
                                         Write-Entry -Subtext "Season ID: $($matchingSeason.SeasonId)" -Path $global:configLogging -Color Cyan -log Debug
@@ -1264,7 +1264,7 @@
                                         $ShowTitle = "$($entry.Title) | Season $($global:season_number) - Episode $global:episodenumber"
                                         # Define the image type and destination URL
                                         $imageType = "Primary"
-                                        $DestUrl = "$OtherMediaServerUrl/items/$($global:episodeid)/images/$imageType/?api_key=$OtherMediaServerApiKey"
+                                        $DestUrl = "$OtherMediaServerUrl/items/$($global:episodeid)/images/$imageType/"
                                         # Call the SyncPlexArtwork function to sync the artwork
                                         if ($matchingShow.id) {
                                             SyncPlexArtwork -ArtUrl $Arturl -DestUrl $DestUrl -imagetype $imageType -title $ShowTitle -artworktype 'tc'

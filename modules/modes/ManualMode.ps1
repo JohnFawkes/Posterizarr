@@ -993,18 +993,18 @@
             }
             elseif ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
                 $SearchType = if ($MoviePosterCard -or ($BackgroundCard -and $PosterType -eq "Movie Background")) { "Movie" } else { "Series" }
-                $searchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=$SearchType&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
+                $searchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=$SearchType&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))"
 
                 Write-Entry -Subtext "JF/Emby Search URI: $(RedactMediaServerUrl -url $searchUri)" -Path $global:configLogging -Color Cyan -log Debug
-                $results = Invoke-RestMethod -Uri $searchUri
+                $results = Invoke-RestMethod -Uri $searchUri -Headers $global:OtherMediaServerHeaders
 
                 $baseItem = $results.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
 
                 if (-not $baseItem -and $SearchType -eq "Series") {
                     Write-Entry -Subtext "Precision match failed for Series '$FolderName'. Retrying search as 'Movie' type..." -Path $global:configLogging -Color Yellow -log Info
 
-                    $retrySearchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Fields=Path&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))&api_key=$OtherMediaServerApiKey"
-                    $retryResults = Invoke-RestMethod -Uri $retrySearchUri
+                    $retrySearchUri = "$OtherMediaServerUrl/Items?IncludeItemTypes=Movie&Fields=Path&Recursive=true&SearchTerm=$([uri]::EscapeDataString($Titletext))"
+                    $retryResults = Invoke-RestMethod -Uri $retrySearchUri -Headers $global:OtherMediaServerHeaders
                     $baseItem = $retryResults.Items | Where-Object { $_.Path -match [regex]::Escape($FolderName) }
 
                     if ($baseItem) {
@@ -1033,8 +1033,8 @@
                         $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
                     }
                     else {
-                        $drillUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&api_key=$OtherMediaServerApiKey"
-                        $seasons = Invoke-RestMethod -Uri $drillUri
+                        $drillUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&IncludeItemTypes=Season&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams"
+                        $seasons = Invoke-RestMethod -Uri $drillUri -Headers $global:OtherMediaServerHeaders
                         $FinalTargetID = ($seasons.Items | Where-Object { [int]$_.IndexNumber -eq [int]$global:SeasonNumber }).Id
                     }
                     Write-Entry -Subtext "Resolved Season ID: $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug
@@ -1049,8 +1049,8 @@
                         $FinalTargetID = ($epsXml.MediaContainer.video | Where-Object { [int]$_.index -eq [int]$global:EpisodeNumber }).ratingKey
                     }
                     else {
-                        $epsUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&IncludeItemTypes=Episode&api_key=$OtherMediaServerApiKey"
-                        $eps = Invoke-RestMethod -Uri $epsUri
+                        $epsUri = "$OtherMediaServerUrl/Items?ParentId=$FinalTargetID&Fields=ProviderIds,SeasonUserData,OriginalTitle,Path,Overview,ProductionYear,Tags,Width,Height,MediaStreams&Recursive=true&IncludeItemTypes=Episode"
+                        $eps = Invoke-RestMethod -Uri $epsUri -Headers $global:OtherMediaServerHeaders
                         $FinalTargetID = ($eps.Items | Where-Object { [int]$_.ParentIndexNumber -eq [int]$global:SeasonNumber -and [int]$_.IndexNumber -eq [int]$global:EpisodeNumber }).Id
                     }
                     Write-Entry -Subtext "Resolved Episode ID: $FinalTargetID" -Path $global:configLogging -Color Cyan -log Debug

@@ -137,7 +137,7 @@
                                 }
                             }
                             elseif ($entry.OtherMediaServerPosterUrl) {
-                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/?api_key=$OtherMediaServerApiKey"
+                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/"
                             }
 
                             foreach ($ext in $allowedExtensions) {
@@ -907,7 +907,7 @@
                                 }
                             }
                             elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                             }
 
                             foreach ($ext in $allowedExtensions) {
@@ -1511,7 +1511,7 @@
                                     }
                                 }
                                 elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                                 }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
@@ -1754,7 +1754,7 @@ function Invoke-ShowPosterCreation {
                             }
                         }
                         elseif ($entry.OtherMediaServerPosterUrl) {
-                            $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/?api_key=$OtherMediaServerApiKey"
+                            $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/"
                         }
                         foreach ($ext in $allowedExtensions) {
                             $filePath = "$ManualTestPath$ext"
@@ -2517,7 +2517,7 @@ function Invoke-ShowPosterCreation {
                             }
                         }
                         elseif ($entry.OtherMediaServerBackgroundUrl) {
-                            $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                            $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                         }
 
                         foreach ($ext in $allowedExtensions) {
@@ -3126,7 +3126,7 @@ function Invoke-ShowPosterCreation {
                                 }
                             }
                             elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                             }
                             Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                             try {
@@ -4360,7 +4360,7 @@ function Invoke-ShowPosterCreation {
                                                 $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
                                             }
                                             elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                                             }
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile = "$ManualTestPath$ext"
@@ -4933,7 +4933,7 @@ function Invoke-ShowPosterCreation {
                                                     $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
                                                 }
                                                 elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
@@ -5113,7 +5113,7 @@ function Invoke-ShowPosterCreation {
                                                 $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
                                             }
                                             elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                                             }
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile = "$ManualTestPath$ext"
@@ -5698,7 +5698,7 @@ function Invoke-ShowPosterCreation {
                                                     $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
                                                 }
                                                 elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/?api_key=$OtherMediaServerApiKey"
+                                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {

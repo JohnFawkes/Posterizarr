@@ -3040,8 +3040,14 @@ function GetPlexArtwork {
         $client.DefaultRequestHeaders.Range = New-Object System.Net.Http.Headers.RangeHeaderValue(0, 65536)
 
         # Add Plex Headers
-        foreach ($key in $extraPlexHeaders.Keys) {
-            $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $extraPlexHeaders[$key])
+        $requestHeaders = $extraPlexHeaders.Clone()
+        if ($OtherMediaServerUrl -and $ArtUrl.StartsWith($OtherMediaServerUrl)) {
+            foreach ($key in $global:OtherMediaServerHeaders.Keys) {
+                $requestHeaders[$key] = $global:OtherMediaServerHeaders[$key]
+            }
+        }
+        foreach ($key in $requestHeaders.Keys) {
+            $client.DefaultRequestHeaders.TryAddWithoutValidation($key, $requestHeaders[$key])
         }
 
         $task = $client.GetByteArrayAsync($ArtUrl)
@@ -3057,7 +3063,7 @@ function GetPlexArtwork {
     catch {
         Write-Entry -Subtext "Fast-Scan failed for $Type. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
         try {
-            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $requestHeaders
             $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
             if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
                 $ExifFound = $true
@@ -3084,7 +3090,7 @@ function GetPlexArtwork {
         # Only download the FULL image if needed
         Write-Entry -Subtext "No EXIF found or validation disabled, downloading full $Type..." -Path $global:configLogging -Color Green -log Info
         try {
-            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+            Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $requestHeaders
             $global:PlexartworkDownloaded = $true
             $global:posterurl = $ArtUrl
         }
@@ -3185,7 +3191,7 @@ function CheckJellyfinAccess {
     if ($JellyfinAPI) {
         Write-Entry -Message "Checking Jellyfin access now..." -Path $global:configLogging -Color White -log Info
         try {
-            $response = Invoke-RestMethod -Method Get -Uri "$JellyfinUrl/System/Info?api_key=$JellyfinAPI" -ErrorAction Stop
+            $response = Invoke-RestMethod -Method Get -Uri "$JellyfinUrl/System/Info" -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
             if ($response.version) {
                 Write-Entry -Subtext "Jellyfin access is working..." -Path $global:configLogging -Color Green -log Info
             }
@@ -3216,7 +3222,7 @@ function CheckEmbyAccess {
     if ($EmbyAPI) {
         Write-Entry -Message "Checking Emby access now..." -Path $global:configLogging -Color White -log Info
         try {
-            $response = Invoke-RestMethod -Method Get -Uri "$EmbyUrl/System/Info?api_key=$EmbyAPI" -ErrorAction Stop
+            $response = Invoke-RestMethod -Method Get -Uri "$EmbyUrl/System/Info" -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
             if ($response.version) {
                 Write-Entry -Subtext "Emby access is working..." -Path $global:configLogging -Color Green -log Info
             }
@@ -3247,7 +3253,7 @@ function UploadOtherMediaServerArtwork {
     )
 
     # Check if current image already has exif data
-    $Imageinfo = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/items/$itemId/images/?api_key=$OtherMediaServerApiKey"
+    $Imageinfo = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/items/$itemId/images/" -Headers $global:OtherMediaServerHeaders
     $Imageinfotemp = $Imageinfo | Where-Object imagetype -eq $imageType | Select-Object Height, Width, Path
     if ($Imageinfotemp) {
         $Imageinfotemp = $imageinfotemp[0]
@@ -3260,7 +3266,7 @@ function UploadOtherMediaServerArtwork {
         # Set the API endpoint URL for magick exif check
         if (($imageinfotemp.Height) -and ($imageinfotemp.width)) {
             try {
-                $ImageUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/?api_key=$OtherMediaServerApiKey&width=$($imageinfotemp.width)&height=$($imageinfotemp.Height)"
+                $ImageUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/?width=$($imageinfotemp.width)&height=$($imageinfotemp.Height)"
                 $tempFile = Join-Path -Path $global:ScriptRoot -ChildPath "temp\hashcompare.jpg"
 
                 # Try to download the image
@@ -3314,14 +3320,14 @@ function UploadOtherMediaServerArtwork {
         }
 
         # Set the API endpoint URL
-        $apiUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/?api_key=$OtherMediaServerApiKey"
+        $apiUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/"
 
         if ($imageType -eq "Backdrop") {
-            $deleteUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/0?api_key=$OtherMediaServerApiKey"
+            $deleteUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/0"
             # Make the API request to delete the backdrop image
             try {
                 # Delete the existing image first
-                $response = Invoke-RestMethod -Uri $deleteUrl -Method Delete -ErrorAction Stop
+                $response = Invoke-RestMethod -Uri $deleteUrl -Method Delete -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
                 Write-Entry -Subtext "Image successfully deleted..." -Path $global:configLogging -Color Green -log Info
                 $global:UploadCount = Increment-GlobalStat 'UploadCount'
             }
@@ -3341,9 +3347,9 @@ function UploadOtherMediaServerArtwork {
             }
             if ($global:ReplaceThumbwithBackdrop -eq 'true') {
                 # Make the API request to upload the Thumb image
-                $thumbapiUrl = "$OtherMediaServerUrl/items/$itemId/images/Thumb/?api_key=$OtherMediaServerApiKey"
+                $thumbapiUrl = "$OtherMediaServerUrl/items/$itemId/images/Thumb/"
                 try {
-                    $response = Invoke-RestMethod -Uri $thumbapiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop
+                    $response = Invoke-RestMethod -Uri $thumbapiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
 
                     Write-Entry -Subtext "Thumb Image successfully uploaded..." -Path $global:configLogging -Color Green -log Info
                     $global:UploadCount = Increment-GlobalStat 'UploadCount'
@@ -3366,7 +3372,7 @@ function UploadOtherMediaServerArtwork {
         }
         # Make the API request to upload the image
         try {
-            $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop
+            $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
 
             Write-Entry -Subtext "Image successfully uploaded..." -Path $global:configLogging -Color Green -log Info
             $global:UploadCount = Increment-GlobalStat 'UploadCount'
@@ -3423,7 +3429,7 @@ function MassDownloadPlexArtwork {
             Write-Entry -Subtext "Fast-scan failed, falling back to full download. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
 
             try {
-                Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $extraPlexHeaders
+                Invoke-WebRequest -Uri $ArtUrl -OutFile $TempImage -Headers $requestHeaders
                 $magickcommand = "& `"$magick`" identify -verbose `"$TempImage`""
                 if (Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr') {
                     $ExifFound = $true
@@ -5018,7 +5024,7 @@ function MassDownloadJellyEmbyArtwork {
     Write-Entry -Message "Backup Mode Started..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Querying Jelly/Emby libraries..." -Path $global:configLogging -Color White -log Info
 
-    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders?api_key=$OtherMediaServerApiKey"
+    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
 
     $posterCount = 0
     $BackgroundCount = 0
@@ -5033,8 +5039,8 @@ function MassDownloadJellyEmbyArtwork {
 
         Write-Entry -Message "--- Processing Library: $($lib.Name) ---" -Path $global:configLogging -Color Cyan -log Info
 
-        $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle&api_key=$OtherMediaServerApiKey"
-        $items = (Invoke-RestMethod -Uri $itemsUrl).Items
+        $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle"
+        $items = (Invoke-RestMethod -Uri $itemsUrl).Items -Headers $global:OtherMediaServerHeaders
 
         foreach ($item in $items) {
             # Extract Folder/File names
@@ -5059,10 +5065,10 @@ function MassDownloadJellyEmbyArtwork {
             }
 
             # 1. Download Primary Poster
-            $posterUrl = "$OtherMediaServerUrl/Items/$($item.Id)/Images/Primary?api_key=$OtherMediaServerApiKey"
+            $posterUrl = "$OtherMediaServerUrl/Items/$($item.Id)/Images/Primary"
             if (!(Test-Path -LiteralPath $posterDest)) {
                 try {
-                    Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue
+                    Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                     $global:posterCount = Increment-GlobalStat 'posterCount'
                     Write-Entry -Subtext "Added: $posterDest" -Path $global:configLogging -Color Green -Log Info
                 }
@@ -5075,7 +5081,7 @@ function MassDownloadJellyEmbyArtwork {
             # 2. Download Backdrop
             if (!(Test-Path -LiteralPath $backdropDest)) {
                 try {
-                    Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop?api_key=$OtherMediaServerApiKey" -OutFile $backdropDest -ErrorAction SilentlyContinue
+                    Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop" -OutFile $backdropDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                     $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
                     $global:posterCount = Increment-GlobalStat 'posterCount'
                     Write-Entry -Subtext "Added: $backdropDest" -Path $global:configLogging -Color Green -Log Info
@@ -5087,14 +5093,14 @@ function MassDownloadJellyEmbyArtwork {
             }
 
             if ($item.Type -eq "Series") {
-                $seasons = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Seasons?api_key=$OtherMediaServerApiKey").Items
+                $seasons = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Seasons").Items -Headers $global:OtherMediaServerHeaders
                 foreach ($season in $seasons) {
                     $sNum = if ($null -ne $season.IndexNumber) { $season.IndexNumber.ToString("D2") } else { "00" }
                     $sDest = if ($LibraryFolders) { Join-Path $entryDir "Season$sNum.jpg" } else { Join-Path $entryDir "$($rootFolderName)_season$sNum.jpg" }
 
                     if (!(Test-Path -LiteralPath $sDest)) {
                         try {
-                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $sDest -ErrorAction SilentlyContinue
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary" -OutFile $sDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                             Write-Entry -Subtext "Added: $sDest" -Path $global:configLogging -Color Green -Log Info
                         }
                         catch {
@@ -5104,7 +5110,7 @@ function MassDownloadJellyEmbyArtwork {
                     }
                 }
 
-                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber&api_key=$OtherMediaServerApiKey").Items
+                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber").Items -Headers $global:OtherMediaServerHeaders
                 foreach ($ep in $episodes) {
                     $sNum = if ($null -ne $ep.ParentIndexNumber) { $ep.ParentIndexNumber.ToString("D2") } else { "00" }
                     $eNum = if ($null -ne $ep.IndexNumber) { $ep.IndexNumber.ToString("D2") } else { "00" }
@@ -5113,7 +5119,7 @@ function MassDownloadJellyEmbyArtwork {
 
                     if (!(Test-Path -LiteralPath $epDest)) {
                         try {
-                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary?api_key=$OtherMediaServerApiKey" -OutFile $epDest -ErrorAction SilentlyContinue
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary" -OutFile $epDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                             $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
                             $global:posterCount = Increment-GlobalStat 'posterCount'
                             Write-Entry -Subtext "Added: $epDest" -Path $global:configLogging -Color Green -Log Info
@@ -5217,7 +5223,7 @@ function SyncPlexArtwork {
 
     try {
         Write-Entry -Subtext "Fetching image from source: $(RedactMediaServerUrl -url $ArtUrl)" -Path $global:configLogging -Color Cyan -log Debug
-        $imageResponse = Invoke-WebRequest -Uri $ArtUrl -Headers $extraPlexHeaders -UseBasicParsing -ErrorAction Stop
+        $imageResponse = Invoke-WebRequest -Uri $ArtUrl -Headers $requestHeaders -UseBasicParsing -ErrorAction Stop
     }
     catch {
         # Attempt to parse JSON error response
