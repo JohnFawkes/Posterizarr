@@ -431,13 +431,13 @@ class ConfigDB:
         else:
             logger.warning(f"Config database sync had issues")
 
-        # Seed onboarding_completed if not present
+        # Seed onboarding_completed if not present or if currently false
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM config WHERE section='_root' AND key='onboarding_completed'")
             row = cursor.fetchone()
-            if not row:
+            if not row or str(row['value']).lower() == 'false':
                 cursor.execute("SELECT value FROM config WHERE section='PlexPart' AND key='PlexUrl'")
                 plex_row = cursor.fetchone()
                 cursor.execute("SELECT value FROM config WHERE section='JellyfinPart' AND key='JellyfinUrl'")
@@ -497,8 +497,12 @@ class ConfigDB:
                     if emby_row and emby_row['value'] and emby_row['value'].strip() and emby_row['value'].strip() not in default_emby_urls:
                         is_configured = True
                     
-                self.set_value('_root', 'onboarding_completed', is_configured)
-                logger.info(f"Seeded onboarding_completed={is_configured} (has_history={has_history})")
+                if is_configured:
+                    self.set_value('_root', 'onboarding_completed', True)
+                    logger.info(f"Seeded onboarding_completed=True (has_history={has_history})")
+                elif not row:
+                    self.set_value('_root', 'onboarding_completed', False)
+                    logger.info(f"Seeded onboarding_completed=False (has_history={has_history})")
             conn.close()
         except Exception as e:
             logger.warning(f"Failed to seed onboarding_completed: {e}")
