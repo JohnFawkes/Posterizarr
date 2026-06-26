@@ -812,7 +812,6 @@
     "fetching": "Récupération des bibliothèques depuis {{server}}...",
     "selectToExclude": "Sélectionnez les bibliothèques à <strong>exclure</strong> du traitement :",
     "excluded": "Exclu",
-    "included": "Inclus",
     "clickToFetch": "Cliquez sur \"Récupérer les bibliothèques\" pour charger les bibliothèques depuis votre serveur {{server}}.",
     "noLibraries": "Aucune bibliothèque de films ou de séries TV trouvée sur ce serveur.",
     "excludedCount": "Bibliothèques exclues ({{count}}) :",
@@ -2634,6 +2633,18 @@
     "automation": "Automatisation",
     "performance": "Performances",
     "schedule": "Planification",
-    "ready": "Prêt"
+    "ready": "Prêt",
+    "jellyfinApiKey": "Clé API Jellyfin",
+    "embyApiKey": "Clé API Emby",
+    "configureWhenPosterizarrShouldRun": "Configurez exactement quand Posterizarr doit s'exécuter.",
+    "none": "Aucun",
+    "plexUrlExample": "http://192.168.1.93:32400",
+    "jellyfinUrlExample": "http://192.168.1.93:8096",
+    "embyUrlExample": "http://192.168.1.93:8096/emby",
+    "selectLibraries": "Sélectionner les bibliothèques",
+    "included": "Inclus",
+    "testConnectionToLoad": "Tester la connexion pour charger les bibliothèques.",
+    "fetchingLibraries": "Récupération des bibliothèques...",
+    "noLibrariesFound": "Aucune bibliothèque trouvée."
   }
 }

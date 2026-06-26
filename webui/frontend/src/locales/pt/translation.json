@@ -812,7 +812,6 @@
     "fetching": "Buscando bibliotecas de {{server}}...",
     "selectToExclude": "Selecione bibliotecas para <strong>excluir</strong> do processamento:",
     "excluded": "Excluído",
-    "included": "Incluído",
     "clickToFetch": "Clique em \"Buscar bibliotecas\" para carregar bibliotecas do seu servidor {{server}}.",
     "noLibraries": "Nenhuma biblioteca de filmes ou séries encontrada neste servidor.",
     "excludedCount": "Bibliotecas excluídas ({{count}}):",
@@ -2629,6 +2628,18 @@
     "automation": "Automação",
     "performance": "Desempenho",
     "schedule": "Agendamento",
-    "ready": "Pronto"
+    "ready": "Pronto",
+    "jellyfinApiKey": "Chave de API do Jellyfin",
+    "embyApiKey": "Chave de API do Emby",
+    "configureWhenPosterizarrShouldRun": "Configure exatamente quando o Posterizarr deve ser executado.",
+    "none": "Nenhum",
+    "plexUrlExample": "http://192.168.1.93:32400",
+    "jellyfinUrlExample": "http://192.168.1.93:8096",
+    "embyUrlExample": "http://192.168.1.93:8096/emby",
+    "selectLibraries": "Selecionar Bibliotecas",
+    "included": "Incluído",
+    "testConnectionToLoad": "Testar conexão para carregar bibliotecas.",
+    "fetchingLibraries": "Buscando bibliotecas...",
+    "noLibrariesFound": "Nenhuma biblioteca encontrada."
   }
 }

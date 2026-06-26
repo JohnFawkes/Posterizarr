@@ -341,25 +341,23 @@ const runModes = [
       return (
         <div className="mt-2 p-3 bg-theme-bg/30 rounded-xl animate-fade-in flex flex-col h-full overflow-hidden">
           <h4 className="font-semibold text-sm text-theme-primary mb-2 flex items-center shrink-0">
-            <img src="/plex.svg" alt="Plex" className="w-4 h-4 mr-2 object-contain" /> Plex Configuration
+            <img src="/plex.svg" alt="Plex" className="w-4 h-4 mr-2 object-contain" /> {t("onboarding.plexConfiguration")}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
             <div className="space-y-3 shrink-0">
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.plexUrl")}</label>
-                <ClearableInput value={config.PlexUrl} onChange={val => handleChange("PlexUrl", val)} placeholder="http://192.168.1.93:32400" />
+                <ClearableInput value={config.PlexUrl} onChange={val => handleChange("PlexUrl", val)} placeholder={t("onboarding.plexUrlExample") || "http://192.168.1.93:32400"} />
               </div>
               <div>
                 <label className="flex items-center justify-between text-xs font-medium text-theme-muted mb-1">
-                  Plex Token
-                  <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary hover:underline font-normal">
-                    How to find this?
-                  </a>
+                  {t("onboarding.plexToken")}
+                  <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary hover:underline font-normal">{t("onboarding.howToFindThis")}</a>
                 </label>
                 <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder={t("onboarding.yourPlexToken")} isPassword />
               </div>
               <div className="flex justify-end pt-1 shrink-0">
-                <ValidateButton type="plex" config={config} label="Test Connection" disabled={!config.PlexUrl || !config.PlexToken} onSuccess={() => setPlexValidated(true)} />
+                <ValidateButton type="plex" config={config} label={t("onboarding.testConnection")} disabled={!config.PlexUrl || !config.PlexToken} onSuccess={() => setPlexValidated(true)} />
               </div>
             </div>
             <div className="pl-4 h-full min-h-[160px] max-h-full border-l border-white/5">
@@ -382,26 +380,24 @@ const runModes = [
       return (
         <div className="mt-2 p-3 bg-theme-bg/30 rounded-xl animate-fade-in flex flex-col h-full overflow-hidden">
           <h4 className="font-semibold text-sm text-theme-primary mb-2 flex items-center shrink-0">
-            <img src="/jellyfin.svg" alt="Jellyfin" className="w-4 h-4 mr-2 object-contain" /> Jellyfin Configuration
-          </h4>
+            <img src="/jellyfin.svg" alt="Jellyfin" className="w-4 h-4 mr-2 object-contain" />{t("onboarding.jellyfinConfiguration")}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
             <div className="space-y-3 shrink-0">
               <div className="text-xs text-theme-muted bg-theme-primary/10 border border-theme-primary/20 p-2 rounded-lg flex items-start gap-2">
                 <Rocket className="w-4 h-4 shrink-0 text-theme-primary" />
-                <div>
-                  Note: An official <a href="https://fscorrupt.github.io/posterizarr/jellyfin_plugin/" target="_blank" rel="noreferrer" className="text-theme-primary hover:underline font-medium flex items-center gap-1 inline-flex">Jellyfin Plugin <ExternalLink className="w-3 h-3" /></a> is available to act as an asset middleware for Posterizarr.
+                <div>{t("onboarding.noteAnOfficial")}<a href="https://fscorrupt.github.io/posterizarr/jellyfin_plugin/" target="_blank" rel="noreferrer" className="text-theme-primary hover:underline font-medium flex items-center gap-1 inline-flex">{t("onboarding.jellyfinPlugin")}<ExternalLink className="w-3 h-3" /></a> is available to act as an asset middleware for Posterizarr.
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.jellyfinUrl")}</label>
-                <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder="http://192.168.1.93:8096" />
+                <ClearableInput value={config.JellyfinUrl} onChange={val => handleChange("JellyfinUrl", val)} placeholder={t("onboarding.jellyfinUrlExample") || "http://192.168.1.93:8096"} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.apiKey")}</label>
-                <ClearableInput value={config.JellyfinAPIKey} onChange={val => handleChange("JellyfinAPIKey", val)} placeholder="Jellyfin API Key" isPassword />
+                <ClearableInput value={config.JellyfinAPIKey} onChange={val => handleChange("JellyfinAPIKey", val)} placeholder={t("onboarding.jellyfinApiKey")} isPassword />
               </div>
               <div className="flex justify-end pt-1 shrink-0">
-                <ValidateButton type="jellyfin" config={config} label="Test Connection" disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} onSuccess={() => setJellyfinValidated(true)} />
+                <ValidateButton type="jellyfin" config={config} label={t("onboarding.testConnection")} disabled={!config.JellyfinUrl || !config.JellyfinAPIKey} onSuccess={() => setJellyfinValidated(true)} />
               </div>
             </div>
             <div className="pl-4 h-full min-h-[160px] max-h-full border-l border-white/5">
@@ -424,26 +420,24 @@ const runModes = [
       return (
         <div className="mt-2 p-3 bg-theme-bg/30 rounded-xl animate-fade-in flex flex-col h-full overflow-hidden">
           <h4 className="font-semibold text-sm text-theme-primary mb-2 flex items-center shrink-0">
-            <img src="/emby.svg" alt="Emby" className="w-4 h-4 mr-2 object-contain" /> Emby Configuration
-          </h4>
+            <img src="/emby.svg" alt="Emby" className="w-4 h-4 mr-2 object-contain" />{t("onboarding.embyConfiguration")}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full min-h-0">
             <div className="space-y-3 shrink-0">
               <div className="text-xs text-theme-muted bg-theme-primary/10 border border-theme-primary/20 p-2 rounded-lg flex items-start gap-2">
                 <Rocket className="w-4 h-4 shrink-0 text-theme-primary" />
-                <div>
-                  Note: An official <a href="https://fscorrupt.github.io/posterizarr/emby_plugin/" target="_blank" rel="noreferrer" className="text-theme-primary hover:underline font-medium flex items-center gap-1 inline-flex">Emby Plugin <ExternalLink className="w-3 h-3" /></a> is available to act as an asset middleware for Posterizarr.
+                <div>{t("onboarding.noteAnOfficial")}<a href="https://fscorrupt.github.io/posterizarr/emby_plugin/" target="_blank" rel="noreferrer" className="text-theme-primary hover:underline font-medium flex items-center gap-1 inline-flex">{t("onboarding.embyPlugin")}<ExternalLink className="w-3 h-3" /></a> is available to act as an asset middleware for Posterizarr.
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.embyUrl")}</label>
-                <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder="http://192.168.1.93:8096/emby" />
+                <ClearableInput value={config.EmbyUrl} onChange={val => handleChange("EmbyUrl", val)} placeholder={t("onboarding.embyUrlExample") || "http://192.168.1.93:8096/emby"} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-theme-muted mb-1">{t("onboarding.apiKey")}</label>
-                <ClearableInput value={config.EmbyAPIKey} onChange={val => handleChange("EmbyAPIKey", val)} placeholder="Emby API Key" isPassword />
+                <ClearableInput value={config.EmbyAPIKey} onChange={val => handleChange("EmbyAPIKey", val)} placeholder={t("onboarding.embyApiKey")} isPassword />
               </div>
               <div className="flex justify-end pt-1 shrink-0">
-                <ValidateButton type="emby" config={config} label="Test Connection" disabled={!config.EmbyUrl || !config.EmbyAPIKey} onSuccess={() => setEmbyValidated(true)} />
+                <ValidateButton type="emby" config={config} label={t("onboarding.testConnection")} disabled={!config.EmbyUrl || !config.EmbyAPIKey} onSuccess={() => setEmbyValidated(true)} />
               </div>
             </div>
             <div className="pl-4 h-full min-h-[160px] max-h-full border-l border-white/5">
@@ -567,16 +561,15 @@ const runModes = [
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
-                      <img src="/tmdb.png" alt="TMDb" className="w-5 h-5 mr-2 object-contain rounded" /> TMDb API Token (Required)
+                      <img src="/tmdb.png" alt="TMDb" className="w-5 h-5 mr-2 object-contain rounded" /> {t("onboarding.tmdbApiTokenRequired")}
                     </label>
-                    <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">
-                      How to get <ExternalLink className="w-3 h-3 ml-1" />
+                    <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">{t("onboarding.howToGet")}<ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
                   <ClearableInput value={config.tmdbtoken} onChange={val => handleChange("tmdbtoken", val)} placeholder={t("onboarding.v3ApiKeyV4Token")} isPassword />
                 </div>
                 <div className="mt-6">
-                  <ValidateButton type="tmdb" config={config} label="Test" disabled={!config.tmdbtoken} />
+                  <ValidateButton type="tmdb" config={config} label={t("onboarding.test")} disabled={!config.tmdbtoken} />
                 </div>
               </div>
 
@@ -584,16 +577,15 @@ const runModes = [
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
-                      <img src="/tvdb.png" alt="TVDb" className="w-5 h-5 mr-2 object-contain rounded bg-white/10 p-0.5" /> TVDb API Key (Required)
+                      <img src="/tvdb.png" alt="TVDb" className="w-5 h-5 mr-2 object-contain rounded bg-white/10 p-0.5" /> {t("onboarding.tvdbApiKeyRequired")}
                     </label>
-                    <a href="https://thetvdb.com/api-information" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">
-                      How to get <ExternalLink className="w-3 h-3 ml-1" />
+                    <a href="https://thetvdb.com/api-information" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">{t("onboarding.howToGet")}<ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
                   <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder={t("onboarding.v4ApiKey")} isPassword />
                 </div>
                 <div className="mt-6">
-                  <ValidateButton type="tvdb" config={config} label="Test" disabled={!config.tvdbapi} />
+                  <ValidateButton type="tvdb" config={config} label={t("onboarding.test")} disabled={!config.tvdbapi} />
                 </div>
               </div>
 
@@ -601,16 +593,15 @@ const runModes = [
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
-                      <img src="/fanart.png" alt="Fanart" className="w-5 h-5 mr-2 object-contain rounded" /> Fanart.tv API Key (Required)
+                      <img src="/fanart.png" alt="Fanart" className="w-5 h-5 mr-2 object-contain rounded" /> {t("onboarding.fanartTvApiKeyRequired")}
                     </label>
-                    <a href="https://fanart.tv/get-an-api-key/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">
-                      How to get <ExternalLink className="w-3 h-3 ml-1" />
+                    <a href="https://fanart.tv/get-an-api-key/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">{t("onboarding.howToGet")}<ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
                   <ClearableInput value={config.FanartTvAPIKey} onChange={val => handleChange("FanartTvAPIKey", val)} placeholder={t("onboarding.personalApiKey")} isPassword />
                 </div>
                 <div className="mt-6">
-                  <ValidateButton type="fanart" config={config} label="Test" disabled={!config.FanartTvAPIKey} />
+                  <ValidateButton type="fanart" config={config} label={t("onboarding.test")} disabled={!config.FanartTvAPIKey} />
                 </div>
               </div>
             </div>
@@ -713,27 +704,21 @@ const runModes = [
               <button
                 onClick={() => setNotificationType('none')}
                 className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'none' ? 'bg-theme-primary/10 border-theme-primary text-theme-primary shadow-inner shadow-theme-primary/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-theme-primary/50'}`}
-              >
-                None
-              </button>
+              >{t("onboarding.none") || "None"}</button>
               <button
                 onClick={() => setNotificationType('discord')}
                 className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'discord' ? 'bg-[#5865F2]/10 border-[#5865F2] text-[#5865F2] shadow-inner shadow-[#5865F2]/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-[#5865F2]/50'}`}
-              >
-                Discord
-              </button>
+              >{t("onboarding.discord")}</button>
               <button
                 onClick={() => setNotificationType('apprise')}
                 className={`py-3 px-4 rounded-lg border flex flex-col items-center justify-center transition-all font-medium ${notificationType === 'apprise' ? 'bg-green-500/10 border-green-500 text-green-500 shadow-inner shadow-green-500/10' : 'bg-theme-bg-dark border-theme-border text-theme-muted hover:border-green-500/50'}`}
-              >
-                Apprise
-              </button>
+              >{t("onboarding.apprise")}</button>
             </div>
 
             {notificationType === 'discord' && (
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                 <label className="block text-sm font-medium text-white mb-2">{t("onboarding.discordWebhookUrl")}</label>
-                <ClearableInput value={config.Discord} onChange={val => handleChange("Discord", val)} placeholder="https://discordapp.com/api/webhooks/..." />
+                <ClearableInput value={config.Discord} onChange={val => handleChange("Discord", val)} placeholder={t("onboarding.discordWebhookUrlExample") || "https://discordapp.com/api/webhooks/..."} />
 
                 <div className="mt-4 pt-4 border-t border-theme-border/30">
                   <label className="block text-sm font-medium text-white mb-2">{t("onboarding.discordBotName")}</label>
@@ -745,17 +730,14 @@ const runModes = [
             {notificationType === 'apprise' && (
               <div className="p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50 animate-fade-in">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium text-white flex items-center">
-                    Apprise URL
-                  </label>
-                  <a href="https://github.com/caronc/apprise/wiki" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">
-                    How-to guide <ExternalLink className="w-3 h-3 ml-1" />
+                  <label className="text-sm font-medium text-white flex items-center">{t("onboarding.appriseUrl")}</label>
+                  <a href="https://github.com/caronc/apprise/wiki" target="_blank" rel="noreferrer" className="text-xs text-theme-primary flex items-center hover:underline">{t("onboarding.howToGuide")}<ExternalLink className="w-3 h-3 ml-1" />
                   </a>
                 </div>
                 <ClearableInput value={config.AppriseUrl} onChange={val => handleChange("AppriseUrl", val)} placeholder={t("onboarding.discordWebhookUrlExample")} />
                 <p className="text-xs text-theme-muted mt-2">{t("onboarding.usesAppriseSupportsDiscord")}</p>
                 <div className="mt-4 flex justify-end">
-                  <ValidateButton type="apprise" config={config} label="Test Connection" disabled={!config.AppriseUrl} />
+                  <ValidateButton type="apprise" config={config} label={t("onboarding.testConnection")} disabled={!config.AppriseUrl} />
                 </div>
               </div>
             )}
@@ -778,7 +760,7 @@ const runModes = [
                   <label className="block text-sm font-medium text-white mb-2">{t("onboarding.pushUrl")}</label>
                   <ClearableInput value={config.UptimeKumaUrl} onChange={val => handleChange("UptimeKumaUrl", val)} placeholder={t("onboarding.uptimeKumaPushUrlExample")} />
                   <div className="mt-4 flex justify-end">
-                    <ValidateButton type="uptimekuma" config={config} label="Test Connection" disabled={!config.UptimeKumaUrl} />
+                    <ValidateButton type="uptimekuma" config={config} label={t("onboarding.testConnection")} disabled={!config.UptimeKumaUrl} />
                   </div>
                 </div>
               )}
@@ -789,7 +771,7 @@ const runModes = [
         return (
           <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold text-white mb-2">{t("onboarding.automatedSchedule")}</h3>
-            <p className="text-theme-muted mb-6">Configure exactly when Posterizarr should run.</p>
+            <p className="text-theme-muted mb-6">{t("onboarding.configureWhenPosterizarrShouldRun") || "Configure exactly when Posterizarr should run."}</p>
 
             <div className="space-y-5">
               <div className="flex items-center justify-between p-4 bg-theme-bg/50 rounded-xl border border-theme-border/50">
@@ -907,13 +889,9 @@ const runModes = [
               <Check className="w-10 h-10" />
             </div>
             <h2 className="text-3xl font-bold text-white">{t("onboarding.allSet")}</h2>
-            <p className="text-theme-muted max-w-md">
-              Your configuration has been prepared. Click finish to save these settings and start exploring PosterizarrUI.
-            </p>
+            <p className="text-theme-muted max-w-md">{t("onboarding.yourConfigurationHasBeenPrepared")}</p>
             <div className="mt-8 p-4 bg-theme-bg/50 rounded-xl border border-theme-border text-sm text-theme-muted inline-flex items-center">
-              <Shield className="w-4 h-4 mr-2 text-theme-primary" />
-              You can change these settings anytime in the Config Editor.
-            </div>
+              <Shield className="w-4 h-4 mr-2 text-theme-primary" />{t("onboarding.changeSettingsAnytime")}</div>
           </div>
         );
       default:
@@ -1010,9 +988,7 @@ const runModes = [
                     : "text-theme-muted hover:text-white hover:bg-theme-bg"
                 }`}
               >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Back
-              </button>
+                <ChevronLeft className="w-4 h-4 mr-1" />{t("onboarding.back")}</button>
 
               {currentStep < STEPS.length - 1 ? (
                 <button
@@ -1022,9 +998,7 @@ const runModes = [
                     (currentStep === 2 && (!config.tmdbtoken || !config.tvdbapi || !config.FanartTvAPIKey))
                   }
                   className="flex items-center px-5 py-2 bg-theme-primary text-black rounded-lg font-semibold shadow-md shadow-theme-primary/20 hover:bg-theme-accent hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  Continue
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                >{t("onboarding.continue")}<ChevronRight className="w-4 h-4 ml-1" />
                 </button>
               ) : (
                 <button
@@ -1034,11 +1008,9 @@ const runModes = [
                 >
                   {saving ? (
                     <span className="flex items-center">
-                      <Activity className="w-4 h-4 mr-2 animate-spin" /> Saving...
-                    </span>
+                      <Activity className="w-4 h-4 mr-2 animate-spin" />{t("onboarding.saving")}</span>
                   ) : (
-                    <span className="flex items-center">
-                      Finish Setup <Save className="w-4 h-4 ml-2" />
+                    <span className="flex items-center">{t("onboarding.finishSetup")}<Save className="w-4 h-4 ml-2" />
                     </span>
                   )}
                 </button>

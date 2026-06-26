@@ -329,7 +329,7 @@ const LibraryExclusionSelector = ({
         <div className="flex items-center justify-center py-6 bg-theme-bg/30 border border-theme/20 rounded-md flex-1">
           <div className="text-center">
             <Loader2 className="w-6 h-6 animate-spin text-theme-primary mx-auto mb-2" />
-            <p className="text-xs text-theme-muted">Fetching libraries...</p>
+            <p className="text-xs text-theme-muted">{t("onboarding.fetchingLibraries") || "Fetching libraries..."}</p>
           </div>
         </div>
       )}
@@ -338,7 +338,7 @@ const LibraryExclusionSelector = ({
       {!loadingLibraries && !librariesFetched && (
         <div className="flex items-center justify-center p-6 border-2 border-dashed border-theme-border/30 rounded-lg text-center flex-1">
           <p className="text-xs text-theme-muted">
-            Test connection to load libraries.
+            {t("onboarding.testConnectionToLoad") || "Test connection to load libraries."}
           </p>
         </div>
       )}
@@ -389,7 +389,7 @@ const LibraryExclusionSelector = ({
       {/* Empty State - No Libraries Found */}
       {!loadingLibraries && librariesFetched && availableLibraries.length === 0 && !error && (
         <div className="px-4 py-8 bg-theme-bg/30 border border-theme/20 rounded-md text-center flex-1">
-          <p className="text-sm text-theme-muted">No libraries found.</p>
+          <p className="text-sm text-theme-muted">{t("onboarding.noLibrariesFound") || "No libraries found."}</p>
         </div>
       )}
     </div>
@@ -407,11 +407,11 @@ const LibraryExclusionSelector = ({
         <div className="flex-1 bg-theme-bg/10 rounded-xl p-3 flex flex-col h-full min-h-[150px]">
           <div className="flex justify-between items-center mb-2 shrink-0">
             <div>
-              <h4 className="text-sm font-semibold text-white">Select Libraries</h4>
+              <h4 className="text-sm font-semibold text-white">{t("onboarding.selectLibraries") || "Select Libraries"}</h4>
               {helpText && <p className="text-[11px] text-theme-muted">{helpText}</p>}
             </div>
             <div className="text-xs px-2 py-1 bg-theme-bg rounded-md text-theme-muted">
-              {includedCount} Included
+              {includedCount} {t("onboarding.included") || "Included"}
             </div>
           </div>
           {renderListContent()}

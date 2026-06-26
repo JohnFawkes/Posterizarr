@@ -813,7 +813,6 @@
     "fetching": "Bibliotheken werden von {{server}} abgerufen...",
     "selectToExclude": "Wählen Sie Bibliotheken aus, die von der Verarbeitung <strong>ausgeschlossen</strong> werden sollen:",
     "excluded": "Ausgeschlossen",
-    "included": "Eingeschlossen",
     "clickToFetch": "Klicken Sie auf \"Bibliotheken abrufen\", um Bibliotheken von Ihrem {{server}}-Server zu laden.",
     "noLibraries": "Keine Film- oder Serienbibliotheken auf diesem Server gefunden.",
     "excludedCount": "Ausgeschlossene Bibliotheken ({{count}}):",
@@ -2686,6 +2685,18 @@
     "automation": "Automatisierung",
     "performance": "Leistung",
     "schedule": "Zeitplan",
-    "ready": "Bereit"
+    "ready": "Bereit",
+    "jellyfinApiKey": "Jellyfin API-Schlüssel",
+    "embyApiKey": "Emby API-Schlüssel",
+    "configureWhenPosterizarrShouldRun": "Konfigurieren Sie genau, wann Posterizarr ausgeführt werden soll.",
+    "none": "Keine",
+    "plexUrlExample": "http://192.168.1.93:32400",
+    "jellyfinUrlExample": "http://192.168.1.93:8096",
+    "embyUrlExample": "http://192.168.1.93:8096/emby",
+    "selectLibraries": "Bibliotheken auswählen",
+    "included": "Enthalten",
+    "testConnectionToLoad": "Verbindung testen, um Bibliotheken zu laden.",
+    "fetchingLibraries": "Bibliotheken werden abgerufen...",
+    "noLibrariesFound": "Keine Bibliotheken gefunden."
   }
 }

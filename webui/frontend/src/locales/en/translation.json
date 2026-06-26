@@ -820,7 +820,6 @@
     "fetching": "Fetching libraries from {{server}}...",
     "selectToExclude": "Select libraries to <strong>exclude</strong> from processing:",
     "excluded": "Excluded",
-    "included": "Included",
     "clickToFetch": "Click \"Fetch Libraries\" to load libraries from your {{server}} server.",
     "noLibraries": "No movie or TV show libraries found on this server.",
     "excludedCount": "Excluded Libraries ({{count}}):",
@@ -2635,6 +2634,18 @@
     "automation": "Automation",
     "performance": "Performance",
     "schedule": "Schedule",
-    "ready": "Ready"
+    "ready": "Ready",
+    "jellyfinApiKey": "Jellyfin API Key",
+    "embyApiKey": "Emby API Key",
+    "configureWhenPosterizarrShouldRun": "Configure exactly when Posterizarr should run.",
+    "none": "None",
+    "plexUrlExample": "http://192.168.1.93:32400",
+    "jellyfinUrlExample": "http://192.168.1.93:8096",
+    "embyUrlExample": "http://192.168.1.93:8096/emby",
+    "selectLibraries": "Select Libraries",
+    "included": "Included",
+    "testConnectionToLoad": "Test connection to load libraries.",
+    "fetchingLibraries": "Fetching libraries...",
+    "noLibrariesFound": "No libraries found."
   }
 }
