@@ -4506,7 +4506,7 @@ async def perform_jellyfin_emby_action(request: JellyfinEmbyActionRequest):
         # Jellyfin/Emby use similar endpoints for basic item refresh
         # Endpoint: /Items/{Id}/Refresh
 
-        url = f"{server_url}/Items/{request.media_id}/Refresh?api_key={api_key}"
+        url = f"{server_url}/Items/{request.media_id}/Refresh"
 
         # Default params for general refresh
         params = {
@@ -4530,7 +4530,8 @@ async def perform_jellyfin_emby_action(request: JellyfinEmbyActionRequest):
             raise HTTPException(status_code=400, detail="Invalid action")
 
         try:
-            response = await client.post(url, params=params)
+            headers = {"Authorization": f'MediaBrowser Token="{api_key}"'}
+            response = await client.post(url, headers=headers, params=params)
 
             if response.status_code == 204 or response.status_code == 200:
                 return {
@@ -4662,7 +4663,7 @@ async def get_jellyfin_libraries(request: JellyfinValidationRequest):
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            headers = {"X-Emby-Token": request.api_key}
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
             url = f"{request.url}/Library/VirtualFolders"
             response = await client.get(url, headers=headers)
 
