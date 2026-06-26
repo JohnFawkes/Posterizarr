@@ -254,7 +254,7 @@
     }
     $Libraries = [System.Collections.Generic.List[object]]::new()
     if ($UseJellyfin -eq 'true' -or $UseEmby -eq 'true') {
-        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration").PreferredMetadataLanguage ?? "en" -Headers $global:OtherMediaServerHeaders
+        $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration" -Headers $global:OtherMediaServerHeaders).PreferredMetadataLanguage ?? "en"
         foreach ($Movie in $AllMovies.Items) {
             $Resolution = $null
             if ($UseEmby -eq 'true') {

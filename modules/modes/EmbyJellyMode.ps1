@@ -25,7 +25,7 @@
 
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration").PreferredMetadataLanguage ?? "en" -Headers $global:OtherMediaServerHeaders
+    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration" -Headers $global:OtherMediaServerHeaders).PreferredMetadataLanguage ?? "en"
     $allLibsquery = "$OtherMediaServerUrl/Library/VirtualFolders"
     $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders
 

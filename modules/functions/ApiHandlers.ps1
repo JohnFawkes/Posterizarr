@@ -5040,7 +5040,7 @@ function MassDownloadJellyEmbyArtwork {
         Write-Entry -Message "--- Processing Library: $($lib.Name) ---" -Path $global:configLogging -Color Cyan -log Info
 
         $itemsUrl = "$OtherMediaServerUrl/Items?ParentId=$($lib.ItemId)&Recursive=true&IncludeItemTypes=Movie,Series&fields=Path,Id,Name,Type,ProductionYear,OriginalTitle"
-        $items = (Invoke-RestMethod -Uri $itemsUrl).Items -Headers $global:OtherMediaServerHeaders
+        $items = (Invoke-RestMethod -Uri $itemsUrl -Headers $global:OtherMediaServerHeaders).Items
 
         foreach ($item in $items) {
             # Extract Folder/File names
@@ -5093,7 +5093,7 @@ function MassDownloadJellyEmbyArtwork {
             }
 
             if ($item.Type -eq "Series") {
-                $seasons = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Seasons").Items -Headers $global:OtherMediaServerHeaders
+                $seasons = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Seasons" -Headers $global:OtherMediaServerHeaders).Items
                 foreach ($season in $seasons) {
                     $sNum = if ($null -ne $season.IndexNumber) { $season.IndexNumber.ToString("D2") } else { "00" }
                     $sDest = if ($LibraryFolders) { Join-Path $entryDir "Season$sNum.jpg" } else { Join-Path $entryDir "$($rootFolderName)_season$sNum.jpg" }
@@ -5110,7 +5110,7 @@ function MassDownloadJellyEmbyArtwork {
                     }
                 }
 
-                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber").Items -Headers $global:OtherMediaServerHeaders
+                $episodes = (Invoke-RestMethod -Uri "$OtherMediaServerUrl/Shows/$($item.Id)/Episodes?Fields=ParentIndexNumber,IndexNumber" -Headers $global:OtherMediaServerHeaders).Items
                 foreach ($ep in $episodes) {
                     $sNum = if ($null -ne $ep.ParentIndexNumber) { $ep.ParentIndexNumber.ToString("D2") } else { "00" }
                     $eNum = if ($null -ne $ep.IndexNumber) { $ep.IndexNumber.ToString("D2") } else { "00" }
