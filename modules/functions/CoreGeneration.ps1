@@ -4198,8 +4198,6 @@ function Invoke-ShowPosterCreation {
                 # Now we can start the Episode Part
                 if ($global:TitleCards -eq 'true') {
                     # Loop through each episode
-                    Write-Entry -Subtext "Starting TitleCards loop. global:Episodedata count is: $($global:Episodedata.Count)" -Path $global:configLogging -Color Cyan -log Info
-                    $DebugPrinted = $false
                     foreach ($episode in $global:Episodedata) {
                         $SkippingText = 'false'
                         $global:AssetTextLang = $null
@@ -4228,7 +4226,9 @@ function Invoke-ShowPosterCreation {
                         $global:FallbackText = $null
                         $global:TextlessPoster = $null
                         $global:EPResolutions = $null
-
+                        write-host "DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                        $episode
+                        $entry
                         if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
                             $global:show_name = $episode."Show Name"
                             $global:season_number = $episode."Season Number"
