@@ -4199,20 +4199,14 @@ function Invoke-ShowPosterCreation {
                 if ($global:TitleCards -eq 'true') {
                     # Loop through each episode
                     Write-Entry -Subtext "Starting TitleCards loop. global:Episodedata count is: $($global:Episodedata.Count)" -Path $global:configLogging -Color Cyan -log Info
-                    try {
-                        $DebugPrinted = $false
-                        foreach ($episode in $global:Episodedata) {
-                            $SkippingText = 'false'
-                            if (-not $DebugPrinted -and ($episode.'Show Name' -eq $entry.title -or $episode.'Show Name' -eq $entry.originalTitle)) {
-                                Write-Entry -Subtext "DEBUG: TC check for $($entry.title) | ep.LibName: '$($episode.'Library Name')' vs en.LibName: '$($entry.'Library Name')' | ep.tmdb: '$($episode.tmdbid)' vs en.tmdb: '$($entry.tmdbid)' | ep.ShowName: '$($episode.'Show Name')'" -Path $global:configLogging -Color Cyan -log Info
-                                $DebugPrinted = $true
-                            }
+                    foreach ($episode in $global:Episodedata) {
+                        $SkippingText = 'false'
 
-                            $global:AssetTextLang = $null
-                            $global:TMDBAssetTextLang = $null
-                            $global:FANARTAssetTextLang = $null
-                            $global:TVDBAssetTextLang = $null
-                            $global:TMDBAssetChangeUrl = $null
+                        $global:AssetTextLang = $null
+                        $global:TMDBAssetTextLang = $null
+                        $global:FANARTAssetTextLang = $null
+                        $global:TVDBAssetTextLang = $null
+                        $global:TMDBAssetChangeUrl = $null
                         $global:FANARTAssetChangeUrl = $null
                         $global:TVDBAssetChangeUrl = $null
                         $global:PosterWithText = $null
@@ -5767,10 +5761,6 @@ function Invoke-ShowPosterCreation {
                             }
                         }
 
-                    }
-                    catch {
-                        Write-Entry -Subtext "FATAL ERROR IN TITLECARDS LOOP: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                        Write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)" -Path $global:configLogging -Color Red -log Error
                     }
                 }
             }
