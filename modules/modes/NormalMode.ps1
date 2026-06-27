@@ -413,7 +413,7 @@
     if ($global:TitleCards -eq 'true') {
         Write-Entry -Message "Query episodes data from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
         # Query episode info
-        $Episodedata = [System.Collections.Generic.List[object]]::new()
+        $global:Episodedata = [System.Collections.Generic.List[object]]::new()
         # Debug Export
         if ($global:logLevel -eq '3') {
             $MasterXml = New-Object System.Xml.XmlDocument
@@ -475,7 +475,7 @@
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
-                $Episodedata.Add($tempseasondata)
+                $global:Episodedata.Add($tempseasondata)
                 Write-Entry -Subtext "  Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
@@ -498,10 +498,10 @@
                 }
             }
         }
-        $Episodedata | Select-Object * | Export-Csv -Path "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force
-        if ($Episodedata) {
-            $totalEps = ($Episodedata.Episodes -join ',').Split(',').Count
-            Write-Entry -Subtext "Found '$totalEps' Episodes across $($Episodedata.Count) seasons..." -Path $global:configLogging -Color Cyan -log Info
+        $global:Episodedata | Select-Object * | Export-Csv -Path "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force
+        if ($global:Episodedata) {
+            $totalEps = ($global:Episodedata.Episodes -join ',').Split(',').Count
+            Write-Entry -Subtext "Found '$totalEps' Episodes across $($global:Episodedata.Count) seasons..." -Path $global:configLogging -Color Cyan -log Info
         }
     }
 

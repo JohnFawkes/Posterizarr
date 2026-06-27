@@ -1,4 +1,4 @@
-﻿function Invoke-MoviePosterCreation {
+function Invoke-MoviePosterCreation {
     param (
         $entry
     )
@@ -4198,7 +4198,7 @@ function Invoke-ShowPosterCreation {
                 # Now we can start the Episode Part
                 if ($global:TitleCards -eq 'true') {
                     # Loop through each episode
-                    foreach ($episode in $Episodedata) {
+                    foreach ($episode in $global:Episodedata) {
                         $SkippingText = 'false'
 
                         $global:AssetTextLang = $null
