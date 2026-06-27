@@ -1,4 +1,4 @@
-function Invoke-MoviePosterCreation {
+﻿function Invoke-MoviePosterCreation {
     param (
         $entry
     )
@@ -4202,11 +4202,6 @@ function Invoke-ShowPosterCreation {
                     $DebugPrinted = $false
                     foreach ($episode in $global:Episodedata) {
                         $SkippingText = 'false'
-                        if (-not $DebugPrinted -and ($episode.'Show Name' -eq $entry.title -or $episode.'Show Name' -eq $entry.originalTitle)) {
-                            Write-Entry -Subtext "DEBUG: TC check for $($entry.title) | ep.LibName: '$($episode.'Library Name')' vs en.LibName: '$($entry.'Library Name')' | ep.tmdb: '$($episode.tmdbid)' vs en.tmdb: '$($entry.tmdbid)' | ep.ShowName: '$($episode.'Show Name')'" -Path $global:configLogging -Color Cyan -log Info
-                            $DebugPrinted = $true
-                        }
-
                         $global:AssetTextLang = $null
                         $global:TMDBAssetTextLang = $null
                         $global:FANARTAssetTextLang = $null
@@ -4234,7 +4229,7 @@ function Invoke-ShowPosterCreation {
                         $global:TextlessPoster = $null
                         $global:EPResolutions = $null
 
-                        if ($episode.'Library Name' -eq $entry.'Library Name' -and (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -or ($episode.'Show Name' -eq $entry.title -or $episode.'Show Name' -eq $entry.originalTitle))) {
+                        if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
                             $global:show_name = $episode."Show Name"
                             $global:season_number = $episode."Season Number"
                             if ($null -ne $episode."Resolutions") { $global:EPResolutions = $episode."Resolutions".Split(",") } else { $global:EPResolutions = @() }
@@ -5104,7 +5099,6 @@ function Invoke-ShowPosterCreation {
                                     }
                                     Else {
                                         $checkedItems.Add($hashtestpath)
-
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $null
                                             if ($global:PlexTitleCardUrl -like "/library/*") {
@@ -5777,5 +5771,5 @@ function Invoke-ShowPosterCreation {
             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
         }
-    
+
 }
