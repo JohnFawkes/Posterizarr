@@ -1,4 +1,4 @@
-﻿function Invoke-MoviePosterCreation {
+function Invoke-MoviePosterCreation {
     param (
         $entry
     )
@@ -4226,9 +4226,9 @@ function Invoke-ShowPosterCreation {
                         $global:FallbackText = $null
                         $global:TextlessPoster = $null
                         $global:EPResolutions = $null
-                        write-host "DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                        $episode
-                        $entry
+                        if ($episode.'Library Name' -eq $entry.'Library Name') {
+                            write-host "DEBUG MATCH CHECK: ep.ShowName='$($episode.'Show Name')' vs entry.title='$($entry.title)' | ep.LibName='$($episode.'Library Name')' vs entry.LibName='$($entry.'Library Name')' | ep.tmdb='$($episode.tmdbid)' vs entry.tmdb='$($entry.tmdbid)' | ep.tvdb='$($episode.tvdbid)' vs entry.tvdb='$($entry.tvdbid)'"
+                        }
                         if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
                             $global:show_name = $episode."Show Name"
                             $global:season_number = $episode."Season Number"
