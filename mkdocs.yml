@@ -45,6 +45,7 @@ nav:
     - 'FAQs': 'faqs.md'
   - 'Configuration': 'configuration.md'
   - 'Usage & Guides':
+    - 'Blueprints & Recipes': 'blueprints.md'
     - 'Usage & Modes': 'modes.md'
     - 'Action Center Guide': 'action_center.md'
     - 'Homepage Custom API': 'homepage.md'

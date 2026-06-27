@@ -2478,5 +2478,90 @@
       "step3": "Klicken Sie auf \"Warteschlange ausführen\", um sie nacheinander zu verarbeiten.",
       "step4": "Überprüfen Sie die Statusspalte für die Ergebnisse."
     }
+  },
+  "blueprints": {
+    "pageTitle": "Konfigurations-Blueprints",
+    "pageDescription": "Wenden Sie vordefinierte Konfigurationen an, um bestimmte visuelle Stile zu erreichen. Die Anwendung eines Blueprints aktualisiert Ihre Einstellungen sofort.",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "importing": "Importiert...",
+    "apply": "Blueprint anwenden",
+    "applying": "Wird angewendet...",
+    "settingsChanged": "Geänderte Einstellungen",
+    "importSuccess": "Benutzerdefinierter Blueprint erfolgreich importiert und ein Backup wurde erstellt!",
+    "importFailed": "Fehler beim Anwenden der importierten Konfiguration: {message}",
+    "importError": "Fehler beim Importieren des Blueprints: {message}",
+    "items": {
+      "clearlogo": {
+        "title": "Logo (Clearlogo)",
+        "description": "Ersetzt Standardtext durch das Clearlogo des Films/der Serie."
+      },
+      "clearart": {
+        "title": "Logo (Clearart)",
+        "description": "Ersetzt Standardtext durch das Clearart des Films/der Serie."
+      },
+      "flatClearlogo": {
+        "title": "Flaches Weißes Logo (Clearlogo)",
+        "description": "Ersetzt Standardtext durch ein in ein flaches Weiß konvertiertes Clearlogo für besseren Kontrast."
+      },
+      "flatClearart": {
+        "title": "Flaches Weißes Logo (Clearart)",
+        "description": "Ersetzt Standardtext durch ein in ein flaches Weiß konvertiertes Clearart für besseren Kontrast."
+      },
+      "showTitleSeason": {
+        "title": "Titel auf Staffel anzeigen",
+        "description": "Fügt den Serientitel (oder das Logo, falls aktiviert) zu Staffel-Postern neben dem Staffel-Text hinzu."
+      },
+      "minimalist": {
+        "title": "Minimalistische Poster",
+        "description": "Deaktiviert die Bildverarbeitung vollständig. Nur das rohe Poster wird heruntergeladen und ins Asset-Verzeichnis verschoben."
+      },
+      "fullOverlays": {
+        "title": "Alle Overlays aktivieren",
+        "description": "Aktiviert Ränder, Text und Overlays für alle Standardposter, Staffel-Poster, Hintergründe und Titelkarten."
+      },
+      "resolutionOverlays": {
+        "title": "Auflösungs-Overlays",
+        "description": "Aktiviert Auflösungs- und HDR/DoVi-Overlays basierend auf Medien-Metadaten. Hinweis: Nicht alle Overlay-Dateien werden standardmäßig bereitgestellt."
+      },
+      "onlyBorders": {
+        "title": "Nur Ränder",
+        "description": "Deaktiviert Text und Overlays und rendert nur Ränder auf allen Postern und Karten."
+      },
+      "onlyText": {
+        "title": "Nur Text",
+        "description": "Deaktiviert Ränder und Overlays und rendert nur Text (oder Logos) auf allen Postern und Karten."
+      },
+      "onlyOverlays": {
+        "title": "Nur Overlays",
+        "description": "Deaktiviert Text und Ränder und rendert nur Auflösungs-/Bewertungs-Overlays auf allen Postern und Karten."
+      },
+      "textless": {
+        "title": "Nur Textlose Poster",
+        "description": "Konfiguriert die Sprachreihenfolge auf 'xx', um sicherzustellen, dass nur textlose Kunstwerke heruntergeladen werden."
+      }
+    },
+    "builder": {
+      "tabPresets": "Vorlagen",
+      "tabBuilder": "Baukasten",
+      "tabBuilderDesc": "Erstellen Sie Ihren eigenen benutzerdefinierten Blueprint, indem Sie spezifische Overlays kombinieren.",
+      "categoryPoster": "Poster",
+      "categorySeason": "Staffel",
+      "categoryTitleCard": "Titelkarte",
+      "categoryBackground": "Hintergrund",
+      "categoryGlobal": "Globale Einstellungen",
+      "enableProcessing": "Bildverarbeitung aktivieren",
+      "enableBorders": "Rahmen aktivieren",
+      "enableText": "Text / Logo aktivieren",
+      "useClearlogo": "Clearlogo verwenden",
+      "useClearart": "Clearart verwenden",
+      "useOriginalTitle": "Originaltitel verwenden",
+      "flatWhiteLogo": "Flaches weißes Logo",
+      "showTitleOnSeason": "Titel auf Staffel anzeigen",
+      "resolutionOverlays": "Auflösungs-Overlays",
+      "onlyTextless": "Nur textlose Kunstwerke herunterladen",
+      "preview": "Live-Vorschau",
+      "applyCustom": "Benutzerdefinierten Blueprint anwenden"
+    }
   }
 }

@@ -2421,5 +2421,90 @@
       "step3": "Clique em \"Executar Fila\" para processá-los sequencialmente.",
       "step4": "Verifique a coluna de estado para os resultados."
     }
+  },
+  "blueprints": {
+    "pageTitle": "Blueprints de Configuração",
+    "pageDescription": "Aplique rapidamente configurações predefinidas para obter estilos visuais específicos. A aplicação de um blueprint atualizará instantaneamente suas configurações.",
+    "export": "Exportar",
+    "import": "Importar",
+    "importing": "Importando...",
+    "apply": "Aplicar Blueprint",
+    "applying": "Aplicando...",
+    "settingsChanged": "Configurações Alteradas",
+    "importSuccess": "Blueprint personalizado importado com sucesso e backup criado!",
+    "importFailed": "Falha ao aplicar a configuração importada: {message}",
+    "importError": "Erro ao importar o blueprint: {message}",
+    "items": {
+      "clearlogo": {
+        "title": "Logo (Clearlogo)",
+        "description": "Substitui o texto padrão pelo clearlogo do filme/série."
+      },
+      "clearart": {
+        "title": "Logo (Clearart)",
+        "description": "Substitui o texto padrão pelo clearart do filme/série."
+      },
+      "flatClearlogo": {
+        "title": "Logo Branco Plano (Clearlogo)",
+        "description": "Substitui o texto padrão por um clearlogo convertido em branco plano para melhor contraste."
+      },
+      "flatClearart": {
+        "title": "Logo Branco Plano (Clearart)",
+        "description": "Substitui o texto padrão por um clearart convertido em branco plano para melhor contraste."
+      },
+      "showTitleSeason": {
+        "title": "Mostrar Título na Temporada",
+        "description": "Adiciona o título da série (ou logo) aos pôsteres da temporada ao lado do texto da temporada."
+      },
+      "minimalist": {
+        "title": "Pôsteres Minimalistas",
+        "description": "Desativa o processamento de imagem totalmente. Apenas o pôster bruto é baixado e movido para o diretório de assets."
+      },
+      "fullOverlays": {
+        "title": "Ativar Todos os Overlays",
+        "description": "Ativa bordas, texto e overlays em todos os pôsteres, temporadas, fundos e title cards."
+      },
+      "resolutionOverlays": {
+        "title": "Overlays de Resolução",
+        "description": "Ativa overlays de resolução e HDR/DoVi."
+      },
+      "onlyBorders": {
+        "title": "Apenas Bordas",
+        "description": "Desativa texto e overlays, renderizando apenas bordas em todos os pôsteres e cards."
+      },
+      "onlyText": {
+        "title": "Apenas Texto",
+        "description": "Desativa bordas e overlays, renderizando apenas texto (ou logos) em todos os pôsteres e cards."
+      },
+      "onlyOverlays": {
+        "title": "Apenas Overlays",
+        "description": "Desativa texto e bordas, renderizando apenas overlays de resolução/classificação."
+      },
+      "textless": {
+        "title": "Apenas Pôsteres Sem Texto",
+        "description": "Configura os idiomas para 'xx' para baixar apenas artes sem texto."
+      }
+    },
+    "builder": {
+      "tabPresets": "Predefinições",
+      "tabBuilder": "Construtor",
+      "tabBuilderDesc": "Crie seu próprio blueprint personalizado combinando overlays específicos.",
+      "categoryPoster": "Pôster",
+      "categorySeason": "Temporada",
+      "categoryTitleCard": "Title Card",
+      "categoryBackground": "Fundo",
+      "categoryGlobal": "Configurações Globais",
+      "enableProcessing": "Ativar Processamento de Imagem",
+      "enableBorders": "Ativar Bordas",
+      "enableText": "Ativar Texto / Logo",
+      "useClearlogo": "Usar Clearlogo",
+      "useClearart": "Usar Clearart",
+      "useOriginalTitle": "Usar Título Original",
+      "flatWhiteLogo": "Logo Branco Plano",
+      "showTitleOnSeason": "Mostrar Título na Temporada",
+      "resolutionOverlays": "Overlays de Resolução",
+      "onlyTextless": "Baixar apenas artes sem texto",
+      "preview": "Pré-visualização ao Vivo",
+      "applyCustom": "Aplicar Blueprint Personalizado"
+    }
   }
 }

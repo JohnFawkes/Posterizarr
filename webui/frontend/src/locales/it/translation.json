@@ -2425,5 +2425,90 @@
       "step3": "Clicca su \"Esegui Coda\" per elaborarli in sequenza.",
       "step4": "Controlla la colonna dello stato per i risultati."
     }
+  },
+  "blueprints": {
+    "pageTitle": "Blueprint di Configurazione",
+    "pageDescription": "Applica rapidamente configurazioni predefinite per ottenere stili visivi specifici. L'applicazione di un blueprint aggiornerà istantaneamente le tue impostazioni.",
+    "export": "Esporta",
+    "import": "Importa",
+    "importing": "Importazione...",
+    "apply": "Applica Blueprint",
+    "applying": "Applicazione...",
+    "settingsChanged": "Impostazioni Modificate",
+    "importSuccess": "Blueprint personalizzato importato con successo e backup creato!",
+    "importFailed": "Impossibile applicare la configurazione importata: {message}",
+    "importError": "Errore durante l'importazione del blueprint: {message}",
+    "items": {
+      "clearlogo": {
+        "title": "Logo (Clearlogo)",
+        "description": "Sostituisce il testo standard con il clearlogo del film/serie."
+      },
+      "clearart": {
+        "title": "Logo (Clearart)",
+        "description": "Sostituisce il testo standard con il clearart del film/serie."
+      },
+      "flatClearlogo": {
+        "title": "Logo Bianco Piatto (Clearlogo)",
+        "description": "Sostituisce il testo standard con un clearlogo convertito in bianco piatto per un migliore contrasto."
+      },
+      "flatClearart": {
+        "title": "Logo Bianco Piatto (Clearart)",
+        "description": "Sostituisce il testo standard con un clearart convertito in bianco piatto per un migliore contrasto."
+      },
+      "showTitleSeason": {
+        "title": "Mostra Titolo sulla Stagione",
+        "description": "Aggiunge il titolo della serie (o il logo) alle locandine delle stagioni accanto al testo della stagione."
+      },
+      "minimalist": {
+        "title": "Locandine Minimaliste",
+        "description": "Disabilita completamente l'elaborazione delle immagini. Solo la locandina grezza viene scaricata."
+      },
+      "fullOverlays": {
+        "title": "Abilita Tutti gli Overlay",
+        "description": "Abilita bordi, testo e overlay su tutte le locandine standard, stagioni, sfondi e title card."
+      },
+      "resolutionOverlays": {
+        "title": "Overlay di Risoluzione",
+        "description": "Abilita overlay di risoluzione e HDR/DoVi."
+      },
+      "onlyBorders": {
+        "title": "Solo Bordi",
+        "description": "Disabilita testo e overlay, renderizzando solo i bordi su tutte le locandine e card."
+      },
+      "onlyText": {
+        "title": "Solo Testo",
+        "description": "Disabilita bordi e overlay, renderizzando solo testo (o loghi) su tutte le locandine e card."
+      },
+      "onlyOverlays": {
+        "title": "Solo Overlay",
+        "description": "Disabilita testo e bordi, renderizzando solo overlay di risoluzione/valutazione."
+      },
+      "textless": {
+        "title": "Solo Locandine Senza Testo",
+        "description": "Configura le lingue su 'xx' per scaricare solo artwork senza testo."
+      }
+    },
+    "builder": {
+      "tabPresets": "Preimpostazioni",
+      "tabBuilder": "Costruttore",
+      "tabBuilderDesc": "Crea il tuo blueprint personalizzato combinando overlay specifici.",
+      "categoryPoster": "Locandina",
+      "categorySeason": "Stagione",
+      "categoryTitleCard": "Title Card",
+      "categoryBackground": "Sfondo",
+      "categoryGlobal": "Impostazioni Globali",
+      "enableProcessing": "Abilita Elaborazione Immagine",
+      "enableBorders": "Abilita Bordi",
+      "enableText": "Abilita Testo / Logo",
+      "useClearlogo": "Usa Clearlogo",
+      "useClearart": "Usa Clearart",
+      "useOriginalTitle": "Usa Titolo Originale",
+      "flatWhiteLogo": "Logo Bianco Piatto",
+      "showTitleOnSeason": "Mostra Titolo sulla Stagione",
+      "resolutionOverlays": "Overlay di Risoluzione",
+      "onlyTextless": "Scarica solo artwork senza testo",
+      "preview": "Anteprima dal Vivo",
+      "applyCustom": "Applica Blueprint Personalizzato"
+    }
   }
 }

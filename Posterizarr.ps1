@@ -54,7 +54,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "2.2.51"
+$CurrentScriptVersion = "2.2.52"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -19739,7 +19739,7 @@ Elseif ($ArrTrigger) {
                                     if ($global:UploadExistingAssets -eq 'true') {
                                         Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                         Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
-                                        UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $SeasonImageoriginal
+                                        UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImageoriginal
                                     }
                                     Else {
                                         if ($show_skipped -eq 'True' ) {
@@ -31788,7 +31788,7 @@ Elseif ($OtherMediaServerUrl -and $OtherMediaServerApiKey -and $UseOtherMediaSer
                                 if ($global:UploadExistingAssets -eq 'true') {
                                     Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                     Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
-                                    UploadOtherMediaServerArtwork -itemId $entry.id -imageType "Primary" -imagePath $SeasonImageoriginal
+                                    UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImageoriginal
                                 }
                                 Else {
                                     if ($show_skipped -eq 'True' ) {
