@@ -4227,7 +4227,7 @@ function Invoke-ShowPosterCreation {
                         $global:TextlessPoster = $null
                         $global:EPResolutions = $null
                         if ($episode.'Library Name' -eq $entry.'Library Name') {
-                            write-host "DEBUG MATCH CHECK: ep.ShowName='$($episode.'Show Name')' vs entry.title='$($entry.title)' | ep.LibName='$($episode.'Library Name')' vs entry.LibName='$($entry.'Library Name')' | ep.tmdb='$($episode.tmdbid)' vs entry.tmdb='$($entry.tmdbid)' | ep.tvdb='$($episode.tvdbid)' vs entry.tvdb='$($entry.tvdbid)'"
+                            Write-Entry -Subtext "DEBUG MATCH CHECK: ep.ShowName='$($episode.'Show Name')' vs entry.title='$($entry.title)' | ep.LibName='$($episode.'Library Name')' vs entry.LibName='$($entry.'Library Name')' | ep.tmdb='$($episode.tmdbid)' vs entry.tmdb='$($entry.tmdbid)' | ep.tvdb='$($episode.tvdbid)' vs entry.tvdb='$($entry.tvdbid)'" -Path $global:configLogging -Color Cyan -log Info
                         }
                         if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
                             $global:show_name = $episode."Show Name"
@@ -5099,6 +5099,9 @@ function Invoke-ShowPosterCreation {
                                     }
                                     Else {
                                         $checkedItems.Add($hashtestpath)
+                                        if ($episode.'Library Name' -eq 'Anime Shows') {
+                                            Write-Entry -Subtext "TC-DEBUG [$($global:show_name) $global:FileNaming]: hashtestpath='$hashtestpath' | inHashtable=$($directoryHashtable.ContainsKey(`"$hashtestpath`"))" -Path $global:configLogging -Color Cyan -log Info
+                                        }
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $null
                                             if ($global:PlexTitleCardUrl -like "/library/*") {
