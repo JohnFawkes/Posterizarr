@@ -4198,6 +4198,7 @@ function Invoke-ShowPosterCreation {
                 # Now we can start the Episode Part
                 if ($global:TitleCards -eq 'true') {
                     # Loop through each episode
+                    Write-Entry -Subtext "Starting TitleCards loop. global:Episodedata count is: $($global:Episodedata.Count)" -Path $global:configLogging -Color Cyan -log Info
                     foreach ($episode in $global:Episodedata) {
                         $SkippingText = 'false'
 
