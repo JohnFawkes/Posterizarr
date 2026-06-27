@@ -3200,6 +3200,7 @@ function CheckJellyfinAccess {
             $response = Invoke-RestMethod -Method Get -Uri "$JellyfinUrl/System/Info" -ErrorAction Stop -Headers @{ "Authorization" = "MediaBrowser Token=`"$JellyfinAPI`"" }
             if ($response.version) {
                 Write-Entry -Subtext "Jellyfin access is working..." -Path $global:configLogging -Color Green -log Info
+                $global:OtherMediaServerHeaders = @{ "Authorization" = "MediaBrowser Token=`"$JellyfinAPI`"" }
             }
             else {
                 Write-Entry -Message "Could not access Jellyfin" -Path $global:configLogging -Color Red -Log Error
@@ -3231,6 +3232,7 @@ function CheckEmbyAccess {
             $response = Invoke-RestMethod -Method Get -Uri "$EmbyUrl/System/Info" -ErrorAction Stop -Headers @{ "Authorization" = "MediaBrowser Token=`"$EmbyAPI`"" }
             if ($response.version) {
                 Write-Entry -Subtext "Emby access is working..." -Path $global:configLogging -Color Green -log Info
+                $global:OtherMediaServerHeaders = @{ "Authorization" = "MediaBrowser Token=`"$EmbyAPI`"" }
             }
             else {
                 Write-Entry -Message "Could not access Emby" -Path $global:configLogging -Color Red -Log Error
