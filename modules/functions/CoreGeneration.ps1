@@ -4199,8 +4199,13 @@ function Invoke-ShowPosterCreation {
                 if ($global:TitleCards -eq 'true') {
                     # Loop through each episode
                     Write-Entry -Subtext "Starting TitleCards loop. global:Episodedata count is: $($global:Episodedata.Count)" -Path $global:configLogging -Color Cyan -log Info
+                    $DebugPrinted = $false
                     foreach ($episode in $global:Episodedata) {
                         $SkippingText = 'false'
+                        if (-not $DebugPrinted -and ($episode.'Show Name' -eq $entry.title -or $episode.'Show Name' -eq $entry.originalTitle)) {
+                            Write-Entry -Subtext "DEBUG: TC check for $($entry.title) | ep.LibName: '$($episode.'Library Name')' vs en.LibName: '$($entry.'Library Name')' | ep.tmdb: '$($episode.tmdbid)' vs en.tmdb: '$($entry.tmdbid)' | ep.ShowName: '$($episode.'Show Name')'" -Path $global:configLogging -Color Cyan -log Info
+                            $DebugPrinted = $true
+                        }
 
                         $global:AssetTextLang = $null
                         $global:TMDBAssetTextLang = $null
