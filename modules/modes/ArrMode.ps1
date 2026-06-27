@@ -37,7 +37,7 @@
                 }
                 else {
                     # Find the library matching the Sonarr path
-                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
+                    $libsResponse = @(Invoke-RestMethod -Uri "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders)
 
                     foreach ($lib in $libsResponse) {
                         foreach ($location in $lib.Locations) {
@@ -172,7 +172,7 @@
                 }
                 else {
                     # Multiple results: Determine which library matches the Radarr/Arr path
-                    $libsResponse = Invoke-RestMethod -Uri "$OtherMediaServerUrl/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
+                    $libsResponse = @(Invoke-RestMethod -Uri "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders)
 
                     $MatchingPath = $null
                     $MatchingLib = $null
@@ -489,18 +489,18 @@
                     Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
                 }
             }
-        }
+}
         foreach ($Show in $AllShows.Items) {
             $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
 
-            $libraryQuery = "$OtherMediaServerUrl/Library/VirtualFolders"
-            $librarytemp = Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders
+            $libraryQuery = "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders"
+            $OtherAllLibs = @(Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders)
             if ($UseEmby -eq 'true') {
-                $librariestemp = $librarytemp | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations, LibraryOptions -Unique
+                $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations, LibraryOptions -Unique
             }
             Else {
-                $librariestemp = $librarytemp | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations -Unique
+                $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations -Unique
             }
             foreach ($singlelibrary in $librariestemp) {
                 # Loop through each location in the library's Locations array
