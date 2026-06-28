@@ -4226,16 +4226,13 @@ function Invoke-ShowPosterCreation {
                         $global:FallbackText = $null
                         $global:TextlessPoster = $null
                         $global:EPResolutions = $null
-                        if ($episode.'Library Name' -eq $entry.'Library Name') {
-                            Write-Entry -Subtext "DEBUG MATCH CHECK: ep.ShowName='$($episode.'Show Name')' vs entry.title='$($entry.title)' | ep.LibName='$($episode.'Library Name')' vs entry.LibName='$($entry.'Library Name')' | ep.tmdb='$($episode.tmdbid)' vs entry.tmdb='$($entry.tmdbid)' | ep.tvdb='$($episode.tvdbid)' vs entry.tvdb='$($entry.tvdbid)'" -Path $global:configLogging -Color Cyan -log Info
-                        }
                         if (($episode.tmdbid -eq $entry.tmdbid -or $episode.tvdbid -eq $entry.tvdbid) -and $episode.'Show Name' -eq $entry.title -and $episode.'Library Name' -eq $entry.'Library Name') {
                             $global:show_name = $episode."Show Name"
                             $global:season_number = $episode."Season Number"
                             if ($null -ne $episode."Resolutions") { $global:EPResolutions = $episode."Resolutions".Split(",") } else { $global:EPResolutions = @() }
-                            $global:episode_numbers = $episode."Episodes".Split(",")
-                            if ($null -ne $episode."ratingKeys") { $global:episode_ratingkeys = $episode."ratingKeys".Split(",") } else { $global:episode_ratingkeys = @() }
-                            $global:titles = $episode."Title".Split(";")
+                            if ($null -ne $episode."Episodes") { $global:episode_numbers = $episode."Episodes".Split(",") } else { $global:episode_numbers = @() }
+                            if ($null -ne $episode."RatingKeys") { $global:episode_ratingkeys = $episode."RatingKeys".Split(",") } else { $global:episode_ratingkeys = @() }
+                            if ($null -ne $episode."Title") { $global:titles = $episode."Title".Split(";") } else { $global:titles = @() }
                             if ($null -ne $episode."PlexTitleCardUrls") { $global:PlexTitleCardUrls = $episode."PlexTitleCardUrls".Split(",") } else { $global:PlexTitleCardUrls = @() }
                             if ($null -ne $episode."OtherMediaServerTitleCardUrls") { $global:OtherMediaServerTitleCardUrls = $episode."OtherMediaServerTitleCardUrls".Split(",") } else { $global:OtherMediaServerTitleCardUrls = @() }
                             if ($UseBackgroundAsTitleCard -eq 'true') {
@@ -5099,9 +5096,6 @@ function Invoke-ShowPosterCreation {
                                     }
                                     Else {
                                         $checkedItems.Add($hashtestpath)
-                                        if ($episode.'Library Name' -eq 'Anime Shows') {
-                                            Write-Entry -Subtext "TC-DEBUG [$($global:show_name) $global:FileNaming]: hashtestpath='$hashtestpath' | inHashtable=$($directoryHashtable.ContainsKey(`"$hashtestpath`"))" -Path $global:configLogging -Color Cyan -log Info
-                                        }
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $null
                                             if ($global:PlexTitleCardUrl -like "/library/*") {

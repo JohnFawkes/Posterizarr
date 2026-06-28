@@ -476,9 +476,6 @@
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
                 $global:Episodedata.Add($tempseasondata)
-                if ($showentry.title -ne $tempseasondata.'Show Name') {
-                    Write-Entry -Subtext "TITLE MISMATCH: showentry.title='$($showentry.title)' vs grandparentTitle='$($tempseasondata.'Show Name')' | LibName='$($showentry.'Library Name')'" -Path $global:configLogging -Color Yellow -log Warning
-                }
                 Write-Entry -Subtext "  Found [$($tempseasondata.'Show Name')] of type $($tempseasondata.Type) for season $($tempseasondata.'Season Number')" -Path $global:configLogging -Color Cyan -log Debug
                 Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
             }
