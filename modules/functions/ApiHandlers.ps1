@@ -5237,13 +5237,34 @@ function SyncPlexArtwork {
         }
     }
 
+    # Some Emby/Jellyfin failures return plain-text bodies (for example, starting with "Error").
+    # Only attempt JSON parsing when the payload actually looks like JSON.
+    $tryParseJsonError = {
+        param($errorRecord)
+
+        if (-not $errorRecord -or -not $errorRecord.ErrorDetails -or [string]::IsNullOrWhiteSpace($errorRecord.ErrorDetails.Message)) {
+            return $null
+        }
+
+        $rawMessage = [string]$errorRecord.ErrorDetails.Message
+        if ($rawMessage -notmatch '^\s*[\{\[]') {
+            return $null
+        }
+
+        try {
+            return ($rawMessage | ConvertFrom-Json -ErrorAction Stop)
+        }
+        catch {
+            return $null
+        }
+    }
+
     try {
         Write-Entry -Subtext "Fetching image from source: $(RedactMediaServerUrl -url $ArtUrl)" -Path $global:configLogging -Color Cyan -log Debug
         $imageResponse = Invoke-WebRequest -Uri $ArtUrl -Headers $requestHeaders -UseBasicParsing -ErrorAction Stop
     }
     catch {
-        # Attempt to parse JSON error response
-        $errorResponse = $_.ErrorDetails.Message | ConvertFrom-Json -ErrorAction SilentlyContinue
+        $errorResponse = & $tryParseJsonError $_
 
         if ($errorResponse) {
             $errorTitle = $errorResponse.title
@@ -5257,7 +5278,8 @@ function SyncPlexArtwork {
             if (-not $startmessage) {
                 Write-Entry -Message "Starting SyncPlexArtwork for: $title" -Path $global:configLogging -Color White -log Info
             }
-            Write-Entry -Subtext "Failed to retrieve source image: Unknown error" -Path $global:configLogging -Color Red -log Error
+            $rawErrorText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
+            Write-Entry -Subtext "Failed to retrieve source image: $rawErrorText" -Path $global:configLogging -Color Red -log Error
         }
 
         return
@@ -5294,8 +5316,7 @@ function SyncPlexArtwork {
         $existingImageResponse = Invoke-WebRequest -Uri $DestUrl -Headers $destHeaders -UseBasicParsing -ErrorAction Stop
     }
     catch {
-        # Attempt to parse JSON error response
-        $errorResponse = $_.ErrorDetails.Message | ConvertFrom-Json -ErrorAction SilentlyContinue
+        $errorResponse = & $tryParseJsonError $_
 
         if ($errorResponse) {
             $errorTitle = $errorResponse.title
@@ -5309,7 +5330,8 @@ function SyncPlexArtwork {
             if (-not $startmessage) {
                 Write-Entry -Message "Starting SyncPlexArtwork for: $title" -Path $global:configLogging -Color White -log Info
             }
-            Write-Entry -Subtext "Failed to retrieve destination image: Unknown error" -Path $global:configLogging -Color Red -log Error
+            $rawErrorText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
+            Write-Entry -Subtext "Failed to retrieve destination image: $rawErrorText" -Path $global:configLogging -Color Red -log Error
         }
 
         return
@@ -5354,8 +5376,7 @@ function SyncPlexArtwork {
             Write-Entry -Subtext "Successfully deleted old artwork." -Path $global:configLogging -Color Green -log Info
         }
         catch {
-            # Attempt to parse JSON error response
-            $errorResponse = $_.ErrorDetails.Message | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $errorResponse = & $tryParseJsonError $_
 
             if ($errorResponse) {
                 $errorTitle = $errorResponse.title
@@ -5364,7 +5385,8 @@ function SyncPlexArtwork {
                 Write-Entry -Subtext "Error deleting image: Status: $errorStatus, Title: $errorTitle" -Path $global:configLogging -Color Red -log Error
             }
             else {
-                Write-Entry -Subtext "Error deleting image: Unknown error" -Path $global:configLogging -Color Red -log Error
+                $rawErrorText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
+                Write-Entry -Subtext "Error deleting image: $rawErrorText" -Path $global:configLogging -Color Red -log Error
             }
         }
 
