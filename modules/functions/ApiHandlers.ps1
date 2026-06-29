@@ -126,7 +126,7 @@ function GetFanartLogo {
     foreach ($id in $ids) {
         if (-not $id) { continue }
 
-        try { $entrytemp = Get-FanartTv -Type $Type -id $id -ErrorAction SilentlyContinue } catch { 
+        try { $entrytemp = Get-FanartTv -Type $Type -id $id -ErrorAction SilentlyContinue } catch {
 
             Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
 
@@ -1773,7 +1773,7 @@ function GetFanartMoviePoster {
 
         foreach ($id in $ids) {
             if ($id) {
-                try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
+                try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch {
                     Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                     $entrytemp = $null
                 }
@@ -1828,7 +1828,7 @@ function GetFanartMoviePoster {
 
         foreach ($id in $ids) {
             if ($id) {
-                try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
+                try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch {
                     Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                     $entrytemp = $null
                 }
@@ -1876,7 +1876,7 @@ function GetFanartMovieBackground {
 
     foreach ($id in $ids) {
         if ($id) {
-            try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch { 
+            try { $entrytemp = Get-FanartTv -Type movies -id $id -ErrorAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -1935,7 +1935,7 @@ function GetFanartShowPoster {
         $id = $global:tvdbid
         $entrytemp = $null
         if ($id) {
-            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -1998,7 +1998,7 @@ function GetFanartShowPoster {
         $entrytemp = $null
 
         if ($id) {
-            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -2047,7 +2047,7 @@ function GetFanartShowBackground {
     $entrytemp = $null
 
     if ($id) {
-        try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+        try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch {
             Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
             $entrytemp = $null
         }
@@ -2104,7 +2104,7 @@ function GetFanartSeasonPoster {
     $entrytemp = $null
     if ($global:SeasonPreferTextless -eq $true) {
         if ($id) {
-            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -2207,7 +2207,7 @@ function GetFanartSeasonPoster {
     }
     Else {
         if ($id) {
-            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch { 
+            try { $entrytemp = Get-FanartTv -Type tv -id $id -ErrorAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -5220,6 +5220,12 @@ function SyncPlexArtwork {
     )
     $startmessage = $null
 
+    # Destination server calls (Jellyfin/Emby) require auth headers.
+    $destHeaders = $global:OtherMediaServerHeaders
+    if (-not $destHeaders) {
+        $destHeaders = @{}
+    }
+
     if ($show_skipped -eq 'true') {
         Write-Entry -Message "Starting SyncPlexArtwork for: $title" -Path $global:configLogging -Color White -log Info
         $startmessage = $true
@@ -5285,7 +5291,7 @@ function SyncPlexArtwork {
 
     try {
         Write-Entry -Subtext "Fetching existing image from destination: $(RedactMediaServerUrl -url $DestUrl)" -Path $global:configLogging -Color Cyan -log Debug
-        $existingImageResponse = Invoke-WebRequest -Uri $DestUrl -UseBasicParsing -ErrorAction Stop
+        $existingImageResponse = Invoke-WebRequest -Uri $DestUrl -Headers $destHeaders -UseBasicParsing -ErrorAction Stop
     }
     catch {
         # Attempt to parse JSON error response
@@ -5344,7 +5350,7 @@ function SyncPlexArtwork {
     if ($imageType -eq 'Backdrop') {
         try {
             Write-Entry -Subtext "Deleting old artwork before upload..." -Path $global:configLogging -Color Yellow -log Info
-            Invoke-RestMethod -Uri $DestUrl -Method Delete -ErrorAction Stop
+            Invoke-RestMethod -Uri $DestUrl -Method Delete -Headers $destHeaders -ErrorAction Stop
             Write-Entry -Subtext "Successfully deleted old artwork." -Path $global:configLogging -Color Green -log Info
         }
         catch {
@@ -5366,7 +5372,7 @@ function SyncPlexArtwork {
 
     try {
         $imageBase64 = [Convert]::ToBase64String($remoteImageBytes)
-        $response = Invoke-RestMethod -Uri $DestUrl -Method Post -Body $imageBase64 -ContentType $remoteImageContentType -ErrorAction Stop
+        $response = Invoke-RestMethod -Uri $DestUrl -Method Post -Headers $destHeaders -Body $imageBase64 -ContentType $remoteImageContentType -ErrorAction Stop
         Write-Entry -Subtext "Image uploaded successfully." -Path $global:configLogging -Color Green -log Info
 
         switch ($artworktype) {
@@ -5378,8 +5384,14 @@ function SyncPlexArtwork {
         $global:UploadCount = Increment-GlobalStat 'UploadCount'
     }
     catch {
-        # Attempt to parse JSON error response
+        $statusCode = $null
         $message = $_.ErrorDetails.Message
+        $rawExceptionMessage = $_.Exception.Message
+        if ($_.Exception.Response -and $_.Exception.Response.StatusCode) {
+            $statusCode = [int]$_.Exception.Response.StatusCode
+        }
+
+        # Attempt to parse structured JSON response if present.
         if ($message -match '^\s*\{.*\}\s*$') {
             $errorResponse = $message | ConvertFrom-Json -ErrorAction SilentlyContinue
         }
@@ -5387,10 +5399,18 @@ function SyncPlexArtwork {
         if ($errorResponse) {
             $errorTitle = $errorResponse.title
             $errorStatus = $errorResponse.status
-
             Write-Entry -Subtext "Error uploading image: Status: $errorStatus, Title: $errorTitle" -Path $global:configLogging -Color Red -log Error
         }
+        elseif ($statusCode) {
+            if ([string]::IsNullOrWhiteSpace($message)) {
+                $message = $rawExceptionMessage
+            }
+            Write-Entry -Subtext "Error uploading image: HTTP $statusCode - $message" -Path $global:configLogging -Color Red -log Error
+        }
         else {
+            if ([string]::IsNullOrWhiteSpace($message)) {
+                $message = $rawExceptionMessage
+            }
             Write-Entry -Subtext "Error uploading image: $message" -Path $global:configLogging -Color Red -log Error
         }
     }
