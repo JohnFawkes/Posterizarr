@@ -651,7 +651,7 @@ function ConfigEditor() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-theme-card border border-theme rounded-xl p-4 shadow-sm">
+      <div className="sticky top-[85px] z-30 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-theme-card/95 backdrop-blur-md border border-theme rounded-xl p-4 shadow-md">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-muted" />
           <input
