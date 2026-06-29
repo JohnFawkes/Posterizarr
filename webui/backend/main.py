@@ -3370,7 +3370,11 @@ async def delete_font_file(filename: str):
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
 
-        file_path = OVERLAYFILES_DIR / safe_filename
+        file_path = (OVERLAYFILES_DIR / safe_filename).resolve()
+
+        # Guard against path traversal: resolved path must stay within OVERLAYFILES_DIR
+        if not file_path.is_relative_to(OVERLAYFILES_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid filename")
 
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
@@ -3399,12 +3403,16 @@ async def download_font_file(filename: str):
         safe_filename = "".join(c for c in filename if c.isalnum() or c in "._- ")
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
-            
-        font_path = OVERLAYFILES_DIR / safe_filename
-        
+
+        font_path = (OVERLAYFILES_DIR / safe_filename).resolve()
+
+        # Guard against path traversal: resolved path must stay within OVERLAYFILES_DIR
+        if not font_path.is_relative_to(OVERLAYFILES_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid filename")
+
         if not font_path.exists():
             raise HTTPException(status_code=404, detail="Font file not found")
-            
+
         return FileResponse(font_path)
     except Exception as e:
         logger.error(f"Error downloading font: {e}")
@@ -3422,7 +3430,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
 
-        font_path = OVERLAYFILES_DIR / safe_filename
+        font_path = (OVERLAYFILES_DIR / safe_filename).resolve()
+
+        # Guard against path traversal: resolved path must stay within OVERLAYFILES_DIR
+        if not font_path.is_relative_to(OVERLAYFILES_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid filename")
 
         if not font_path.exists():
             raise HTTPException(status_code=404, detail="Font file not found")
