@@ -901,7 +901,7 @@ function Write-Entry {
         $PaddedType = $PaddedType.PadRight(10)
         
         $ThreadId = [System.Threading.Thread]::CurrentThread.ManagedThreadId.ToString().PadLeft(2, '0')
-        $ThreadTag = "[T$ThreadId] "
+        $ThreadTag = "[T$ThreadId]".PadRight(7)
         
         $ScriptName = ""
         if ($MyInvocation.ScriptName) {
