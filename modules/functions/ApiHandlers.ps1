@@ -5239,14 +5239,14 @@ function SyncPlexArtwork {
 
     # Some Emby/Jellyfin failures return plain-text bodies (for example, starting with "Error").
     # Only attempt JSON parsing when the payload actually looks like JSON.
-    $tryParseJsonError = {
-        param($errorRecord)
+    function TryParse-JsonErrorResponse {
+        param($ErrorRecord)
 
-        if (-not $errorRecord -or -not $errorRecord.ErrorDetails -or [string]::IsNullOrWhiteSpace($errorRecord.ErrorDetails.Message)) {
+        if (-not $ErrorRecord -or -not $ErrorRecord.ErrorDetails -or [string]::IsNullOrWhiteSpace($ErrorRecord.ErrorDetails.Message)) {
             return $null
         }
 
-        $rawMessage = [string]$errorRecord.ErrorDetails.Message
+        $rawMessage = [string]$ErrorRecord.ErrorDetails.Message
         if ($rawMessage -notmatch '^\s*[\{\[]') {
             return $null
         }
@@ -5264,7 +5264,7 @@ function SyncPlexArtwork {
         $imageResponse = Invoke-WebRequest -Uri $ArtUrl -Headers $requestHeaders -UseBasicParsing -ErrorAction Stop
     }
     catch {
-        $errorResponse = & $tryParseJsonError $_
+        $errorResponse = TryParse-JsonErrorResponse -ErrorRecord $_
 
         if ($errorResponse) {
             $errorTitle = $errorResponse.title
@@ -5316,7 +5316,7 @@ function SyncPlexArtwork {
         $existingImageResponse = Invoke-WebRequest -Uri $DestUrl -Headers $destHeaders -UseBasicParsing -ErrorAction Stop
     }
     catch {
-        $errorResponse = & $tryParseJsonError $_
+        $errorResponse = TryParse-JsonErrorResponse -ErrorRecord $_
 
         if ($errorResponse) {
             $errorTitle = $errorResponse.title
@@ -5376,7 +5376,7 @@ function SyncPlexArtwork {
             Write-Entry -Subtext "Successfully deleted old artwork." -Path $global:configLogging -Color Green -log Info
         }
         catch {
-            $errorResponse = & $tryParseJsonError $_
+            $errorResponse = TryParse-JsonErrorResponse -ErrorRecord $_
 
             if ($errorResponse) {
                 $errorTitle = $errorResponse.title
