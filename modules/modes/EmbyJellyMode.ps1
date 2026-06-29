@@ -27,7 +27,7 @@
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
     $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration" -Headers $global:OtherMediaServerHeaders).PreferredMetadataLanguage ?? "en"
     $allLibsquery = "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders"
-    $AllLibs = @(Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders)
+    $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders
 
     write-Entry -Subtext "Found '$($AllLibs.count)' libs and '$(@($LibstoExclude).count)' are excluded..." -Path $global:configLogging -Color Cyan -log Info
     $IncludedLibraryNames = ($AllLibs | Where-Object { $_.Name -notin $LibstoExclude }).Name -join ', '
@@ -487,14 +487,14 @@
 
             # Add the season object to the array
             $Episodedata.Add($seasonObject)
-            
+
             # Add to show-level collections
             if ($SeasonId) { $showSeasonIds.Add($SeasonId) }
             $showSeasonNumbers.Add($SeasonEpisodes[0].ParentIndexNumber)
             $showSeasonNames.Add($Season.Name)
             if ($SeasonId) { $showSeasonUrls.Add("$OtherMediaServerUrl/Items/$SeasonId/Images/Primary") }
         }
-        
+
         # Append collected season metadata to the parent show object
         $show | Add-Member -MemberType NoteProperty -Name "SeasonNames" -Value ($showSeasonNames -join ';') -Force
         $show | Add-Member -MemberType NoteProperty -Name "SeasonRatingKeys" -Value ($showSeasonIds -join ',') -Force
@@ -652,10 +652,10 @@
     Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
     $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
-    
+
     $globalState = @{}
-    Get-Variable | Where-Object { 
-        $_.Options -notmatch 'ReadOnly|Constant' -and 
+    Get-Variable | Where-Object {
+        $_.Options -notmatch 'ReadOnly|Constant' -and
         $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
     } | ForEach-Object {
         $globalState[$_.Name] = $_.Value

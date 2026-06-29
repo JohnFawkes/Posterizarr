@@ -37,7 +37,7 @@
                 }
                 else {
                     # Find the library matching the Sonarr path
-                    $libsResponse = @(Invoke-RestMethod -Uri "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders)
+                    $libsResponse = Invoke-RestMethod -Uri "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
 
                     foreach ($lib in $libsResponse) {
                         foreach ($location in $lib.Locations) {
@@ -172,7 +172,7 @@
                 }
                 else {
                     # Multiple results: Determine which library matches the Radarr/Arr path
-                    $libsResponse = @(Invoke-RestMethod -Uri "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders)
+                    $libsResponse = Invoke-RestMethod -Uri "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders" -Headers $global:OtherMediaServerHeaders
 
                     $MatchingPath = $null
                     $MatchingLib = $null
@@ -495,7 +495,7 @@
             $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
 
             $libraryQuery = "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders"
-            $OtherAllLibs = @(Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders)
+            $OtherAllLibs = Invoke-RestMethod -Method Get -Uri $libraryQuery -Headers $global:OtherMediaServerHeaders
             if ($UseEmby -eq 'true') {
                 $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations, LibraryOptions -Unique
             }
@@ -795,10 +795,10 @@
         Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
         Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
         $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
-        
+
         $globalState = @{}
-        Get-Variable | Where-Object { 
-            $_.Options -notmatch 'ReadOnly|Constant' -and 
+        Get-Variable | Where-Object {
+            $_.Options -notmatch 'ReadOnly|Constant' -and
             $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
         } | ForEach-Object {
             $globalState[$_.Name] = $_.Value
@@ -1266,10 +1266,10 @@
         Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
         Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
         $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
-        
+
         $globalState = @{}
-        Get-Variable | Where-Object { 
-            $_.Options -notmatch 'ReadOnly|Constant' -and 
+        Get-Variable | Where-Object {
+            $_.Options -notmatch 'ReadOnly|Constant' -and
             $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
         } | ForEach-Object {
             $globalState[$_.Name] = $_.Value
