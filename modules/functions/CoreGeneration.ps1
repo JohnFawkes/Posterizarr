@@ -5836,16 +5836,16 @@ function Invoke-TitleCardCreation {
                                         $TestfileTemplate = "EpisodeTemplate"
                                     }
                                     Else {
-                                        if ($entry.extraFolder) {
-                                            $EpisodeImageoriginal = "$AssetPath\$($entry.extraFolder)\$($entry.RootFoldername)_$global:FileNaming.jpg"
+                                        if ($episode.extraFolder) {
+                                            $EpisodeImageoriginal = "$AssetPath\$($episode.extraFolder)\$($episode.RootFoldername)_$global:FileNaming.jpg"
                                         }
                                         Else {
-                                            $EpisodeImageoriginal = "$AssetPath\$($entry.RootFoldername)_$global:FileNaming.jpg"
+                                            $EpisodeImageoriginal = "$AssetPath\$($episode.RootFoldername)_$global:FileNaming.jpg"
                                         }
                                         $TestPath = $AssetPath
                                         $ManualTestPath = $ManualPath
-                                        $Testfile = "$($entry.RootFoldername)_$global:FileNaming"
-                                        $TestfileTemplate = "$($entry.RootFoldername)_EpisodeTemplate"
+                                        $Testfile = "$($episode.RootFoldername)_$global:FileNaming"
+                                        $TestfileTemplate = "$($episode.RootFoldername)_EpisodeTemplate"
                                     }
 
                                     if ($Platform -eq 'Docker' -or $Platform -eq 'Linux' -or $Platform -eq 'macOS') {
@@ -5869,7 +5869,7 @@ function Invoke-TitleCardCreation {
                                         }
                                     }
 
-                                    $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($entry.RootFoldername)_$global:FileNaming.jpg"
+                                    $EpisodeImage = Join-Path -Path $global:ScriptRoot -ChildPath "temp\$($episode.RootFoldername)_$global:FileNaming.jpg"
                                     $EpisodeImage = $EpisodeImage.Replace('[', '_').Replace(']', '_').Replace('{', '_').Replace('}', '_')
                                     $cjkTitlePattern = '[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}\p{IsThai}]'
 
@@ -6409,8 +6409,8 @@ function Invoke-TitleCardCreation {
                                                         $episodetemp = New-Object psobject
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $($global:FileNaming + " | " + $global:EPTitle)
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($episode.RootFoldername)
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($episode.'Library Name')
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $(if ($TakeLocal) { "false" } Else { if (!$global:AssetTextLang) { "Textless" }Else { $global:AssetTextLang } })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Source" -Value  $(if ($global:LogoUrl) { $global:LogoUrl } Else { "false" })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Logo Language" -Value $(if ($global:LogoLanguage) { $global:LogoLanguage } Else { "false" })
@@ -6419,9 +6419,9 @@ function Invoke-TitleCardCreation {
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value $(if ($TakeLocal) { $EpisodeImage } Else { $global:posterurl })
                                                         $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
-                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($episode.tmdbid) { $episode.tmdbid } Else { "false" })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($episode.tvdbid) { $episode.tvdbid } Else { "false" })
+                                                        $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($episode.imdbid) { $episode.imdbid } Else { "false" })
                                                         switch -Wildcard ($global:FavProvider) {
                                                             'TMDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TMDBAssetChangeUrl) { $global:TMDBAssetChangeUrl }Else { "false" }) }
                                                             'FANART' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:FANARTAssetChangeUrl) { $global:FANARTAssetChangeUrl }Else { "false" }) }
@@ -6443,16 +6443,16 @@ function Invoke-TitleCardCreation {
                                                     $episodetemp = New-Object psobject
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $($global:FileNaming + " | " + $global:EPTitle)
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Type" -Value 'Episode'
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($entry.RootFoldername)
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($entry.'Library Name')
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "Rootfolder" -Value $($episode.RootFoldername)
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "LibraryName" -Value $($episode.'Library Name')
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Language" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Fallback" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "TextTruncated" -Value $(if ($global:IsTruncated) { 'true' } else { 'false' })
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Download Source" -Value 'false'
                                                     $episodetemp | Add-Member -MemberType NoteProperty -Name "Manual" -Value $(if ($TakeLocal) { "true" } Else { "false" })
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($entry.tmdbid) { $entry.tmdbid } Else { "false" })
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($entry.tvdbid) { $entry.tvdbid } Else { "false" })
-                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($entry.imdbid) { $entry.imdbid } Else { "false" })
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $(if ($episode.tmdbid) { $episode.tmdbid } Else { "false" })
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $(if ($episode.tvdbid) { $episode.tvdbid } Else { "false" })
+                                                    $episodetemp | Add-Member -MemberType NoteProperty -Name "imdbid" -Value $(if ($episode.imdbid) { $episode.imdbid } Else { "false" })
                                                     switch -Wildcard ($global:FavProvider) {
                                                         'TMDB' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:TMDBAssetChangeUrl) { $global:TMDBAssetChangeUrl }Else { "false" }) }
                                                         'FANART' { $episodetemp | Add-Member -MemberType NoteProperty -Name "Fav Provider Link" -Value $(if ($global:FANARTAssetChangeUrl) { $global:FANARTAssetChangeUrl }Else { "false" }) }
@@ -6541,4 +6541,3 @@ function Invoke-TitleCardCreation {
         $global:errorCount = Increment-GlobalStat 'errorCount'
     }
 }
-
