@@ -63,7 +63,8 @@ const DynamicIcon = ({ name, className }) => {
 const README_LINKS = {
   "WebUI Settings": "https://fscorrupt.github.io/posterizarr/configuration/#webui",
   "System Settings": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "API & Media Servers": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
+  "Provider Settings": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
+  "Media Servers": "https://fscorrupt.github.io/posterizarr/configuration/#plexpart",
   "Language & Notifications": "https://fscorrupt.github.io/posterizarr/configuration/#notification",
   "Global Visuals": "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
   "Poster Settings": "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
@@ -157,7 +158,9 @@ function ConfigEditor() {
 
   // Tab Structure
   const tabs = {
-    System: { groups: ["WebUI Settings", "System Settings", "API & Media Servers", "Language & Notifications"], icon: Settings, path: "/config/system" },
+    System: { groups: ["WebUI Settings", "System Settings", "Language & Notifications"], icon: Settings, path: "/config/system" },
+    Providers: { groups: ["Provider Settings"], icon: Key, path: "/config/providers" },
+    "Media Servers": { groups: ["Media Servers"], icon: Database, path: "/config/services" },
     "Global Visuals": { groups: ["Global Visuals"], icon: Palette, path: "/config/visuals" },
     Posters: { groups: ["Poster Settings", "Poster Overlays"], icon: Image, path: "/config/posters" },
     Seasons: { groups: ["Season Settings", "Season Overlays", "Season Show Title"], icon: Library, path: "/config/seasons" },
@@ -169,6 +172,8 @@ function ConfigEditor() {
   const getActiveTabFromPath = () => {
     const path = location.pathname;
     if (path.includes("/config/system")) return "System";
+    if (path.includes("/config/providers")) return "Providers";
+    if (path.includes("/config/services")) return "Media Servers";
     if (path.includes("/config/visuals")) return "Global Visuals";
     if (path.includes("/config/posters")) return "Posters";
     if (path.includes("/config/seasons")) return "Seasons";

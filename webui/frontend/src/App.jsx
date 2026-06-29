@@ -286,6 +286,14 @@ function AppContent() {
                   element={<ConfigEditor tab="System" />}
                 />
                 <Route
+                  path="/config/providers"
+                  element={<ConfigEditor tab="Providers" />}
+                />
+                <Route
+                  path="/config/services"
+                  element={<ConfigEditor tab="Media Servers" />}
+                />
+                <Route
                   path="/config/visuals"
                   element={<ConfigEditor tab="Global Visuals" />}
                 />

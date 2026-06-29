@@ -558,7 +558,7 @@ UI_GROUPS = {
         "SkipJapTitle",
         "DisableOnlineAssetFetch",
     ],
-    "API & Media Servers": [
+    "Provider Settings": [
         "tvdbapi",
         "tmdbtoken",
         "FanartTvAPIKey",
@@ -566,6 +566,8 @@ UI_GROUPS = {
         "OverrideProviderOrder",
         "ProviderOrder",
         "tmdb_vote_sorting",
+    ],
+    "Media Servers": [
         "UsePlex",
         "PlexUrl",
         "PlexToken",
