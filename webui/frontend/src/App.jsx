@@ -279,43 +279,35 @@ function AppContent() {
 
                 <Route
                   path="/config"
-                  element={<Navigate to="/config/general" replace />}
+                  element={<Navigate to="/config/system" replace />}
                 />
                 <Route
-                  path="/config/webui"
-                  element={<ConfigEditor tab="WebUI" />}
-                />
-                <Route
-                  path="/config/general"
-                  element={<ConfigEditor tab="General" />}
-                />
-                <Route
-                  path="/config/services"
-                  element={<ConfigEditor tab="Services" />}
-                />
-                <Route
-                  path="/config/api"
-                  element={<ConfigEditor tab="API" />}
-                />
-                <Route
-                  path="/config/languages"
-                  element={<ConfigEditor tab="Languages" />}
+                  path="/config/system"
+                  element={<ConfigEditor tab="System" />}
                 />
                 <Route
                   path="/config/visuals"
-                  element={<ConfigEditor tab="Visuals" />}
+                  element={<ConfigEditor tab="Global Visuals" />}
                 />
                 <Route
-                  path="/config/overlays"
-                  element={<ConfigEditor tab="Overlays" />}
+                  path="/config/posters"
+                  element={<ConfigEditor tab="Posters" />}
+                />
+                <Route
+                  path="/config/seasons"
+                  element={<ConfigEditor tab="Seasons" />}
+                />
+                <Route
+                  path="/config/backgrounds"
+                  element={<ConfigEditor tab="Backgrounds" />}
+                />
+                <Route
+                  path="/config/titlecards"
+                  element={<ConfigEditor tab="Title Cards" />}
                 />
                 <Route
                   path="/config/collections"
                   element={<ConfigEditor tab="Collections" />}
-                />
-                <Route
-                  path="/config/notifications"
-                  element={<ConfigEditor tab="Notifications" />}
                 />
 
                 <Route path="/logs" element={<LogViewer />} />

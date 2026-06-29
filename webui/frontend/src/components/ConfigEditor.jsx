@@ -62,44 +62,24 @@ const DynamicIcon = ({ name, className }) => {
 // Mapping from groups to README sections
 const README_LINKS = {
   "WebUI Settings": "https://fscorrupt.github.io/posterizarr/configuration/#webui",
-  "API Keys & Tokens": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  ApiPart: "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  "Language & Preferences": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  "Image Filters": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  "Plex Settings": "https://fscorrupt.github.io/posterizarr/configuration/#plexpart",
-  PlexPart: "https://fscorrupt.github.io/posterizarr/configuration/#plexpart",
-  "Jellyfin Settings": "https://fscorrupt.github.io/posterizarr/configuration/#jellyfinpart",
-  JellyfinPart: "https://fscorrupt.github.io/posterizarr/configuration/#jellyfinpart",
-  "Emby Settings": "https://fscorrupt.github.io/posterizarr/configuration/#embypart",
-  EmbyPart: "https://fscorrupt.github.io/posterizarr/configuration/#embypart",
-  Notifications: "https://fscorrupt.github.io/posterizarr/configuration/#notification",
-  Notification: "https://fscorrupt.github.io/posterizarr/configuration/#notification",
-  "General Settings": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  PrerequisitePart: "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Overlay Files": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Resolution Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  Fonts: "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Text Formatting": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Image Processing": "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
-  OverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
+  "System Settings": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
+  "API & Media Servers": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
+  "Language & Notifications": "https://fscorrupt.github.io/posterizarr/configuration/#notification",
+  "Global Visuals": "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
   "Poster Settings": "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
-  PosterOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
-  "Season Poster Settings": "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
-  SeasonPosterOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
-  "Show Title on Season": "https://fscorrupt.github.io/posterizarr/configuration/#showtitleonseasonposterpart",
-  ShowTitleOnSeasonPosterPart: "https://fscorrupt.github.io/posterizarr/configuration/#showtitleonseasonposterpart",
+  "Poster Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
+  "Season Settings": "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
+  "Season Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
+  "Season Show Title": "https://fscorrupt.github.io/posterizarr/configuration/#showtitleonseasonposterpart",
   "Background Settings": "https://fscorrupt.github.io/posterizarr/configuration/#backgroundoverlaypart",
-  BackgroundOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#backgroundoverlaypart",
+  "Background Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#backgroundoverlaypart",
+  "Title Card Settings": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardoverlaypart",
   "Title Card Overlay": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardoverlaypart",
-  TitleCardOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#titlecardoverlaypart",
   "Title Card Title Text": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardtitletextpart",
-  TitleCardTitleTextPart: "https://fscorrupt.github.io/posterizarr/configuration/#titlecardtitletextpart",
   "Title Card Episode Text": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardepisodetextpart",
-  TitleCardEPTextPart: "https://fscorrupt.github.io/posterizarr/configuration/#titlecardepisodetextpart",
+  "Collection Settings": "https://fscorrupt.github.io/posterizarr/configuration/#collectionposteroverlaypart",
   "Collection Poster": "https://fscorrupt.github.io/posterizarr/configuration/#collectionposteroverlaypart",
-  CollectionPosterOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#collectionposteroverlaypart",
   "Collection Title": "https://fscorrupt.github.io/posterizarr/configuration/#collectiontitleposterpart",
-  CollectionTitlePosterPart: "https://fscorrupt.github.io/posterizarr/configuration/#collectiontitleposterpart",
 };
 
 // Reusable Password Input Component
@@ -177,29 +157,25 @@ function ConfigEditor() {
 
   // Tab Structure
   const tabs = {
-    WebUI: { groups: ["WebUI Settings"], icon: Lock, path: "/config/webui" },
-    General: { groups: ["General Settings", "PrerequisitePart"], icon: Settings, path: "/config/general" },
-    "Media Servers": { groups: ["Plex Settings", "Jellyfin Settings", "Emby Settings", "PlexPart", "JellyfinPart", "EmbyPart"], icon: Database, path: "/config/services" },
-    "Service APIs": { groups: ["API Keys & Tokens", "ApiPart"], icon: Key, path: "/config/api" },
-    Languages: { groups: ["Language & Preferences"], icon: Type, path: "/config/languages" },
-    Visuals: { groups: ["Image Processing", "Image Filters", "Overlay Files", "Resolution Overlays", "Fonts", "Text Formatting", "OverlayPart"], icon: Palette, path: "/config/visuals" },
-    Overlays: { groups: ["Poster Settings", "Season Poster Settings", "Background Settings", "Title Card Overlay", "Title Card Title Text", "Title Card Episode Text", "Show Title on Season", "PosterOverlayPart", "SeasonPosterOverlayPart", "BackgroundOverlayPart", "TitleCardOverlayPart", "TitleCardTitleTextPart", "TitleCardEPTextPart", "ShowTitleOnSeasonPosterPart"], icon: Image, path: "/config/overlays" },
-    Collections: { groups: ["Collection Title", "Collection Poster", "CollectionTitlePosterPart", "CollectionPosterOverlayPart"], icon: Library, path: "/config/collections" },
-    Notifications: { groups: ["Notifications", "Notification"], icon: Bell, path: "/config/notifications" },
+    System: { groups: ["WebUI Settings", "System Settings", "API & Media Servers", "Language & Notifications"], icon: Settings, path: "/config/system" },
+    "Global Visuals": { groups: ["Global Visuals"], icon: Palette, path: "/config/visuals" },
+    Posters: { groups: ["Poster Settings", "Poster Overlays"], icon: Image, path: "/config/posters" },
+    Seasons: { groups: ["Season Settings", "Season Overlays", "Season Show Title"], icon: Library, path: "/config/seasons" },
+    Backgrounds: { groups: ["Background Settings", "Background Overlays"], icon: Image, path: "/config/backgrounds" },
+    "Title Cards": { groups: ["Title Card Settings", "Title Card Overlay", "Title Card Title Text", "Title Card Episode Text"], icon: Type, path: "/config/titlecards" },
+    Collections: { groups: ["Collection Settings", "Collection Poster", "Collection Title"], icon: Library, path: "/config/collections" },
   };
 
   const getActiveTabFromPath = () => {
     const path = location.pathname;
-    if (path.includes("/config/webui")) return "WebUI";
-    if (path.includes("/config/general")) return "General";
-    if (path.includes("/config/services")) return "Media Servers";
-    if (path.includes("/config/api")) return "Service APIs";
-    if (path.includes("/config/languages")) return "Languages";
-    if (path.includes("/config/visuals")) return "Visuals";
-    if (path.includes("/config/overlays")) return "Overlays";
+    if (path.includes("/config/system")) return "System";
+    if (path.includes("/config/visuals")) return "Global Visuals";
+    if (path.includes("/config/posters")) return "Posters";
+    if (path.includes("/config/seasons")) return "Seasons";
+    if (path.includes("/config/backgrounds")) return "Backgrounds";
+    if (path.includes("/config/titlecards")) return "Title Cards";
     if (path.includes("/config/collections")) return "Collections";
-    if (path.includes("/config/notifications")) return "Notifications";
-    return "General";
+    return "System";
   };
   const activeTab = getActiveTabFromPath();
   const commonInputClass = "w-full bg-theme-bg border border-theme rounded-lg p-2.5 text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed";
@@ -575,14 +551,19 @@ function ConfigEditor() {
         if (usingFlatStructure) {
             const prefixes = {
                 "Poster Settings": "Poster",
-                "Season Poster Settings": "SeasonPoster",
+                "Poster Overlays": "Poster",
+                "Season Settings": "SeasonPoster",
+                "Season Overlays": "SeasonPoster",
+                "Season Show Title": "ShowTitle",
                 "Background Settings": "Background",
+                "Background Overlays": "Background",
+                "Title Card Settings": "TitleCard",
                 "Title Card Overlay": "TitleCard",
                 "Title Card Title Text": "TitleCardTitle",
                 "Title Card Episode Text": "TitleCardEP",
-                "Show Title on Season": "ShowTitle",
-                "Collection Title": "CollectionTitle",
-                "Collection Poster": "CollectionPoster"
+                "Collection Settings": "CollectionTitle",
+                "Collection Poster": "CollectionPoster",
+                "Collection Title": "CollectionTitle"
             };
             const prefix = prefixes[group] || "";
             const flatKey = prefix + field;
@@ -633,7 +614,7 @@ function ConfigEditor() {
     // Text dependencies (AddText)
     const textFields = ["addtextstroke", "strokecolor", "strokewidth", "minpointsize", "maxpointsize", "maxwidth", "maxheight", "text_offset", "linespacing", "textgravity", "fontallcaps", "fontcolor"];
     // Specific exclusions for things that look like text but aren't governed by generic AddText
-    if (groupName !== "Title Card Title Text" && groupName !== "Title Card Episode Text" && groupName !== "Show Title on Season" && groupName !== "Collection Title") {
+    if (groupName !== "Title Card Title Text" && groupName !== "Title Card Episode Text" && groupName !== "Season Show Title" && groupName !== "Collection Title") {
          if (textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddText")) return true;
     }
 
@@ -641,7 +622,7 @@ function ConfigEditor() {
     if ((keyLower.includes("strokecolor") || keyLower.includes("strokewidth")) && !getGroupValue(groupName, "AddTextStroke")) return true;
 
     // Specific Group Toggles
-    if (groupName === "Show Title on Season" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddShowTitletoSeason")) return true;
+    if (groupName === "Season Show Title" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddShowTitletoSeason")) return true;
     if (groupName === "Title Card Title Text" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddEPTitleText")) return true;
     if (groupName === "Title Card Episode Text" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddEPText")) return true;
     if (groupName === "Collection Title" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddCollectionTitle")) return true;
