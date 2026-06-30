@@ -233,11 +233,18 @@
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "tvdbid" -Value $showentry.tvdbid
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "tmdbid" -Value $showentry.tmdbid
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "Library Name" -Value $showentry.'Library Name'
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "Library Language" -Value $showentry.'Library Language'
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "Season Number" -Value $Seasondata.MediaContainer.parentIndex
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "Episodes" -Value $($Seasondata.MediaContainer.video.index -join ',')
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "Title" -Value $($Seasondata.MediaContainer.video.title -join ';')
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "RatingKeys" -Value $($Seasondata.MediaContainer.video.ratingKey -join ',')
                 $tempseasondata | Add-Member -MemberType NoteProperty -Name "PlexTitleCardUrls" -Value $($Seasondata.MediaContainer.video.thumb -join ',')
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "RootFoldername" -Value $showentry.RootFoldername
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "extraFolder" -Value $showentry.extraFolder
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "ShowRatingKey" -Value $showentry.ratingKey
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "ShowId" -Value $showentry.Id
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "Path" -Value $showentry.Path
+                    $tempseasondata | Add-Member -MemberType NoteProperty -Name "PlexBackgroundUrl" -Value $showentry.PlexBackgroundUrl
                 if ($FileMetadata) {
                     $tempseasondata | Add-Member -MemberType NoteProperty -Name "Resolutions" -Value $Resolution
                 }
@@ -324,10 +331,10 @@
     Write-Entry -Message "Starting asset creation now, this can take a while..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Starting Movie Poster Creation part..." -Path $global:configLogging -Color Green -log Info
     $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
-    
+
     $globalState = @{}
-    Get-Variable | Where-Object { 
-        $_.Options -notmatch 'ReadOnly|Constant' -and 
+    Get-Variable | Where-Object {
+        $_.Options -notmatch 'ReadOnly|Constant' -and
         $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
     } | ForEach-Object {
         $globalState[$_.Name] = $_.Value
@@ -369,6 +376,24 @@
 
         Invoke-ShowPosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+
+    if ($global:TitleCards -eq 'true') {
+        Write-Entry -Message "Starting TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
+        $Episodedata | ForEach-Object -Parallel {
+            $state = $using:globalState
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
+            $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+            if ($state['FanartTvAPIKey']) {
+                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+            }
+
+            Invoke-TitleCardCreation -episode $_
+        } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+    }
     $endTime = Get-Date
     $executionTime = New-TimeSpan -Start $startTime -End $endTime
     # Format the execution time

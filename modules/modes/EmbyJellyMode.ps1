@@ -482,6 +482,10 @@
                 "Title"                        = $EpisodeTitles
                 "OtherMediaServerTitleCardUrls"= $OtherMediaServerTitleCardUrls
                 "OtherMediaServerTitleCardTag" = $Thumbs
+                "RootFoldername"               = $show.RootFoldername
+                "extraFolder"                  = $show.extraFolder
+                "Path"                         = $show.Path
+                "OtherMediaServerBackgroundUrl"= $show.OtherMediaServerBackgroundUrl
                 "OtherMediaServerSeasonTag"    = $SeasonEpisodes[0].SeriesPrimaryImageTag
             }
 
@@ -693,6 +697,24 @@
 
         Invoke-ShowPosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+
+    if ($global:TitleCards -eq 'true') {
+        Write-Entry -Message "Starting TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
+        $Episodedata | ForEach-Object -Parallel {
+            $state = $using:globalState
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
+            $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+            if ($state['FanartTvAPIKey']) {
+                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+            }
+
+            Invoke-TitleCardCreation -episode $_
+        } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+    }
     # Asset Cleanup
     if ($AssetCleanup -eq 'true') {
         $ImagesCleared = 0
@@ -701,10 +723,15 @@
         Write-Entry -Subtext "Starting Asset Cleanup, this can take some time..." -Path $global:configLogging -Color Yellow -log Info
         Write-Entry -Subtext "Only removing Artwork with posterizarr exif data" -Path $global:configLogging -Color Cyan -log Info
         $processedDirectories = [System.Collections.Generic.List[object]]::new()
-        $uncheckedItems = $directoryHashtable.Keys | Where-Object { $_ -notin $checkedItems }
+        $checkedItemsLookup = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($checkedItem in $checkedItems) {
+            [void]$checkedItemsLookup.Add([string]$checkedItem)
+        }
 
         # Perform deletion of unchecked items
-        foreach ($uncheckedItem in $uncheckedItems) {
+        foreach ($uncheckedItem in $directoryHashtable.Keys) {
+            if ($checkedItemsLookup.Contains([string]$uncheckedItem)) { continue }
+
             if ($uncheckedItem -notlike '*.jpg') {
                 # Full path to the item
                 $uncheckedItemPath = $uncheckedItem + ".jpg"

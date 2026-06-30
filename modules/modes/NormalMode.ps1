@@ -635,8 +635,8 @@
     $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
 
     $globalState = @{}
-    Get-Variable | Where-Object { 
-        $_.Options -notmatch 'ReadOnly|Constant' -and 
+    Get-Variable | Where-Object {
+        $_.Options -notmatch 'ReadOnly|Constant' -and
         $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
     } | ForEach-Object {
         $globalState[$_.Name] = $_.Value
@@ -702,10 +702,15 @@
         Write-Entry -Subtext "Starting Asset Cleanup, this can take some time..." -Path $global:configLogging -Color Yellow -log Info
         Write-Entry -Subtext "Only removing Artwork with posterizarr exif data" -Path $global:configLogging -Color Cyan -log Info
         $processedDirectories = [System.Collections.Generic.List[object]]::new()
-        $uncheckedItems = $directoryHashtable.Keys | Where-Object { $_ -notin $checkedItems }
+        $checkedItemsLookup = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($checkedItem in $checkedItems) {
+            [void]$checkedItemsLookup.Add([string]$checkedItem)
+        }
 
         # Perform deletion of unchecked items
-        foreach ($uncheckedItem in $uncheckedItems) {
+        foreach ($uncheckedItem in $directoryHashtable.Keys) {
+            if ($checkedItemsLookup.Contains([string]$uncheckedItem)) { continue }
+
             if ($uncheckedItem -notlike '*.jpg') {
                 # Full path to the item
                 $uncheckedItemPath = $uncheckedItem + ".jpg"
