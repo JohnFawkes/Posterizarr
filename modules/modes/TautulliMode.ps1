@@ -5,6 +5,10 @@
     # {grandparent_rating_key}	The unique identifier for the TV show or artist.
     $Mode = "tautulli"
     Write-Entry -Message "Tautulli Mode Started..." -Path $global:configLogging -Color White -log Info
+    if ($UsePlex -eq 'true') {
+        $Upload2Plex = 'true'
+        Write-Entry -Subtext "Tautulli Mode forces direct Plex upload for generated assets." -Path $global:configLogging -Color Cyan -log Info
+    }
     $Libraries = [System.Collections.Generic.List[object]]::new()
     if (($RatingKey -or $parentratingkey -or $grandparentratingkey) -and $mediatype) {
         if ($mediatype -eq 'movie') {

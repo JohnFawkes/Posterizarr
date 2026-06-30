@@ -4,6 +4,10 @@
     $arrplatform = $arrTriggers['arr_platform']
     $Mode = "arr"
     Write-Entry -Message "ArrTrigger Mode Started..." -Path $global:configLogging -Color White -log Info
+    if ($UsePlex -eq 'true') {
+        $Upload2Plex = 'true'
+        Write-Entry -Subtext "Arr Mode forces direct Plex upload for generated assets." -Path $global:configLogging -Color Cyan -log Info
+    }
     switch ($arrplatform) {
         'Sonarr' {
             Write-Entry -Message "Processing Sonarr trigger" -Path $global:configLogging -Color Yellow -log Info
