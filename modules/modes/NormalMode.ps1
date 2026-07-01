@@ -658,7 +658,7 @@
         Invoke-MoviePosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
 
-    Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
+    Write-Entry -Message "Starting Show/Season Poster/Background Creation part..." -Path $global:configLogging -Color Green -log Info
     # Show Part
     $AllShows | ForEach-Object -Parallel {
         $state = $using:globalState
