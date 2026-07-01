@@ -57,9 +57,6 @@
                         $ManualTestPath = $ManualEntryDir
                         $Testfile = "poster"
 
-                        if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
-                            New-Item -ItemType Directory -path $EntryDir -Force | out-null
-                        }
                     }
                     Else {
                         if ($entry.extraFolder) {
@@ -672,6 +669,10 @@
                                                 }
                                             }
                                             try {
+                                                $PosterTargetDir = Split-Path -Path $PosterImageoriginal -Parent
+                                                if ($PosterTargetDir -and -not (Test-Path -LiteralPath $PosterTargetDir)) {
+                                                    New-Item -ItemType Directory -Path $PosterTargetDir -Force | Out-Null
+                                                }
                                                 # Attempt to move the item
                                                 Move-Item -LiteralPath $PosterImage -Destination $PosterImageoriginal -Force -ErrorAction Stop
 
@@ -834,9 +835,6 @@
                             $ManualTestPath = $ManualEntryDir
                             $Testfile = "background"
 
-                            if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
-                                New-Item -ItemType Directory -path $EntryDir -Force | out-null
-                            }
                         }
                         Else {
                             if ($entry.extraFolder) {
@@ -1421,6 +1419,10 @@
                                                 }
                                             }
                                             try {
+                                                $BackgroundTargetDir = Split-Path -Path $backgroundImageoriginal -Parent
+                                                if ($BackgroundTargetDir -and -not (Test-Path -LiteralPath $BackgroundTargetDir)) {
+                                                    New-Item -ItemType Directory -Path $BackgroundTargetDir -Force | Out-Null
+                                                }
                                                 # Attempt to move the item
                                                 Move-Item -LiteralPath $backgroundImage -Destination $backgroundImageoriginal -Force -ErrorAction Stop
 
@@ -1695,9 +1697,6 @@ function Invoke-ShowPosterCreation {
                     $ManualTestPath = $ManualEntryDir
                     $Testfile = "poster"
 
-                    if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
-                        New-Item -ItemType Directory -path $EntryDir -Force | out-null
-                    }
                 }
                 Else {
                     if ($entry.extraFolder) {
@@ -2273,6 +2272,10 @@ function Invoke-ShowPosterCreation {
                                             }
                                         }
                                         try {
+                                            $PosterTargetDir = Split-Path -Path $PosterImageoriginal -Parent
+                                            if ($PosterTargetDir -and -not (Test-Path -LiteralPath $PosterTargetDir)) {
+                                                New-Item -ItemType Directory -Path $PosterTargetDir -Force | Out-Null
+                                            }
                                             # Attempt to move the item
                                             Move-Item -LiteralPath $PosterImage -Destination $PosterImageoriginal -Force -ErrorAction Stop
 
@@ -2434,9 +2437,6 @@ function Invoke-ShowPosterCreation {
                         $ManualTestPath = $ManualEntryDir
                         $Testfile = "background"
 
-                        if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
-                            New-Item -ItemType Directory -path $EntryDir -Force | out-null
-                        }
                     }
                     Else {
                         if ($entry.extraFolder) {
@@ -3036,6 +3036,10 @@ function Invoke-ShowPosterCreation {
                                             }
                                         }
                                         try {
+                                            $BackgroundTargetDir = Split-Path -Path $backgroundImageoriginal -Parent
+                                            if ($BackgroundTargetDir -and -not (Test-Path -LiteralPath $BackgroundTargetDir)) {
+                                                New-Item -ItemType Directory -Path $BackgroundTargetDir -Force | Out-Null
+                                            }
                                             # Attempt to move the item
                                             Move-Item -LiteralPath $backgroundImage -Destination $backgroundImageoriginal -Force -ErrorAction Stop
 
@@ -4046,6 +4050,10 @@ function Invoke-ShowPosterCreation {
                                                 }
                                             }
                                             try {
+                                                $SeasonTargetDir = Split-Path -Path $SeasonImageoriginal -Parent
+                                                if ($SeasonTargetDir -and -not (Test-Path -LiteralPath $SeasonTargetDir)) {
+                                                    New-Item -ItemType Directory -Path $SeasonTargetDir -Force | Out-Null
+                                                }
                                                 # Attempt to move the item
                                                 Move-Item -LiteralPath $SeasonImage -Destination $SeasonImageoriginal -Force -ErrorAction Stop
 
@@ -4872,6 +4880,10 @@ function Invoke-TitleCardCreation {
                                             }
                                         }
                                         try {
+                                            $EpisodeTargetDir = Split-Path -Path $EpisodeImageoriginal -Parent
+                                            if ($EpisodeTargetDir -and -not (Test-Path -LiteralPath $EpisodeTargetDir)) {
+                                                New-Item -ItemType Directory -Path $EpisodeTargetDir -Force | Out-Null
+                                            }
                                             # Attempt to move the item
                                             Move-Item -LiteralPath $EpisodeImage -Destination $EpisodeImageoriginal -Force -ErrorAction Stop
 
@@ -5636,6 +5648,10 @@ function Invoke-TitleCardCreation {
                                             }
                                         }
                                         try {
+                                            $EpisodeTargetDir = Split-Path -Path $EpisodeImageoriginal -Parent
+                                            if ($EpisodeTargetDir -and -not (Test-Path -LiteralPath $EpisodeTargetDir)) {
+                                                New-Item -ItemType Directory -Path $EpisodeTargetDir -Force | Out-Null
+                                            }
                                             # Attempt to move the item
                                             Move-Item -LiteralPath $EpisodeImage -Destination $EpisodeImageoriginal -Force -ErrorAction Stop
 
@@ -6386,6 +6402,10 @@ function Invoke-TitleCardCreation {
                                                                 }
                                                             }
                                                             try {
+                                                                $EpisodeTargetDir = Split-Path -Path $EpisodeImageoriginal -Parent
+                                                                if ($EpisodeTargetDir -and -not (Test-Path -LiteralPath $EpisodeTargetDir)) {
+                                                                    New-Item -ItemType Directory -Path $EpisodeTargetDir -Force | Out-Null
+                                                                }
                                                                 # Attempt to move the item
                                                                 Move-Item -LiteralPath $EpisodeImage -Destination $EpisodeImageoriginal -Force -ErrorAction Stop
 
