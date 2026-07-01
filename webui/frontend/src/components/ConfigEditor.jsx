@@ -696,12 +696,13 @@ function ConfigEditor() {
 
          <div className="flex-1 space-y-6">
             {!searchQuery && (
-                <div className="lg:hidden">
-                    <select value={tabs[activeTab]?.path || ""} onChange={(e) => navigate(e.target.value)} className="w-full bg-theme-card border border-theme rounded-lg p-3 text-theme-text font-medium shadow-sm appearance-none">
+                <div className="lg:hidden relative">
+                    <select value={tabs[activeTab]?.path || ""} onChange={(e) => navigate(e.target.value)} className="w-full bg-theme-card border border-theme rounded-lg p-3 text-theme-text font-medium shadow-sm appearance-none pr-10">
                         {Object.entries(tabs).map(([name, data]) => (
                             <option key={name} value={data.path}>{name}</option>
                         ))}
                     </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-theme-muted pointer-events-none" />
                 </div>
             )}
 
