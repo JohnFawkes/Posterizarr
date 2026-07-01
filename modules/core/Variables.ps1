@@ -48,7 +48,20 @@ if ($GatherLogs) {
 }
 
 if ($arrTriggers) {
-    $ArrTrigger = $arrTriggers['ArrTrigger']
+    if ($null -ne $arrTriggers['ArrTrigger']) { $ArrTrigger = $arrTriggers['ArrTrigger'] }
+    if ($null -ne $arrTriggers['LogoUpdater']) { $LogoUpdater = $arrTriggers['LogoUpdater'] }
+    if ($null -ne $arrTriggers['LogoRevert']) { $LogoRevert = $arrTriggers['LogoRevert'] }
+    if ($null -ne $arrTriggers['UISchedule']) { $UISchedule = $arrTriggers['UISchedule'] }
+    if ($null -ne $arrTriggers['ContainerSchedule']) { $ContainerSchedule = $arrTriggers['ContainerSchedule'] }
+    if ($null -ne $arrTriggers['Manual']) { $Manual = $arrTriggers['Manual'] }
+    if ($null -ne $arrTriggers['Testing']) { $Testing = $arrTriggers['Testing'] }
+    if ($null -ne $arrTriggers['Backup']) { $Backup = $arrTriggers['Backup'] }
+    if ($null -ne $arrTriggers['SyncJelly']) { $SyncJelly = $arrTriggers['SyncJelly'] }
+    if ($null -ne $arrTriggers['SyncEmby']) { $SyncEmby = $arrTriggers['SyncEmby'] }
+    if ($null -ne $arrTriggers['PosterReset']) { $PosterReset = $arrTriggers['PosterReset'] }
+    if ($null -ne $arrTriggers['Tautulli']) { $Tautulli = $arrTriggers['Tautulli'] }
+    if ($null -ne $arrTriggers['LibraryName']) { $LibraryName = $arrTriggers['LibraryName'] }
+    if ($null -ne $arrTriggers['ForceReplace']) { $ForceReplace = $arrTriggers['ForceReplace'] }
 }
 
 # Check if the environment variable exists and is not empty, otherwise use the default
