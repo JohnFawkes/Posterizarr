@@ -33,6 +33,41 @@
     $IncludedLibraryNames = ($AllLibs | Where-Object { $_.Name -notin $LibstoExclude }).Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
 
+    # Build path-based lookup tables once to avoid expensive per-item Ancestors API calls.
+    $MovieLibraryLookup = [System.Collections.Generic.List[object]]::new()
+    $ShowLibraryLookup = [System.Collections.Generic.List[object]]::new()
+    foreach ($library in $AllLibs) {
+        if ($library.Name -in $LibstoExclude) { continue }
+
+        $resolvedLocations = [System.Collections.Generic.List[string]]::new()
+        foreach ($location in @($library.Locations)) {
+            $effectiveLocation = $location
+            if ($UseEmby -eq 'true' -and $library.LibraryOptions -and $library.LibraryOptions.PathInfos) {
+                $pathInfo = $library.LibraryOptions.PathInfos | Where-Object { $_.Path -eq $location } | Select-Object -First 1
+                if ($pathInfo -and $pathInfo.NetworkPath) {
+                    $effectiveLocation = $pathInfo.NetworkPath
+                }
+            }
+            if (-not [string]::IsNullOrWhiteSpace($effectiveLocation)) {
+                [void]$resolvedLocations.Add([string]$effectiveLocation)
+            }
+        }
+
+        if ($resolvedLocations.Count -eq 0) { continue }
+
+        $lookupEntry = [PSCustomObject]@{
+            Name      = $library.Name
+            Locations = $resolvedLocations
+        }
+
+        if ($library.CollectionType -eq 'movies') {
+            $MovieLibraryLookup.Add($lookupEntry)
+        }
+        elseif ($library.CollectionType -eq 'tvshows') {
+            $ShowLibraryLookup.Add($lookupEntry)
+        }
+    }
+
     # Debug Output all Libs
     Write-Entry -Subtext "Media Server Lib overview..." -Path $global:configLogging -Color Cyan -log Debug
     Foreach ($lib in $AllLibs) {
@@ -66,35 +101,38 @@
     }
 
     $Libraries = [System.Collections.Generic.List[object]]::new()
+    $movieQueryCounter = 0
     foreach ($Movie in $AllMovies.Items) {
+        $movieQueryCounter++
+        if (($movieQueryCounter % 200) -eq 0) {
+            Start-Sleep -Milliseconds 1
+        }
         $Resolution = $null
-        if ($UseEmby -eq 'true') {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
-            $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
+        $SingleLibName = $null
+        $Matchedpath = $null
 
-            $librariestemp = $AllLibs  | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations, LibraryOptions -Unique
-
-            foreach ($singlelibrary in $librariestemp) {
-                foreach ($location in $singlelibrary.Locations) {
-                    # Select correct NetworkPath
-                    $LibraryOptions = $singlelibrary.LibraryOptions.PathInfos | Where-Object { $_.Path -eq $location }
-                    if ($LibraryOptions.NetworkPath) {
-                        $location = $LibraryOptions.NetworkPath
-                    }
-
-                    Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
-                    # Compare lib.Path with each location
-                    if ($Movie.Path -like "$($location)/*" -or $Movie.Path -like "$($location)\*") {
-                        $SingleLibName = $singlelibrary.Name
-                        Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
-                        break # Exit loop after match
-                    }
+        foreach ($singlelibrary in $MovieLibraryLookup) {
+            foreach ($location in $singlelibrary.Locations) {
+                Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
+                if ($Movie.Path -like "$($location)/*" -or $Movie.Path -like "$($location)\*") {
+                    $SingleLibName = $singlelibrary.Name
+                    $Matchedpath = AddTrailingSlash $location
+                    Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
+                    break
                 }
             }
+            if ($SingleLibName) { break }
+        }
+
+        if (-not $SingleLibName -or -not $Matchedpath) {
+            Write-Entry -Subtext "No matching library path found for [$($Movie.Name)] at [$($Movie.Path)]" -Path $global:configLogging -Color Yellow -log Debug
+            continue
+        }
+
+        if ($UseEmby -eq 'true') {
             if ($SingleLibName -notin $LibstoExclude) {
                 Write-Entry -Subtext "Location: $($Movie.Path)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Libpath: $($lib.Path[1])" -Path $global:configLogging -Color Cyan -log Debug
-                $Matchedpath = AddTrailingSlash $($lib.Path[1])
+                Write-Entry -Subtext "Libpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                 $libpath = $Matchedpath
                 $relativePath = $Movie.Path.Substring($libpath.Length)
                 $pathSegments = $relativePath -split '[\\/]'
@@ -187,32 +225,9 @@
             }
         }
         Else {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
-            $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
-
-            $librariestemp = $AllLibs  | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations -Unique
-
-            foreach ($singlelibrary in $librariestemp) {
-                # Loop through each location in the library's Locations array
-                foreach ($location in $singlelibrary.Locations) {
-                    Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
-                    # Compare lib.Path with each location
-                    if ($Movie.Path -like "$location/*" -or $Movie.Path -like "$location\*") {
-                        $SingleLibName = $singlelibrary.Name
-                        Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
-                        break # Exit loop after match
-                    }
-                }
-            }
             if ($SingleLibName -notin $LibstoExclude) {
                 Write-Entry -Subtext "Location: $($Movie.Path)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Libpath: $($lib.Path)" -Path $global:configLogging -Color Cyan -log Debug
-                if ($lib.Path.count -gt '1') {
-                    $Matchedpath = AddTrailingSlash $($lib.Path[0])
-                }
-                else {
-                    $Matchedpath = AddTrailingSlash $($lib.Path)
-                }
+                Write-Entry -Subtext "Libpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                 $libpath = $Matchedpath
                 $relativePath = $Movie.Path.Substring($libpath.Length)
                 $pathSegments = $relativePath -split '[\\/]'
@@ -297,39 +312,35 @@
             }
         }
     }
+    $showQueryCounter = 0
     foreach ($Show in $AllShows.Items) {
-        $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
-        $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
-
-        if ($UseEmby -eq 'true') {
-            $librariestemp = $AllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations, LibraryOptions -Unique
+        $showQueryCounter++
+        if (($showQueryCounter % 200) -eq 0) {
+            Start-Sleep -Milliseconds 1
         }
-        Else {
-            $librariestemp = $AllLibs  | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations -Unique
-        }
-        foreach ($singlelibrary in $librariestemp) {
-            # Loop through each location in the library's Locations array
+        $SingleLibName = $null
+        $Matchedpath = $null
+        foreach ($singlelibrary in $ShowLibraryLookup) {
             foreach ($location in $singlelibrary.Locations) {
-                if ($UseEmby -eq 'true') {
-                    # Select correct NetworkPath
-                    $LibraryOptions = $singlelibrary.LibraryOptions.PathInfos | Where-Object { $_.Path -eq $location }
-                    if ($LibraryOptions.NetworkPath) {
-                        $location = $LibraryOptions.NetworkPath
-                    }
-                }
                 Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
-                # Compare lib.Path with each location
                 if ($Show.Path -like "$location/*" -or $Show.Path -like "$location\*") {
                     $SingleLibName = $singlelibrary.Name
+                    $Matchedpath = AddTrailingSlash $location
                     Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
-                    break # Exit loop after match
+                    break
                 }
             }
+            if ($SingleLibName) { break }
         }
+
+        if (-not $SingleLibName -or -not $Matchedpath) {
+            Write-Entry -Subtext "No matching library path found for [$($Show.Name)] at [$($Show.Path)]" -Path $global:configLogging -Color Yellow -log Debug
+            continue
+        }
+
         if ($SingleLibName -notin $LibstoExclude) {
             Write-Entry -Subtext "Location: $($Show.Path)" -Path $global:configLogging -Color Cyan -log Debug
-            Write-Entry -Subtext "Libpath: $($lib.Path)" -Path $global:configLogging -Color Cyan -log Debug
-            $Matchedpath = AddTrailingSlash $($lib.Path)
+            Write-Entry -Subtext "Libpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
             $libpath = $Matchedpath
             $relativePath = $Show.Path.Substring($libpath.Length)
             $pathSegments = $relativePath -split '[\\/]'
@@ -383,6 +394,15 @@
     Write-Entry -Message "Starting episode data query now - This can take a while..." -Path $global:configLogging -Color Cyan -Log Info
 
     $Episodedata = [System.Collections.Generic.List[object]]::new()
+    $EpisodesBySeriesId = @{}
+    foreach ($episode in $AllEpisodes.Items) {
+        if (-not $episode.SeriesId) { continue }
+        $seriesIdKey = [string]$episode.SeriesId
+        if (-not $EpisodesBySeriesId.ContainsKey($seriesIdKey)) {
+            $EpisodesBySeriesId[$seriesIdKey] = [System.Collections.Generic.List[object]]::new()
+        }
+        $EpisodesBySeriesId[$seriesIdKey].Add($episode)
+    }
     $TempShowLibs = $Libraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
         # Initialize lists to hold season properties for the show object
@@ -391,8 +411,13 @@
         $showSeasonNames = [System.Collections.Generic.List[string]]::new()
         $showSeasonUrls = [System.Collections.Generic.List[string]]::new()
 
-        # Iterate through all shows
-        $seasons = $AllEpisodes.Items | Where-Object { $_.SeriesId -eq $show.id } | Group-Object -Property SeasonName | Sort-Object -Property Name
+        # Use pre-grouped data by SeriesId to avoid repeatedly scanning the full episode list.
+        $seriesEpisodes = @()
+        $showIdKey = [string]$show.id
+        if ($EpisodesBySeriesId.ContainsKey($showIdKey)) {
+            $seriesEpisodes = $EpisodesBySeriesId[$showIdKey]
+        }
+        $seasons = $seriesEpisodes | Group-Object -Property SeasonName | Sort-Object -Property Name
         foreach ($Season in $Seasons) {
             # Sort episodes within the season by IndexNumber
             $SeasonEpisodes = $Season.Group | Sort-Object -Property indexnumber
@@ -569,6 +594,10 @@
                 'OtherMediaServerTitleCardUrls'= $data.'OtherMediaServerTitleCardUrls'
                 'OtherMediaServerTitleCardTag' = $data.'OtherMediaServerTitleCardTag'
                 'OtherMediaServerSeasonTag'    = $data.'OtherMediaServerSeasonTag'
+                'RootFoldername'               = $data.'RootFoldername'
+                'extraFolder'                  = $data.'extraFolder'
+                'Path'                         = $data.'Path'
+                'OtherMediaServerBackgroundUrl'= $data.'OtherMediaServerBackgroundUrl'
             })
     }
 

@@ -122,18 +122,83 @@
             Else {
                 $contentquery = 'Directory'
             }
+            $itemQueryCounter = 0
             foreach ($item in $Libcontent.MediaContainer.$contentquery) {
+                $itemQueryCounter++
+                if (($itemQueryCounter % 200) -eq 0) {
+                    Start-Sleep -Milliseconds 1
+                }
                 $extractedFolder = $null
                 $Seasondata = $null
-                if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
+                $Metadata = $null
+                $needSeasonData = ($contentquery -eq 'Directory')
+                $needFullMetadata = $false
+
+                $metadataDoc = New-Object System.Xml.XmlDocument
+                $metadataRoot = $metadataDoc.CreateElement('MediaContainer')
+                $metadataDoc.AppendChild($metadataRoot) | Out-Null
+                $importedItemNode = $metadataDoc.ImportNode($item, $true)
+                $metadataRoot.AppendChild($importedItemNode) | Out-Null
+                $Metadata = $metadataDoc
+
+                if ($contentquery -eq 'video' -or $contentquery -eq 'Directory') {
+                    $itemNode = $Metadata.MediaContainer.$contentquery
+                    $itemGuid = $itemNode.guid.id
+                    $itemLocation = $itemNode.Location.path
+                    if (-not $itemLocation) {
+                        $itemLocation = $itemNode.media.part.file
+                    }
+                    if (-not $itemGuid -or -not $itemLocation) {
+                        $needFullMetadata = $true
+                    }
+                }
+
+                if ($needFullMetadata) {
+                    if ($PlexToken) {
                         try {
                             [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
+                        }
+                        catch {
+                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
+                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
+                            if ($isConnRefused) {
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
+                            }
+                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
+                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
+                            }
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            continue
+                        }
+                    }
+                    else {
+                        try {
+                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
+                        }
+                        catch {
+                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
+                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
+                            if ($isConnRefused) {
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
+                            }
+                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
+                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
+                            }
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            continue
+                        }
+                    }
+                }
+
+                if ($needSeasonData) {
+                    if ($PlexToken) {
+                        try {
                             [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                         }
                         catch {
                             Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
@@ -143,38 +208,14 @@
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
                             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-
                         }
                     }
-                    Else {
+                    else {
                         try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                        }
-                        catch {
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                        }
-                    }
-                }
-                Else {
-                    if ($contentquery -eq 'Directory') {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
                             [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children? -Headers $extraPlexHeaders).content
                         }
                         catch {
                             Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
@@ -184,25 +225,6 @@
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
                             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                        }
-                    }
-                    Else {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
-                        }
-                        catch {
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
                         }
                     }
                 }
@@ -431,6 +453,41 @@
     $IncludedLibraryNames = ($OtherAllLibs | Where-Object { $_.Name -notin $LibstoExclude }).Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
 
+    # Build path-based lookup tables once to avoid expensive per-item Ancestors API calls.
+    $OtherMovieLibraryLookup = [System.Collections.Generic.List[object]]::new()
+    $OtherShowLibraryLookup = [System.Collections.Generic.List[object]]::new()
+    foreach ($library in $OtherAllLibs) {
+        if ($library.Name -in $LibstoExclude) { continue }
+
+        $resolvedLocations = [System.Collections.Generic.List[string]]::new()
+        foreach ($location in @($library.Locations)) {
+            $effectiveLocation = $location
+            if ($SyncEmby -and $library.LibraryOptions -and $library.LibraryOptions.PathInfos) {
+                $pathInfo = $library.LibraryOptions.PathInfos | Where-Object { $_.Path -eq $location } | Select-Object -First 1
+                if ($pathInfo -and $pathInfo.NetworkPath) {
+                    $effectiveLocation = $pathInfo.NetworkPath
+                }
+            }
+            if (-not [string]::IsNullOrWhiteSpace($effectiveLocation)) {
+                [void]$resolvedLocations.Add([string]$effectiveLocation)
+            }
+        }
+
+        if ($resolvedLocations.Count -eq 0) { continue }
+
+        $lookupEntry = [PSCustomObject]@{
+            Name      = $library.Name
+            Locations = $resolvedLocations
+        }
+
+        if ($library.CollectionType -eq 'movies') {
+            $OtherMovieLibraryLookup.Add($lookupEntry)
+        }
+        elseif ($library.CollectionType -eq 'tvshows') {
+            $OtherShowLibraryLookup.Add($lookupEntry)
+        }
+    }
+
     # Debug Output all Libs
     Write-Entry -Subtext "Media Server Lib overview..." -Path $global:configLogging -Color Cyan -log Debug
     Foreach ($lib in $OtherAllLibs) {
@@ -466,32 +523,35 @@
     }
 
     $OtherLibraries = [System.Collections.Generic.List[object]]::new()
+    $otherMovieQueryCounter = 0
     foreach ($Movie in $OtherAllMovies.Items) {
-        if ($SyncEmby) {
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
-            $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
-
-            $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations, LibraryOptions -Unique
-
-            foreach ($singlelibrary in $librariestemp) {
-                foreach ($location in $singlelibrary.Locations) {
-                    # Select correct NetworkPath
-                    $LibraryOptions = $singlelibrary.LibraryOptions.PathInfos | Where-Object { $_.Path -eq $location }
-                    if ($LibraryOptions.NetworkPath) {
-                        $location = $LibraryOptions.NetworkPath
-                    }
-                    Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
-                    # Compare lib.Path with each location
-                    if ($Movie.Path -like "$($location)/*" -or $Movie.Path -like "$($location)\*") {
-                        $SingleLibName = $singlelibrary.Name
-                        Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
-                        break # Exit loop after match
-                    }
+        $otherMovieQueryCounter++
+        if (($otherMovieQueryCounter % 200) -eq 0) {
+            Start-Sleep -Milliseconds 1
+        }
+        $SingleLibName = $null
+        $Matchedpath = $null
+        foreach ($singlelibrary in $OtherMovieLibraryLookup) {
+            foreach ($location in $singlelibrary.Locations) {
+                Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
+                if ($Movie.Path -like "$($location)/*" -or $Movie.Path -like "$($location)\*") {
+                    $SingleLibName = $singlelibrary.Name
+                    $Matchedpath = AddTrailingSlash $location
+                    Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
+                    break
                 }
             }
+            if ($SingleLibName) { break }
+        }
+
+        if (-not $SingleLibName -or -not $Matchedpath) {
+            Write-Entry -Subtext "No matching library path found for [$($Movie.Name)] at [$($Movie.Path)]" -Path $global:configLogging -Color Yellow -log Debug
+            continue
+        }
+
+        if ($SyncEmby) {
             Write-Entry -Subtext "Location: $($Movie.Path)" -Path $global:configLogging -Color Cyan -log Debug
-            Write-Entry -Subtext "Libpath: $($lib.Path[1])" -Path $global:configLogging -Color Cyan -log Debug
-            $Matchedpath = AddTrailingSlash $($lib.Path[1])
+            Write-Entry -Subtext "Libpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
             $libpath = $Matchedpath
             $relativePath = $Movie.Path.Substring($libpath.Length)
             $pathSegments = $relativePath -split '[\\/]'
@@ -536,27 +596,9 @@
         }
         Else {
             Write-Entry -Subtext "Processing - '$($Movie.Name)'" -Path $global:configLogging -Color Cyan -log Debug
-            $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Movie.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
-            $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, Path
-
-            $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'movies' } | Select-Object Name, Locations -Unique
-
-            foreach ($singlelibrary in $librariestemp) {
-                # Loop through each location in the library's Locations array
-                foreach ($location in $singlelibrary.Locations) {
-                    Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
-                    # Compare lib.Path with each location
-                    if ($Movie.Path -like "$location/*" -or $Movie.Path -like "$location\*") {
-                        $SingleLibName = $singlelibrary.Name
-                        Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
-                        break # Exit loop after match
-                    }
-                }
-            }
             if ($SingleLibName -notin $LibstoExclude) {
                 Write-Entry -Subtext "Location: $($Movie.Path)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Libpath: $($lib.Path)" -Path $global:configLogging -Color Cyan -log Debug
-                $Matchedpath = AddTrailingSlash $($lib.Path)
+                Write-Entry -Subtext "Libpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
                 $libpath = $Matchedpath
                 $relativePath = $Movie.Path.Substring($libpath.Length)
                 $pathSegments = $relativePath -split '[\\/]'
@@ -601,41 +643,34 @@
             Write-Entry -Subtext "--------------------------------------------------------------------------------" -Path $global:configLogging -Color Cyan -log Debug
         }
     }
+    $otherShowQueryCounter = 0
     foreach ($Show in $OtherAllShows.Items) {
-        $Libtemp = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/Items/$($Show.Id)/Ancestors" -Headers $global:OtherMediaServerHeaders
-        $lib = $Libtemp | Where-Object { $_.Type -eq 'Folder' } | Select-Object Name, path
-
-
-        $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations -Unique
-        if ($UseEmby -eq 'true') {
-            $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations, LibraryOptions -Unique
+        $otherShowQueryCounter++
+        if (($otherShowQueryCounter % 200) -eq 0) {
+            Start-Sleep -Milliseconds 1
         }
-        Else {
-            $librariestemp = $OtherAllLibs | Where-Object { $_.CollectionType -eq 'tvshows' } | Select-Object Name, Locations -Unique
-        }
-        foreach ($singlelibrary in $librariestemp) {
-            # Loop through each location in the library's Locations array
+        $SingleLibName = $null
+        $Matchedpath = $null
+        foreach ($singlelibrary in $OtherShowLibraryLookup) {
             foreach ($location in $singlelibrary.Locations) {
-                if ($UseEmby -eq 'true') {
-                    # Select correct NetworkPath
-                    $LibraryOptions = $singlelibrary.LibraryOptions.PathInfos | Where-Object { $_.Path -eq $location }
-                    if ($LibraryOptions.NetworkPath) {
-                        $location = $LibraryOptions.NetworkPath
-                    }
-                }
                 Write-Entry -Subtext "  Found location - '$($location)'" -Path $global:configLogging -Color Cyan -log Debug
-                # Compare lib.Path with each location
                 if ($Show.Path -like "$location/*" -or $Show.Path -like "$location\*") {
                     $SingleLibName = $singlelibrary.Name
+                    $Matchedpath = AddTrailingSlash $location
                     Write-Entry -Subtext "  Single lib name is: '$($SingleLibName)'" -Path $global:configLogging -Color Cyan -log Debug
-                    break # Exit loop after match
+                    break
                 }
             }
+            if ($SingleLibName) { break }
+        }
+
+        if (-not $SingleLibName -or -not $Matchedpath) {
+            Write-Entry -Subtext "No matching library path found for [$($Show.Name)] at [$($Show.Path)]" -Path $global:configLogging -Color Yellow -log Debug
+            continue
         }
 
         Write-Entry -Subtext "Location: $($Show.Path)" -Path $global:configLogging -Color Cyan -log Debug
-        Write-Entry -Subtext "Libpath: $($lib.Path)" -Path $global:configLogging -Color Cyan -log Debug
-        $Matchedpath = AddTrailingSlash $($lib.Path)
+        Write-Entry -Subtext "Libpath: $Matchedpath" -Path $global:configLogging -Color Cyan -log Debug
         $libpath = $Matchedpath
         $relativePath = $Show.Path.Substring($libpath.Length)
         $pathSegments = $relativePath -split '[\\/]'
@@ -682,10 +717,24 @@
     }
     Write-Entry -Subtext "Found '$($OtherLibraries.count)' Items..." -Path $global:configLogging -Color Cyan -log Info
     $OtherEpisodedata = [System.Collections.Generic.List[object]]::new()
+    $OtherEpisodesBySeriesId = @{}
+    foreach ($episode in $OtherAllEpisodes.Items) {
+        if (-not $episode.SeriesId) { continue }
+        $seriesIdKey = [string]$episode.SeriesId
+        if (-not $OtherEpisodesBySeriesId.ContainsKey($seriesIdKey)) {
+            $OtherEpisodesBySeriesId[$seriesIdKey] = [System.Collections.Generic.List[object]]::new()
+        }
+        $OtherEpisodesBySeriesId[$seriesIdKey].Add($episode)
+    }
     $TempShowLibs = $OtherLibraries | Where-Object { $_."Library Type" -eq 'Series' }
     foreach ($show in $TempShowLibs) {
-        # Iterate through all shows
-        $seasons = $OtherAllEpisodes.Items | Where-Object { $_.SeriesId -eq $show.id } | Group-Object -Property SeasonName | Sort-Object -Property Name
+        # Use pre-grouped data by SeriesId to avoid repeatedly scanning the full episode list.
+        $seriesEpisodes = @()
+        $showIdKey = [string]$show.id
+        if ($OtherEpisodesBySeriesId.ContainsKey($showIdKey)) {
+            $seriesEpisodes = $OtherEpisodesBySeriesId[$showIdKey]
+        }
+        $seasons = $seriesEpisodes | Group-Object -Property SeasonName | Sort-Object -Property Name
         foreach ($Season in $Seasons) {
             # Sort episodes within the season by IndexNumber
             $SeasonEpisodes = $Season.Group | Sort-Object -Property indexnumber
@@ -1217,8 +1266,12 @@
 
                             # Loop through episodes in $episode_numbers
                             for ($i = 0; $i -lt $global:episode_numbers.Count; $i++) {
-                                $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
-                                $global:episodenumber = $($global:episode_numbers[$i].Trim())
+                                if ($global:PlexTitleCardUrls.Count -gt $i -and $null -ne $global:PlexTitleCardUrls[$i]) { $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim()) } else { $global:PlexTitleCardUrl = $null }
+                                if ($global:episode_numbers.Count -gt $i -and $null -ne $global:episode_numbers[$i]) { $global:episodenumber = $($global:episode_numbers[$i].Trim()) } else { $global:episodenumber = $null }
+                                if ([string]::IsNullOrWhiteSpace($global:episodenumber)) {
+                                    Write-Entry -Subtext "Skipping sync title card entry at index [$i] because episode number is missing." -Path $global:configLogging -Color Yellow -log Warning
+                                    continue
+                                }
                                 if ($null -ne $global:PlexTitleCardUrl) {
                                     if ($global:PlexTitleCardUrl -like "/library/*") {
                                         if ($PlexToken) {

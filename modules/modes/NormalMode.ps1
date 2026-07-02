@@ -105,18 +105,85 @@
                 $RootNode = $MasterXml.CreateElement("PlexExport")
                 $MasterXml.AppendChild($RootNode) | Out-Null
             }
+            $itemQueryCounter = 0
             foreach ($item in $Libcontent.MediaContainer.$contentquery) {
+                $itemQueryCounter++
+                if (($itemQueryCounter % 200) -eq 0) {
+                    Start-Sleep -Milliseconds 1
+                }
                 $extractedFolder = $null
                 $Seasondata = $null
-                if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
+                $Metadata = $null
+                $needSeasonData = ($contentquery -eq 'Directory')
+                $needFullMetadata = $false
+
+                # Build a lightweight metadata object from already fetched section listing data.
+                $metadataDoc = New-Object System.Xml.XmlDocument
+                $metadataRoot = $metadataDoc.CreateElement('MediaContainer')
+                $metadataDoc.AppendChild($metadataRoot) | Out-Null
+                $importedItemNode = $metadataDoc.ImportNode($item, $true)
+                $metadataRoot.AppendChild($importedItemNode) | Out-Null
+                $Metadata = $metadataDoc
+
+                # For movies, section-level data can miss guids in some setups. Only then fetch full metadata.
+                if ($contentquery -eq 'video' -or $contentquery -eq 'Directory') {
+                    $itemNode = $Metadata.MediaContainer.$contentquery
+                    $itemGuid = $itemNode.guid.id
+                    $itemLocation = $itemNode.Location.path
+                    if (-not $itemLocation) {
+                        $itemLocation = $itemNode.media.part.file
+                    }
+                    if (-not $itemGuid -or -not $itemLocation) {
+                        $needFullMetadata = $true
+                    }
+                }
+
+                if ($needFullMetadata) {
+                    if ($PlexToken) {
                         try {
                             [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
+                        }
+                        catch {
+                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
+                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
+                            if ($isConnRefused) {
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
+                            }
+                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
+                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
+                            }
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            continue
+                        }
+                    }
+                    else {
+                        try {
+                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
+                        }
+                        catch {
+                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
+                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
+                            if ($isConnRefused) {
+                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
+                            }
+                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
+                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
+                            }
+                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            continue
+                        }
+                    }
+                }
+
+                if ($needSeasonData) {
+                    if ($PlexToken) {
+                        try {
                             [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
                         }
                         catch {
                             Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
@@ -126,37 +193,14 @@
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
                             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
                         }
                     }
-                    Else {
+                    else {
                         try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                        }
-                        catch {
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                        }
-                    }
-                }
-                Else {
-                    if ($contentquery -eq 'Directory') {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
                             [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children? -Headers $extraPlexHeaders).content
                         }
                         catch {
                             Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
                             Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
                             $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
                             if ($isConnRefused) {
@@ -166,25 +210,6 @@
                                 HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
                             }
                             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                        }
-                    }
-                    Else {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
-                        }
-                        catch {
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
                         }
                     }
                 }

@@ -4252,6 +4252,17 @@ function Invoke-TitleCardCreation {
         $global:season_number = $episode."Season Number"
         $global:tmdbid = $episode.tmdbid
         $global:tvdbid = $episode.tvdbid
+        if ([string]::IsNullOrWhiteSpace([string]$episode.RootFoldername)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$global:show_name)) {
+                $episode | Add-Member -MemberType NoteProperty -Name "RootFoldername" -Value ([string]$global:show_name) -Force
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace([string]$episode.ShowID)) {
+                $episode | Add-Member -MemberType NoteProperty -Name "RootFoldername" -Value ("show_" + [string]$episode.ShowID) -Force
+            }
+            else {
+                $episode | Add-Member -MemberType NoteProperty -Name "RootFoldername" -Value "unknown_show" -Force
+            }
+        }
         $LibraryName = $episode.'Library Name'
         if ($LibraryFolders -eq 'true') {
             if ($episode.extraFolder) {
@@ -5835,12 +5846,18 @@ function Invoke-TitleCardCreation {
                                     $LocalAssetMissing = $null
                                     $LocalAddOverlay = $AddTitleCardOverlay
                                     $LocalAddBorder = $AddTitleCardBorder
-                                    $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim())
-                                    $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
-                                    $global:EPTitle = $($global:titles[$i].Trim())
-                                    $global:EPResolution = $($global:EPResolutions[$i].Trim())
-                                    $global:episodenumber = $($global:episode_numbers[$i].Trim())
-                                    $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
+                                    if ($global:PlexTitleCardUrls.Count -gt $i -and $null -ne $global:PlexTitleCardUrls[$i]) { $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim()) } else { $global:PlexTitleCardUrl = $null }
+                                    if ($global:episode_ratingkeys.Count -gt $i -and $null -ne $global:episode_ratingkeys[$i]) { $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim()) } else { $global:episode_ratingkey = $null }
+                                    if ($global:titles.Count -gt $i -and $null -ne $global:titles[$i]) { $global:EPTitle = $($global:titles[$i].Trim()) } else { $global:EPTitle = $null }
+                                    if ($global:EPResolutions.Count -gt $i -and $null -ne $global:EPResolutions[$i]) { $global:EPResolution = $($global:EPResolutions[$i].Trim()) } else { $global:EPResolution = $null }
+                                    if ($global:episode_numbers.Count -gt $i -and $null -ne $global:episode_numbers[$i]) { $global:episodenumber = $($global:episode_numbers[$i].Trim()) } else { $global:episodenumber = $null }
+                                    if ([string]::IsNullOrWhiteSpace($global:episodenumber)) {
+                                        Write-Entry -Subtext "Skipping title card entry at index [$i] because episode number is missing." -Path $global:configLogging -Color Yellow -log Warning
+                                        continue
+                                    }
+                                    $seasonNumberText = [string]$global:season_number
+                                    $episodeNumberText = [string]$global:episodenumber
+                                    $global:FileNaming = "S" + $seasonNumberText.PadLeft(2, '0') + "E" + $episodeNumberText.PadLeft(2, '0')
                                     $bullet = [char]0x2022
                                     $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
 
