@@ -707,6 +707,7 @@
 
                                         # Export the array to a CSV file
                                         $movietemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                        if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $movietemp.Type -title $movietemp.Title -Lib $movietemp.LibraryName -DLSource $movietemp.'Download Source' -lang $movietemp.Language -favurl $movietemp.'Fav Provider Link' -fallback $movietemp.Fallback -Truncated $movietemp.TextTruncated }
                                     }
                                 }
                             }
@@ -740,6 +741,7 @@
 
                                 # Export the array to a CSV file
                                 $movietemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $movietemp.Type -title $movietemp.Title -Lib $movietemp.LibraryName -DLSource $movietemp.'Download Source' -lang $movietemp.Language -favurl $movietemp.'Fav Provider Link' -fallback $movietemp.Fallback -Truncated $movietemp.TextTruncated }
                             }
                         }
                         else {
@@ -1437,6 +1439,7 @@
                                         }
                                         # Export the array to a CSV file
                                         $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                        if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $moviebackgroundtemp.Type -title $moviebackgroundtemp.Title -Lib $moviebackgroundtemp.LibraryName -DLSource $moviebackgroundtemp.'Download Source' -lang $moviebackgroundtemp.Language -favurl $moviebackgroundtemp.'Fav Provider Link' -fallback $moviebackgroundtemp.Fallback -Truncated $moviebackgroundtemp.TextTruncated }
                                     }
                                 }
                             }
@@ -1470,6 +1473,7 @@
 
                                 # Export the array to a CSV file
                                 $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $moviebackgroundtemp.Type -title $moviebackgroundtemp.Title -Lib $moviebackgroundtemp.LibraryName -DLSource $moviebackgroundtemp.'Download Source' -lang $moviebackgroundtemp.Language -favurl $moviebackgroundtemp.'Fav Provider Link' -fallback $moviebackgroundtemp.Fallback -Truncated $moviebackgroundtemp.TextTruncated }
                             }
                         }
                         else {
@@ -1568,6 +1572,7 @@
 
                 # Export the array to a CSV file
                 $moviebackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $moviebackgroundtemp.Type -title $moviebackgroundtemp.Title -Lib $moviebackgroundtemp.LibraryName -DLSource $moviebackgroundtemp.'Download Source' -lang $moviebackgroundtemp.Language -favurl $moviebackgroundtemp.'Fav Provider Link' -fallback $moviebackgroundtemp.Fallback -Truncated $moviebackgroundtemp.TextTruncated }
             }
 
         }
@@ -2269,6 +2274,7 @@ function Invoke-ShowPosterCreation {
                                     }
                                     # Export the array to a CSV file
                                     $showtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                    if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $showtemp.Type -title $showtemp.Title -Lib $showtemp.LibraryName -DLSource $showtemp.'Download Source' -lang $showtemp.Language -favurl $showtemp.'Fav Provider Link' -fallback $showtemp.Fallback -Truncated $showtemp.TextTruncated }
                                 }
                             }
                         }
@@ -2302,6 +2308,7 @@ function Invoke-ShowPosterCreation {
 
                             # Export the array to a CSV file
                             $showtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                            if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $showtemp.Type -title $showtemp.Title -Lib $showtemp.LibraryName -DLSource $showtemp.'Download Source' -lang $showtemp.Language -favurl $showtemp.'Fav Provider Link' -fallback $showtemp.Fallback -Truncated $showtemp.TextTruncated }
                         }
                     }
                     else {
@@ -3014,6 +3021,7 @@ function Invoke-ShowPosterCreation {
                                     }
                                     # Export the array to a CSV file
                                     $showbackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                    if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $showbackgroundtemp.Type -title $showbackgroundtemp.Title -Lib $showbackgroundtemp.LibraryName -DLSource $showbackgroundtemp.'Download Source' -lang $showbackgroundtemp.Language -favurl $showbackgroundtemp.'Fav Provider Link' -fallback $showbackgroundtemp.Fallback -Truncated $showbackgroundtemp.TextTruncated }
                                 }
                             }
                         }
@@ -3047,6 +3055,7 @@ function Invoke-ShowPosterCreation {
 
                             # Export the array to a CSV file
                             $showbackgroundtemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                            if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $showbackgroundtemp.Type -title $showbackgroundtemp.Title -Lib $showbackgroundtemp.LibraryName -DLSource $showbackgroundtemp.'Download Source' -lang $showbackgroundtemp.Language -favurl $showbackgroundtemp.'Fav Provider Link' -fallback $showbackgroundtemp.Fallback -Truncated $showbackgroundtemp.TextTruncated }
                         }
                     }
                     else {
@@ -4008,6 +4017,7 @@ function Invoke-ShowPosterCreation {
                                         }
                                         # Export the array to a CSV file
                                         $seasontemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                        if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $seasontemp.Type -title $seasontemp.Title -Lib $seasontemp.LibraryName -DLSource $seasontemp.'Download Source' -lang $seasontemp.Language -favurl $seasontemp.'Fav Provider Link' -fallback $seasontemp.Fallback -Truncated $seasontemp.TextTruncated }
                                     }
                                 }
                             }
@@ -4041,6 +4051,7 @@ function Invoke-ShowPosterCreation {
 
                                 # Export the array to a CSV file
                                 $seasontemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $seasontemp.Type -title $seasontemp.Title -Lib $seasontemp.LibraryName -DLSource $seasontemp.'Download Source' -lang $seasontemp.Language -favurl $seasontemp.'Fav Provider Link' -fallback $seasontemp.Fallback -Truncated $seasontemp.TextTruncated }
                             }
                         }
                         else {
@@ -4829,6 +4840,7 @@ function Invoke-TitleCardCreation {
                                     }
                                     # Export the array to a CSV file
                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                    if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $episodetemp.Type -title $episodetemp.Title -Lib $episodetemp.LibraryName -DLSource $episodetemp.'Download Source' -lang $episodetemp.Language -favurl $episodetemp.'Fav Provider Link' -fallback $episodetemp.Fallback -Truncated $episodetemp.TextTruncated }
                                 }
                             }
                         }
@@ -4861,6 +4873,7 @@ function Invoke-TitleCardCreation {
 
                                 # Export the array to a CSV file
                                 $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $episodetemp.Type -title $episodetemp.Title -Lib $episodetemp.LibraryName -DLSource $episodetemp.'Download Source' -lang $episodetemp.Language -favurl $episodetemp.'Fav Provider Link' -fallback $episodetemp.Fallback -Truncated $episodetemp.TextTruncated }
                             }
 
                         }
@@ -5577,6 +5590,7 @@ function Invoke-TitleCardCreation {
                                     }
                                     # Export the array to a CSV file
                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                    if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $episodetemp.Type -title $episodetemp.Title -Lib $episodetemp.LibraryName -DLSource $episodetemp.'Download Source' -lang $episodetemp.Language -favurl $episodetemp.'Fav Provider Link' -fallback $episodetemp.Fallback -Truncated $episodetemp.TextTruncated }
                                 }
                             }
                         }
@@ -5609,6 +5623,7 @@ function Invoke-TitleCardCreation {
 
                                 # Export the array to a CSV file
                                 $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $episodetemp.Type -title $episodetemp.Title -Lib $episodetemp.LibraryName -DLSource $episodetemp.'Download Source' -lang $episodetemp.Language -favurl $episodetemp.'Fav Provider Link' -fallback $episodetemp.Fallback -Truncated $episodetemp.TextTruncated }
                             }
 
                         }
@@ -6317,6 +6332,7 @@ function Invoke-TitleCardCreation {
                                                         }
                                                         # Export the array to a CSV file
                                                         $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                                        if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $episodetemp.Type -title $episodetemp.Title -Lib $episodetemp.LibraryName -DLSource $episodetemp.'Download Source' -lang $episodetemp.Language -favurl $episodetemp.'Fav Provider Link' -fallback $episodetemp.Fallback -Truncated $episodetemp.TextTruncated }
                                                     }
                                                 }
                                             }
@@ -6349,6 +6365,7 @@ function Invoke-TitleCardCreation {
 
                                                     # Export the array to a CSV file
                                                     $episodetemp | Export-Csv -Path "$global:ScriptRoot\Logs\ImageChoices.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force -Append
+                                                    if ($Mode -in @('tautulli', 'arr')) { SendMessage -type $episodetemp.Type -title $episodetemp.Title -Lib $episodetemp.LibraryName -DLSource $episodetemp.'Download Source' -lang $episodetemp.Language -favurl $episodetemp.'Fav Provider Link' -fallback $episodetemp.Fallback -Truncated $episodetemp.TextTruncated }
                                                 }
 
                                             }
@@ -6418,3 +6435,4 @@ function Invoke-TitleCardCreation {
         $global:errorCount = Increment-GlobalStat 'errorCount'
     }
 }
+
