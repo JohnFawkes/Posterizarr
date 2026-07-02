@@ -1,5 +1,5 @@
 # ---- Frontend builder (temporary) ----
-FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:current-alpine3.24 AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -9,7 +9,6 @@ RUN npm install --force
 
 COPY webui/frontend/ ./
 RUN npm run build
-
 
 # ---- Final runtime image ----
 FROM python:3.13-alpine
@@ -107,6 +106,11 @@ esac
 
 # Start Posterizarr PowerShell automation
 echo "Starting Posterizarr PowerShell automation..."
+if [ "$#" -gt 0 ]; then
+    # Forward startup args (for example: --run) to Start.ps1.
+    exec /usr/bin/catatonit -- pwsh -NoProfile /app/Start.ps1 "$@"
+fi
+
 exec /usr/bin/catatonit -- pwsh -NoProfile /app/Start.ps1
 EOF
 

@@ -1,3 +1,17 @@
+param(
+    [switch]$Run
+)
+
+# Accept GNU-style --run for container/orchestrator args compatibility.
+if (-not $Run) {
+    foreach ($arg in $args) {
+        if ($arg -eq "--run") {
+            $Run = $true
+            break
+        }
+    }
+}
+
 function ScriptSchedule {
     # Posterizarr File Watcher for Tautulli Recently Added Files
     $inputDir = "$env:APP_DATA/watcher"
@@ -707,4 +721,10 @@ if (Test-Path $CurrentlyRunning) {
 # Show integraded Scripts
 $StartTime = Get-Date
 write-host "Container Started..." -ForegroundColor Green
+if ($Run) {
+    Write-Host "Run mode enabled: skipping scheduler and starting Posterizarr immediately." -ForegroundColor Cyan
+    pwsh -File "$env:APP_ROOT/Posterizarr.ps1" -ContainerSchedule
+    exit $LASTEXITCODE
+}
+
 ScriptSchedule

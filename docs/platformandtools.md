@@ -11,6 +11,7 @@
   - Change `TimeZone` to yours, otherwise it will get scheduled to a different time you may want it to.
   - Add `DISABLE_UI` and set it to `true` if you want to disable the UI.
   - Change `APP_PORT` and set it to your prefered port (`9000` also update it in compose ports block)
+  - For external schedulers (for example Kubernetes CronJob), start the container with `--run` (or `-Run`) so `Start.ps1` skips internal scheduling and executes immediately once.
   - You may also have to change `user: "1000:1000"` (PUID/PGID)
 
   If you manually want to run the Script you can do it this way:
@@ -98,6 +99,48 @@ In order to view the `16:9` episode posters without getting cropped to `3:2`, yo
 | APP_PORT | 8000 | The Web UI Port. |
 | DISABLE_UI | false | Set to true to disable the Web UI. |
 | ARR_WAIT_TIME | 300 | The time in seconds to wait after an Arr trigger to allow media servers (Jellyfin/Plex) to finish scanning. |
+
+For one-shot runs without the internal scheduler loop, pass this startup arg:
+
+```sh
+--run
+```
+
+This is intended as a container startup argument.
+
+Docker run example:
+
+```sh
+docker run --rm \
+  -e TZ=Europe/Berlin \
+  -e RUN_TIME=disabled \
+  -e DISABLE_UI=true \
+  -v /opt/appdata/posterizarr:/config:rw \
+  -v /opt/appdata/posterizarr/assets:/assets:rw \
+  ghcr.io/fscorrupt/posterizarr:latest \
+  --run
+```
+
+Docker Compose example:
+
+```yaml
+services:
+  posterizarr:
+    image: ghcr.io/fscorrupt/posterizarr:latest
+    command: ["--run"]
+    environment:
+      - "RUN_TIME=disabled"
+      - "DISABLE_UI=true"
+```
+
+Kubernetes CronJob container args example:
+
+```yaml
+containers:
+  - name: posterizarr
+    image: ghcr.io/fscorrupt/posterizarr:latest
+    args: ["--run"]
+```
 
 ### CSS Client side How-To
 
