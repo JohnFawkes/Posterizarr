@@ -350,11 +350,14 @@
         foreach ($key in $state.Keys) {
             try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
         }
-        $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
-        foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
-        if ($state['FanartTvAPIKey']) {
-            Import-Module FanartTvAPI -ErrorAction SilentlyContinue
-            Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+        if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
+            $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+            if ($state['FanartTvAPIKey']) {
+                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+            }
+            function Runspace-Initialized {}
         }
 
         Invoke-MoviePosterCreation -entry $_
@@ -371,11 +374,14 @@
         foreach ($key in $state.Keys) {
             try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
         }
-        $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
-        foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
-        if ($state['FanartTvAPIKey']) {
-            Import-Module FanartTvAPI -ErrorAction SilentlyContinue
-            Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+        if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
+            $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
+            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+            if ($state['FanartTvAPIKey']) {
+                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+            }
+            function Runspace-Initialized {}
         }
 
         Invoke-ShowPosterCreation -entry $_
@@ -388,11 +394,14 @@
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
             }
-            $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
-            foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
-            if ($state['FanartTvAPIKey']) {
-                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
-                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+            if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
+                $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
+                foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
+                if ($state['FanartTvAPIKey']) {
+                    Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                    Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+                }
+                function Runspace-Initialized {}
             }
 
             Invoke-TitleCardCreation -episode $_
