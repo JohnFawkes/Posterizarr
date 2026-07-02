@@ -96,7 +96,6 @@
             elseif ($UsePlex -eq 'true') {
                 Write-Entry -Message "Using Plex media server" -Path $global:configLogging -Color Green -log Info
                 $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($seriesTitle))"
-                if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
                 [xml]$searchXml = (Invoke-WebRequest $searchUrl -Headers $extraPlexHeaders).content
                 $shows = $searchXml.MediaContainer.directory | Where-Object { $_.type -eq 'show' }
 
@@ -135,10 +134,6 @@
 
                 $metadataUrl = "$PlexUrl/library/metadata/$($queryKey)"
                 $seasonUrl = "$PlexUrl/library/metadata/$($queryKey)/children?"
-                if ($PlexToken) {
-                    $metadataUrl += "?X-Plex-Token=$PlexToken"
-                    $seasonUrl += "X-Plex-Token=$PlexToken"
-                }
                 [xml]$Metadata = (Invoke-WebRequest $metadataUrl -Headers $extraPlexHeaders).content
                 if ($contentquery -eq 'Directory') {
                     [xml]$Seasondata = (Invoke-WebRequest $seasonUrl -Headers $extraPlexHeaders).content
@@ -214,7 +209,6 @@
             elseif ($UsePlex -eq 'true') {
                 Write-Entry -Message "Using Plex media server" -Path $global:configLogging -Color Green -log Info
                 $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($movieTitle))"
-                if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
                 [xml]$searchXml = (Invoke-WebRequest $searchUrl -Headers $extraPlexHeaders).content
                 $movies = $searchXml.MediaContainer.video | Where-Object { $_.type -eq 'movie' }
 
@@ -250,7 +244,6 @@
                     HandleScriptExit -Message "No movies found matching '$movieTitle'"
                 }
                 $metadataUrl = "$PlexUrl/library/metadata/$($queryKey)"
-                if ($PlexToken) { $metadataUrl += "?X-Plex-Token=$PlexToken" }
                 [xml]$Metadata = (Invoke-WebRequest $metadataUrl -Headers $extraPlexHeaders).content
             }
         }
@@ -1191,12 +1184,7 @@
                 # Getting child entries for each season
                 $splittedkeys = $showentry.SeasonRatingKeys.split(',')
                 foreach ($key in $splittedkeys) {
-                    if ($PlexToken) {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                    }
-                    Else {
-                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                    }
+                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                     $FileMetadata = $Seasondata.MediaContainer.video.media
                     $Resolution = $null
                     # Get Resolution

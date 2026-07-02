@@ -899,10 +899,10 @@ function Write-Entry {
         $Timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
         $PaddedType = "[" + $log + "]"
         $PaddedType = $PaddedType.PadRight(10)
-        
+
         $ThreadId = [System.Threading.Thread]::CurrentThread.ManagedThreadId.ToString().PadLeft(2, '0')
         $ThreadTag = "[T$ThreadId]".PadRight(7)
-        
+
         $ScriptName = ""
         if ($MyInvocation.ScriptName) {
             $ScriptName = [System.IO.Path]::GetFileName($MyInvocation.ScriptName) + ":"
@@ -925,11 +925,11 @@ function Write-Entry {
             $FormattedLineWritehost = "{0}| " -f ($TypeFormatted)
             $lineToWrite = $FormattedLine1
         }
-        
+
         $mutex = New-Object System.Threading.Mutex($false, "Global\PosterizarrLogMutex")
         try {
             $mutex.WaitOne() | Out-Null
-            
+
             if ($Subtext) {
                 Write-Host $FormattedLineWritehost -NoNewline
                 Write-Host $Subtext -ForegroundColor $Color
@@ -938,7 +938,7 @@ function Write-Entry {
                 Write-Host $FormattedLineWritehost -NoNewline
                 Write-Host $Message -ForegroundColor $Color
             }
-            
+
             $lineToWrite | Out-File $Path -Append
         } finally {
             $mutex.ReleaseMutex()

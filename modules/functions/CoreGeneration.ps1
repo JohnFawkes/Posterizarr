@@ -126,12 +126,7 @@
                             $LocalAddBorder = $AddBorder
 
                             if ($entry.PlexPosterUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $entry.PlexPosterUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $entry.PlexPosterUrl
-                                }
+                                $Arturl = $plexurl + $entry.PlexPosterUrl
                             }
                             elseif ($entry.OtherMediaServerPosterUrl) {
                                 $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/"
@@ -636,12 +631,7 @@
                                                     Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                    $uri = if ($PlexToken) {
-                                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                    }
-                                                    Else {
-                                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
-                                                    }
+                                                    $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -755,12 +745,7 @@
                         else {
                             if ($global:UploadExistingAssets -eq 'true') {
                                 if ($entry.PlexPosterUrl -like "/library/*") {
-                                    if ($PlexToken) {
-                                        $Arturl = $plexurl + $entry.PlexPosterUrl + "?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        $Arturl = $plexurl + $entry.PlexPosterUrl
-                                    }
+                                    $Arturl = $plexurl + $entry.PlexPosterUrl
                                 }
                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                 try {
@@ -773,12 +758,7 @@
                                         Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                         Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                        $uri = if ($PlexToken) {
-                                            "$PlexUrl/library/metadata/$($entry.ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                        }
-                                        Else {
-                                            "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
-                                        }
+                                        $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                         # Try uploading, capturing the response in detail
                                         $Upload = Invoke-WebRequest -Uri $uri `
@@ -897,12 +877,7 @@
                             $LocalAddBorder = $AddBackgroundBorder
 
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $entry.PlexBackgroundUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                                }
+                                $Arturl = $plexurl + $entry.PlexBackgroundUrl
                             }
                             elseif ($entry.OtherMediaServerBackgroundUrl) {
                                 $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
@@ -1386,12 +1361,7 @@
                                                     Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                    $uri = if ($PlexToken) {
-                                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/arts?X-Plex-Token=$PlexToken"
-                                                    }
-                                                    Else {
-                                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
-                                                    }
+                                                    $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -1505,12 +1475,7 @@
                         else {
                             if ($global:UploadExistingAssets -eq 'true') {
                                 if ($entry.PlexBackgroundUrl -like "/library/*") {
-                                    if ($PlexToken) {
-                                        $Arturl = $plexurl + $entry.PlexBackgroundUrl + "?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                                    }
+                                    $Arturl = $plexurl + $entry.PlexBackgroundUrl
                                 }
                                 elseif ($entry.OtherMediaServerBackgroundUrl) {
                                     $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
@@ -1526,12 +1491,7 @@
                                         Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                         Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                        $uri = if ($PlexToken) {
-                                            "$PlexUrl/library/metadata/$($entry.ratingkey)/arts?X-Plex-Token=$PlexToken"
-                                        }
-                                        Else {
-                                            "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
-                                        }
+                                        $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                         # Try uploading, capturing the response in detail
                                         $Upload = Invoke-WebRequest -Uri $uri `
@@ -1745,12 +1705,7 @@ function Invoke-ShowPosterCreation {
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
                         if ($entry.PlexPosterUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $entry.PlexPosterUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $entry.PlexPosterUrl
-                            }
+                            $Arturl = $plexurl + $entry.PlexPosterUrl
                         }
                         elseif ($entry.OtherMediaServerPosterUrl) {
                             $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/"
@@ -2239,12 +2194,7 @@ function Invoke-ShowPosterCreation {
                                                 Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                 Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                $uri = if ($PlexToken) {
-                                                    "$PlexUrl/library/metadata/$($entry.ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                }
-                                                Else {
-                                                    "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
-                                                }
+                                                $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
@@ -2357,12 +2307,7 @@ function Invoke-ShowPosterCreation {
                     else {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($entry.PlexPosterUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $entry.PlexPosterUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $entry.PlexPosterUrl
-                                }
+                                $Arturl = $plexurl + $entry.PlexPosterUrl
                             }
                             Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                             try {
@@ -2375,12 +2320,7 @@ function Invoke-ShowPosterCreation {
                                     Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                    $uri = if ($PlexToken) {
-                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
-                                    }
+                                    $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                     # Try uploading, capturing the response in detail
                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -2509,12 +2449,7 @@ function Invoke-ShowPosterCreation {
                         $LocalAddBorder = $AddBackgroundBorder
 
                         if ($entry.PlexBackgroundUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $entry.PlexBackgroundUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                            }
+                            $Arturl = $plexurl + $entry.PlexBackgroundUrl
                         }
                         elseif ($entry.OtherMediaServerBackgroundUrl) {
                             $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
@@ -3003,12 +2938,7 @@ function Invoke-ShowPosterCreation {
                                                 Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                 Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                $uri = if ($PlexToken) {
-                                                    "$PlexUrl/library/metadata/$($entry.ratingkey)/arts?X-Plex-Token=$PlexToken"
-                                                }
-                                                Else {
-                                                    "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
-                                                }
+                                                $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
@@ -3122,12 +3052,7 @@ function Invoke-ShowPosterCreation {
                     else {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $entry.PlexBackgroundUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                                }
+                                $Arturl = $plexurl + $entry.PlexBackgroundUrl
                             }
                             elseif ($entry.OtherMediaServerBackgroundUrl) {
                                 $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
@@ -3143,12 +3068,7 @@ function Invoke-ShowPosterCreation {
                                     Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                    $uri = if ($PlexToken) {
-                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/arts?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
-                                    }
+                                    $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                     # Try uploading, capturing the response in detail
                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -3322,12 +3242,7 @@ function Invoke-ShowPosterCreation {
                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                             $Arturl = $null
                             if ($global:PlexSeasonUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $global:PlexSeasonUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $global:PlexSeasonUrl
-                                }
+                                $Arturl = $plexurl + $global:PlexSeasonUrl
                             }
                             elseif ($global:OtherMediaServerSeasonUrls.Count -gt $i -and $global:OtherMediaServerSeasonUrls[$i]) {
                                 $Arturl = $global:OtherMediaServerSeasonUrls[$i]
@@ -4017,12 +3932,7 @@ function Invoke-ShowPosterCreation {
                                                     Write-Entry -Subtext "RatingKey: $($global:SeasonRatingKey)" -Path $global:configLogging -Color Cyan -log Debug
                                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                    $uri = if ($PlexToken) {
-                                                        "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters?X-Plex-Token=$PlexToken"
-                                                    }
-                                                    Else {
-                                                        "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters"
-                                                    }
+                                                    $uri = "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters"
                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                     # Try uploading, capturing the response in detail
                                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -4136,12 +4046,7 @@ function Invoke-ShowPosterCreation {
                         else {
                             if ($global:UploadExistingAssets -eq 'true') {
                                 if ($global:PlexSeasonUrl -like "/library/*") {
-                                    if ($PlexToken) {
-                                        $Arturl = $plexurl + $global:PlexSeasonUrl + "?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        $Arturl = $plexurl + $global:PlexSeasonUrl
-                                    }
+                                    $Arturl = $plexurl + $global:PlexSeasonUrl
                                 }
                                 elseif ($global:OtherMediaServerSeasonUrls.Count -gt $i -and $global:OtherMediaServerSeasonUrls[$i]) {
                                     $Arturl = $global:OtherMediaServerSeasonUrls[$i]
@@ -4157,12 +4062,7 @@ function Invoke-ShowPosterCreation {
                                         Write-Entry -Subtext "RatingKey: $($global:SeasonRatingKey)" -Path $global:configLogging -Color Cyan -log Debug
                                         Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                        $uri = if ($PlexToken) {
-                                            "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters?X-Plex-Token=$PlexToken"
-                                        }
-                                        Else {
-                                            "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters"
-                                        }
+                                        $uri = "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters"
                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                         # Try uploading, capturing the response in detail
                                         $Upload = Invoke-WebRequest -Uri $uri `
@@ -4402,12 +4302,7 @@ function Invoke-TitleCardCreation {
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
                         if ($global:PlexTitleCardUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $global:PlexTitleCardUrl
-                            }
+                            $Arturl = $plexurl + $global:PlexTitleCardUrl
                         }
                         elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
                             $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
@@ -4858,12 +4753,7 @@ function Invoke-TitleCardCreation {
                                                 Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                 Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                $uri = if ($PlexToken) {
-                                                    "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                }
-                                                Else {
-                                                    "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                                }
+                                                $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
@@ -4979,12 +4869,7 @@ function Invoke-TitleCardCreation {
                     else {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($global:PlexTitleCardUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $global:PlexTitleCardUrl
-                                }
+                                $Arturl = $plexurl + $global:PlexTitleCardUrl
                             }
                             elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
                                 $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
@@ -5003,12 +4888,7 @@ function Invoke-TitleCardCreation {
                                     Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                    $uri = if ($PlexToken) {
-                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                    }
+                                    $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                     # Try uploading, capturing the response in detail
                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -5158,12 +5038,7 @@ function Invoke-TitleCardCreation {
                     if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                         $Arturl = $null
                         if ($global:PlexTitleCardUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $global:PlexTitleCardUrl
-                            }
+                            $Arturl = $plexurl + $global:PlexTitleCardUrl
                         }
                         elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
                             $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
@@ -5626,12 +5501,7 @@ function Invoke-TitleCardCreation {
                                                 Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                 Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                $uri = if ($PlexToken) {
-                                                    "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                }
-                                                Else {
-                                                    "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                                }
+                                                $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
                                                 Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                 # Try uploading, capturing the response in detail
                                                 $Upload = Invoke-WebRequest -Uri $uri `
@@ -5747,12 +5617,7 @@ function Invoke-TitleCardCreation {
                     else {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($global:PlexTitleCardUrl -like "/library/*") {
-                                if ($PlexToken) {
-                                    $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                                }
-                                Else {
-                                    $Arturl = $plexurl + $global:PlexTitleCardUrl
-                                }
+                                $Arturl = $plexurl + $global:PlexTitleCardUrl
                             }
                             elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
                                 $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
@@ -5771,12 +5636,7 @@ function Invoke-TitleCardCreation {
                                     Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                    $uri = if ($PlexToken) {
-                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                    }
+                                    $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                     # Try uploading, capturing the response in detail
                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -5929,12 +5789,7 @@ function Invoke-TitleCardCreation {
                                         if (-not $directoryHashtable.ContainsKey("$hashtestpath")) {
                                             $Arturl = $null
                                             if ($global:PlexTitleCardUrl -like "/library/*") {
-                                                if ($PlexToken) {
-                                                    $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                                                }
-                                                Else {
-                                                    $Arturl = $plexurl + $global:PlexTitleCardUrl
-                                                }
+                                                $Arturl = $plexurl + $global:PlexTitleCardUrl
                                             }
                                             foreach ($ext in $allowedExtensions) {
                                                 $manualFile = "$ManualTestPath$ext"
@@ -6386,12 +6241,7 @@ function Invoke-TitleCardCreation {
                                                                     Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                                     Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                                    $uri = if ($PlexToken) {
-                                                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                                    }
-                                                                    Else {
-                                                                        "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                                                    }
+                                                                    $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
                                                                     Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                                     # Try uploading, capturing the response in detail
                                                                     $Upload = Invoke-WebRequest -Uri $uri `
@@ -6507,12 +6357,7 @@ function Invoke-TitleCardCreation {
                                         else {
                                             if ($global:UploadExistingAssets -eq 'true') {
                                                 if ($global:PlexTitleCardUrl -like "/library/*") {
-                                                    if ($PlexToken) {
-                                                        $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                                                    }
-                                                    Else {
-                                                        $Arturl = $plexurl + $global:PlexTitleCardUrl
-                                                    }
+                                                    $Arturl = $plexurl + $global:PlexTitleCardUrl
                                                 }
                                                 Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
                                                 try {
@@ -6525,12 +6370,7 @@ function Invoke-TitleCardCreation {
                                                         Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
                                                         Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
 
-                                                        $uri = if ($PlexToken) {
-                                                            "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters?X-Plex-Token=$PlexToken"
-                                                        }
-                                                        Else {
-                                                            "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                                        }
+                                                        $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
                                                         Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                                                         # Try uploading, capturing the response in detail
                                                         $Upload = Invoke-WebRequest -Uri $uri `

@@ -315,12 +315,7 @@
 
                     # Upload to Plex ClearLogo endpoint
                     $fileContent = [System.IO.File]::ReadAllBytes($tempLogo)
-                    $uploadUri = if ($PlexToken) {
-                        "$PlexUrl/library/metadata/$ratingKey/clearLogos?X-Plex-Token=$PlexToken"
-                    }
-                    Else {
-                        "$PlexUrl/library/metadata/$ratingKey/clearLogos"
-                    }
+                    $uploadUri = "$PlexUrl/library/metadata/$ratingKey/clearLogos"
 
                     Write-Entry -Subtext "[$title] Uploading Logo to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
 

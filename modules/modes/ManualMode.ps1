@@ -964,7 +964,6 @@
 
             if ($UsePlex -eq 'true') {
                 $searchUrl = "$PlexUrl/search?query=$([uri]::EscapeDataString($Titletext))"
-                if ($PlexToken) { $searchUrl += "&X-Plex-Token=$PlexToken" }
 
                 Write-Entry -Subtext "Plex Search URI: $(RedactMediaServerUrl -url $searchUrl)" -Path $global:configLogging -Color Cyan -log Debug
 
@@ -1028,7 +1027,7 @@
                 if ($SeasonPoster) {
                     Write-Entry -Subtext "Drilling down to Season $global:SeasonNumber" -Path $global:configLogging -Color Cyan -log Debug
                     if ($UsePlex -eq 'true') {
-                        $drillUri = "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken"
+                        $drillUri = "$PlexUrl/library/metadata/$FinalTargetID/children"
                         [xml]$children = (Invoke-WebRequest $drillUri -Headers $extraPlexHeaders).content
                         $FinalTargetID = ($children.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
                     }
@@ -1042,10 +1041,10 @@
                 elseif ($TitleCard) {
                     Write-Entry -Subtext "Drilling down to Episode S$($global:SeasonNumber)E$($global:EpisodeNumber)" -Path $global:configLogging -Color Cyan -log Debug
                     if ($UsePlex -eq 'true') {
-                        [xml]$seasonsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        [xml]$seasonsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$FinalTargetID/children" -Headers $extraPlexHeaders).content
                         $seasonKey = ($seasonsXml.MediaContainer.Directory | Where-Object { [int]$_.index -eq [int]$global:SeasonNumber }).ratingKey
 
-                        [xml]$epsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$seasonKey/children?X-Plex-Token=$PlexToken" -Headers $extraPlexHeaders).content
+                        [xml]$epsXml = (Invoke-WebRequest "$PlexUrl/library/metadata/$seasonKey/children" -Headers $extraPlexHeaders).content
                         $FinalTargetID = ($epsXml.MediaContainer.video | Where-Object { [int]$_.index -eq [int]$global:EpisodeNumber }).ratingKey
                     }
                     else {
@@ -1062,7 +1061,6 @@
                             $fileContent = [System.IO.File]::ReadAllBytes($PosterImage)
                             $plexTargetType = if ($BackgroundCard) { "arts" } else { "posters" }
                             $uri = "$PlexUrl/library/metadata/$FinalTargetID/$($plexTargetType)"
-                            if ($PlexToken) { $uri += "?X-Plex-Token=$PlexToken" }
 
                             Write-Entry -Subtext "Attempting Plex Post to: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
                             $Upload = Invoke-WebRequest -Uri $uri -Method Post -Headers $extraPlexHeaders -Body $fileContent -ContentType 'application/octet-stream' -ErrorAction Stop
@@ -1096,6 +1094,7 @@
         $hours = [math]::Floor($executionTime.TotalHours)
         $minutes = $executionTime.Minutes
         $seconds = $executionTime.Seconds
+        $FormattedTimespawn = $hours.ToString() + "h " + $minutes.ToString() + "m " + $seconds.ToString() + "s "
 
         $CSVtemp = New-Object psobject
         $CSVtemp | Add-Member -MemberType NoteProperty -Name "Title" -Value $(if ($SeasonPoster) { "$Titletext | Season $global:SeasonNumber" } Elseif ($TitleCard) { "S$($global:SeasonNumber.PadLeft(2, '0'))E$($global:EpisodeNumber.PadLeft(2, '0')) | $Titletext" } Else { $Titletext })
@@ -1122,6 +1121,9 @@
             $TextTruncatedCount = @($SummaryCount | Where-Object TextTruncated -eq 'true')
             $TextCount = @($SummaryCount | Where-Object Textless -eq 'false')
         }
+
+        # Send Notification
+        Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -FallbackCount $FallbackCount.count -TextlessCount $TextlessCount.count -TruncatedCount $TextTruncatedCount.count -PosterCount $posterCount -BackgroundCount $BackgroundCount -SeasonCount $SeasonCount -EpisodeCount $EpisodeCount
 
         # Export json
         $jsonObject = [PSCustomObject]@{

@@ -205,10 +205,17 @@ if ($files.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'T
 }
 
 CheckJsonPaths -font "$font" -RTLfont "$RTLfont" -backgroundfont "$backgroundfont" -titlecardfont "$titlecardfont" -Posteroverlay "$DefaultPosteroverlay" -ShowPosteroverlay "$DefaultShowPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -ShowBackgroundoverlay "$DefaultShowBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
+# Plex Headers
+$extraPlexHeaders = @{
+    'X-Plex-Container-Size' = '1000'
+}
+if ($PlexToken) {
+    $extraPlexHeaders['X-Plex-Token'] = $PlexToken
+}
 # Check Plex now:
 if (!$SyncJelly -and !$SyncEmby) {
     if ($UsePlex -eq 'true') {
-        [xml]$Libs = CheckPlexAccess -PlexUrl $PlexUrl -PlexToken $PlexToken
+        [xml]$Libs = CheckPlexAccess -PlexUrl $PlexUrl
     }
 
     if ($UseJellyfin -eq 'true') {
@@ -320,10 +327,6 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
     $global:headers = @{}
     $global:headers.Add("accept", "application/json")
     $global:headers.Add("Authorization", "Bearer $global:tmdbtoken")
-}
-# Plex Headers
-$extraPlexHeaders = @{
-    'X-Plex-Container-Size' = '1000'
 }
 
 #### MAIN SCRIPT START ####

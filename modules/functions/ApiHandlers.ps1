@@ -173,12 +173,7 @@ function Reset-PlexLibraryPictures {
 
     # Fetch the sections of the Plex library
     try {
-        if ($PlexToken) {
-            $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections?X-Plex-Token=$PlexToken"
-        }
-        Else {
-            $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections"
-        }
+        $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections" -Headers $extraPlexHeaders
     }
     catch {
         Write-Entry -Subtext "Error fetching sections: $_" -Path "$global:configLogging" -Color Red -log Error
@@ -347,12 +342,7 @@ function Reset-PlexLibraryLogos {
 
     # Fetch the sections of the Plex library
     try {
-        if ($PlexToken) {
-            $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections?X-Plex-Token=$PlexToken"
-        }
-        Else {
-            $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections"
-        }
+        $sections = Invoke-RestMethod -Uri "$PlexUrl/library/sections" -Headers $PlexHeaders
     }
     catch {
         Write-Entry -Subtext "Error fetching sections: $_" -Path "$global:configLogging" -Color Red -log Error
@@ -3108,83 +3098,39 @@ function GetPlexArtwork {
 
 function CheckPlexAccess {
     param (
-        [string]$PlexUrl,
-        [string]$PlexToken
+        [string]$PlexUrl
     )
-
-    if ($PlexToken) {
-        Write-Entry -Message "Plex token found, checking access now..." -Path $global:configLogging -Color White -log Info
-        try {
-            $response = Invoke-WebRequest -Uri "$PlexUrl/library/sections/?X-Plex-Token=$PlexToken" -ErrorAction Stop -Headers $extraPlexHeaders
-            if ($response.StatusCode -eq 200) {
-                Write-Entry -Subtext "Plex access is working..." -Path $global:configLogging -Color Green -log Info
-                # Check if libs are available
-                [XML]$Libs = $response.Content
-                # Plex Debug info
-                $plexdebuginfo = Invoke-WebRequest -Uri "$PlexUrl/?X-Plex-Token=$PlexToken" -ErrorAction Stop -Headers $extraPlexHeaders
-                [XML]$plexdebuginfo = $plexdebuginfo.Content
-                Write-Entry -Subtext "Plex Server Version: $($plexdebuginfo.MediaContainer.version)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "My Plex Server: $($plexdebuginfo.MediaContainer.myPlex)"-Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Plex Server Signin State: $($plexdebuginfo.MediaContainer.myPlexSigninState)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Plex Server allow Deletion: $($plexdebuginfo.MediaContainer.allowMediaDeletion)" -Path $global:configLogging -Color Cyan -log Debug
-                if ($Libs.MediaContainer.size -ge 1) {
-                    return $Libs
-                }
-                else {
-                    Write-Entry -Subtext "No libs on Plex, abort script now..." -Path $global:configLogging -Color Red -log Error
-                    # Clear Running File
-                    HandleScriptExit -Message "No Plex Libs found"
-                }
+    Write-Entry -Message "Checking Plex access now..." -Path $global:configLogging -Color White -log Info
+    try {
+        $result = Invoke-WebRequest -Uri "$PlexUrl/library/sections" -ErrorAction SilentlyContinue -Headers $extraPlexHeaders
+        if ($result.StatusCode -eq 200) {
+            Write-Entry -Subtext "Plex access is working..." -Path $global:configLogging -Color Green -log Info
+            # Check if libs are available
+            [XML]$Libs = $result.Content
+            # Plex Debug info
+            $plexdebuginfo = Invoke-WebRequest -Uri "$PlexUrl" -ErrorAction Stop -Headers $extraPlexHeaders
+            [XML]$plexdebuginfo = $plexdebuginfo.Content
+            Write-Entry -Subtext "Plex Server Version: $($plexdebuginfo.MediaContainer.version)" -Path $global:configLogging -Color Cyan -log Debug
+            Write-Entry -Subtext "My Plex Server: $($plexdebuginfo.MediaContainer.myPlex)"-Path $global:configLogging -Color Cyan -log Debug
+            Write-Entry -Subtext "Plex Server Signin State: $($plexdebuginfo.MediaContainer.myPlexSigninState)" -Path $global:configLogging -Color Cyan -log Debug
+            Write-Entry -Subtext "Plex Server allow Deletion: $($plexdebuginfo.MediaContainer.allowMediaDeletion)" -Path $global:configLogging -Color Cyan -log Debug
+            if ($Libs.MediaContainer.size -ge 1) {
+                Write-Entry -Subtext "Found libs on Plex..." -Path $global:configLogging -Color White -log Info
+                return $Libs
             }
             else {
-                Write-Entry -Message "Could not access Plex with this URL: $(RedactMediaServerUrl -url "$PlexUrl/library/sections/?X-Plex-Token=$PlexToken")" -Path $global:configLogging -Color Red -Log Error
-                Write-Entry -Subtext "Please check token and access..." -Path $global:configLogging -Color Red -log Error
-                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                # Clear Running File
-                HandleScriptExit -Message "Could not access plex"
+                Write-Entry -Subtext "No libs on Plex, abort script now..." -Path $global:configLogging -Color Red -log Error
+                HandleScriptExit -Message "No libs on plex"
             }
-        }
-        catch {
-            Write-Entry -Subtext "Could not access Plex with this URL: $(RedactMediaServerUrl -url "$PlexUrl/library/sections/?X-Plex-Token=$PlexToken")" -Path $global:configLogging -Color Red -Log Error
-            Write-Entry -Subtext "Error occurred while accessing Plex server: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            # Clear Running File
-            HandleScriptExit -Message "Could not access plex"
         }
     }
-    else {
-        Write-Entry -Message "Checking Plex access now..." -Path $global:configLogging -Color White -log Info
-        try {
-            $result = Invoke-WebRequest -Uri "$PlexUrl/library/sections" -ErrorAction SilentlyContinue -Headers $extraPlexHeaders
-            if ($result.StatusCode -eq 200) {
-                Write-Entry -Subtext "Plex access is working..." -Path $global:configLogging -Color Green -log Info
-                # Check if libs are available
-                [XML]$Libs = $result.Content
-                # Plex Debug info
-                $plexdebuginfo = Invoke-WebRequest -Uri "$PlexUrl" -ErrorAction Stop -Headers $extraPlexHeaders
-                [XML]$plexdebuginfo = $plexdebuginfo.Content
-                Write-Entry -Subtext "Plex Server Version: $($plexdebuginfo.MediaContainer.version)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "My Plex Server: $($plexdebuginfo.MediaContainer.myPlex)"-Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Plex Server Signin State: $($plexdebuginfo.MediaContainer.myPlexSigninState)" -Path $global:configLogging -Color Cyan -log Debug
-                Write-Entry -Subtext "Plex Server allow Deletion: $($plexdebuginfo.MediaContainer.allowMediaDeletion)" -Path $global:configLogging -Color Cyan -log Debug
-                if ($Libs.MediaContainer.size -ge 1) {
-                    Write-Entry -Subtext "Found libs on Plex..." -Path $global:configLogging -Color White -log Info
-                    return $Libs
-                }
-                else {
-                    Write-Entry -Subtext "No libs on Plex, abort script now..." -Path $global:configLogging -Color Red -log Error
-                    HandleScriptExit -Message "No libs on plex"
-                }
-            }
-        }
-        catch {
-            Write-Entry -Subtext "Error occurred while accessing Plex server: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-            Write-Entry -Subtext "Please check access and settings in Plex..." -Path $global:configLogging -Color Yellow -log Warning
-            Write-Entry -Message "To be able to connect to Plex without authentication" -Path $global:configLogging -Color White -log Info
-            Write-Entry -Message "You have to enter your IP range in 'Settings -> Network -> List of IP addresses and networks that are allowed without auth: '192.168.1.0/255.255.255.0''" -Path $global:configLogging -Color White -log Info
-            # Clear Running File
-            HandleScriptExit -Message "Could not access plex"
-        }
+    catch {
+        Write-Entry -Subtext "Error occurred while accessing Plex server: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Subtext "Please check access and settings in Plex..." -Path $global:configLogging -Color Yellow -log Warning
+        Write-Entry -Message "To be able to connect to Plex without authentication" -Path $global:configLogging -Color White -log Info
+        Write-Entry -Message "You have to enter your IP range in 'Settings -> Network -> List of IP addresses and networks that are allowed without auth: '192.168.1.0/255.255.255.0''" -Path $global:configLogging -Color White -log Info
+        # Clear Running File
+        HandleScriptExit -Message "Could not access plex"
     }
 }
 
@@ -3552,84 +3498,42 @@ function MassDownloadPlexArtwork {
             foreach ($item in $Libcontent.MediaContainer.$contentquery) {
                 $extractedFolder = $null
                 $Seasondata = $null
-                if ($PlexToken) {
-                    if ($contentquery -eq 'Directory') {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                            [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                        }
-                        catch {
-                            Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                        }
+                if ($contentquery -eq 'Directory') {
+                    try {
+                        [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
+                        [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children? -Headers $extraPlexHeaders).content
                     }
-                    Else {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
+                    catch {
+                        Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?" -Path $global:configLogging -Color Cyan -log Debug
+                        Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
+                        Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
+                        if ($isConnRefused) {
+                            $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                         }
-                        catch {
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)?X-Plex-Token=$($PlexToken[0..7] -join '')****" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        if ($isConnRefused -and $ConnRefusedCount -ge 3) {
+                            HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
+                        }
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
-                        }
                     }
                 }
                 Else {
-                    if ($contentquery -eq 'Directory') {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
-                            [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey)/children? -Headers $extraPlexHeaders).content
-                        }
-                        catch {
-                            Write-Entry -Subtext "Current Seasondata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)/children?" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                        }
+                    try {
+                        [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
                     }
-                    Else {
-                        try {
-                            [xml]$Metadata = (Invoke-WebRequest $PlexUrl/library/metadata/$($item.ratingKey) -Headers $extraPlexHeaders).content
+                    catch {
+                        Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
+                        Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
+                        if ($isConnRefused) {
+                            $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
                         }
-                        catch {
-                            Write-Entry -Subtext "Current Metadata Plex Query: $($PlexUrl[0..10] -join '')****/library/metadata/$($item.ratingKey)" -Path $global:configLogging -Color Cyan -log Debug
-                            Write-Entry -Subtext "An error occurred during Plex query: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-                            $isConnRefused = $_.Exception.Message -match "(Connection refused|Name or service not known)"
-                            if ($isConnRefused) {
-                                $global:ConnRefusedCount = Increment-GlobalStat 'ConnRefusedCount'
-                            }
-                            if ($isConnRefused -and $ConnRefusedCount -ge 3) {
-                                HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
-                            }
-                            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                        if ($isConnRefused -and $ConnRefusedCount -ge 3) {
+                            HandleScriptExit -Message "[FATAL] Connection refused 3 times. Terminating script."
+                        }
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
-                        }
                     }
                 }
                 $metadatatemp = $Metadata.MediaContainer.$contentquery.guid.id
@@ -3815,12 +3719,7 @@ function MassDownloadPlexArtwork {
             # Getting child entries for each season
             $splittedkeys = $showentry.SeasonRatingKeys.split(',')
             foreach ($key in $splittedkeys) {
-                if ($PlexToken) {
-                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children?X-Plex-Token=$PlexToken -Headers $extraPlexHeaders).content
-                }
-                Else {
-                    [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
-                }
+                [xml]$Seasondata = (Invoke-WebRequest $PlexUrl/library/metadata/$key/children? -Headers $extraPlexHeaders).content
                 $FileMetadata = $Seasondata.MediaContainer.video.media
                 $Resolution = $null
                 # Get Resolution
@@ -4074,12 +3973,7 @@ function MassDownloadPlexArtwork {
                         $Arturl = $null
 
                         if ($entry.PlexPosterUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $entry.PlexPosterUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $entry.PlexPosterUrl
-                            }
+                            $Arturl = $plexurl + $entry.PlexPosterUrl
                         }
                         Write-Entry -Message "Searching on Plex for $Titletext - Poster" -Path $global:configLogging -Color White -log Info
 
@@ -4203,12 +4097,7 @@ function MassDownloadPlexArtwork {
                         $Arturl = $null
 
                         if ($entry.PlexBackgroundUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $entry.PlexBackgroundUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                            }
+                            $Arturl = $plexurl + $entry.PlexBackgroundUrl
                         }
                         Write-Entry -Message "Searching on Plex for $Titletext - Background" -Path $global:configLogging -Color White -log Info
 
@@ -4391,12 +4280,7 @@ function MassDownloadPlexArtwork {
                 if (($null -ne $FileTestOnTrigger -and $FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
                     $Arturl = $null
                     if ($entry.PlexPosterUrl -like "/library/*") {
-                        if ($PlexToken) {
-                            $Arturl = $plexurl + $entry.PlexPosterUrl + "?X-Plex-Token=$PlexToken"
-                        }
-                        Else {
-                            $Arturl = $plexurl + $entry.PlexPosterUrl
-                        }
+                        $Arturl = $plexurl + $entry.PlexPosterUrl
                     }
                     Write-Entry -Message "Searching on Plex for $Titletext - Poster" -Path $global:configLogging -Color White -log Info
                     GetPlexArtworkUrl -ArtUrl $Arturl -TempImage $PosterImage
@@ -4528,12 +4412,7 @@ function MassDownloadPlexArtwork {
                     $global:ImageMagickError = $null
                     $Arturl = $null
                     if ($entry.PlexBackgroundUrl -like "/library/*") {
-                        if ($PlexToken) {
-                            $Arturl = $plexurl + $entry.PlexBackgroundUrl + "?X-Plex-Token=$PlexToken"
-                        }
-                        Else {
-                            $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                        }
+                        $Arturl = $plexurl + $entry.PlexBackgroundUrl
                     }
                     Write-Entry -Message "Searching on Plex for $Titletext - Background" -Path $global:configLogging -Color White -log Info
                     GetPlexArtworkUrl -ArtUrl $Arturl -TempImage $backgroundImage
@@ -4682,12 +4561,7 @@ function MassDownloadPlexArtwork {
                     if (($null -ne $FileTestOnTrigger -and $FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
                         $Arturl = $null
                         if ($global:PlexSeasonUrl -like "/library/*") {
-                            if ($PlexToken) {
-                                $Arturl = $plexurl + $global:PlexSeasonUrl + "?X-Plex-Token=$PlexToken"
-                            }
-                            Else {
-                                $Arturl = $plexurl + $global:PlexSeasonUrl
-                            }
+                            $Arturl = $plexurl + $global:PlexSeasonUrl
                         }
                         if (!$Seasonpostersearchtext) {
                             Write-Entry -Message "Searching on Plex for $Titletext - Season" -Path $global:configLogging -Color White -log Info
@@ -4849,12 +4723,7 @@ function MassDownloadPlexArtwork {
                             if (($null -ne $FileTestOnTrigger -and $FileTestOnTrigger -eq 'false') -or (-not $directoryHashtable.ContainsKey("$hashtestpath"))) {
                                 $Arturl = $null
                                 if ($global:PlexTitleCardUrl -like "/library/*") {
-                                    if ($PlexToken) {
-                                        $Arturl = $plexurl + $global:PlexTitleCardUrl + "?X-Plex-Token=$PlexToken"
-                                    }
-                                    Else {
-                                        $Arturl = $plexurl + $global:PlexTitleCardUrl
-                                    }
+                                    $Arturl = $plexurl + $global:PlexTitleCardUrl
                                 }
                                 Write-Entry -Message "Searching on Plex for $global:show_name | $global:SeasonEPNumber - Titlecard" -Path $global:configLogging -Color White -log Info
                                 GetPlexArtworkUrl -ArtUrl $ArtUrl -TempImage $EpisodeImage
