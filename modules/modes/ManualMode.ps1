@@ -32,7 +32,7 @@
         )
 
         # 2. Check if *any* of them were provided when the script was run
-        $anyPosterParamBound = $posterParams.Where({ $PSBoundParameters.ContainsKey($_) }).Count -gt 0
+        $anyPosterParamBound = $posterParams.Where({ $MainPSBoundParameters.ContainsKey($_) }).Count -gt 0
 
         # 3. Only ask questions if *none* were provided
         if (-not $anyPosterParamBound) {
@@ -86,7 +86,7 @@
             $FolderName = Read-Host "Enter Media Foldername (how plex sees it)"
         }
         # Only prompt if the parameter was NOT passed at all
-        if (-not $PSBoundParameters.ContainsKey('Titletext')) {
+        if (-not $MainPSBoundParameters.ContainsKey('Titletext')) {
             $Titletext = Read-Host "Enter Movie/Show/Background Title"
         }
     }

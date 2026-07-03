@@ -35,6 +35,8 @@ param (
     [string[]]$ExtraArgs # Required for Arrtrigger
 )
 
+$MainPSBoundParameters = $PSBoundParameters
+
 # Parse ExtraArgs into a hashtable
 $arrTriggers = @{}
 for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
