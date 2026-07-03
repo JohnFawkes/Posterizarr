@@ -67,7 +67,7 @@ $ProgressPreference = 'SilentlyContinue'
 # FANART API                      -> https://fanart.tv/get-an-api-key
 # TVDB API                        -> https://thetvdb.com/api-information/signup
 # ImageMagick                     -> https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-27-Q16-HDRI-x64-dll.exe
-# FanartTv API Powershell Wrapper -> https://github.com/Celerium/FanartTV-PowerShellWrapper
+# FanartTv API Powershell Wrapper -> https://github.com/Celerium/Celerium.FanartTV
 #####################################################################################################################
 
 #### FUNCTION START ####

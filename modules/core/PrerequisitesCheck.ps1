@@ -252,7 +252,7 @@ if (-not $module) {
 # Only connect if DisableOnlineAssetFetch is not set to false
 if ($global:DisableOnlineAssetFetch -eq 'false') {
     # Add Fanart API
-    Add-FanartTvAPIKey -Api_Key $FanartTvAPIKey
+    Add-FanartTVAPIKey -ProjectKey $FanartTvAPIKey
 
     # Check TMDB Token before building the Header.
     if ($global:tmdbtoken.Length -le '35') {

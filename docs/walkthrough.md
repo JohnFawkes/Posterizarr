@@ -28,7 +28,7 @@
     - [Windows](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4)
 1. After that you need to install the Fanart Api Wrapper (On Windows as Administrator).
    ```powershell
-    pwsh Install-Module -Name FanartTvAPI -Scope AllUsers -Force
+    pwsh Install-Module -Name Celerium.FanartTV -Scope AllUsers -Force -AllowClobber
    ```
     Linux:
      - It should be visible here `/usr/local/share/powershell/Modules`
@@ -81,7 +81,7 @@
     Add the following line:
 
     ```powershell
-    Import-Module FanartTvAPI -Force
+    Import-Module Celerium.FanartTV -Force
     ```
 
     Save and exit, then it should be loaded and imported everytime you open a pwsh window.

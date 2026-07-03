@@ -14,7 +14,7 @@
     - **Powershell Version (already integrated in container)**
         - 7.x or higher.
     - **FanartTv Powershell Module (already integrated in container)**
-        - This module is required, goto: [Install Module](https://github.com/Celerium/FanartTV-PowerShellWrapper)
+        - This module is required, goto: [Install Module](https://github.com/Celerium/Celerium.FanartTV)
 
 ## 📏 Image Size Requirements
 When uploading custom images through the Web UI or Manual mode, Posterizarr recommends the following dimensions for optimal quality:

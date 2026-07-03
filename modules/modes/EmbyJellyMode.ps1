@@ -705,7 +705,7 @@
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
             if ($state['FanartTvAPIKey']) {
                 Import-Module FanartTvAPI -ErrorAction SilentlyContinue
-                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+                Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
             }
             function Runspace-Initialized {}
         }
@@ -725,7 +725,7 @@
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
             if ($state['FanartTvAPIKey']) {
                 Import-Module FanartTvAPI -ErrorAction SilentlyContinue
-                Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+                Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
             }
             function Runspace-Initialized {}
         }
@@ -745,7 +745,7 @@
                 foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
                 if ($state['FanartTvAPIKey']) {
                     Import-Module FanartTvAPI -ErrorAction SilentlyContinue
-                    Add-FanartTvAPIKey -Api_Key $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
+                    Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
                 }
                 function Runspace-Initialized {}
             }

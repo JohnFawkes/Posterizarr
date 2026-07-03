@@ -55,7 +55,7 @@ RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/r
     && pwsh -NoProfile -Command " \
         Register-PSRepository -Default; \
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction Stop; \
-        Install-Module -Name FanartTvAPI -Scope AllUsers -Force -ErrorAction Stop; \
+        Install-Module -Name Celerium.FanartTV -Scope AllUsers -Force -ErrorAction Stop; \
         if (!(Test-Path (Split-Path \$PROFILE.AllUsersAllHosts))) { New-Item -ItemType Directory -Force (Split-Path \$PROFILE.AllUsersAllHosts) }; \
         'Set-PSReadLineOption -HistorySaveStyle SaveNothing' | Out-File -FilePath \$PROFILE.AllUsersAllHosts -Encoding utf8" \
     && mkdir -p /app /usr/share/fonts/custom /var/cache/fontconfig \
