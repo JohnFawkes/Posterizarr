@@ -130,12 +130,7 @@ foreach ($path in $LogsPath, $TempPath, $TestPath, $WatcherPath) {
 # Check if Config file is present
 CheckConfigFile -ScriptRoot $global:ScriptRoot
 # Test Json if something is missing
-if ($env:APP_VERSION -match "3.0.0") {
-    CheckJson -jsonExampleUrl "https://github.com/fscorrupt/posterizarr/raw/v3.0.0/config.example.json" -jsonFilePath $(Join-Path $global:ScriptRoot 'config.json')
-}
-Else {
-    CheckJson -jsonExampleUrl "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/config.example.json" -jsonFilePath $(Join-Path $global:ScriptRoot 'config.json')
-}
+CheckJson -jsonExampleUrl "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/config.example.json" -jsonFilePath $(Join-Path $global:ScriptRoot 'config.json')
 
 # Check if Script is Latest
 if ($CurrentScriptVersion -eq $LatestScriptVersion) {
