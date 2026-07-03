@@ -1268,10 +1268,15 @@ if (usingFlatStructure) {
                   )}
                   <Accordion title={t("blueprints.settingsChanged", "Settings Changed")} icon={Info}>
                     <ul className="space-y-1 text-xs">
-                      {Object.entries(blueprint.updates.flat).map(([key, val]) => (
-                        <li key={key} className="flex flex-col border-b border-theme/10 pb-1 last:border-0 last:pb-0">
+                      {(blueprint.updates.flat 
+                        ? Object.entries(blueprint.updates.flat) 
+                        : Object.entries(blueprint.updates.nested || blueprint.updates).flatMap(([section, fields]) => 
+                            typeof fields === 'object' && fields !== null ? Object.entries(fields).map(([k, v]) => [`${section}.${k}`, v]) : [[section, fields]]
+                          )
+                      ).map(([key, val], idx) => (
+                        <li key={`${key}-${idx}`} className="flex flex-col border-b border-theme/10 pb-1 last:border-0 last:pb-0">
                           <span className="text-theme-muted truncate" title={displayNames[key] || key}>{displayNames[key] || key}</span>
-                          <span className="text-theme-primary font-mono text-right">{val}</span>
+                          <span className="text-theme-primary font-mono text-right">{String(val)}</span>
                         </li>
                       ))}
                     </ul>
