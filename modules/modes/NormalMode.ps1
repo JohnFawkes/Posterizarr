@@ -638,7 +638,7 @@
             $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
             if ($state['FanartTvAPIKey']) {
-                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                Import-Module -Name Celerium.FanartTV -ErrorAction SilentlyContinue
                 Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
             }
             function Runspace-Initialized {}
@@ -658,7 +658,7 @@
             $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
             if ($state['FanartTvAPIKey']) {
-                Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                Import-Module -Name Celerium.FanartTV -ErrorAction SilentlyContinue
                 Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
             }
             function Runspace-Initialized {}
@@ -679,7 +679,7 @@
                 $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
                 foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
                 if ($state['FanartTvAPIKey']) {
-                    Import-Module FanartTvAPI -ErrorAction SilentlyContinue
+                    Import-Module -Name Celerium.FanartTV -ErrorAction SilentlyContinue
                     Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
                 }
                 function Runspace-Initialized {}
