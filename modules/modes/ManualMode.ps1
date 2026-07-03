@@ -1122,9 +1122,6 @@
             $TextCount = @($SummaryCount | Where-Object Textless -eq 'false')
         }
 
-        # Send Notification
-        Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -FallbackCount $FallbackCount.count -TextlessCount $TextlessCount.count -TruncatedCount $TextTruncatedCount.count -PosterCount $posterCount -BackgroundCount $BackgroundCount -SeasonCount $SeasonCount -EpisodeCount $EpisodeCount
-
         # Export json
         $jsonObject = [PSCustomObject]@{
             Posters              = if ($posterCount) { $posterCount } Else { 0 }

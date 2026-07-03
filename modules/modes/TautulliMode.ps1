@@ -478,9 +478,6 @@
     Write-TextSizeCacheSummary
     Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
 
-    # Send Notification
-    # Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -FallbackCount $FallbackCount.count -TextlessCount $TextlessCount.count -TruncatedCount $TextTruncatedCount.count -PosterUnknownCount $PosterUnknownCount -SkipTBACount $SkipTBACount -SkipJapTitleCount $SkipJapTitleCount -PosterCount $posterCount -BackgroundCount $BackgroundCount -SeasonCount $SeasonCount -EpisodeCount $EpisodeCount -UploadCount $UploadCount
-
     # Export json
     $jsonObject = [PSCustomObject]@{
         Posters              = if ($posterCount) { $posterCount } Else { 0 }
