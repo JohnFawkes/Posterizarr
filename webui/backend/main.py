@@ -1043,8 +1043,10 @@ def determine_media_type(filename: str, library_folder: str = None) -> str:
     ext_pattern = r"\.(jpg|jpeg|png|webp|tbn)$"
 
     # Check for episodes/title cards first (matches S01E01.jpg, S01E01.png, etc.)
-    if re.match(r"^s\d+e\d+" + ext_pattern, name) or re.match(
-        r".*_s\d+e\d+" + ext_pattern, name
+    if (
+        re.match(r"^s\d+e\d+" + ext_pattern, name)
+        or re.match(r".*_s\d+e\d+" + ext_pattern, name)
+        or name.startswith("episodetemplate")
     ):
         logger.debug(
             f"[MediaType] {filename} in {library_folder} -> Episode (pattern match)"
@@ -11712,10 +11714,11 @@ async def upload_asset_replacement(
                 or asset_path_lower.endswith((".jpg", ".png"))
                 and "background" not in asset_path_lower
                 and "titlecard" not in asset_path_lower
+                and "episodetemplate" not in asset_path_lower
                 and not re.search(r"s\d+e\d+", asset_path_lower, re.IGNORECASE)
             )
             is_background = "background" in asset_path_lower
-            is_titlecard = "titlecard" in asset_path_lower or re.search(
+            is_titlecard = "titlecard" in asset_path_lower or "episodetemplate" in asset_path_lower or re.search(
                 r"s\d+e\d+", asset_path_lower, re.IGNORECASE
             )
             is_season = (
