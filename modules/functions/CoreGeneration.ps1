@@ -145,7 +145,7 @@ function Invoke-MoviePosterCreation {
                                 Write-Entry -Message "Found Manual Poster for: $Titletext" -Path $global:configLogging -Color White -log Info
                                 $TakeLocal = $true
                             }
-                            Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                            Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlinePosterFetch -eq 'true') {
                                 $LocalAssetMissing = 'true'
                             }
                             Else {
@@ -898,7 +898,7 @@ function Invoke-MoviePosterCreation {
                                 Write-Entry -Message "Found Manual Background for: $Titletext" -Path $global:configLogging -Color White -log Info
                                 $TakeLocal = $true
                             }
-                            Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                            Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlineBackgroundFetch -eq 'true') {
                                 $LocalAssetMissing = 'true'
                             }
                             Else {
@@ -1727,7 +1727,7 @@ function Invoke-ShowPosterCreation {
                             Write-Entry -Message "Found Manual Poster for: $Titletext" -Path $global:configLogging -Color White -log Info
                             $TakeLocal = $true
                         }
-                        Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                        Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlinePosterFetch -eq 'true') {
                             $LocalAssetMissing = 'true'
                         }
                         Else {
@@ -2474,7 +2474,7 @@ function Invoke-ShowPosterCreation {
                             Write-Entry -Message "Found Manual Background for: $Titletext" -Path $global:configLogging -Color White -log Info
                             $TakeLocal = $true
                         }
-                        Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                        Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlineBackgroundFetch -eq 'true') {
                             $LocalAssetMissing = 'true'
                         }
                         Else {
@@ -3283,7 +3283,7 @@ function Invoke-ShowPosterCreation {
                                 $ManualTestPath = $Templatetestpath
                                 $TakeLocal = $true
                             }
-                            Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                            Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlinePosterFetch -eq 'true') {
                                 $LocalAssetMissing = 'true'
                             }
                             Else {
@@ -4349,7 +4349,7 @@ function Invoke-TitleCardCreation {
                             $ManualTestPath = $Templatetestpath
                             $TakeLocal = $true
                         }
-                        Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                        Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlineSeasonFetch -eq 'true') {
                             $LocalAssetMissing = 'true'
                         }
                         Else {
@@ -5086,7 +5086,7 @@ function Invoke-TitleCardCreation {
                             $ManualTestPath = $Templatetestpath
                             $TakeLocal = $true
                         }
-                        Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                        Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlineTitleCardFetch -eq 'true') {
                             $LocalAssetMissing = 'true'
                         }
                         Else {
@@ -5833,7 +5833,7 @@ function Invoke-TitleCardCreation {
                                                 $ManualTestPath = $Templatetestpath
                                                 $TakeLocal = $true
                                             }
-                                            Elseif ($global:DisableOnlineAssetFetch -eq 'true') {
+                                            Elseif ($global:DisableOnlineAssetFetch -eq 'true' -or $global:DisableOnlineTitleCardFetch -eq 'true') {
                                                 $LocalAssetMissing = 'true'
                                             }
                                             Else {

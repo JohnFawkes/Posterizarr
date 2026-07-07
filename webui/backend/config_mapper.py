@@ -369,6 +369,10 @@ CONFIG_GROUPS = {
     "4KHDR10TC": "PrerequisitePart",
     "4KDoViHDR10TC": "PrerequisitePart",
     "DisableOnlineAssetFetch": "PrerequisitePart",
+    "DisableOnlineTitleCardFetch": "PrerequisitePart",
+    "DisableOnlinePosterFetch": "PrerequisitePart",
+    "DisableOnlineBackgroundFetch": "PrerequisitePart",
+    "DisableOnlineSeasonFetch": "PrerequisitePart",
     "collectionfont": "PrerequisitePart",
     "collectionoverlayfile": "PrerequisitePart",
     "UseLogo": "PrerequisitePart",
@@ -623,6 +627,7 @@ UI_GROUPS = {
         "SkipAddTextAndBorder",
     ],
     "Poster Settings": [
+        "DisableOnlinePosterFetch",
         "Posters",
         "SkipLocalPosterTextAdd",
         "PosterMinWidth",
@@ -657,6 +662,7 @@ UI_GROUPS = {
         "PosterTextGravity",
     ],
     "Season Settings": [
+        "DisableOnlineSeasonFetch",
         "SeasonPosters",
         "SkipLocalSeasonTextAdd",
         "seasonoverlayfile",
@@ -700,6 +706,7 @@ UI_GROUPS = {
         "ShowTitleTextGravity",
     ],
     "Background Settings": [
+        "DisableOnlineBackgroundFetch",
         "BackgroundPosters",
         "SkipLocalBackgroundTextAdd",
         "BgTcMinWidth",
@@ -734,6 +741,7 @@ UI_GROUPS = {
         "BackgroundTextGravity",
     ],
     "Title Card Settings": [
+        "DisableOnlineTitleCardFetch",
         "TitleCards",
         "SkipLocalTCTextAdd",
         "TitleCardSkipWords",
@@ -1106,6 +1114,10 @@ DISPLAY_NAMES = {
     "4KHDR10TC": "4K HDR10 Title Card Overlay",
     "4KDoViHDR10TC": "4K DoVi & HDR10 Title Card Overlay",
     "DisableOnlineAssetFetch": "Disable Online Asset Fetch",
+    "DisableOnlineTitleCardFetch": "Disable Online Titlecard Fetch",
+    "DisableOnlinePosterFetch": "Disable Online Poster Fetch",
+    "DisableOnlineBackgroundFetch": "Disable Online Background Fetch",
+    "DisableOnlineSeasonFetch": "Disable Online Season Fetch",
     "UseLogo": "Use Logo for Posters",
     "UseBGLogo": "Use Logo for Backgrounds",
     "UseClearlogo": "Use Clearlogo",
