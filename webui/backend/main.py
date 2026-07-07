@@ -8233,7 +8233,80 @@ async def websocket_logs(
     finally:
         logger.debug("WebSocket connection closed")
 
+import hashlib
 
+@app.get("/api/thumbnail")
+async def get_thumbnail(path: str = Query(..., description="Path to the image"), width: int = Query(400, description="Thumbnail width")):
+    """Generate or retrieve a thumbnail for a given image path"""
+    try:
+        # Determine the real file path and its base directory based on the URL path prefix
+        real_path = None
+        base_dir = None
+        if path.startswith("/assets/"):
+            base_dir = ASSETS_DIR
+            real_path = base_dir / path[len("/assets/"):]
+        elif path.startswith("/manual-assets/"):
+            base_dir = MANUAL_ASSETS_DIR
+            real_path = base_dir / path[len("/manual-assets/"):]
+        elif path.startswith("/backup-assets/"):
+            base_dir = BACKUP_DIR
+            real_path = base_dir / path[len("/backup-assets/"):]
+        elif path.startswith("/test/"):
+            base_dir = TEST_DIR
+            real_path = base_dir / path[len("/test/"):]
+        elif path.startswith("/images/"):
+            base_dir = IMAGES_DIR
+            real_path = base_dir / path[len("/images/"):]
+        else:
+            raise HTTPException(status_code=400, detail="Invalid path prefix")
+            
+        # Ensure it's safe and prevent directory traversal
+        try:
+            real_path = real_path.resolve()
+            real_path.relative_to(base_dir.resolve())
+        except ValueError:
+            raise HTTPException(status_code=403, detail="Access denied: Invalid path")
+        
+        if not real_path.exists() or not real_path.is_file():
+            raise HTTPException(status_code=404, detail="Image not found")
+            
+        # Create thumbnails directory if it doesn't exist
+        thumbs_dir = TEMP_DIR / "thumbnails"
+        thumbs_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create a safe, unique filename for the thumbnail based on the path and last modified time
+        mtime = real_path.stat().st_mtime
+        hash_input = f"{str(real_path)}_{mtime}_{width}"
+        thumb_hash = hashlib.md5(hash_input.encode()).hexdigest()
+        thumb_path = thumbs_dir / f"{thumb_hash}.webp"
+        
+        # Generate thumbnail if it doesn't exist
+        if not thumb_path.exists():
+            with Image.open(real_path) as img:
+                # Calculate new height maintaining aspect ratio
+                w_percent = (width / float(img.size[0]))
+                h_size = int((float(img.size[1]) * float(w_percent)))
+                
+                # Resize using high quality resampling
+                img = img.resize((width, h_size), Image.Resampling.LANCZOS)
+                
+                # Convert to RGB if necessary (e.g., for PNGs with transparency)
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                    
+                # Save as WebP for optimal compression
+                img.save(thumb_path, "WEBP", quality=80)
+                
+        return FileResponse(thumb_path, media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating thumbnail for {path}: {e}")
+        # Fallback to the original file if thumbnail generation fails
+        if 'real_path' in locals() and real_path and real_path.exists():
+            return FileResponse(real_path)
+        raise HTTPException(status_code=500, detail="Internal server error")
 @app.get("/api/gallery")
 async def get_gallery():
     """Get poster gallery from assets directory (only poster.jpg) - uses cache"""

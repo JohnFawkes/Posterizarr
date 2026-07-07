@@ -1043,7 +1043,7 @@ function BackgroundsGallery() {
                       onClick={() => toggleImageSelection(image.path)}
                     >
                       <img
-                        src={`${image.url}?t=${cacheBuster}`}
+                        src={`/api/thumbnail?path=${encodeURIComponent(image.url)}&t=${cacheBuster}`}
                         alt={image.name}
                         className="w-full h-full object-cover rounded"
                         loading="lazy"
@@ -1102,7 +1102,7 @@ function BackgroundsGallery() {
                       onClick={() => setSelectedImage(image)}
                     >
                       <img
-                        src={`${image.url}?t=${cacheBuster}`}
+                        src={`/api/thumbnail?path=${encodeURIComponent(image.url)}&t=${cacheBuster}`}
                         alt={image.name}
                         className="w-full h-full object-cover rounded"
                         loading="lazy"

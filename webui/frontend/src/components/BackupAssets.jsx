@@ -690,7 +690,7 @@ function BackupAssets() {
                     }
                   >
                     <img
-                      src={asset.url}
+                      src={`/api/thumbnail?path=${encodeURIComponent(asset.url)}`}
                       alt={asset.name}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       loading="lazy"
@@ -1083,7 +1083,7 @@ function BackupAssets() {
                           }
                         >
                           <img
-                            src={asset.url}
+                            src={`/api/thumbnail?path=${encodeURIComponent(asset.url)}`}
                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
                             loading="lazy"
                             alt={asset.name}

@@ -665,7 +665,7 @@ function FolderView() {
                       }}
                     >
                       <img
-                        src={`${asset.url}?t=${cacheBuster}`}
+                        src={`/api/thumbnail?path=${encodeURIComponent(asset.url)}&t=${cacheBuster}`}
                         alt={asset.name}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                         loading="lazy"
