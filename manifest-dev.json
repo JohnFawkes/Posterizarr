@@ -8,11 +8,11 @@
     "category": "Metadata",
     "versions": [
       {
-        "version": "99.0.0703.1229",
-        "changelog": "Dev build: 2026-07-03 12:30",
+        "version": "99.0.0707.0556",
+        "changelog": "Dev build: 2026-07-07 05:56",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0703.1229.zip",
-        "checksum": "42BD531FA99EC0B4AE8C0E51AE88343A"
+        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0707.0556.zip",
+        "checksum": "BCAF1853528111248915C42BB97C249C"
       }
     ]
   }
