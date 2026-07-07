@@ -1370,7 +1370,7 @@ def scan_and_cache_assets():
                                     asset_type = "background"
                                 elif filename_lower.startswith("season"):
                                     asset_type = "season"
-                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE):
+                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE) or filename_lower.startswith("episodetemplate"):
                                     asset_type = "titlecard"
                                 else:
                                     asset_type = "other"
@@ -1463,7 +1463,7 @@ def scan_and_cache_assets():
                                     asset_type = "background"
                                 elif filename_lower.startswith("season"):
                                     asset_type = "season"
-                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE):
+                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE) or filename_lower.startswith("episodetemplate"):
                                     asset_type = "titlecard"
                                 else:
                                     asset_type = "other"
