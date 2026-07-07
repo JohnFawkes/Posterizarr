@@ -8242,15 +8242,15 @@ async def get_thumbnail(path: str = Query(..., description="Path to the image"),
         # Determine the real file path and its base directory based on the URL path prefix
         real_path = None
         base_dir = None
-        if path.startswith("/assets/"):
+        if path.startswith("/poster_assets/"):
             base_dir = ASSETS_DIR
-            real_path = base_dir / path[len("/assets/"):]
-        elif path.startswith("/manual-assets/"):
+            real_path = base_dir / path[len("/poster_assets/"):]
+        elif path.startswith("/manual_poster_assets/"):
             base_dir = MANUAL_ASSETS_DIR
-            real_path = base_dir / path[len("/manual-assets/"):]
-        elif path.startswith("/backup-assets/"):
+            real_path = base_dir / path[len("/manual_poster_assets/"):]
+        elif path.startswith("/backup_assets/"):
             base_dir = BACKUP_DIR
-            real_path = base_dir / path[len("/backup-assets/"):]
+            real_path = base_dir / path[len("/backup_assets/"):]
         elif path.startswith("/test/"):
             base_dir = TEST_DIR
             real_path = base_dir / path[len("/test/"):]
