@@ -8239,6 +8239,10 @@ import hashlib
 async def get_thumbnail(path: str = Query(..., description="Path to the image"), width: int = Query(400, description="Thumbnail width")):
     """Generate or retrieve a thumbnail for a given image path"""
     try:
+        # The frontend might double-encode the path (e.g. %2520 for space), so we decode it again
+        import urllib.parse
+        path = urllib.parse.unquote(path)
+        
         # Determine the real file path and its base directory based on the URL path prefix
         real_path = None
         base_dir = None
