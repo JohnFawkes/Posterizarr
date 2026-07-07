@@ -13,6 +13,12 @@
     if ($global:runspaceStats) { $global:runspaceStats['SkipTBACount'] = 0 }
     $global:SkipJapTitleCount = 0
     if ($global:runspaceStats) { $global:runspaceStats['SkipJapTitleCount'] = 0 }
+    
+    # Initialize Summary Counts to prevent leakage between scheduled runs
+    $FallbackCount = $null
+    $TextlessCount = $null
+    $TextTruncatedCount = $null
+    $TextCount = $null
 
     if ($UISchedule -or $ContainerSchedule) {
         $Mode = "scheduled"

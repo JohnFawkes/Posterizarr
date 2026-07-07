@@ -1330,6 +1330,13 @@
     if ($global:runspaceStats) { $global:runspaceStats['SkipTBACount'] = 0 }
     $global:SkipJapTitleCount = 0
     if ($global:runspaceStats) { $global:runspaceStats['SkipJapTitleCount'] = 0 }
+    
+    # Initialize Summary Counts to prevent leakage between scheduled runs
+    $FallbackCount = $null
+    $TextlessCount = $null
+    $TextTruncatedCount = $null
+    $TextCount = $null
+
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
         $AllShows | ForEach-Object -Parallel {
