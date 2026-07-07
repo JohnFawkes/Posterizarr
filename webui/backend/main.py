@@ -8274,8 +8274,8 @@ async def get_thumbnail(path: str = Query(..., description="Path to the image"),
         if not real_path.exists() or not real_path.is_file():
             raise HTTPException(status_code=404, detail="Image not found")
             
-        # Create thumbnails directory if it doesn't exist
-        thumbs_dir = TEMP_DIR / "thumbnails"
+        # Create thumbnails directory if it doesn't exist (using Cache instead of temp so they survive runs)
+        thumbs_dir = BASE_DIR / "Cache" / "thumbnails"
         thumbs_dir.mkdir(parents=True, exist_ok=True)
         
         # Create a safe, unique filename for the thumbnail based on the path and last modified time
