@@ -42,6 +42,18 @@ function Invoke-MoviePosterCreation {
                         }
                     }
 
+                    if ([string]::IsNullOrWhiteSpace($Titletext)) {
+                        # Native Cyrillic/CJK content often has no distinct originalTitle in Plex,
+                        # which left Titletext blank above and broke the metadata search entirely.
+                        # Fall back to whichever of title/originalTitle actually has a value.
+                        if (-not [string]::IsNullOrWhiteSpace($entry.title)) {
+                            $Titletext = $entry.title
+                        }
+                        elseif (-not [string]::IsNullOrWhiteSpace($entry.originalTitle)) {
+                            $Titletext = $entry.originalTitle
+                        }
+                    }
+
                     if ($LibraryFolders -eq 'true') {
                         $LibraryName = $entry.'Library Name'
                         if ($entry.extraFolder) {
@@ -1644,6 +1656,18 @@ function Invoke-ShowPosterCreation {
                     }
                     else {
                         $Titletext = $entry.title
+                    }
+                }
+
+                if ([string]::IsNullOrWhiteSpace($Titletext)) {
+                    # Native Cyrillic/CJK content often has no distinct originalTitle in Plex,
+                    # which left Titletext blank above and broke the metadata search entirely.
+                    # Fall back to whichever of title/originalTitle actually has a value.
+                    if (-not [string]::IsNullOrWhiteSpace($entry.title)) {
+                        $Titletext = $entry.title
+                    }
+                    elseif (-not [string]::IsNullOrWhiteSpace($entry.originalTitle)) {
+                        $Titletext = $entry.originalTitle
                     }
                 }
 
