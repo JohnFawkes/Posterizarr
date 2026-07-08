@@ -340,7 +340,7 @@ function Send-SummaryNotification {
                 $fieldList.Add([PSCustomObject]@{ name = "Textless"; value = $TextlessCount; inline = $true })
                 $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $TruncatedCount; inline = $true })
                 $fieldList.Add([PSCustomObject]@{ name = "Unknown"; value = $PosterUnknownCount; inline = $true })
-                if ($SkipTBA -eq 'true' -or $SkipJapTitle -eq 'true') {
+                if (($SkipTBA -eq 'true' -or $SkipJapTitle -eq 'true') -and $ScriptMode -notin @('tautulli', 'arr')) {
                     $fieldList.Add([PSCustomObject]@{ name = "TBA Skipped"; value = $SkipTBACount; inline = $true })
                     $fieldList.Add([PSCustomObject]@{ name = "Jap/Chinese Skipped"; value = $SkipJapTitleCount; inline = $true })
                 }

@@ -883,9 +883,9 @@
     Write-Entry -Message "Script execution time: $FormattedTimespawn" -Path $global:configLogging -Color White -log Info
 
     # Send Notification
-    $argFallback = if ($null -ne $FallbackCount) { $FallbackCount.count } else { 0 }
-    $argTextless = if ($null -ne $TextlessCount) { $TextlessCount.count } else { 0 }
-    $argTruncated = if ($null -ne $TextTruncatedCount) { $TextTruncatedCount.count } else { 0 }
+    $argFallback = if ($FallbackCount -is [array]) { $FallbackCount.count } else { 0 }
+    $argTextless = if ($TextlessCount -is [array]) { $TextlessCount.count } else { 0 }
+    $argTruncated = if ($TextTruncatedCount -is [array]) { $TextTruncatedCount.count } else { 0 }
     Send-SummaryNotification -ScriptMode $Mode -FormattedTimespawn $FormattedTimespawn -ErrorCount $errorCount -FallbackCount $argFallback -TextlessCount $argTextless -TruncatedCount $argTruncated -PosterUnknownCount $PosterUnknownCount -SkipTBACount $SkipTBACount -SkipJapTitleCount $SkipJapTitleCount -PosterCount $posterCount -BackgroundCount $BackgroundCount -SeasonCount $SeasonCount -EpisodeCount $EpisodeCount -ImagesCleared $ImagesCleared -PathsCleared $PathsCleared -SavedSizeString $savedsizestring
 
     # Calculate Counts
