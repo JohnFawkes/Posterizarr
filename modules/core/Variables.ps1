@@ -284,6 +284,19 @@ Initialize-LanguageSettings -SettingName "PreferredSeasonLanguageOrder"     -Lab
 Initialize-LanguageSettings -SettingName "PreferredTCLanguageOrder"         -Label "TC"
 Initialize-LanguageSettings -SettingName "PreferredBackgroundLanguageOrder" -Label "Background"
 
+# --- Library-specific language override support ---
+$global:LibraryLanguageOverrides = $config.ApiPart.LibraryLanguageOverrides
+if (-not $global:LibraryLanguageOverrides) { $global:LibraryLanguageOverrides = @{} }
+
+# Stash the validated server-wide defaults so per-library overrides can fall back to them
+$global:DefaultPreferredLanguageOrder = $global:PreferredLanguageOrder
+$global:DefaultPreferredSeasonLanguageOrder = $global:PreferredSeasonLanguageOrder
+$global:DefaultPreferredTCLanguageOrder = $global:PreferredTCLanguageOrder
+$global:DefaultPreferredBackgroundLanguageOrder = $global:PreferredBackgroundLanguageOrder
+$global:DefaultLogoLanguageOrder = $global:LogoLanguageOrder
+
+# --- end library-specific language override support ---
+
 # default to TMDB if favprovider missing
 if (!$global:FavProvider) {
     Write-Entry -Message "FavProvider not set in config, setting it to 'TMDB' for you" -Path $global:configLogging -Color Yellow -log Warning

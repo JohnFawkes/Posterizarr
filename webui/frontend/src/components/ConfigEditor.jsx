@@ -943,6 +943,77 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                 </div>
             );
         }
+        if (settingKey === "LibraryLanguageOverrides") {
+            // One language order per library, applied to posters/seasons/backgrounds
+            // for that library (title cards keep their own textless-first lead).
+            // A single field per library instead of one per asset type, since the
+            // real intent is "this library is German/French/etc", not four
+            // settings to keep in sync.
+            const dictValue = value && typeof value === 'object' ? value : {};
+            const getOrder = (v) => Array.isArray(v?.PreferredLanguageOrder) ? v.PreferredLanguageOrder.join(',') : '';
+
+            const handleUpdatePair = (oldKey, newKey, orderText) => {
+                const newDict = { ...dictValue };
+                if (oldKey !== newKey) {
+                    delete newDict[oldKey];
+                }
+                const order = orderText.split(',').map((s) => s.trim()).filter(Boolean);
+                newDict[newKey] = { ...(dictValue[oldKey] || {}), PreferredLanguageOrder: order };
+                updateValue(fieldKey, newDict);
+            };
+
+            const handleRemovePair = (keyToRemove) => {
+                const newDict = { ...dictValue };
+                delete newDict[keyToRemove];
+                updateValue(fieldKey, newDict);
+            };
+
+            const handleAddPair = () => {
+                const newDict = { ...dictValue, "Library Name": { PreferredLanguageOrder: ["en"] } };
+                updateValue(fieldKey, newDict);
+            };
+
+            return (
+                <div className="space-y-2">
+                    {Object.entries(dictValue).map(([k, v], idx) => (
+                        <div key={idx} className="flex gap-2 items-start">
+                            <input
+                                className={`${commonInputClass} font-mono text-xs`}
+                                value={k}
+                                placeholder="Library Name"
+                                onChange={(e) => handleUpdatePair(k, e.target.value, getOrder(v))}
+                                disabled={disabled}
+                            />
+                            <ArrowRight className="w-8 h-8 text-theme-muted mt-1 flex-shrink-0" />
+                            <input
+                                className={`${commonInputClass} font-mono text-xs`}
+                                value={getOrder(v)}
+                                placeholder="e.g. de,en"
+                                onChange={(e) => handleUpdatePair(k, k, e.target.value)}
+                                disabled={disabled}
+                            />
+                            <button
+                                onClick={() => handleRemovePair(k)}
+                                className="p-2.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20"
+                                disabled={disabled}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        onClick={handleAddPair}
+                        className="w-full py-2 border-2 border-dashed border-theme rounded-lg text-theme-muted hover:text-theme-primary hover:border-theme-primary transition-all flex items-center justify-center gap-2 text-sm"
+                        disabled={disabled}
+                    >
+                        <Plus className="w-4 h-4" /> Add Library Override
+                    </button>
+                    <p className="text-[10px] text-theme-muted italic">
+                        Language order for this library, comma-separated (e.g. de,en). Applies to posters, seasons and backgrounds for this library; title cards keep their textless-first preference automatically.
+                    </p>
+                </div>
+            );
+        }
         if (settingKey === "NewLineWords") {
             const dictValue = value && typeof value === 'object' ? value : {};
 

@@ -605,6 +605,52 @@ function Initialize-LanguageSettings {
 
 }
 
+function Set-LibraryLanguageOverride {
+    # A library override sets one language order (PreferredLanguageOrder) that
+    # applies to every asset type for that library - a "this library is
+    # German/French/etc" switch, not four settings to keep in sync. Season and
+    # Background inherit it directly; TC keeps its textless-first ("xx") lead
+    # unless the override already starts with one, since TC language is about
+    # base-image search, not the library's spoken language.
+    param([string]$LibraryName)
+
+    # $global:LibraryLanguageOverrides is a PSCustomObject when read fresh from
+    # config.json, but crossing into a -Parallel runspace via $using: deserializes
+    # it as a Hashtable instead - handle both shapes rather than assuming one.
+    $override = $null
+    if ($global:LibraryLanguageOverrides -is [System.Collections.IDictionary]) {
+        if ($global:LibraryLanguageOverrides.Contains($LibraryName)) {
+            $override = $global:LibraryLanguageOverrides[$LibraryName]
+        }
+    }
+    elseif ($global:LibraryLanguageOverrides -and ($global:LibraryLanguageOverrides.PSObject.Properties.Name -contains $LibraryName)) {
+        $override = $global:LibraryLanguageOverrides.$LibraryName
+    }
+
+    if (-not $override) {
+        Set-Variable -Name "PreferredLanguageOrder" -Scope Global -Value $global:DefaultPreferredLanguageOrder
+        Set-Variable -Name "PreferredSeasonLanguageOrder" -Scope Global -Value $global:DefaultPreferredSeasonLanguageOrder
+        Set-Variable -Name "PreferredTCLanguageOrder" -Scope Global -Value $global:DefaultPreferredTCLanguageOrder
+        Set-Variable -Name "PreferredBackgroundLanguageOrder" -Scope Global -Value $global:DefaultPreferredBackgroundLanguageOrder
+        Set-Variable -Name "LogoLanguageOrder" -Scope Global -Value $global:DefaultLogoLanguageOrder
+    }
+    else {
+        $order = if ($override.PreferredLanguageOrder) { $override.PreferredLanguageOrder } else { $global:DefaultPreferredLanguageOrder }
+        $tcOrder = if ($order -and $order[0] -eq 'xx') { $order } else { @('xx') + $order }
+
+        Set-Variable -Name "PreferredLanguageOrder" -Scope Global -Value $order
+        Set-Variable -Name "PreferredSeasonLanguageOrder" -Scope Global -Value $order
+        Set-Variable -Name "PreferredTCLanguageOrder" -Scope Global -Value $tcOrder
+        Set-Variable -Name "PreferredBackgroundLanguageOrder" -Scope Global -Value $order
+        Set-Variable -Name "LogoLanguageOrder" -Scope Global -Value $order
+    }
+
+    Initialize-LanguageSettings -SettingName "PreferredLanguageOrder"           -Label "Poster"
+    Initialize-LanguageSettings -SettingName "PreferredSeasonLanguageOrder"     -Label "Season"
+    Initialize-LanguageSettings -SettingName "PreferredTCLanguageOrder"         -Label "TC"
+    Initialize-LanguageSettings -SettingName "PreferredBackgroundLanguageOrder" -Label "Background"
+}
+
 function Test-PathPermissions {
     param (
         [string]$PathToTest
