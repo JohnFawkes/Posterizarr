@@ -2,6 +2,7 @@ function Invoke-MoviePosterCreation {
     param (
         $entry
     )
+        if ($null -eq $entry) { return }
         Set-LibraryLanguageOverride -LibraryName $entry.'Library Name'
         try {
             if ($($entry.RootFoldername)) {
@@ -1595,6 +1596,7 @@ function Invoke-ShowPosterCreation {
     param (
         $entry
     )
+        if ($null -eq $entry) { return }
         Set-LibraryLanguageOverride -LibraryName $entry.'Library Name'
 
         if ($($entry.RootFoldername)) {
@@ -4151,11 +4153,11 @@ function Invoke-ShowPosterCreation {
         }
 
 }
-
 function Invoke-TitleCardCreation {
     param (
         $episode
     )
+        if ($null -eq $episode) { return }
         Set-LibraryLanguageOverride -LibraryName $episode.'Library Name'
 
     try {
