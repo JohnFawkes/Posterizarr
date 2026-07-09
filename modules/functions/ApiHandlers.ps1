@@ -5,7 +5,7 @@ function GetTMDBLogo {
     if ($global:tmdbid) {
         Write-Entry -Subtext "Searching on TMDB for a Logo - TMDBID: $global:tmdbid" -Path $global:configLogging -Color Cyan -log Info
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/$Type/$($global:tmdbid)?append_to_response=images&language=$($global:LogoLanguageOrder[0])&include_image_language=$($global:LogoLanguageOrder -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/$Type/$($global:tmdbid)?append_to_response=images&language=$($global:LogoLanguageOrder[0])&include_image_language=$($global:LogoLanguageOrder -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -127,10 +127,10 @@ function GetFanartLogo {
         if (-not $id) { continue }
         try {
             if ($type -eq 'tv') {
-                $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue
+                $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
             }
             Elseif ($type -eq 'movies') {
-                $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue
+                $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
             }
         } catch {
 
@@ -442,7 +442,7 @@ function GetTMDBMoviePoster {
     }
     if ($global:PosterPreferTextless -eq $true) {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -585,7 +585,7 @@ function GetTMDBMoviePoster {
     }
     Else {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=$($PreferredLanguageOrder[0])&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=$($PreferredLanguageOrder[0])&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -654,7 +654,7 @@ function GetTMDBMovieBackground {
     }
     if ($global:BackgroundPreferTextless -eq $true) {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -788,7 +788,7 @@ function GetTMDBMovieBackground {
     }
     Else {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=$($PreferredBackgroundLanguageOrder[0])&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/movie/$($global:tmdbid)?append_to_response=images&language=$($PreferredBackgroundLanguageOrder[0])&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -876,7 +876,7 @@ function GetTMDBShowPoster {
     Else {
         if ($global:PosterPreferTextless -eq $true) {
             try {
-                $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+                $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
             }
             catch {
                 Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1010,7 +1010,7 @@ function GetTMDBShowPoster {
         }
         Else {
             try {
-                $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=$($PreferredLanguageOrder[0])&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+                $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=$($PreferredLanguageOrder[0])&include_image_language=$($global:PreferredLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
             }
             catch {
                 Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1082,7 +1082,7 @@ function GetTMDBSeasonPoster {
     }
     if ($global:SeasonPreferTextless -eq $true) {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$global:SeasonNumber/images?append_to_response=images&language=xx&include_image_language=$($global:PreferredSeasonLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$global:SeasonNumber/images?append_to_response=images&language=xx&include_image_language=$($global:PreferredSeasonLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1217,10 +1217,10 @@ function GetTMDBSeasonPoster {
     Else {
         try {
             if ($global:SeasonNumber -match '\b\d{1,2}\b') {
-                $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$global:SeasonNumber/images?append_to_response=images&language=$($global:PreferredSeasonLanguageOrder[0])&include_image_language=$($global:PreferredSeasonLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+                $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$global:SeasonNumber/images?append_to_response=images&language=$($global:PreferredSeasonLanguageOrder[0])&include_image_language=$($global:PreferredSeasonLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
             }
             Else {
-                $responseBackup = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=$($global:PreferredSeasonLanguageOrder[0])&include_image_language=$($global:PreferredSeasonLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+                $responseBackup = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=$($global:PreferredSeasonLanguageOrder[0])&include_image_language=$($global:PreferredSeasonLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
             }
         }
         catch {
@@ -1348,7 +1348,7 @@ function GetTMDBShowBackground {
     }
     if ($global:BackgroundPreferTextless -eq $true) {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=xx&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1486,7 +1486,7 @@ function GetTMDBShowBackground {
     }
     Else {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=$($PreferredBackgroundLanguageOrder[0])&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)?append_to_response=images&language=$($PreferredBackgroundLanguageOrder[0])&include_image_language=$($global:PreferredBackgroundLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1567,7 +1567,7 @@ function GetTMDBTitleCard {
     }
     if ($global:TCPreferTextless -eq $true) {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$($global:season_number)/episode/$($global:episodenumber)/images?append_to_response=images&language=xx&include_image_language=$($global:PreferredTCLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$($global:season_number)/episode/$($global:episodenumber)/images?append_to_response=images&language=xx&include_image_language=$($global:PreferredTCLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1692,7 +1692,7 @@ function GetTMDBTitleCard {
     }
     Else {
         try {
-            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$($global:season_number)/episode/$($global:episodenumber)/images?append_to_response=images&language=$($global:PreferredTCLanguageOrderTMDB[0])&include_image_language=$($global:PreferredTCLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $response = (Invoke-WebRequest -Uri "https://api.themoviedb.org/3/tv/$($global:tmdbid)/season/$($global:season_number)/episode/$($global:episodenumber)/images?append_to_response=images&language=$($global:PreferredTCLanguageOrderTMDB[0])&include_image_language=$($global:PreferredTCLanguageOrderTMDB -join ',')" -Method GET -Headers $global:headers -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).content | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
         catch {
             Write-Entry -Subtext "Could not query TMDB url, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
@@ -1769,7 +1769,7 @@ function GetFanartMoviePoster {
 
         foreach ($id in $ids) {
             if ($id) {
-                try { $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue } catch {
+                try { $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                     Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                     $entrytemp = $null
                 }
@@ -1824,7 +1824,7 @@ function GetFanartMoviePoster {
 
         foreach ($id in $ids) {
             if ($id) {
-                try { $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue } catch {
+                try { $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                     Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                     $entrytemp = $null
                 }
@@ -1872,7 +1872,7 @@ function GetFanartMovieBackground {
 
     foreach ($id in $ids) {
         if ($id) {
-            try { $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue } catch {
+            try { $entrytemp = Get-FanartTvmovie -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -1931,7 +1931,7 @@ function GetFanartShowPoster {
         $id = $global:tvdbid
         $entrytemp = $null
         if ($id) {
-            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue } catch {
+            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -1994,7 +1994,7 @@ function GetFanartShowPoster {
         $entrytemp = $null
 
         if ($id) {
-            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue } catch {
+            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -2043,7 +2043,7 @@ function GetFanartShowBackground {
     $entrytemp = $null
 
     if ($id) {
-        try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue } catch {
+        try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
             Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
             $entrytemp = $null
         }
@@ -2100,7 +2100,7 @@ function GetFanartSeasonPoster {
     $entrytemp = $null
     if ($global:SeasonPreferTextless -eq $true) {
         if ($id) {
-            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue } catch {
+            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -2203,7 +2203,7 @@ function GetFanartSeasonPoster {
     }
     Else {
         if ($id) {
-            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue } catch {
+            try { $entrytemp = Get-FanartTvshow -id $id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue } catch {
                 Write-Entry -Subtext "Fanart.tv error: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
                 $entrytemp = $null
             }
@@ -3085,7 +3085,7 @@ function GetPlexArtwork {
             Write-Entry -Subtext "Plex artwork already processed, cannot use as source..." -Path $global:configLogging -Color Yellow -log Warning
         }
         if (Test-Path -LiteralPath $TempImage) {
-            Remove-Item -LiteralPath $TempImage -Force -ErrorAction SilentlyContinue | Out-Null
+            Remove-Item -LiteralPath $TempImage -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
         }
     }
     else {
@@ -3108,7 +3108,7 @@ function CheckPlexAccess {
     )
     Write-Entry -Message "Checking Plex access now..." -Path $global:configLogging -Color White -log Info
     try {
-        $result = Invoke-WebRequest -Uri "$PlexUrl/library/sections" -ErrorAction SilentlyContinue -Headers $extraPlexHeaders
+        $result = Invoke-WebRequest -Uri "$PlexUrl/library/sections" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Headers $extraPlexHeaders
         if ($result.StatusCode -eq 200) {
             Write-Entry -Subtext "Plex access is working..." -Path $global:configLogging -Color Green -log Info
             # Check if libs are available
@@ -3236,7 +3236,7 @@ function UploadOtherMediaServerArtwork {
                 $magickcommand | Write-MagickLog
                 $value = Invoke-Expression $magickcommand | Select-String -Pattern 'overlay|titlecard|created with ppm|created with posterizarr'
 
-                Remove-Item $tempFile -Force -ErrorAction SilentlyContinue | out-null
+                Remove-Item $tempFile -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | out-null
             }
             catch {
                 # Log as a warning (not error) so we know why the check failed, but don't stop the script
@@ -3244,7 +3244,7 @@ function UploadOtherMediaServerArtwork {
 
                 # Ensure temp file cleanup happens if the download partially succeeded or failed
                 if (Test-Path $tempFile) {
-                    Remove-Item $tempFile -Force -ErrorAction SilentlyContinue | out-null
+                    Remove-Item $tempFile -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | out-null
                 }
             }
         }
@@ -3762,7 +3762,7 @@ function MassDownloadPlexArtwork {
     }
 
     # Test if csvÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â´s are missing and create dummy file.
-    if (!(Get-ChildItem -LiteralPath "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -ErrorAction SilentlyContinue)) {
+    if (!(Get-ChildItem -LiteralPath "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)) {
         $EpisodeDummycsv = New-Object psobject
 
         # Add members to the object with empty values
@@ -3779,7 +3779,7 @@ function MassDownloadPlexArtwork {
         $EpisodeDummycsv | Select-Object * | Export-Csv -Path "$global:ScriptRoot\Logs\PlexEpisodeExport.csv" -NoTypeInformation -Delimiter ';' -Encoding UTF8 -Force
         Write-Entry -Message "No PlexEpisodeExport.csv found, creating dummy file for you..." -Path $global:configLogging -Color White -log Info
     }
-    if (!(Get-ChildItem -LiteralPath "$global:ScriptRoot\Logs\PlexLibexport.csv" -ErrorAction SilentlyContinue)) {
+    if (!(Get-ChildItem -LiteralPath "$global:ScriptRoot\Logs\PlexLibexport.csv" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)) {
         # Add members to the object with empty values
         $PlexLibDummycsv = New-Object psobject
         $PlexLibDummycsv | Add-Member -MemberType NoteProperty -Name "Library Name" -Value $null
@@ -3924,7 +3924,7 @@ function MassDownloadPlexArtwork {
                     $TestPath = $EntryDir
                     $Testfile = "poster"
 
-                    if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
+                    if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)) {
                         New-Item -ItemType Directory -path $EntryDir -Force | out-null
                     }
                 }
@@ -3939,7 +3939,7 @@ function MassDownloadPlexArtwork {
                     $hashtestpath = ($TestPath + "/" + $Testfile).Replace('\', '/').Replace('./', '/')
                 }
                 else {
-                    $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue
+                    $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
                     if ($fullTestPath) {
                         $hashtestpath = ($fullTestPath.ProviderPath + "\" + $Testfile).Replace('/', '\')
                     }
@@ -4009,7 +4009,7 @@ function MassDownloadPlexArtwork {
 
                             }
                             # Move file back to original naming with Brackets.
-                            if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
+                            if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                                 try {
                                     if ($LibraryFolders -eq 'true' -and !(Test-Path -LiteralPath $EntryDir)) {
                                         New-Item -ItemType Directory -Path $EntryDir -Force | Out-Null
@@ -4053,7 +4053,7 @@ function MassDownloadPlexArtwork {
                         $TestPath = $EntryDir
                         $Testfile = "background"
 
-                        if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
+                        if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)) {
                             New-Item -ItemType Directory -path $EntryDir -Force | out-null
                         }
                     }
@@ -4068,7 +4068,7 @@ function MassDownloadPlexArtwork {
                         $hashtestpath = ($TestPath + "/" + $Testfile).Replace('\', '/').Replace('./', '/')
                     }
                     else {
-                        $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue
+                        $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
                         if ($fullTestPath) {
                             $hashtestpath = ($fullTestPath.ProviderPath + "\" + $Testfile).Replace('/', '\')
                         }
@@ -4133,7 +4133,7 @@ function MassDownloadPlexArtwork {
                             }
 
                             # Move file back to original naming with Brackets.
-                            if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
+                            if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                                 try {
                                     # Attempt to move the item
                                     Move-Item -LiteralPath $backgroundImage -Destination $backgroundImageoriginal -Force -ErrorAction Stop
@@ -4247,7 +4247,7 @@ function MassDownloadPlexArtwork {
                 $TestPath = $EntryDir
                 $Testfile = "poster"
 
-                if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
+                if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)) {
                     New-Item -ItemType Directory -path $EntryDir -Force | out-null
                 }
             }
@@ -4262,7 +4262,7 @@ function MassDownloadPlexArtwork {
                 $hashtestpath = ($TestPath + "/" + $Testfile).Replace('\', '/').Replace('./', '/')
             }
             else {
-                $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue
+                $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
                 if ($fullTestPath) {
                     $hashtestpath = ($fullTestPath.ProviderPath + "\" + $Testfile).Replace('/', '\')
                 }
@@ -4320,7 +4320,7 @@ function MassDownloadPlexArtwork {
                             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                         }
-                        if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue) {
+                        if (Get-ChildItem -LiteralPath $PosterImage -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                             # Move file back to original naming with Brackets.
                             try {
                                 # Attempt to move the item
@@ -4363,7 +4363,7 @@ function MassDownloadPlexArtwork {
                     $TestPath = $EntryDir
                     $Testfile = "background"
 
-                    if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue)) {
+                    if (!(Get-ChildItem -LiteralPath $EntryDir -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)) {
                         New-Item -ItemType Directory -path $EntryDir -Force | out-null
                     }
                 }
@@ -4378,7 +4378,7 @@ function MassDownloadPlexArtwork {
                     $hashtestpath = ($TestPath + "/" + $Testfile).Replace('\', '/').Replace('./', '/')
                 }
                 else {
-                    $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue
+                    $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
                     if ($fullTestPath) {
                         $hashtestpath = ($fullTestPath.ProviderPath + "\" + $Testfile).Replace('/', '\')
                     }
@@ -4447,7 +4447,7 @@ function MassDownloadPlexArtwork {
 
                         }
                         # Move file back to original naming with Brackets.
-                        if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue) {
+                        if (Get-ChildItem -LiteralPath $backgroundImage -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                             try {
                                 # Attempt to move the item
                                 Move-Item -LiteralPath $backgroundImage -Destination $backgroundImageoriginal -Force -ErrorAction Stop
@@ -4546,7 +4546,7 @@ function MassDownloadPlexArtwork {
                         $hashtestpath = ($TestPath + "/" + $Testfile).Replace('\', '/').Replace('./', '/')
                     }
                     else {
-                        $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue
+                        $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
                         if ($fullTestPath) {
                             $hashtestpath = ($fullTestPath.ProviderPath + "\" + $Testfile).Replace('/', '\')
                         }
@@ -4591,7 +4591,7 @@ function MassDownloadPlexArtwork {
                                 $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                             }
-                            if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue) {
+                            if (Get-ChildItem -LiteralPath $SeasonImage -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                                 # Move file back to original naming with Brackets.
                                 try {
                                     # Attempt to move the item
@@ -4706,7 +4706,7 @@ function MassDownloadPlexArtwork {
                                 $hashtestpath = ($TestPath + "/" + $Testfile).Replace('\', '/').Replace('./', '/')
                             }
                             else {
-                                $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue
+                                $fullTestPath = Resolve-Path -Path $TestPath -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
                                 if ($fullTestPath) {
                                     $hashtestpath = ($fullTestPath.ProviderPath + "\" + $Testfile).Replace('/', '\')
                                 }
@@ -4750,7 +4750,7 @@ function MassDownloadPlexArtwork {
                                         $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
                                     }
-                                    if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
+                                    if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                                         # Move file back to original naming with Brackets.
                                         try {
                                             # Attempt to move the item
@@ -4956,7 +4956,7 @@ function MassDownloadJellyEmbyArtwork {
             $posterUrl = "$OtherMediaServerUrl/Items/$($item.Id)/Images/Primary"
             if (!(Test-Path -LiteralPath $posterDest)) {
                 try {
-                    Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
+                    Invoke-WebRequest -Uri $posterUrl -OutFile $posterDest -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                     $global:posterCount = Increment-GlobalStat 'posterCount'
                     Write-Entry -Subtext "Added: $posterDest" -Path $global:configLogging -Color Green -Log Info
                 }
@@ -4969,7 +4969,7 @@ function MassDownloadJellyEmbyArtwork {
             # 2. Download Backdrop
             if (!(Test-Path -LiteralPath $backdropDest)) {
                 try {
-                    Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop" -OutFile $backdropDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
+                    Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($item.Id)/Images/Backdrop" -OutFile $backdropDest -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                     $global:BackgroundCount = Increment-GlobalStat 'BackgroundCount'
                     $global:posterCount = Increment-GlobalStat 'posterCount'
                     Write-Entry -Subtext "Added: $backdropDest" -Path $global:configLogging -Color Green -Log Info
@@ -4988,7 +4988,7 @@ function MassDownloadJellyEmbyArtwork {
 
                     if (!(Test-Path -LiteralPath $sDest)) {
                         try {
-                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary" -OutFile $sDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($season.Id)/Images/Primary" -OutFile $sDest -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                             Write-Entry -Subtext "Added: $sDest" -Path $global:configLogging -Color Green -Log Info
                         }
                         catch {
@@ -5007,7 +5007,7 @@ function MassDownloadJellyEmbyArtwork {
 
                     if (!(Test-Path -LiteralPath $epDest)) {
                         try {
-                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary" -OutFile $epDest -ErrorAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
+                            Invoke-WebRequest -Uri "$OtherMediaServerUrl/Items/$($ep.Id)/Images/Primary" -OutFile $epDest -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Headers $global:OtherMediaServerHeaders
                             $global:EpisodeCount = Increment-GlobalStat 'EpisodeCount'
                             $global:posterCount = Increment-GlobalStat 'posterCount'
                             Write-Entry -Subtext "Added: $epDest" -Path $global:configLogging -Color Green -Log Info
@@ -5296,7 +5296,7 @@ function SyncPlexArtwork {
 
         # Attempt to parse structured JSON response if present.
         if ($message -match '^\s*\{.*\}\s*$') {
-            $errorResponse = $message | ConvertFrom-Json -ErrorAction SilentlyContinue
+            $errorResponse = $message | ConvertFrom-Json -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
 
         if ($errorResponse) {

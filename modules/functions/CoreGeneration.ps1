@@ -4154,6 +4154,7 @@ function Invoke-TitleCardCreation {
     param (
         $episode
     )
+    if ($null -eq $episode) { return }
 
     try {
         $SkippingText = 'false'
