@@ -8,34 +8,60 @@
         Write-Entry -Message "Normal Mode Started..." -Path $global:configLogging -Color White -log Info
     }
     Write-Entry -Message "Query plex libs..." -Path $global:configLogging -Color White -log Info
+    $retryCount = 0
+    $maxRetries = 3
     $Libsoverview = [System.Collections.Generic.List[object]]::new()
-    foreach ($lib in $Libs.MediaContainer.Directory) {
-        if ($lib.title -notin $LibstoExclude) {
-            $libtemp = New-Object psobject
-            $libtemp | Add-Member -MemberType NoteProperty -Name "ID" -Value $lib.key
-            $libtemp | Add-Member -MemberType NoteProperty -Name "Name" -Value $lib.title
-            $libtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $lib.language
 
-            # Check if $lib.location.path is an array
-            if ($lib.location.path -is [array]) {
-                $paths = $lib.location.path -join ',' # Convert array to string
-                $libtemp | Add-Member -MemberType NoteProperty -Name "Path" -Value $paths
+    while ($retryCount -le $maxRetries) {
+        $Libsoverview.Clear()
+        if ($Libs -and $Libs.MediaContainer.Directory) {
+            foreach ($lib in @($Libs.MediaContainer.Directory)) {
+                if ($lib.title -notin $LibstoExclude) {
+                    $libtemp = New-Object psobject
+                    $libtemp | Add-Member -MemberType NoteProperty -Name "ID" -Value $lib.key
+                    $libtemp | Add-Member -MemberType NoteProperty -Name "Name" -Value $lib.title
+                    $libtemp | Add-Member -MemberType NoteProperty -Name "Language" -Value $lib.language
+
+                    # Check if $lib.location.path is an array
+                    if ($lib.location.path -is [array]) {
+                        $paths = $lib.location.path -join ',' # Convert array to string
+                        $libtemp | Add-Member -MemberType NoteProperty -Name "Path" -Value $paths
+                    }
+                    else {
+                        $libtemp | Add-Member -MemberType NoteProperty -Name "Path" -Value $lib.location.path
+                    }
+                    # Check if Libname has chars we cant use for Folders
+                    if ($lib.title -notmatch "^[^\/:*?`"<>\|\\}]+$") {
+                        Write-Entry -Message  "Lib: '$($lib.title)' contains invalid characters." -Path $global:configLogging -Color Red -log Error
+                        Write-Entry -Subtext "Please rename your lib and remove all chars that are listed here: '/, :, *, ?, `", <, >, |, \, or }'" -Path $global:configLogging -Color Yellow -log Warning
+                        # Clear Running File
+                        HandleScriptExit -Message "Invalid chars on lib"
+                    }
+                    $Libsoverview.Add($libtemp)
+                }
             }
-            else {
-                $libtemp | Add-Member -MemberType NoteProperty -Name "Path" -Value $lib.location.path
+        }
+
+        if ($($Libsoverview.count) -ge 1) {
+            break
+        }
+
+        $retryCount++
+        if ($retryCount -le $maxRetries) {
+            Write-Entry -Subtext "0 libraries were found. Retrying in 10 seconds... (Attempt $retryCount/$maxRetries)" -Path $global:configLogging -Color Yellow -log Warning
+            Start-Sleep -Seconds 10
+            try {
+                $result = Invoke-WebRequest -Uri "$PlexUrl/library/sections" -ErrorAction SilentlyContinue -Headers $extraPlexHeaders
+                if ($result -and $result.StatusCode -eq 200) {
+                    [XML]$Libs = $result.Content
+                }
             }
-            # Check if Libname has chars we cant use for Folders
-            if ($lib.title -notmatch "^[^\/:*?`"<>\|\\}]+$") {
-                Write-Entry -Message  "Lib: '$($lib.title)' contains invalid characters." -Path $global:configLogging -Color Red -log Error
-                Write-Entry -Subtext "Please rename your lib and remove all chars that are listed here: '/, :, *, ?, `", <, >, |, \, or }'" -Path $global:configLogging -Color Yellow -log Warning
-                # Clear Running File
-                HandleScriptExit -Message "Invalid chars on lib"
-            }
-            $Libsoverview.Add($libtemp)
+            catch { }
         }
     }
+
     if ($($Libsoverview.count) -lt 1) {
-        Write-Entry -Subtext "0 libraries were found. Are you on the correct Plex server?" -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Subtext "0 libraries were found after $($maxRetries) retries. Are you on the correct Plex server?" -Path $global:configLogging -Color Red -log Error
         # Clear Running File
         HandleScriptExit -Message "No libs found"
     }

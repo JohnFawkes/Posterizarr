@@ -31,12 +31,37 @@
 
     Write-Entry -Message "Query Jellyfin/Emby..." -Path $global:configLogging -Color White -log Info
     Write-Entry -Message "Query all items from all Libs, this can take a while..." -Path $global:configLogging -Color White -log Info
-    $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration" -Headers $global:OtherMediaServerHeaders).PreferredMetadataLanguage ?? "en"
-    $allLibsquery = "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders"
-    $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders
+    $retryCount = 0
+    $maxRetries = 3
+    $AllLibs = $null
+    
+    while ($retryCount -le $maxRetries) {
+        try {
+            $PreferredMetadataLanguage = (Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/System/Configuration" -Headers $global:OtherMediaServerHeaders -ErrorAction Stop).PreferredMetadataLanguage ?? "en"
+            $allLibsquery = "$($OtherMediaServerUrl.TrimEnd('/'))/Library/VirtualFolders"
+            $AllLibs = Invoke-RestMethod -Method Get -Uri $allLibsquery -Headers $global:OtherMediaServerHeaders -ErrorAction Stop
+        } catch { }
+
+        $validLibs = @($AllLibs | Where-Object { $_.Name -notin $LibstoExclude })
+        if ($validLibs.Count -ge 1) {
+            break
+        }
+
+        $retryCount++
+        if ($retryCount -le $maxRetries) {
+            Write-Entry -Subtext "0 libraries were found. Retrying in 10 seconds... (Attempt $retryCount/$maxRetries)" -Path $global:configLogging -Color Yellow -log Warning
+            Start-Sleep -Seconds 10
+        }
+    }
+
+    $validLibs = @($AllLibs | Where-Object { $_.Name -notin $LibstoExclude })
+    if ($validLibs.Count -lt 1) {
+        Write-Entry -Subtext "0 libraries were found after $($maxRetries) retries. Are you on the correct server?" -Path $global:configLogging -Color Red -log Error
+        HandleScriptExit -Message "No libs found"
+    }
 
     write-Entry -Subtext "Found '$($AllLibs.count)' libs and '$(@($LibstoExclude).count)' are excluded..." -Path $global:configLogging -Color Cyan -log Info
-    $IncludedLibraryNames = ($AllLibs | Where-Object { $_.Name -notin $LibstoExclude }).Name -join ', '
+    $IncludedLibraryNames = $validLibs.Name -join ', '
     Write-Entry -Subtext "Included Libraries: $IncludedLibraryNames" -Path $global:configLogging -Color Cyan -log Info
 
     # Build path-based lookup tables once to avoid expensive per-item Ancestors API calls.

@@ -8128,10 +8128,17 @@ async def websocket_logs(
         last_mode = current_mode
         current_log_file = log_file  # Track current log file being watched
 
+        loop_count = 0
         while True:
             try:
                 # FASTER POLLING: 0.3s instead of 1s
                 await asyncio.sleep(0.3)
+                
+                # Send ping every ~15 seconds to prevent proxy idle timeouts
+                loop_count += 1
+                if loop_count >= 50:
+                    await websocket.send_json({"type": "ping"})
+                    loop_count = 0
             except asyncio.CancelledError:
                 logger.info("WebSocket log streaming cancelled (connection closed)")
                 break

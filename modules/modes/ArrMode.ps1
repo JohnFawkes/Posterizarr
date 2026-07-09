@@ -810,7 +810,8 @@
         }
 
         # Movie Part
-        $AllMovies | ForEach-Object -Parallel {
+        if ($AllMovies) {
+            $AllMovies | ForEach-Object -Parallel {
             $state = $using:globalState
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
@@ -827,10 +828,13 @@
 
             Invoke-MoviePosterCreation -entry $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+        }
+        }
 
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
-        $AllShows | ForEach-Object -Parallel {
+        if ($AllShows) {
+            $AllShows | ForEach-Object -Parallel {
             $state = $using:globalState
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
@@ -847,8 +851,10 @@
 
             Invoke-ShowPosterCreation -entry $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+        }
+        }
 
-        if ($global:TitleCards -eq 'true') {
+        if ($global:TitleCards -eq 'true' -and $FormattedData) {
             Write-Entry -Message "Starting TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
             $FormattedData | ForEach-Object -Parallel {
                 $state = $using:globalState
@@ -1308,7 +1314,8 @@
         }
 
         # Movie Part
-        $AllMovies | ForEach-Object -Parallel {
+        if ($AllMovies) {
+            $AllMovies | ForEach-Object -Parallel {
             $state = $using:globalState
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
@@ -1325,6 +1332,7 @@
 
             Invoke-MoviePosterCreation -entry $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+        }
 
     $global:SkipTBACount = 0
     if ($global:runspaceStats) { $global:runspaceStats['SkipTBACount'] = 0 }
@@ -1339,7 +1347,8 @@
 
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
-        $AllShows | ForEach-Object -Parallel {
+        if ($AllShows) {
+            $AllShows | ForEach-Object -Parallel {
             $state = $using:globalState
             foreach ($key in $state.Keys) {
                 try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
@@ -1356,8 +1365,9 @@
 
             Invoke-ShowPosterCreation -entry $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
+        }
 
-        if ($global:TitleCards -eq 'true') {
+        if ($global:TitleCards -eq 'true' -and $Episodedata) {
             Write-Entry -Message "Starting TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
             $Episodedata | ForEach-Object -Parallel {
                 $state = $using:globalState
