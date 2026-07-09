@@ -163,8 +163,9 @@ function LogViewer() {
     // Regex 2: Scriptlog Format (supports both old and new)
     // Old: [timestamp] [INFO] |L.123| message
     // New: [timestamp] [INFO] |Notifications.ps1:L.162     | message
+    // Newer: [timestamp] [INFO]     [T159] |CoreGeneration.ps1:L.6041   | message
     const scriptLogPattern =
-      /^\[([^\]]+)\]\s*\[([^\]]+)\]\s*\|([^\|]+)\|\s*(.*)$/;
+      /^\[([^\]]+)\]\s*\[([^\]]+)\](?:\s*\[[^\]]+\])?\s*\|([^\|]+)\|\s*(.*)$/;
     match = cleanedLine.match(scriptLogPattern);
     if (match) {
       return {

@@ -232,17 +232,18 @@ Write-Entry -Message "Checking size of overlay files..." -Path $global:configLog
 CheckOverlayDimensions -Posteroverlay "$DefaultPosteroverlay" -ShowPosteroverlay "$DefaultShowPosteroverlay" -Backgroundoverlay "$DefaultBackgroundoverlay" -ShowBackgroundoverlay "$DefaultShowBackgroundoverlay" -titlecardoverlay "$Defaulttitlecardoverlay" -PosterSize "$PosterSize" -BackgroundSize "$BackgroundSize" -Collectionoverlay "$collectionoverlay" -Seasonoverlay "$Seasonoverlay" -Posteroverlay4k "$4kposter" -Posteroverlay1080p "$1080pPoster" -Backgroundoverlay4k "$4kBackground" -Backgroundoverlay1080p "$1080pBackground" -TCoverlay4k "$4kTC" -TCoverlay1080p "$1080pTC" -Posteroverlay4KDoVi "$4KDoVi" -Posteroverlay4KHDR10 "$4KHDR10" -Posteroverlay4KDoViHDR10 "$4KDoViHDR10" -Backgroundoverlay4KDoVi "$4KDoViBackground" -Backgroundoverlay4KHDR10 "$4KHDR10Background" -Backgroundoverlay4KDoViHDR10 "$4KDoViHDR10Background" -TCoverlay4KDoVi "$4KDoViTC" -TCoverlay4KHDR10 "$4KHDR10TC" -TCoverlay4KDoViHDR10 "$4KDoViHDR10TC"
 
 # Check if the FanartTvAPI module is installed
-$module = Get-Module -ListAvailable -Name FanartTvAPI
+$moduleName = "Celerium.FanartTV"
+$module = Get-Module -ListAvailable -Name $moduleName
 
 if (-not $module) {
     # Try to install the module
     try {
         Install-Module -Name $moduleName -Force -SkipPublisherCheck -AllowPrerelease -Scope AllUsers
-        Write-Entry -Message "FanartTvAPI Module missing, installing it for you..." -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Message "$moduleName Module missing, installing it for you..." -Path $global:configLogging -Color Red -log Error
         $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
 
-        Write-Entry -Subtext "FanartTvAPI Module installed, importing it now..." -Path $global:configLogging -Color Green -log Info
-        Import-Module -Name FanartTvAPI
+        Write-Entry -Subtext "$moduleName Module installed, importing it now..." -Path $global:configLogging -Color Green -log Info
+        Import-Module -Name $moduleName
     }
     catch {
         Write-Host "Failed to install $moduleName module. Error: $_"

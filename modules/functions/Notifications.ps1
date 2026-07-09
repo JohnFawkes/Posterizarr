@@ -21,11 +21,7 @@ function SendMessage {
         $fieldList.Add([PSCustomObject]@{ name = "Language"; value = $lang; inline = $true })
         $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $truncated; inline = $true })
 
-        # Add conditional fields
-        if ($SkipTBA -eq 'true' -or $SkipJapTitle -eq 'true') {
-            $fieldList.Add([PSCustomObject]@{ name = "TBA Skipped"; value = "$SkipTBACount"; inline = $true })
-            $fieldList.Add([PSCustomObject]@{ name = "Jap/Chinese Skipped"; value = "$SkipJapTitleCount"; inline = $true })
-        }
+        # Removed conditional fields for Tautulli/Arr modes
 
         # Add remaining fields
         $fieldList.Add([PSCustomObject]@{ name = ""; value = ":frame_photo:"; inline = $false })
