@@ -203,7 +203,15 @@ function ConfigEditor() {
     if (k.includes("loglevel")) return "Logging";
 
     // APIs
-    if (k.includes("provider") || k.includes("sorting") || k.includes("order")) return "Preferences";
+    if (k.includes("provider") || k.includes("sorting")) return "Preferences";
+    if (k.includes("languageorder")) return "Lang Preferences";
+
+    // Notifications
+    const notificationKeys = ["sendnotification", "discord", "appriseurl", "discordusername", "useuptimekuma", "uptimekumaurl"];
+    if (notificationKeys.includes(k)) return "Notifications";
+
+    // Library Overrides
+    if (k === "librarylanguageoverrides") return "Library Overrides";
 
     // Visuals
     if (k.includes("font") && !k.includes("size")) return "Fonts";
