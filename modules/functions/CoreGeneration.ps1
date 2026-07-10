@@ -310,7 +310,7 @@ function Invoke-MoviePosterCreation {
                                 Else {
                                     try {
                                         if (!$global:PlexartworkDownloaded) {
-                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $PosterImage -ErrorAction Stop
+                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $PosterImage -TimeoutSec 30 -ErrorAction Stop
                                         }
                                     }
                                     catch {
@@ -488,7 +488,7 @@ function Invoke-MoviePosterCreation {
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
                                                                                                                     $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
-                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -TimeoutSec 30 -ErrorAction Stop
                                                     }
                                                     catch {
                                                         if ($_.Exception.Response) {
@@ -1042,7 +1042,7 @@ function Invoke-MoviePosterCreation {
                                 Else {
                                     try {
                                         if (!$global:PlexartworkDownloaded) {
-                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $BackgroundImage -ErrorAction Stop
+                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $BackgroundImage -TimeoutSec 30 -ErrorAction Stop
                                         }
                                     }
                                     catch {
@@ -1220,7 +1220,7 @@ function Invoke-MoviePosterCreation {
                                                     if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
                                                                                                                     $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                     try {
-                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                        $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -TimeoutSec 30 -ErrorAction Stop
                                                     }
                                                     catch {
                                                         if ($_.Exception.Response) {
@@ -1892,7 +1892,7 @@ function Invoke-ShowPosterCreation {
                             Else {
                                 try {
                                     if (!$global:PlexartworkDownloaded) {
-                                        $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $PosterImage -ErrorAction Stop
+                                        $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $PosterImage -TimeoutSec 30 -ErrorAction Stop
                                     }
                                 }
                                 catch {
@@ -2070,7 +2070,7 @@ function Invoke-ShowPosterCreation {
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
                                                                                                                 $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
-                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -TimeoutSec 30 -ErrorAction Stop
                                                 }
                                                 catch {
                                                     if ($_.Exception.Response) {
@@ -2638,7 +2638,7 @@ function Invoke-ShowPosterCreation {
                             Else {
                                 try {
                                     if (!$global:PlexartworkDownloaded) {
-                                        $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $BackgroundImage -ErrorAction Stop
+                                        $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $BackgroundImage -TimeoutSec 30 -ErrorAction Stop
                                     }
                                 }
                                 catch {
@@ -2816,7 +2816,7 @@ function Invoke-ShowPosterCreation {
                                                 if ([string]::IsNullOrWhiteSpace($urlExtension)) { $urlExtension = ".png" }
                                                                                                                 $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
                                                 try {
-                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -TimeoutSec 30 -ErrorAction Stop
                                                 }
                                                 catch {
                                                     if ($_.Exception.Response) {
@@ -3559,7 +3559,7 @@ function Invoke-ShowPosterCreation {
                                     Else {
                                         try {
                                             if (!$global:PlexartworkDownloaded) {
-                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $SeasonImage -ErrorAction Stop
+                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $SeasonImage -TimeoutSec 30 -ErrorAction Stop
                                             }
                                         }
                                         catch {
@@ -3798,7 +3798,7 @@ function Invoke-ShowPosterCreation {
                                                                                                                                 $LogoImage = Join-Path $TempPath ("$($entry.RootFoldername)_logo" + $urlExtension); Write-Entry -Message "Logo Used: $global:LogoUrl" -Path $global:configLogging -Color Cyan -log Debug
 
                                                                 try {
-                                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -ErrorAction Stop
+                                                                    $response = Invoke-WebRequest -Uri $global:LogoUrl -OutFile $LogoImage -TimeoutSec 30 -ErrorAction Stop
                                                                 }
                                                                 catch {
                                                                     if ($_.Exception.Response) {
@@ -3894,7 +3894,7 @@ function Invoke-ShowPosterCreation {
                                     Else {
                                         try {
                                             if (!$global:PlexartworkDownloaded) {
-                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $SeasonImage -ErrorAction Stop
+                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $SeasonImage -TimeoutSec 30 -ErrorAction Stop
                                             }
                                         }
                                         catch {
@@ -4516,7 +4516,7 @@ function Invoke-TitleCardCreation {
                                 Else {
                                     try {
                                         if (!$global:PlexartworkDownloaded -and $global:TempImagecopied -ne 'true') {
-                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -ErrorAction Stop
+                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -TimeoutSec 30 -ErrorAction Stop
                                             Copy-Item -LiteralPath $EpisodeImage -destination $EpisodeTempImage | Out-Null
                                         }
                                     }
@@ -4731,7 +4731,7 @@ function Invoke-TitleCardCreation {
                                 Else {
                                     try {
                                         if (!$global:PlexartworkDownloaded) {
-                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -ErrorAction Stop
+                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -TimeoutSec 30 -ErrorAction Stop
                                         }
                                     }
                                     catch {
@@ -5282,7 +5282,7 @@ function Invoke-TitleCardCreation {
                                 Else {
                                     try {
                                         if (!$global:PlexartworkDownloaded) {
-                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -ErrorAction Stop
+                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -TimeoutSec 30 -ErrorAction Stop
                                         }
                                     }
                                     catch {
@@ -5481,7 +5481,7 @@ function Invoke-TitleCardCreation {
                                 Else {
                                     try {
                                         if (!$global:PlexartworkDownloaded) {
-                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -ErrorAction Stop
+                                            $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -TimeoutSec 30 -ErrorAction Stop
                                         }
                                     }
                                     catch {
@@ -6028,7 +6028,7 @@ function Invoke-TitleCardCreation {
                                                     Else {
                                                         try {
                                                             if (!$global:PlexartworkDownloaded) {
-                                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -ErrorAction Stop
+                                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -TimeoutSec 30 -ErrorAction Stop
                                                             }
                                                         }
                                                         catch {
@@ -6227,7 +6227,7 @@ function Invoke-TitleCardCreation {
                                                     Else {
                                                         try {
                                                             if (!$global:PlexartworkDownloaded) {
-                                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -ErrorAction Stop
+                                                                $response = Invoke-WebRequest -Uri $global:posterurl -OutFile $EpisodeImage -TimeoutSec 30 -ErrorAction Stop
                                                             }
                                                         }
                                                         catch {
