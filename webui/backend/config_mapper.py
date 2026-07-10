@@ -281,6 +281,7 @@ CONFIG_GROUPS = {
     "EmbyAPIKey": "ApiPart",
     "PreferredBackgroundLanguageOrder": "ApiPart",
     "PreferredTCLanguageOrder": "ApiPart",
+    "LibraryLanguageOverrides": "ApiPart",
     # PlexPart
     "PlexLibstoExclude": "PlexPart",
     "PlexUrl": "PlexPart",
@@ -597,6 +598,7 @@ UI_GROUPS = {
         "PreferredBackgroundLanguageOrder",
         "PreferredTCLanguageOrder",
         "LogoLanguageOrder",
+        "LibraryLanguageOverrides",
         "SendNotification",
         "Discord",
         "AppriseUrl",
@@ -1017,6 +1019,7 @@ DISPLAY_NAMES = {
     "PreferredBackgroundLanguageOrder": "Background Language Order",
     "PreferredTCLanguageOrder": "TitleCard Language Order",
     "LogoLanguageOrder": "Logo Language Order",
+    "LibraryLanguageOverrides": "Per-Library Language Overrides",
     # Image Filters
     "WidthHeightFilter": "Width/Height Filter",
     "PosterMinWidth": "Poster Min Width",

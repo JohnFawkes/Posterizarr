@@ -278,11 +278,21 @@ if ($global:PreferredBackgroundLanguageOrder -eq 'PleaseFillMe') {
 if ($global:PreferredTCLanguageOrder -eq 'PleaseFillMe') {
     $global:PreferredTCLanguageOrder = $global:PreferredLanguageOrder
 }
-# 2ï¸. Initialize all settings â€” function will validate and set defaults if needed
+# Initialize all settings, function will validate and set defaults if needed
 Initialize-LanguageSettings -SettingName "PreferredLanguageOrder"           -Label "Poster"
 Initialize-LanguageSettings -SettingName "PreferredSeasonLanguageOrder"     -Label "Season"
 Initialize-LanguageSettings -SettingName "PreferredTCLanguageOrder"         -Label "TC"
 Initialize-LanguageSettings -SettingName "PreferredBackgroundLanguageOrder" -Label "Background"
+
+# Library-specific language override support
+$global:LibraryLanguageOverrides = $config.ApiPart.LibraryLanguageOverrides
+if (-not $global:LibraryLanguageOverrides) { $global:LibraryLanguageOverrides = @{} }
+
+$global:DefaultPreferredLanguageOrder = $global:PreferredLanguageOrder
+$global:DefaultPreferredSeasonLanguageOrder = $global:PreferredSeasonLanguageOrder
+$global:DefaultPreferredTCLanguageOrder = $global:PreferredTCLanguageOrder
+$global:DefaultPreferredBackgroundLanguageOrder = $global:PreferredBackgroundLanguageOrder
+$global:DefaultLogoLanguageOrder = $global:LogoLanguageOrder
 
 # default to TMDB if favprovider missing
 if (!$global:FavProvider) {
