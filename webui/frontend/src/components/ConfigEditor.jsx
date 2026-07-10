@@ -950,15 +950,19 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
             // real intent is "this library is German/French/etc", not four
             // settings to keep in sync.
             const dictValue = value && typeof value === 'object' ? value : {};
-            const getOrder = (v) => Array.isArray(v?.PreferredLanguageOrder) ? v.PreferredLanguageOrder.join(',') : '';
 
-            const handleUpdatePair = (oldKey, newKey, orderText) => {
+            const handleUpdateKey = (oldKey, newKey) => {
                 const newDict = { ...dictValue };
                 if (oldKey !== newKey) {
                     delete newDict[oldKey];
                 }
-                const order = orderText.split(',').map((s) => s.trim()).filter(Boolean);
-                newDict[newKey] = { ...(dictValue[oldKey] || {}), PreferredLanguageOrder: order };
+                newDict[newKey] = dictValue[oldKey] || { PreferredLanguageOrder: [] };
+                updateValue(fieldKey, newDict);
+            };
+
+            const handleUpdateOrder = (key, newOrder) => {
+                const newDict = { ...dictValue };
+                newDict[key] = { ...(dictValue[key] || {}), PreferredLanguageOrder: newOrder };
                 updateValue(fieldKey, newDict);
             };
 
@@ -974,43 +978,51 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
             };
 
             return (
-                <div className="space-y-2">
+                <div className="space-y-4">
                     {Object.entries(dictValue).map(([k, v], idx) => (
-                        <div key={idx} className="flex gap-2 items-start">
-                            <input
-                                className={`${commonInputClass} font-mono text-xs`}
-                                value={k}
-                                placeholder="Library Name"
-                                onChange={(e) => handleUpdatePair(k, e.target.value, getOrder(v))}
-                                disabled={disabled}
-                            />
-                            <ArrowRight className="w-8 h-8 text-theme-muted mt-1 flex-shrink-0" />
-                            <input
-                                className={`${commonInputClass} font-mono text-xs`}
-                                value={getOrder(v)}
-                                placeholder="e.g. de,en"
-                                onChange={(e) => handleUpdatePair(k, k, e.target.value)}
-                                disabled={disabled}
-                            />
-                            <button
-                                onClick={() => handleRemovePair(k)}
-                                className="p-2.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20"
-                                disabled={disabled}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
+                        <div key={idx} className="flex flex-col gap-3 p-4 bg-theme-bg/30 border border-theme rounded-lg relative group transition-all">
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-theme-muted mb-1">Library Name</label>
+                                    <input
+                                        className={`${commonInputClass} font-mono text-sm`}
+                                        value={k}
+                                        placeholder="Library Name"
+                                        onChange={(e) => handleUpdateKey(k, e.target.value)}
+                                        disabled={disabled}
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => handleRemovePair(k)}
+                                    className="p-2.5 mt-5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 flex-shrink-0 transition-colors"
+                                    disabled={disabled}
+                                    title="Remove Library Override"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="pt-3 border-t border-theme/50">
+                                <LanguageOrderSelector
+                                    value={v?.PreferredLanguageOrder || []}
+                                    onChange={(newOrder) => handleUpdateOrder(k, newOrder)}
+                                    helpText="Applies to posters, seasons and backgrounds for this library; title cards keep their textless-first preference automatically."
+                                />
+                            </div>
                         </div>
                     ))}
                     <button
                         onClick={handleAddPair}
-                        className="w-full py-2 border-2 border-dashed border-theme rounded-lg text-theme-muted hover:text-theme-primary hover:border-theme-primary transition-all flex items-center justify-center gap-2 text-sm"
+                        className="w-full py-3 border-2 border-dashed border-theme rounded-lg text-theme-muted hover:text-theme-primary hover:border-theme-primary transition-all flex items-center justify-center gap-2 text-sm font-medium"
                         disabled={disabled}
                     >
-                        <Plus className="w-4 h-4" /> Add Library Override
+                        <Plus className="w-5 h-5" /> Add Library Override
                     </button>
-                    <p className="text-[10px] text-theme-muted italic">
-                        Language order for this library, comma-separated (e.g. de,en). Applies to posters, seasons and backgrounds for this library; title cards keep their textless-first preference automatically.
-                    </p>
+                    {Object.keys(dictValue).length === 0 && (
+                        <p className="text-[10px] text-theme-muted italic">
+                            Language order for specific libraries. Applies to posters, seasons and backgrounds for this library; title cards keep their textless-first preference automatically.
+                        </p>
+                    )}
                 </div>
             );
         }
