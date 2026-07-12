@@ -114,8 +114,7 @@ I review and test every line before it’s committed.
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=fscorrupt/posterizarr&type=Date)](https://star-history.com/#fscorrupt/posterizarr&Date)
-
+[![Star History Chart](https://api.star-history.com/chart?repos=fscorrupt/posterizarr&type=date&legend=top-left&sealed_token=1UsvpQqgCoNRgiO4GkQfI_O3kt_VzfvVnV3fw9yVylVKnT7NlXUTstMpw2laYigrhT9FAyMZGl1lVpBRxOjTeJGl4TdEoH_5Q-Vk-1sDriU_3YkA1u9yLg)](https://www.star-history.com/?repos=fscorrupt%2Fposterizarr&type=date&legend=top-left)
 
 
 <br />
