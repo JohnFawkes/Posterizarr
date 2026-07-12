@@ -653,7 +653,7 @@
 
     $global:checkedItems = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
 
-    $globalState = @{}
+    $globalState = [System.Collections.Hashtable]::Synchronized(@{})
     Get-Variable | Where-Object {
         $_.Options -notmatch 'ReadOnly|Constant' -and
         $_.Name -notin @('FormatEnumerationLimit', 'MaximumHistoryCount', 'Host', 'Error', 'PWD', 'HOME', 'PID', 'globalState', 'AllMovies', 'AllShows', 'Libraries', 'Libs', 'OtherMediaServerLibs', 'Metadata', 'Seasondata', '_', 'PSItem')
