@@ -3364,6 +3364,8 @@ async def upload_font_file(file: UploadFile = File(...)):
 async def delete_font_file(filename: str):
     """Delete a font file from Overlayfiles directory"""
     try:
+        import os
+        filename = os.path.basename(filename)
         # Sanitize filename
         safe_filename = "".join(
             c for c in filename if c.isalnum() or c in "._- "
@@ -3402,6 +3404,8 @@ async def delete_font_file(filename: str):
 async def download_font_file(filename: str):
     """Download a font file from Overlayfiles directory for previewing in the UI"""
     try:
+        import os
+        filename = os.path.basename(filename)
         safe_filename = "".join(c for c in filename if c.isalnum() or c in "._- ")
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
@@ -3424,6 +3428,8 @@ async def download_font_file(filename: str):
 async def preview_font_file(filename: str, text: str = "Aa"):
     """Generate a preview image for a font file"""
     try:
+        import os
+        filename = os.path.basename(filename)
         # Sanitize filename
         safe_filename = "".join(
             c for c in filename if c.isalnum() or c in "._- "
@@ -8257,30 +8263,33 @@ async def get_thumbnail(path: str = Query(..., description="Path to the image"),
         # Determine the real file path and its base directory based on the URL path prefix
         real_path = None
         base_dir = None
+        suffix = None
         if path.startswith("/poster_assets/"):
-            base_dir = ASSETS_DIR
-            real_path = base_dir / path[len("/poster_assets/"):]
+            base_dir = str(ASSETS_DIR)
+            suffix = path[len("/poster_assets/"):]
         elif path.startswith("/manual_poster_assets/"):
-            base_dir = MANUAL_ASSETS_DIR
-            real_path = base_dir / path[len("/manual_poster_assets/"):]
+            base_dir = str(MANUAL_ASSETS_DIR)
+            suffix = path[len("/manual_poster_assets/"):]
         elif path.startswith("/backup_assets/"):
-            base_dir = BACKUP_DIR
-            real_path = base_dir / path[len("/backup_assets/"):]
+            base_dir = str(BACKUP_DIR)
+            suffix = path[len("/backup_assets/"):]
         elif path.startswith("/test/"):
-            base_dir = TEST_DIR
-            real_path = base_dir / path[len("/test/"):]
+            base_dir = str(TEST_DIR)
+            suffix = path[len("/test/"):]
         elif path.startswith("/images/"):
-            base_dir = IMAGES_DIR
-            real_path = base_dir / path[len("/images/"):]
+            base_dir = str(IMAGES_DIR)
+            suffix = path[len("/images/"):]
         else:
             raise HTTPException(status_code=400, detail="Invalid path prefix")
             
         # Ensure it's safe and prevent directory traversal
-        try:
-            real_path = real_path.resolve()
-            real_path.relative_to(base_dir.resolve())
-        except ValueError:
+        import os
+        base_dir_abs = os.path.abspath(base_dir)
+        filepath = os.path.abspath(os.path.join(base_dir_abs, suffix.lstrip("\\/")))
+        if not filepath.startswith(base_dir_abs + os.sep) and filepath != base_dir_abs:
             raise HTTPException(status_code=403, detail="Access denied: Invalid path")
+            
+        real_path = Path(filepath)
         
         if not real_path.exists() or not real_path.is_file():
             raise HTTPException(status_code=404, detail="Image not found")
