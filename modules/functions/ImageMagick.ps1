@@ -342,11 +342,17 @@ function InvokeMagickCommand {
         try {
             $process.Start() | Out-Null
 
-            # Capture error
+            # Read stdout and stderr concurrently to prevent pipe-buffer deadlock.
+            # If stdout is not drained while waiting on stderr (or vice-versa), the
+            # magick process blocks filling the pipe → WaitForExit never returns.
+            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
             $errorOutput = $process.StandardError.ReadToEnd()
 
             # Wait for the process to exit
             $process.WaitForExit()
+
+            # Drain stdout (discard; only stderr carries actionable messages)
+            $null = $stdoutTask.GetAwaiter().GetResult()
 
             # Check if there was any error output
             if (-not [string]::IsNullOrWhiteSpace($errorOutput)) {

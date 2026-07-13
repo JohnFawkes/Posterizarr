@@ -664,10 +664,10 @@
     # Movie Part
     $AllMovies | ForEach-Object -Parallel {
         $state = $using:globalState
-        foreach ($key in $state.Keys) {
-            try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
-        }
         if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
             $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
             if ($state['FanartTvAPIKey']) {
@@ -684,10 +684,10 @@
     # Show Part
     $AllShows | ForEach-Object -Parallel {
         $state = $using:globalState
-        foreach ($key in $state.Keys) {
-            try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
-        }
         if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
+            foreach ($key in $state.Keys) {
+                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+            }
             $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
             if ($state['FanartTvAPIKey']) {
@@ -705,10 +705,10 @@
         Write-Entry -Message "Starting TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         $global:Episodedata | ForEach-Object -Parallel {
             $state = $using:globalState
-            foreach ($key in $state.Keys) {
-                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
-            }
             if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
+                foreach ($key in $state.Keys) {
+                    try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
+                }
                 $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
                 foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
                 if ($state['FanartTvAPIKey']) {
