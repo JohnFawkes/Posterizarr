@@ -2035,32 +2035,33 @@
             "title": "Configure Webhook",
             "description": "Add a new Notification Agent in Tautulli.",
             "substeps": [
-              "Go to Settings -> Notification Agents",
-              "Click 'Add a new notification agent' and select 'Webhook'",
-              "Set Webhook Method to POST"
+              "Open Tautulli and go to Settings -> Notification Agents.",
+              "Click 'Add a new notification agent' and select 'Webhook'.",
+              "In the Configuration Tab, set Webhook Method to POST."
             ],
             "code": [
               {
                 "label": "Webhook URL",
                 "content": "http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY"
               }
-            ]
+            ],
+            "info": "(Generate an API Key in Posterizarr settings under WebUI)"
           },
           {
             "title": "Set Triggers",
             "description": "Configure when the webhook should run.",
             "substeps": [
-              "Go to the 'Triggers' tab",
-              "Scroll down and enable 'Recently Added'"
+              "Go to the 'Triggers' tab.",
+              "Check 'Recently Added'."
             ]
           },
           {
             "title": "Configure Data Payload",
             "description": "Set the payload for the webhook.",
             "substeps": [
-              "Go to the 'Data' tab",
-              "Scroll down to 'Recently Added'",
-              "Paste the following into JSON Data and click Save"
+              "Go to the 'Data' tab.",
+              "Scroll down to 'Recently Added'.",
+              "Paste the following into JSON Data and click Save."
             ],
             "code": [
               {

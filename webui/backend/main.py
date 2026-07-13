@@ -5438,7 +5438,8 @@ async def get_upload_diagnostics():
                 "groupname": grp.getgrgid(os.getgid()).gr_name,
             }
         except Exception as e:
-            diagnostics["user"] = {"error": str(e)}
+            logger.debug(f"Error determining Unix user info: {e}")
+            diagnostics["user"] = {"error": "Unable to determine user details"}
 
     # Check if running with elevated privileges on Windows
     if platform.system() == "Windows":
@@ -5447,7 +5448,8 @@ async def get_upload_diagnostics():
 
             diagnostics["is_admin"] = ctypes.windll.shell32.IsUserAnAdmin() != 0
         except Exception as e:
-            diagnostics["is_admin"] = f"Unable to determine: {str(e)}"
+            logger.debug(f"Error determining Windows admin privileges: {e}")
+            diagnostics["is_admin"] = "Unable to determine"
 
     return diagnostics
 
