@@ -31,10 +31,13 @@ The frontend follows a component-based architecture located entirely within `web
 
 
 - **`ConfigEditor.jsx`**: A dynamic form component for editing the `config.json`. It fetches tooltips from the backend and handles schema validation.
+- **`OnboardingModal.jsx`**: The comprehensive first-run setup wizard that guides users through configuring media servers, schedules, libraries, and notifications.
 - **`RunModes.jsx`**: Interface for selecting and triggering the various Posterizarr PowerShell modes (Normal, Backup, Sync, etc.).
 - **`SchedulerSettings.jsx`**: UI for managing cron jobs and automated schedules.
 - **`Blueprints.jsx`**: Interface for managing layout blueprints and recipes.
 - **`LanguageOrderSelector.jsx` & `LanguageSwitcher.jsx`**: Components to handle UI language switching and the priority order of downloaded asset languages.
+- **`ProviderOrderSelector.jsx`**: Drag-and-drop interface allowing users to configure the precise fallback order for metadata providers (TMDB, TVDB, Fanart, Plex).
+- **`LibraryExclusionSelector.jsx`**: An inline and modal selector used during onboarding and configuration to include or exclude specific libraries from being processed.
 
 ### Media & Assets Management
 

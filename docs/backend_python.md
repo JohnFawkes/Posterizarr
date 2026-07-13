@@ -20,7 +20,7 @@ The backend handles the following core responsibilities:
 ### Core API & Application
 
 - **`main.py`**: The primary FastAPI application entry point. It defines all the API routes, initializes the server, handles CORS, and integrates with other backend modules.
-- **`auth_middleware.py`**: Handles authentication and security middleware for the FastAPI routes, ensuring that unauthorized users cannot trigger operations or read configurations.
+- **`auth_middleware.py`**: Handles authentication and security middleware for the FastAPI routes, ensuring that unauthorized users cannot trigger operations or read configurations (includes strict API Key requirements for webhooks).
 
 ### Configuration & Data Mapping
 
@@ -54,7 +54,7 @@ The backend handles the following core responsibilities:
 ## Contribution Guidelines
 When making a Pull Request to the Python backend:
 
-- 
+-
 - **New Endpoints**: Define routes in `main.py` (or a dedicated router file if it grows) and ensure they are protected by `auth_middleware.py`.
 - **Database Schema Changes**: Ensure you provide a migration strategy or update `migrate_runtime_data.py` so existing users do not lose their data.
 - **Configuration Parsing**: If a new feature introduces a new `config.json` field, update `config_mapper.py` and provide a tooltip in `config_tooltips.py`.

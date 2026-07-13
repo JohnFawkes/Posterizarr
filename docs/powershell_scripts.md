@@ -54,7 +54,7 @@ Posterizarr relies on a modular PowerShell architecture:
 **Purpose**: The integration layer for external services. Handles HTTP requests to Metadata providers (TMDB, TVDB, Fanart) to fetch raw images, and to Media Servers (Plex, Jellyfin, Emby) to upload the finished assets.
 **Key Functions:**
 
-- `GetTMDBLogo`, `GetTVDBLogo`, `GetFanartLogo`: Queries the respective APIs for clearlogos. They handle language priorities and vote sorting based on global configs.
+- `GetTMDBLogo`, `GetTVDBLogo`, `GetFanartLogo`: Queries the respective APIs for clearlogos. They handle language priorities and vote sorting based on global configs (uses the `Celerium.FanartTV` module for Fanart integrations).
 - `GetTMDBMoviePoster`, `GetTMDBShowBackground`, etc.: Functions specifically tailored to endpoint structures for fetching raw posters and backgrounds.
 - `GetPlexArtwork`, `CheckPlexAccess`: Validates API keys and fetches current metadata from Plex.
 - `MassDownloadPlexArtwork`, `MassDownloadJellyEmbyArtwork`: Loops over media libraries to pull down existing artwork for local processing.
@@ -66,7 +66,8 @@ Posterizarr relies on a modular PowerShell architecture:
 **Key Functions:**
 
 - `Invoke-MoviePosterCreation`: Orchestrates the movie poster workflow: Fetches the raw background -> Determines text/logo overlay -> Calls `ImageMagick` to apply borders/text -> Returns the path to the completed poster.
-- `Invoke-ShowPosterCreation`: Similar orchestration for TV Shows, with added complexity for Season-level and Episode-level (Title Card) variations.
+- `Invoke-ShowPosterCreation`: Similar orchestration for TV Shows and Season posters.
+- `Invoke-TitleCardCreation`: Orchestrates episode-level Title Card generation. Searches for TMDB/TVDB/Plex artwork with provider fallbacks, processes the image (resizing, text rendering, borders), and pushes the result to the media server.
 
 ### ImageMagick.ps1
 
@@ -106,6 +107,7 @@ These scripts represent the different "Modes" the application can run in. They d
 
 - **`NormalMode.ps1`**: The default mode. Iterates through all configured media server libraries and processes every item sequentially.
 - **`ArrMode.ps1`**: Designed to be triggered by Radarr/Sonarr custom scripts or webhooks. It reads the specific TMDB/TVDB ID passed by the Arr application and processes *only* that single item.
+- **`TautulliMode.ps1`**: Specifically designed to be triggered by Tautulli webhooks (e.g., on 'Recently Added' events) to process newly added items without scanning the entire library.
 - **`ManualMode.ps1`**: Processes a specific ID or Title provided manually by the user via CLI arguments.
 - **`SyncMode.ps1`**: Syncs generated artwork between different connected media servers (e.g., copying posters from Plex to Jellyfin).
 - **`EmbyJellyMode.ps1`**: Logic flow specifically optimized for iterating through Emby/Jellyfin libraries (as opposed to Plex).
