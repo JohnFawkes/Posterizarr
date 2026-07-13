@@ -3365,11 +3365,11 @@ async def delete_font_file(filename: str):
     """Delete a font file from Overlayfiles directory"""
     try:
         import os
-        filename = os.path.basename(filename)
         # Sanitize filename
         safe_filename = "".join(
             c for c in filename if c.isalnum() or c in "._- "
         ).strip()
+        safe_filename = os.path.basename(safe_filename)
 
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
@@ -3405,8 +3405,8 @@ async def download_font_file(filename: str):
     """Download a font file from Overlayfiles directory for previewing in the UI"""
     try:
         import os
-        filename = os.path.basename(filename)
         safe_filename = "".join(c for c in filename if c.isalnum() or c in "._- ")
+        safe_filename = os.path.basename(safe_filename)
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
 
@@ -3429,11 +3429,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
     """Generate a preview image for a font file"""
     try:
         import os
-        filename = os.path.basename(filename)
         # Sanitize filename
         safe_filename = "".join(
             c for c in filename if c.isalnum() or c in "._- "
         ).strip()
+        safe_filename = os.path.basename(safe_filename)
 
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
@@ -8255,45 +8255,44 @@ import hashlib
 @app.get("/api/thumbnail")
 async def get_thumbnail(path: str = Query(..., description="Path to the image"), width: int = Query(400, description="Thumbnail width")):
     """Generate or retrieve a thumbnail for a given image path"""
+    # The frontend might double-encode the path (e.g. %2520 for space), so we decode it again
+    import urllib.parse
+    path = urllib.parse.unquote(path)
+    
+    # Determine the real file path and its base directory based on the URL path prefix
+    base_dir = None
+    suffix = None
+    if path.startswith("/poster_assets/"):
+        base_dir = str(ASSETS_DIR)
+        suffix = path[len("/poster_assets/"):]
+    elif path.startswith("/manual_poster_assets/"):
+        base_dir = str(MANUAL_ASSETS_DIR)
+        suffix = path[len("/manual_poster_assets/"):]
+    elif path.startswith("/backup_assets/"):
+        base_dir = str(BACKUP_DIR)
+        suffix = path[len("/backup_assets/"):]
+    elif path.startswith("/test/"):
+        base_dir = str(TEST_DIR)
+        suffix = path[len("/test/"):]
+    elif path.startswith("/images/"):
+        base_dir = str(IMAGES_DIR)
+        suffix = path[len("/images/"):]
+    else:
+        raise HTTPException(status_code=400, detail="Invalid path prefix")
+        
+    # Ensure it's safe and prevent directory traversal
+    import os
+    base_dir_abs = os.path.abspath(base_dir)
+    filepath = os.path.abspath(os.path.join(base_dir_abs, suffix.lstrip("\\/")))
+    if not filepath.startswith(base_dir_abs + os.sep) and filepath != base_dir_abs:
+        raise HTTPException(status_code=403, detail="Access denied: Invalid path")
+        
+    real_path = Path(filepath)
+    
+    if not real_path.exists() or not real_path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+        
     try:
-        # The frontend might double-encode the path (e.g. %2520 for space), so we decode it again
-        import urllib.parse
-        path = urllib.parse.unquote(path)
-        
-        # Determine the real file path and its base directory based on the URL path prefix
-        real_path = None
-        base_dir = None
-        suffix = None
-        if path.startswith("/poster_assets/"):
-            base_dir = str(ASSETS_DIR)
-            suffix = path[len("/poster_assets/"):]
-        elif path.startswith("/manual_poster_assets/"):
-            base_dir = str(MANUAL_ASSETS_DIR)
-            suffix = path[len("/manual_poster_assets/"):]
-        elif path.startswith("/backup_assets/"):
-            base_dir = str(BACKUP_DIR)
-            suffix = path[len("/backup_assets/"):]
-        elif path.startswith("/test/"):
-            base_dir = str(TEST_DIR)
-            suffix = path[len("/test/"):]
-        elif path.startswith("/images/"):
-            base_dir = str(IMAGES_DIR)
-            suffix = path[len("/images/"):]
-        else:
-            raise HTTPException(status_code=400, detail="Invalid path prefix")
-            
-        # Ensure it's safe and prevent directory traversal
-        import os
-        base_dir_abs = os.path.abspath(base_dir)
-        filepath = os.path.abspath(os.path.join(base_dir_abs, suffix.lstrip("\\/")))
-        if not filepath.startswith(base_dir_abs + os.sep) and filepath != base_dir_abs:
-            raise HTTPException(status_code=403, detail="Access denied: Invalid path")
-            
-        real_path = Path(filepath)
-        
-        if not real_path.exists() or not real_path.is_file():
-            raise HTTPException(status_code=404, detail="Image not found")
-            
         # Create thumbnails directory if it doesn't exist (using Cache instead of temp so they survive runs)
         thumbs_dir = BASE_DIR / "Cache" / "thumbnails"
         thumbs_dir.mkdir(parents=True, exist_ok=True)
@@ -8323,14 +8322,10 @@ async def get_thumbnail(path: str = Query(..., description="Path to the image"),
                 
         return FileResponse(thumb_path, media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
         
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Error generating thumbnail for {path}: {e}")
         # Fallback to the original file if thumbnail generation fails
-        if 'real_path' in locals() and real_path and real_path.exists():
-            return FileResponse(real_path)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        return FileResponse(real_path)
 @app.get("/api/gallery")
 async def get_gallery():
     """Get poster gallery from assets directory (only poster.jpg) - uses cache"""
