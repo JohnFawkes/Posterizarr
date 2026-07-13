@@ -1345,7 +1345,7 @@ function OverlayFilesView() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 bg-theme-hover hover:bg-theme-dark text-theme-text rounded-lg transition-colors text-sm"
+                className="px-4 py-2 bg-theme-hover hover:bg-theme-bg-dark text-theme-text rounded-lg transition-colors text-sm"
               >
                 {t("overlayAssets.cancel")}
               </button>

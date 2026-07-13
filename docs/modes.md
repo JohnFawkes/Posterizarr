@@ -37,7 +37,7 @@ docker exec -it posterizarr pwsh /app/Posterizarr.ps1 -Testing
 
 ### Manual Mode (Interactive)
 
-!!! important
+!!! warning
     Source picture gets edited by script and is then moved to desired asset location.
 
 Run the script with the `-Manual` switch and add the desired extra switch for which poster you want to create `-MoviePosterCard` or `-ShowPosterCard` or`-SeasonPoster` or `-CollectionCard` or `-BackgroundCard` or `-TitleCard`
@@ -95,7 +95,7 @@ Follow the prompts to enter the source picture path (Container needs Access to i
 
 ### Manual Mode (Semi Automated)
 
-!!! important
+!!! warning
     The source picture is moved (if local) or downloaded (if a URL - and moved), then edited and placed in the desired asset location.
     The -PicturePath parameter can accept either a local file path or a direct URL to an image.
 
@@ -220,7 +220,7 @@ On [docker](platformandtools.md#docker) this way:
 
 ### Sync Modes
 
-!!! important
+!!! warning "Exact Match"
     The script requires that library names in Plex and Emby/Jellyfin match exactly for the sync to work. It calculates the hash of the artwork from both servers to determine if there are differences, and only syncs the artwork if the hashes do not match.
 
 #### Jellyfin
@@ -256,7 +256,7 @@ On [docker](platformandtools.md#docker) this way:
 
 ### Tautulli Mode Docker
 
-!!! important
+!!! warning
     Tautulli and Posterizarr must run as a container in Docker
 
 !!! note
@@ -357,8 +357,7 @@ In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex
 1. Open Tautulli and go to **Settings** -> **Notification Agents**.
 2. Click `Add a new notification agent` and select **Webhook**.
 3. **Configuration Tab:**
-    * **Webhook URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli`
-    * **Auth Webhook URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY`
+    * **Webhook URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY`
       - *(Generate an API Key in Posterizarr settings under WebUI)*
     * **Webhook Method:** `POST`
 4. **Triggers Tab:**
@@ -378,7 +377,7 @@ In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex
 
 ### Sonarr/Radarr Mode Docker
 
-!!! important
+!!! warning
     Arrs and Posterizarr must run as a container in Docker
 
 !!! note
@@ -420,8 +419,7 @@ To use it we need to configure a script in Sonarr/Radarr, please follow these in
 4. **Name:** Posterizarr
 5. **On Import:** Yes
 6. **On Upgrade:** Yes
-7. **URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr` or `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli`
-8. **Auth Webhook URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr?api_key=YOUR_API_KEY` or `http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY`
+7. **URL:** `http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr?api_key=YOUR_API_KEY`
     - *(Generate an API Key in Posterizarr settings under WebUI)*
 8. **Method:** POST
 9. Click **Save**.

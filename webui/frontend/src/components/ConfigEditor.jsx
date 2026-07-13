@@ -37,6 +37,7 @@ import {
 import { useTranslation } from "react-i18next";
 import ValidateButton from "./ValidateButton";
 import LanguageOrderSelector from "./LanguageOrderSelector";
+import ProviderOrderSelector from "./ProviderOrderSelector";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 import { useToast } from "../context/ToastContext";
 import ConfirmDialog from "./ConfirmDialog";
@@ -61,44 +62,25 @@ const DynamicIcon = ({ name, className }) => {
 // Mapping from groups to README sections
 const README_LINKS = {
   "WebUI Settings": "https://fscorrupt.github.io/posterizarr/configuration/#webui",
-  "API Keys & Tokens": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  ApiPart: "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  "Language & Preferences": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  "Image Filters": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
-  "Plex Settings": "https://fscorrupt.github.io/posterizarr/configuration/#plexpart",
-  PlexPart: "https://fscorrupt.github.io/posterizarr/configuration/#plexpart",
-  "Jellyfin Settings": "https://fscorrupt.github.io/posterizarr/configuration/#jellyfinpart",
-  JellyfinPart: "https://fscorrupt.github.io/posterizarr/configuration/#jellyfinpart",
-  "Emby Settings": "https://fscorrupt.github.io/posterizarr/configuration/#embypart",
-  EmbyPart: "https://fscorrupt.github.io/posterizarr/configuration/#embypart",
-  Notifications: "https://fscorrupt.github.io/posterizarr/configuration/#notification",
-  Notification: "https://fscorrupt.github.io/posterizarr/configuration/#notification",
-  "General Settings": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  PrerequisitePart: "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Overlay Files": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Resolution Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  Fonts: "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Text Formatting": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
-  "Image Processing": "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
-  OverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
+  "System Settings": "https://fscorrupt.github.io/posterizarr/configuration/#prerequisitepart",
+  "Provider Settings": "https://fscorrupt.github.io/posterizarr/configuration/#apipart",
+  "Media Servers": "https://fscorrupt.github.io/posterizarr/configuration/#plexpart",
+  "Language & Notifications": "https://fscorrupt.github.io/posterizarr/configuration/#notification",
+  "Global Visuals": "https://fscorrupt.github.io/posterizarr/configuration/#overlaypart",
   "Poster Settings": "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
-  PosterOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
-  "Season Poster Settings": "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
-  SeasonPosterOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
-  "Show Title on Season": "https://fscorrupt.github.io/posterizarr/configuration/#showtitleonseasonposterpart",
-  ShowTitleOnSeasonPosterPart: "https://fscorrupt.github.io/posterizarr/configuration/#showtitleonseasonposterpart",
+  "Poster Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#posteroverlaypart",
+  "Season Settings": "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
+  "Season Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#seasonposteroverlaypart",
+  "Season Show Title": "https://fscorrupt.github.io/posterizarr/configuration/#showtitleonseasonposterpart",
   "Background Settings": "https://fscorrupt.github.io/posterizarr/configuration/#backgroundoverlaypart",
-  BackgroundOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#backgroundoverlaypart",
+  "Background Overlays": "https://fscorrupt.github.io/posterizarr/configuration/#backgroundoverlaypart",
+  "Title Card Settings": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardoverlaypart",
   "Title Card Overlay": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardoverlaypart",
-  TitleCardOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#titlecardoverlaypart",
   "Title Card Title Text": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardtitletextpart",
-  TitleCardTitleTextPart: "https://fscorrupt.github.io/posterizarr/configuration/#titlecardtitletextpart",
   "Title Card Episode Text": "https://fscorrupt.github.io/posterizarr/configuration/#titlecardepisodetextpart",
-  TitleCardEPTextPart: "https://fscorrupt.github.io/posterizarr/configuration/#titlecardepisodetextpart",
+  "Collection Settings": "https://fscorrupt.github.io/posterizarr/configuration/#collectionposteroverlaypart",
   "Collection Poster": "https://fscorrupt.github.io/posterizarr/configuration/#collectionposteroverlaypart",
-  CollectionPosterOverlayPart: "https://fscorrupt.github.io/posterizarr/configuration/#collectionposteroverlaypart",
   "Collection Title": "https://fscorrupt.github.io/posterizarr/configuration/#collectiontitleposterpart",
-  CollectionTitlePosterPart: "https://fscorrupt.github.io/posterizarr/configuration/#collectiontitleposterpart",
 };
 
 // Reusable Password Input Component
@@ -176,29 +158,29 @@ function ConfigEditor() {
 
   // Tab Structure
   const tabs = {
-    WebUI: { groups: ["WebUI Settings"], icon: Lock, path: "/config/webui" },
-    General: { groups: ["General Settings", "PrerequisitePart"], icon: Settings, path: "/config/general" },
-    "Media Servers": { groups: ["Plex Settings", "Jellyfin Settings", "Emby Settings", "PlexPart", "JellyfinPart", "EmbyPart"], icon: Database, path: "/config/services" },
-    "Service APIs": { groups: ["API Keys & Tokens", "ApiPart"], icon: Key, path: "/config/api" },
-    Languages: { groups: ["Language & Preferences"], icon: Type, path: "/config/languages" },
-    Visuals: { groups: ["Image Processing", "Image Filters", "Overlay Files", "Resolution Overlays", "Fonts", "Text Formatting", "OverlayPart"], icon: Palette, path: "/config/visuals" },
-    Overlays: { groups: ["Poster Settings", "Season Poster Settings", "Background Settings", "Title Card Overlay", "Title Card Title Text", "Title Card Episode Text", "Show Title on Season", "PosterOverlayPart", "SeasonPosterOverlayPart", "BackgroundOverlayPart", "TitleCardOverlayPart", "TitleCardTitleTextPart", "TitleCardEPTextPart", "ShowTitleOnSeasonPosterPart"], icon: Image, path: "/config/overlays" },
-    Collections: { groups: ["Collection Title", "Collection Poster", "CollectionTitlePosterPart", "CollectionPosterOverlayPart"], icon: Library, path: "/config/collections" },
-    Notifications: { groups: ["Notifications", "Notification"], icon: Bell, path: "/config/notifications" },
+    System: { groups: ["WebUI Settings", "System Settings", "Language & Notifications"], icon: Settings, path: "/config/system" },
+    Providers: { groups: ["Provider Settings"], icon: Key, path: "/config/providers" },
+    "Media Servers": { groups: ["Media Servers"], icon: Database, path: "/config/services" },
+    "Global Visuals": { groups: ["Global Visuals"], icon: Palette, path: "/config/visuals" },
+    Posters: { groups: ["Poster Settings", "Poster Overlays"], icon: Image, path: "/config/posters" },
+    Seasons: { groups: ["Season Settings", "Season Overlays", "Season Show Title"], icon: Library, path: "/config/seasons" },
+    Backgrounds: { groups: ["Background Settings", "Background Overlays"], icon: Image, path: "/config/backgrounds" },
+    "Title Cards": { groups: ["Title Card Settings", "Title Card Overlay", "Title Card Title Text", "Title Card Episode Text"], icon: Type, path: "/config/titlecards" },
+    Collections: { groups: ["Collection Settings", "Collection Poster", "Collection Title"], icon: Library, path: "/config/collections" },
   };
 
   const getActiveTabFromPath = () => {
     const path = location.pathname;
-    if (path.includes("/config/webui")) return "WebUI";
-    if (path.includes("/config/general")) return "General";
+    if (path.includes("/config/system")) return "System";
+    if (path.includes("/config/providers")) return "Providers";
     if (path.includes("/config/services")) return "Media Servers";
-    if (path.includes("/config/api")) return "Service APIs";
-    if (path.includes("/config/languages")) return "Languages";
-    if (path.includes("/config/visuals")) return "Visuals";
-    if (path.includes("/config/overlays")) return "Overlays";
+    if (path.includes("/config/visuals")) return "Global Visuals";
+    if (path.includes("/config/posters")) return "Posters";
+    if (path.includes("/config/seasons")) return "Seasons";
+    if (path.includes("/config/backgrounds")) return "Backgrounds";
+    if (path.includes("/config/titlecards")) return "Title Cards";
     if (path.includes("/config/collections")) return "Collections";
-    if (path.includes("/config/notifications")) return "Notifications";
-    return "General";
+    return "System";
   };
   const activeTab = getActiveTabFromPath();
   const commonInputClass = "w-full bg-theme-bg border border-theme rounded-lg p-2.5 text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed";
@@ -221,7 +203,15 @@ function ConfigEditor() {
     if (k.includes("loglevel")) return "Logging";
 
     // APIs
-    if (k.includes("provider") || k.includes("sorting") || k.includes("order")) return "Preferences";
+    if (k.includes("provider") || k.includes("sorting")) return "Preferences";
+    if (k.includes("languageorder")) return "Lang Preferences";
+
+    // Notifications
+    const notificationKeys = ["sendnotification", "discord", "appriseurl", "discordusername", "useuptimekuma", "uptimekumaurl"];
+    if (notificationKeys.includes(k)) return "Notifications";
+
+    // Library Overrides
+    if (k === "librarylanguageoverrides") return "Library Overrides";
 
     // Visuals
     if (k.includes("font") && !k.includes("size")) return "Fonts";
@@ -574,14 +564,19 @@ function ConfigEditor() {
         if (usingFlatStructure) {
             const prefixes = {
                 "Poster Settings": "Poster",
-                "Season Poster Settings": "SeasonPoster",
+                "Poster Overlays": "Poster",
+                "Season Settings": "SeasonPoster",
+                "Season Overlays": "SeasonPoster",
+                "Season Show Title": "ShowTitle",
                 "Background Settings": "Background",
+                "Background Overlays": "Background",
+                "Title Card Settings": "TitleCard",
                 "Title Card Overlay": "TitleCard",
                 "Title Card Title Text": "TitleCardTitle",
                 "Title Card Episode Text": "TitleCardEP",
-                "Show Title on Season": "ShowTitle",
-                "Collection Title": "CollectionTitle",
-                "Collection Poster": "CollectionPoster"
+                "Collection Settings": "CollectionTitle",
+                "Collection Poster": "CollectionPoster",
+                "Collection Title": "CollectionTitle"
             };
             const prefix = prefixes[group] || "";
             const flatKey = prefix + field;
@@ -632,7 +627,7 @@ function ConfigEditor() {
     // Text dependencies (AddText)
     const textFields = ["addtextstroke", "strokecolor", "strokewidth", "minpointsize", "maxpointsize", "maxwidth", "maxheight", "text_offset", "linespacing", "textgravity", "fontallcaps", "fontcolor"];
     // Specific exclusions for things that look like text but aren't governed by generic AddText
-    if (groupName !== "Title Card Title Text" && groupName !== "Title Card Episode Text" && groupName !== "Show Title on Season" && groupName !== "Collection Title") {
+    if (groupName !== "Title Card Title Text" && groupName !== "Title Card Episode Text" && groupName !== "Season Show Title" && groupName !== "Collection Title") {
          if (textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddText")) return true;
     }
 
@@ -640,7 +635,7 @@ function ConfigEditor() {
     if ((keyLower.includes("strokecolor") || keyLower.includes("strokewidth")) && !getGroupValue(groupName, "AddTextStroke")) return true;
 
     // Specific Group Toggles
-    if (groupName === "Show Title on Season" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddShowTitletoSeason")) return true;
+    if (groupName === "Season Show Title" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddShowTitletoSeason")) return true;
     if (groupName === "Title Card Title Text" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddEPTitleText")) return true;
     if (groupName === "Title Card Episode Text" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddEPText")) return true;
     if (groupName === "Collection Title" && textFields.some(suffix => keyLower.endsWith(suffix)) && !getGroupValue(groupName, "AddCollectionTitle")) return true;
@@ -664,7 +659,7 @@ function ConfigEditor() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-theme-card border border-theme rounded-xl p-4 shadow-sm">
+      <div className="sticky top-[85px] z-30 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-theme-card/95 backdrop-blur-md border border-theme rounded-xl p-4 shadow-md">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-muted" />
           <input
@@ -707,14 +702,15 @@ function ConfigEditor() {
             </div>
          )}
 
-         <div className="flex-1 space-y-6">
+         <div className="flex-1 flex flex-col gap-6">
             {!searchQuery && (
-                <div className="lg:hidden">
-                    <select value={tabs[activeTab]?.path || ""} onChange={(e) => navigate(e.target.value)} className="w-full bg-theme-card border border-theme rounded-lg p-3 text-theme-text font-medium shadow-sm appearance-none">
+                <div className="lg:hidden relative">
+                    <select value={tabs[activeTab]?.path || ""} onChange={(e) => navigate(e.target.value)} className="w-full bg-theme-card border border-theme rounded-lg p-3 text-theme-text font-medium shadow-sm appearance-none pr-10">
                         {Object.entries(tabs).map(([name, data]) => (
                             <option key={name} value={data.path}>{name}</option>
                         ))}
                     </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-theme-muted pointer-events-none" />
                 </div>
             )}
 
@@ -955,6 +951,89 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                 </div>
             );
         }
+        if (settingKey === "LibraryLanguageOverrides") {
+            // One language order per library, applied to posters/seasons/backgrounds
+            // for that library (title cards keep their own textless-first lead).
+            // A single field per library instead of one per asset type, since the
+            // real intent is "this library is German/French/etc", not four
+            // settings to keep in sync.
+            const dictValue = value && typeof value === 'object' ? value : {};
+
+            const handleUpdateKey = (oldKey, newKey) => {
+                const newDict = { ...dictValue };
+                if (oldKey !== newKey) {
+                    delete newDict[oldKey];
+                }
+                newDict[newKey] = dictValue[oldKey] || { PreferredLanguageOrder: [] };
+                updateValue(fieldKey, newDict);
+            };
+
+            const handleUpdateOrder = (key, newOrder) => {
+                const newDict = { ...dictValue };
+                newDict[key] = { ...(dictValue[key] || {}), PreferredLanguageOrder: newOrder };
+                updateValue(fieldKey, newDict);
+            };
+
+            const handleRemovePair = (keyToRemove) => {
+                const newDict = { ...dictValue };
+                delete newDict[keyToRemove];
+                updateValue(fieldKey, newDict);
+            };
+
+            const handleAddPair = () => {
+                const newDict = { ...dictValue, "Library Name": { PreferredLanguageOrder: ["en"] } };
+                updateValue(fieldKey, newDict);
+            };
+
+            return (
+                <div className="space-y-4">
+                    {Object.entries(dictValue).map(([k, v], idx) => (
+                        <div key={idx} className="flex flex-col gap-3 p-4 bg-theme-bg/30 border border-theme rounded-lg relative group transition-all">
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-theme-muted mb-1">Library Name</label>
+                                    <input
+                                        className={`${commonInputClass} font-mono text-sm`}
+                                        value={k}
+                                        placeholder="Library Name"
+                                        onChange={(e) => handleUpdateKey(k, e.target.value)}
+                                        disabled={disabled}
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => handleRemovePair(k)}
+                                    className="p-2.5 mt-5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 flex-shrink-0 transition-colors"
+                                    disabled={disabled}
+                                    title="Remove Library Override"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="pt-3 border-t border-theme/50">
+                                <LanguageOrderSelector
+                                    value={v?.PreferredLanguageOrder || []}
+                                    onChange={(newOrder) => handleUpdateOrder(k, newOrder)}
+                                    helpText="Applies to posters, seasons and backgrounds for this library; title cards keep their textless-first preference automatically."
+                                />
+                            </div>
+                        </div>
+                    ))}
+                    <button
+                        onClick={handleAddPair}
+                        className="w-full py-3 border-2 border-dashed border-theme rounded-lg text-theme-muted hover:text-theme-primary hover:border-theme-primary transition-all flex items-center justify-center gap-2 text-sm font-medium"
+                        disabled={disabled}
+                    >
+                        <Plus className="w-5 h-5" /> Add Library Override
+                    </button>
+                    {Object.keys(dictValue).length === 0 && (
+                        <p className="text-[10px] text-theme-muted italic">
+                            Language order for specific libraries. Applies to posters, seasons and backgrounds for this library; title cards keep their textless-first preference automatically.
+                        </p>
+                    )}
+                </div>
+            );
+        }
         if (settingKey === "NewLineWords") {
             const dictValue = value && typeof value === 'object' ? value : {};
 
@@ -1077,6 +1156,7 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
         }
 
         // Selectors
+        if (settingKey === "ProviderOrder") return <ProviderOrderSelector value={Array.isArray(value) ? value : []} onChange={(newValue) => updateValue(fieldKey, newValue)} label={getDisplayName(settingKey)} helpText={tooltips[settingKey]} />;
         if (settingKey.includes("LanguageOrder")) return <LanguageOrderSelector value={Array.isArray(value) ? value : []} onChange={(newValue) => updateValue(fieldKey, newValue)} label={getDisplayName(settingKey)} helpText={tooltips[settingKey]} />;
         if (settingKey.includes("LibstoExclude")) {
             const type = settingKey.includes("Plex") ? "plex" : settingKey.includes("Jellyfin") ? "jellyfin" : "emby";

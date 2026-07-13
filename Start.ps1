@@ -1,3 +1,17 @@
+param(
+    [switch]$Run
+)
+
+# Accept GNU-style --run for container/orchestrator args compatibility.
+if (-not $Run) {
+    foreach ($arg in $args) {
+        if ($arg -eq "--run") {
+            $Run = $true
+            break
+        }
+    }
+}
+
 function ScriptSchedule {
     # Posterizarr File Watcher for Tautulli Recently Added Files
     $inputDir = "$env:APP_DATA/watcher"
@@ -549,8 +563,13 @@ function Ensure-WebUIConfig {
 
 $Header = @"
 ----------------------------------------------------
-Ideas for the container were taken from:
-DapperDrivers, Onedr0p and PJGitHub9 (effect toolkit inspiration)
+Ideas for the container image were taken from:
+DapperDrivers, Onedr0p
+
+And effects toolkit inspiration was taken from:
+PJGitHub9
+
+Thank you to all of them for the great work!
 ----------------------------------------------------
 ======================================================
   _____          _            _
@@ -621,6 +640,9 @@ foreach ($folder in $folders) {
         }
         catch {
             $ErrorMessage = $_.Exception.Message
+            if ($ErrorMessage -match "already exists") {
+                continue
+            }
             Write-Host "------------------------------------------------------------" -ForegroundColor Red
             if ($ErrorMessage -match "Access to the path|Permission denied") {
                 Write-Host "CRITICAL ERROR: PERMISSION DENIED" -ForegroundColor Red
@@ -693,4 +715,10 @@ if (Test-Path $CurrentlyRunning) {
 # Show integraded Scripts
 $StartTime = Get-Date
 write-host "Container Started..." -ForegroundColor Green
+if ($Run) {
+    Write-Host "Run mode enabled: skipping scheduler and starting Posterizarr immediately." -ForegroundColor Cyan
+    pwsh -File "$env:APP_ROOT/Posterizarr.ps1" -ContainerSchedule
+    exit $LASTEXITCODE
+}
+
 ScriptSchedule

@@ -32,7 +32,7 @@ To map specific libraries or collections in the examples below, you need to know
 
 This example shows how to combine both the `overview` (for missing assets) and `stats` (for counts) endpoints in a single service block using YAML anchors for a cleaner configuration.
 
-!!! important
+!!! warning "Index may differ"
     This example uses `stats.folders[8]` for Collections. Please look at [Identifying Library Indices](#identifying-library-indices) to find the correct index for your system.
 
 ![Overall Assets & Stats](images/Homepage_OverallStats.png)

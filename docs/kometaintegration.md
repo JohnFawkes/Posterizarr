@@ -27,7 +27,7 @@ services:
 !!! note
     Ensure that `/path/to/your/posterizarr/assets` points to the directory defined as the `AssetPath` in your Posterizarr configuration.
 
-!!! important
+!!! warning "Asset loss"
     Mounting your Posterizarr directory directly to `/assets` is only recommended if you **do not** already have existing assets stored in Kometa's default `/assets` directory. If you have existing assets there, you should mount the Posterizarr output to a different path (e.g., `/posterizarr-assets`) and adjust your Kometa `asset_directory` settings accordingly to avoid conflicts.
 
 ## 2. Kometa Configuration per Library

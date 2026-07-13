@@ -115,14 +115,9 @@ function WebhookSetupContent({ type }) {
         code: [
             { label: "Name", content: "Posterizarr" },
             { label: "On Import / On Upgrade", content: "Yes" },
-            { label: "URL", content: "http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr" },
+            { label: "URL", content: "http://YOUR_POSTERIZARR_IP:8000/api/webhook/arr?api_key=YOUR_API_KEY" },
             { label: "Method", content: "POST" }
-        ]
-    },
-    {
-        title: t("autoTriggers.webhookSetup.steps.auth"),
-        description: t("autoTriggers.webhookSetup.steps.authDesc"),
-        code: [{ label: "Auth URL", content: "http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY" }],
+        ],
         info: t("autoTriggers.webhookSetup.steps.authInfo")
     }
   ];
@@ -187,7 +182,7 @@ function WebhookSetupContent({ type }) {
                                             <div key={ci} className="space-y-1.5">
                                                 <span className="text-[10px] uppercase font-bold text-theme-muted">{c.label}</span>
                                                 <div className="relative">
-                                                    <pre className="bg-theme-darker p-3 rounded border border-theme text-xs break-all text-theme-text">{c.content}</pre>
+                                                    <pre className="bg-theme-bg-dark p-3 rounded border border-theme text-xs break-all text-theme-text">{c.content}</pre>
                                                     <button
                                                         onClick={() => robustCopy(c.content, `web-${index}-${ci}`, setCopiedCode)}
                                                         className="absolute top-2 right-2 p-1.5 rounded-lg bg-theme-card hover:bg-theme-hover transition-colors"
@@ -364,7 +359,7 @@ function ArrContent({ type }) {
                                                         <div key={codeIndex} className="space-y-1.5 sm:space-y-2">
                                                             {codeBlock.label && <p className="text-xs sm:text-sm font-medium text-theme-text">{codeBlock.label}</p>}
                                                             <div className="relative">
-                                                                <pre className="bg-theme-darker border border-theme rounded-lg p-3 overflow-x-auto text-xs sm:text-sm text-theme-text">
+                                                                <pre className="bg-theme-bg-dark border border-theme rounded-lg p-3 overflow-x-auto text-xs sm:text-sm text-theme-text">
                                                                     <code className="break-all">{codeBlock.content}</code>
                                                                 </pre>
                                                                 <button
@@ -431,10 +426,9 @@ function ArrContent({ type }) {
   );
 }
 
-// Tautulli Content Component (Remains unchanged from original)
 function TautulliContent() {
   const { t } = useTranslation();
-  const [mode, setMode] = useState("docker");
+  const [mode, setMode] = useState("webhook");
   const [copiedCode, setCopiedCode] = useState(null);
 
   const handleCopyCode = (code, id) => {
@@ -445,9 +439,14 @@ function TautulliContent() {
     window.open("https://github.com/fscorrupt/posterizarr/blob/main/modules/trigger.py", "_blank");
   };
 
+  const webhookSteps = t("autoTriggers.tautulli.webhook.steps", { returnObjects: true });
   const dockerSteps = t("autoTriggers.tautulli.docker.steps", { returnObjects: true });
   const windowsSteps = t("autoTriggers.tautulli.windows.steps", { returnObjects: true });
-  const steps = mode === "docker" ? dockerSteps : windowsSteps;
+  
+  let steps;
+  if (mode === "webhook") steps = webhookSteps;
+  else if (mode === "docker") steps = dockerSteps;
+  else steps = windowsSteps;
 
   return (
     <div className="space-y-6">
@@ -456,7 +455,26 @@ function TautulliContent() {
           <Settings className="w-5 h-5 text-theme-primary" />
           {t("autoTriggers.tautulli.selectMode")}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setMode("webhook")}
+            className={`p-5 rounded-lg border-2 transition-all duration-300 ${
+              mode === "webhook" ? "border-theme-primary bg-theme-primary/10" : "border-theme"
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-2">
+                <div className={`w-8 h-8 ${mode === "webhook" ? "text-theme-primary" : "text-theme-muted"}`}>
+                    <Globe className="w-8 h-8" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="font-semibold text-lg">Webhook</span>
+                  <span className="text-[10px] bg-theme-primary text-white px-2 py-0.5 rounded-full font-bold w-fit mt-1 uppercase">
+                    Recommended
+                  </span>
+                </div>
+            </div>
+            <p className="text-sm text-theme-muted text-left">Native webhook without custom scripts</p>
+          </button>
           <button
             onClick={() => setMode("docker")}
             className={`p-5 rounded-lg border-2 transition-all duration-300 ${
@@ -467,9 +485,14 @@ function TautulliContent() {
                 <div className={`w-8 h-8 ${mode === "docker" ? "text-theme-primary" : "text-theme-muted"}`}>
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338 0-.676.03-1.01.09-.248-1.827-1.66-2.66-1.775-2.742l-.353-.19-.23.352c-.331.498-.556 1.078-.62 1.68-.047.434-.014.87.1 1.289-.326.177-.77.34-1.486.388H.91a.9.9 0 00-.91.907c.002.864.245 1.71.705 2.455.47.774 1.155 1.41 1.98 1.844 1.02.53 2.15.794 3.29.77 5.74 0 9.956-2.64 11.963-7.476.776.01 2.463 0 3.327-1.633l.066-.186-.138-.103z" /></svg>
                 </div>
-                <span className="font-semibold text-lg">Docker</span>
+                <div className="flex flex-col text-left">
+                  <span className="font-semibold text-lg">Docker</span>
+                  <span className="text-[10px] bg-theme-muted text-white px-2 py-0.5 rounded-full font-bold w-fit mt-1 uppercase">
+                    Legacy
+                  </span>
+                </div>
             </div>
-            <p className="text-sm text-theme-muted">{t("autoTriggers.tautulli.docker.description")}</p>
+            <p className="text-sm text-theme-muted text-left">{t("autoTriggers.tautulli.docker.description")}</p>
           </button>
           <button
             onClick={() => setMode("windows")}
@@ -481,9 +504,14 @@ function TautulliContent() {
                 <div className={`w-8 h-8 ${mode === "windows" ? "text-theme-primary" : "text-theme-muted"}`}>
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" /></svg>
                 </div>
-                <span className="font-semibold text-lg">Windows</span>
+                <div className="flex flex-col text-left">
+                  <span className="font-semibold text-lg">Windows</span>
+                  <span className="text-[10px] bg-theme-muted text-white px-2 py-0.5 rounded-full font-bold w-fit mt-1 uppercase">
+                    Legacy
+                  </span>
+                </div>
             </div>
-            <p className="text-sm text-theme-muted">{t("autoTriggers.tautulli.windows.description")}</p>
+            <p className="text-sm text-theme-muted text-left">{t("autoTriggers.tautulli.windows.description")}</p>
           </button>
         </div>
       </div>
@@ -493,7 +521,13 @@ function TautulliContent() {
           <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-semibold text-theme-text mb-1">{t("autoTriggers.tautulli.requirements.title")}</h3>
-            <p className="text-sm text-theme-muted">{mode === "docker" ? t("autoTriggers.tautulli.requirements.docker") : t("autoTriggers.tautulli.requirements.windows")}</p>
+            <p className="text-sm text-theme-muted">
+              {mode === "webhook" 
+                ? t("autoTriggers.tautulli.requirements.webhook") 
+                : mode === "docker" 
+                  ? t("autoTriggers.tautulli.requirements.docker") 
+                  : t("autoTriggers.tautulli.requirements.windows")}
+            </p>
           </div>
         </div>
       </div>
@@ -524,7 +558,7 @@ function TautulliContent() {
                         <div key={ci} className="space-y-2 mt-4">
                             {cb.label && <p className="text-sm font-medium">{cb.label}</p>}
                             <div className="relative">
-                                <pre className="bg-theme-darker p-4 rounded text-sm text-theme-text overflow-x-auto"><code className="break-all">{cb.content}</code></pre>
+                                <pre className="bg-theme-bg-dark p-4 rounded text-sm text-theme-text overflow-x-auto"><code className="break-all">{cb.content}</code></pre>
                                 <button onClick={() => handleCopyCode(cb.content, `${index}-${ci}`)} className="absolute top-2 right-2 p-2 bg-theme-card rounded">
                                     {copiedCode === `${index}-${ci}` ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-theme-muted" />}
                                 </button>

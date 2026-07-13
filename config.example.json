@@ -12,6 +12,13 @@
     "JellyfinAPIKey": "JELLYFINAPIKEY",
     "EmbyAPIKey": "EMBYAPIKEY",
     "FavProvider": "tmdb",
+    "OverrideProviderOrder": false,
+    "ProviderOrder": [
+      "TMDB",
+      "TVDB",
+      "Fanart",
+      "Plex"
+    ],
     "WidthHeightFilter": "false",
     "PosterMinWidth": "2000",
     "PosterMinHeight": "3000",
@@ -37,7 +44,15 @@
     "LogoLanguageOrder": [
       "en",
       "de"
-    ]
+    ],
+    "LibraryLanguageOverrides": {
+      "Beispiel-Bibliothek": {
+        "PreferredLanguageOrder": [
+          "de",
+          "en"
+        ]
+      }
+    }
   },
   "PlexPart": {
     "LibstoExclude": [
@@ -83,6 +98,7 @@
     "UptimeKumaUrl": "https://uptime-kuma.domain.com/api/push/qXpb7Mf1vW"
   },
   "PrerequisitePart": {
+    "ParallelJobs": "5",
     "FileTestOnTrigger": "true",
     "AssetPath": "/assets",
     "SkipAddText": "false",
@@ -156,6 +172,10 @@
     "AutoUpdateIM": "false",
     "DisableHashValidation": "false",
     "DisableOnlineAssetFetch": "false",
+    "DisableOnlineTitleCardFetch": "false",
+    "DisableOnlinePosterFetch": "false",
+    "DisableOnlineBackgroundFetch": "false",
+    "DisableOnlineSeasonFetch": "false",
     "UseLogo": "false",
     "UseBGLogo": "false",
     "UseClearlogo": "false",

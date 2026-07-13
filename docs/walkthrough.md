@@ -3,7 +3,7 @@
 !!! tip
     If you are an unRAID user, just use the Community app from [@nwithan8](https://github.com/nwithan8) it is listed in Store.
 
-!!! important
+!!! warning "Unraid"
     Unraid has an unusual auto-folder behavior where, unless a subpath is specified, it defaults to using the app name (title-cased) as the folder name. Please change the uppercase "P" in /config under the Posterizarr path section to a lowercase "p" `/mnt/user/appdata/posterizarr`.
 
 
@@ -28,7 +28,7 @@
     - [Windows](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4)
 1. After that you need to install the Fanart Api Wrapper (On Windows as Administrator).
    ```powershell
-    pwsh Install-Module -Name FanartTvAPI -Scope AllUsers -Force
+    pwsh Install-Module -Name Celerium.FanartTV -Scope AllUsers -Force -AllowClobber
    ```
     Linux:
      - It should be visible here `/usr/local/share/powershell/Modules`
@@ -81,7 +81,7 @@
     Add the following line:
 
     ```powershell
-    Import-Module FanartTvAPI -Force
+    Import-Module Celerium.FanartTV -Force
     ```
 
     Save and exit, then it should be loaded and imported everytime you open a pwsh window.
@@ -283,15 +283,15 @@
         - On Windows, like this: `C:\\PathToAsset\\Dir`
             - **Important** - you have to use double `\\` in json.
 1. After that it is recommended to run the script in `-Testing` Mode either in cli or via Web UI http://localhost:8000.
+
 !!! tip
->
->*In this Mode, the script will create sample posters according to the config settings so you can see how it would look before you mass run it against your libraries. These samples will be created in the `test` directory*
->
->*You can find examples and more information here:*
->
->*[Info about Testing mode](modes.md#testing-mode)*
->
->*[Example Images](showcase.md#images-from-testing-mode)*
+    *In this Mode, the script will create sample posters according to the config settings so you can see how it would look before you mass run it against your libraries. These samples will be created in the `test` directory*
+
+    *You can find examples and more information here:*
+
+    *[Info about Testing mode](modes.md#testing-mode)*
+
+    *[Example Images](showcase.md#images-from-testing-mode)*
 
 In this example `posterizarr` is the container name
 

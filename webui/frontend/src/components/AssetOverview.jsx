@@ -266,17 +266,21 @@ const AssetRow = React.memo(
                 </span>
                 <span className="hidden sm:inline">•</span>
                 {/* Language */}
-                <span className="font-medium">
-                  {t("assetOverview.language")}:
-                </span>
-                <span className="bg-theme-card px-2 py-0.5 rounded">
-                  {asset.Language &&
-                  asset.Language !== "false" &&
-                  asset.Language !== false
-                    ? asset.Language
-                    : "Unknown"}
-                </span>
-                <span className="hidden sm:inline">•</span>
+                {!(!asset.DownloadSource || asset.DownloadSource === "false" || asset.DownloadSource === false) && (
+                  <>
+                    <span className="font-medium">
+                      {t("assetOverview.language")}:
+                    </span>
+                    <span className="bg-theme-card px-2 py-0.5 rounded">
+                      {asset.Language &&
+                      asset.Language !== "false" &&
+                      asset.Language !== false
+                        ? asset.Language
+                        : "Unknown"}
+                    </span>
+                    <span className="hidden sm:inline">•</span>
+                  </>
+                )}
                 {/* Source */}
                 <span className="font-medium">
                   {t("assetOverview.source")}:
@@ -1508,18 +1512,28 @@ const AssetOverview = () => {
 
     if (posterLang && primaryLang) {
         const primaryLangLower = primaryLang.toLowerCase();
-        const currentLang = posterLang.toLowerCase();
+        const currentLang = String(posterLang).toLowerCase();
 
-        // Handle "xx" / "textless" equivalence if necessary
-        const isPrimary = currentLang === primaryLangLower ||
-                         (primaryLangLower === 'xx' && currentLang === 'textless') ||
-                         (primaryLangLower === 'textless' && currentLang === 'xx');
+        if (currentLang === 'false' || currentLang === 'unknown') {
+            // Only push UNKNOWN LANG if the asset actually exists
+            if (downloadSource && downloadSource !== "false" && downloadSource !== false) {
+                tags.push({
+                    label: "UNKNOWN LANG",
+                    color: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+                });
+            }
+        } else {
+            // Handle "xx" / "textless" equivalence if necessary
+            const isPrimary = currentLang === primaryLangLower ||
+                             (primaryLangLower === 'xx' && currentLang === 'textless') ||
+                             (primaryLangLower === 'textless' && currentLang === 'xx');
 
-        if (!isPrimary) {
-             tags.push({
-                label: posterLang.toUpperCase(),
-                color: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-             });
+            if (!isPrimary) {
+                 tags.push({
+                    label: posterLang.toUpperCase(),
+                    color: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+                 });
+            }
         }
     }
 

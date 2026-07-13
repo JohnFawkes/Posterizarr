@@ -142,12 +142,12 @@ const Sidebar = () => {
 
     {
       id: "config",
-      path: "/config/webui",
+      path: "/config/system",
       label: t("nav.config"),
       icon: Settings,
       hasSubItems: true,
       subItems: [
-        { path: "/config/webui", label: "Settings", icon: Settings },
+        { path: "/config/system", label: "Settings", icon: Settings },
         { path: "/blueprints", label: "Blueprints", icon: Layers }
       ]
     },

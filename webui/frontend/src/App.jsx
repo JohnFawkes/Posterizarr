@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -45,14 +46,17 @@ import LoadingScreen from "./components/LoadingScreen";
 import TestGallery from "./components/TestGallery";
 import QueueView from "./components/QueueView";
 import Blueprints from "./components/Blueprints";
+import OnboardingModal from "./components/OnboardingModal";
 
 function AppContent() {
   const { isCollapsed } = useSidebar();
+  const navigate = useNavigate();
   const { isAuthenticated, loading, login, isAuthEnabled } = useAuth();
   const { isDashboardFullyLoaded, resetLoading } = useDashboardLoading();
   const location = useLocation();
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const [hasLoggedIn, setHasLoggedIn] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const hasShownStartupScreen = React.useRef(false);
   const isDashboardRoute =
     location.pathname === "/" || location.pathname === "/dashboard";
@@ -150,6 +154,23 @@ function AppContent() {
     }
   }, [isAuthenticated, hasLoggedIn, loading, isAuthEnabled]);
 
+  // Check onboarding status when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetch("/api/config")
+        .then(res => res.json())
+        .then(data => {
+          // If onboarding_completed is explicitly false or doesn't exist but we seeded it, 
+          // check if we need to show the onboarding modal.
+          // In config_database.py we seeded it in _root if it was empty.
+          if (data && data._root && data._root.onboarding_completed === false) {
+            setShowOnboarding(true);
+          }
+        })
+        .catch(err => console.error("Error fetching config for onboarding:", err));
+    }
+  }, [isAuthenticated]);
+
   // Hide loading screen when dashboard is fully loaded (only on dashboard route)
   // OR immediately hide if we're on a non-dashboard route
   useEffect(() => {
@@ -198,6 +219,9 @@ function AppContent() {
   // When showLoadingScreen is true, render the UI but overlay the loading screen
   return (
     <>
+      {/* Onboarding Modal - highest priority */}
+      {showOnboarding && <OnboardingModal onComplete={() => { setShowOnboarding(false); navigate("/how-it-works"); }} />}
+
       {/* Loading Screen Overlay - shown over the UI during login transition */}
       {showLoadingScreen && (
         <div className="fixed inset-0 z-[9999] bg-theme-bg">
@@ -255,43 +279,43 @@ function AppContent() {
 
                 <Route
                   path="/config"
-                  element={<Navigate to="/config/general" replace />}
+                  element={<Navigate to="/config/system" replace />}
                 />
                 <Route
-                  path="/config/webui"
-                  element={<ConfigEditor tab="WebUI" />}
+                  path="/config/system"
+                  element={<ConfigEditor tab="System" />}
                 />
                 <Route
-                  path="/config/general"
-                  element={<ConfigEditor tab="General" />}
+                  path="/config/providers"
+                  element={<ConfigEditor tab="Providers" />}
                 />
                 <Route
                   path="/config/services"
-                  element={<ConfigEditor tab="Services" />}
-                />
-                <Route
-                  path="/config/api"
-                  element={<ConfigEditor tab="API" />}
-                />
-                <Route
-                  path="/config/languages"
-                  element={<ConfigEditor tab="Languages" />}
+                  element={<ConfigEditor tab="Media Servers" />}
                 />
                 <Route
                   path="/config/visuals"
-                  element={<ConfigEditor tab="Visuals" />}
+                  element={<ConfigEditor tab="Global Visuals" />}
                 />
                 <Route
-                  path="/config/overlays"
-                  element={<ConfigEditor tab="Overlays" />}
+                  path="/config/posters"
+                  element={<ConfigEditor tab="Posters" />}
+                />
+                <Route
+                  path="/config/seasons"
+                  element={<ConfigEditor tab="Seasons" />}
+                />
+                <Route
+                  path="/config/backgrounds"
+                  element={<ConfigEditor tab="Backgrounds" />}
+                />
+                <Route
+                  path="/config/titlecards"
+                  element={<ConfigEditor tab="Title Cards" />}
                 />
                 <Route
                   path="/config/collections"
                   element={<ConfigEditor tab="Collections" />}
-                />
-                <Route
-                  path="/config/notifications"
-                  element={<ConfigEditor tab="Notifications" />}
                 />
 
                 <Route path="/logs" element={<LogViewer />} />

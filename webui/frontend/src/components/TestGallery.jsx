@@ -224,7 +224,7 @@ function TestGallery() {
                   className={`${aspectRatio} bg-theme-bg flex items-center justify-center overflow-hidden`}
                 >
                   <img
-                    src={image.url}
+                    src={`/api/thumbnail?path=${encodeURIComponent(image.url)}`}
                     alt={image.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"

@@ -460,10 +460,21 @@ OVERLAYFILES_DIR.mkdir(exist_ok=True)
 # Create uploads directory if it doesn't exist
 UPLOADS_DIR.mkdir(exist_ok=True)
 
-if not CONFIG_PATH.exists() and CONFIG_EXAMPLE_PATH.exists():
+# Try to find the example config file (in /app for Docker, or BASE_DIR for local)
+example_source_path = Path("/app/config.example.json") if IS_DOCKER else CONFIG_EXAMPLE_PATH
+
+if not CONFIG_PATH.exists():
     logger.warning(f"Config file not found at {CONFIG_PATH}")
-    logger.warning(f"Using fallback config.example.json: {CONFIG_EXAMPLE_PATH}")
-    CONFIG_PATH = CONFIG_EXAMPLE_PATH
+    if example_source_path.exists():
+        try:
+            import shutil
+            shutil.copy2(example_source_path, CONFIG_PATH)
+            logger.info(f"Copied default config from {example_source_path} to {CONFIG_PATH}")
+        except Exception as e:
+            logger.error(f"Failed to copy default config: {e}")
+            CONFIG_PATH = example_source_path
+    else:
+        logger.error(f"Fallback config.example.json not found at {example_source_path}!")
 else:
     logger.debug(f"Config path set to: {CONFIG_PATH}")
     logger.debug(f"Config exists: {CONFIG_PATH.exists()}")
@@ -1032,8 +1043,10 @@ def determine_media_type(filename: str, library_folder: str = None) -> str:
     ext_pattern = r"\.(jpg|jpeg|png|webp|tbn)$"
 
     # Check for episodes/title cards first (matches S01E01.jpg, S01E01.png, etc.)
-    if re.match(r"^s\d+e\d+" + ext_pattern, name) or re.match(
-        r".*_s\d+e\d+" + ext_pattern, name
+    if (
+        re.match(r"^s\d+e\d+" + ext_pattern, name)
+        or re.match(r".*_s\d+e\d+" + ext_pattern, name)
+        or name.startswith("episodetemplate")
     ):
         logger.debug(
             f"[MediaType] {filename} in {library_folder} -> Episode (pattern match)"
@@ -1357,7 +1370,7 @@ def scan_and_cache_assets():
                                     asset_type = "background"
                                 elif filename_lower.startswith("season"):
                                     asset_type = "season"
-                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE):
+                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE) or filename_lower.startswith("episodetemplate"):
                                     asset_type = "titlecard"
                                 else:
                                     asset_type = "other"
@@ -1450,7 +1463,7 @@ def scan_and_cache_assets():
                                     asset_type = "background"
                                 elif filename_lower.startswith("season"):
                                     asset_type = "season"
-                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE):
+                                elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE) or filename_lower.startswith("episodetemplate"):
                                     asset_type = "titlecard"
                                 else:
                                     asset_type = "other"
@@ -2046,13 +2059,15 @@ async def lifespan(app: FastAPI):
         try:
             logger.info("Initializing config database...")
             CONFIG_DB_PATH = DATABASE_DIR / "config.db"
+            logger.info(f"Target CONFIG_DB_PATH is {CONFIG_DB_PATH}")
 
             config_db = ConfigDB(CONFIG_DB_PATH, CONFIG_PATH)
             config_db.initialize()
 
             logger.info(f"Config database ready: {CONFIG_DB_PATH}")
+            logger.info(f"Does config.db exist on disk now? {CONFIG_DB_PATH.exists()}")
         except Exception as e:
-            logger.error(f"Failed to initialize config database: {e}")
+            logger.error(f"Failed to initialize config database: {e}", exc_info=True)
             config_db = None
     else:
         logger.info("Config database module not available, skipping initialization")
@@ -2270,6 +2285,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post("/api/onboarding/complete")
+async def complete_onboarding():
+    """Mark onboarding as completed."""
+    if CONFIG_DATABASE_AVAILABLE and config_db:
+        success = config_db.set_value('_root', 'onboarding_completed', True)
+        if success:
+            logger.info("Onboarding marked as completed by user.")
+            return {"success": True, "message": "Onboarding completed"}
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "Failed to mark onboarding as completed."}
+    )
 
 class ConfigUpdate(BaseModel):
     config: dict
@@ -2532,6 +2559,16 @@ async def get_config(request: Request):
 
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             grouped_config = json.load(f)
+        # Get onboarding_completed from DB
+        # Default to False if config_db is missing or failed to load, to ensure fresh installs see the modal
+        onboarding_completed = False
+        if CONFIG_DATABASE_AVAILABLE and config_db:
+            val = config_db.get_value('_root', 'onboarding_completed')
+            if val is not None:
+                # Value is stored as integer 0 or 1 in SQLite, convert to bool
+                onboarding_completed = bool(val)
+        
+        # Merge API keys correctly into the final response
 
         if CONFIG_MAPPER_AVAILABLE:
             flat_config = flatten_config(grouped_config)
@@ -2543,6 +2580,7 @@ async def get_config(request: Request):
             return {
                 "success": True,
                 "config": flat_config,  # Actual values returned
+                "_root": {"onboarding_completed": onboarding_completed},
                 "ui_groups": UI_GROUPS,
                 "display_names": display_names_dict,
                 "tooltips": CONFIG_TOOLTIPS,
@@ -2552,6 +2590,7 @@ async def get_config(request: Request):
             return {
                 "success": True,
                 "config": grouped_config,  # Actual values returned
+                "_root": {"onboarding_completed": onboarding_completed},
                 "tooltips": CONFIG_TOOLTIPS,
                 "using_flat_structure": False,
             }
@@ -3333,7 +3372,11 @@ async def delete_font_file(filename: str):
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
 
-        file_path = OVERLAYFILES_DIR / safe_filename
+        file_path = (OVERLAYFILES_DIR / safe_filename).resolve()
+
+        # Guard against path traversal: resolved path must stay within OVERLAYFILES_DIR
+        if not file_path.is_relative_to(OVERLAYFILES_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid filename")
 
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
@@ -3362,12 +3405,16 @@ async def download_font_file(filename: str):
         safe_filename = "".join(c for c in filename if c.isalnum() or c in "._- ")
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
-            
-        font_path = OVERLAYFILES_DIR / safe_filename
-        
+
+        font_path = (OVERLAYFILES_DIR / safe_filename).resolve()
+
+        # Guard against path traversal: resolved path must stay within OVERLAYFILES_DIR
+        if not font_path.is_relative_to(OVERLAYFILES_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid filename")
+
         if not font_path.exists():
             raise HTTPException(status_code=404, detail="Font file not found")
-            
+
         return FileResponse(font_path)
     except Exception as e:
         logger.error(f"Error downloading font: {e}")
@@ -3385,7 +3432,11 @@ async def preview_font_file(filename: str, text: str = "Aa"):
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
 
-        font_path = OVERLAYFILES_DIR / safe_filename
+        font_path = (OVERLAYFILES_DIR / safe_filename).resolve()
+
+        # Guard against path traversal: resolved path must stay within OVERLAYFILES_DIR
+        if not font_path.is_relative_to(OVERLAYFILES_DIR.resolve()):
+            raise HTTPException(status_code=400, detail="Invalid filename")
 
         if not font_path.exists():
             raise HTTPException(status_code=404, detail="Font file not found")
@@ -3673,12 +3724,11 @@ async def validate_jellyfin(request: JellyfinValidationRequest):
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             base_url = f"{request.url.rstrip('/')}/System/Info"
-            params = {"api_key": request.api_key}
-            
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
             logger.info(f"[REQUEST] Sending request to Jellyfin API...")
             logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(base_url, params=params)
+            response = await client.get(base_url, headers=headers)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -3754,12 +3804,11 @@ async def validate_emby(request: EmbyValidationRequest):
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             base_url = f"{request.url.rstrip('/')}/System/Info"
-            params = {"api_key": request.api_key}
-            
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
             logger.info(f"[REQUEST] Sending request to Emby API...")
             logger.debug(f"Target URL: {base_url}")
 
-            response = await client.get(base_url, params=params)
+            response = await client.get(base_url, headers=headers)
             logger.info(f"Response received - Status: {response.status_code}")
             logger.debug(f"Response headers: {dict(response.headers)}")
             logger.debug(f"Response size: {len(response.content)} bytes")
@@ -4471,7 +4520,7 @@ async def perform_jellyfin_emby_action(request: JellyfinEmbyActionRequest):
         # Jellyfin/Emby use similar endpoints for basic item refresh
         # Endpoint: /Items/{Id}/Refresh
 
-        url = f"{server_url}/Items/{request.media_id}/Refresh?api_key={api_key}"
+        url = f"{server_url}/Items/{request.media_id}/Refresh"
 
         # Default params for general refresh
         params = {
@@ -4495,7 +4544,8 @@ async def perform_jellyfin_emby_action(request: JellyfinEmbyActionRequest):
             raise HTTPException(status_code=400, detail="Invalid action")
 
         try:
-            response = await client.post(url, params=params)
+            headers = {"Authorization": f'MediaBrowser Token="{api_key}"'}
+            response = await client.post(url, headers=headers, params=params)
 
             if response.status_code == 204 or response.status_code == 200:
                 return {
@@ -4627,7 +4677,7 @@ async def get_jellyfin_libraries(request: JellyfinValidationRequest):
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            headers = {"X-Emby-Token": request.api_key}
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
             url = f"{request.url}/Library/VirtualFolders"
             response = await client.get(url, headers=headers)
 
@@ -4690,8 +4740,9 @@ async def get_emby_libraries(request: EmbyValidationRequest):
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            url = f"{request.url}/Library/VirtualFolders?api_key={request.api_key}"
-            response = await client.get(url)
+            url = f"{request.url}/Library/VirtualFolders"
+            headers = {"Authorization": f'MediaBrowser Token="{request.api_key}"'}
+            response = await client.get(url, headers=headers)
 
             if response.status_code == 200:
                 data = response.json()
@@ -5387,7 +5438,8 @@ async def get_upload_diagnostics():
                 "groupname": grp.getgrgid(os.getgid()).gr_name,
             }
         except Exception as e:
-            diagnostics["user"] = {"error": str(e)}
+            logger.debug(f"Error determining Unix user info: {e}")
+            diagnostics["user"] = {"error": "Unable to determine user details"}
 
     # Check if running with elevated privileges on Windows
     if platform.system() == "Windows":
@@ -5396,7 +5448,8 @@ async def get_upload_diagnostics():
 
             diagnostics["is_admin"] = ctypes.windll.shell32.IsUserAnAdmin() != 0
         except Exception as e:
-            diagnostics["is_admin"] = f"Unable to determine: {str(e)}"
+            logger.debug(f"Error determining Windows admin privileges: {e}")
+            diagnostics["is_admin"] = "Unable to determine"
 
     return diagnostics
 
@@ -8077,10 +8130,17 @@ async def websocket_logs(
         last_mode = current_mode
         current_log_file = log_file  # Track current log file being watched
 
+        loop_count = 0
         while True:
             try:
                 # FASTER POLLING: 0.3s instead of 1s
                 await asyncio.sleep(0.3)
+                
+                # Send ping every ~15 seconds to prevent proxy idle timeouts
+                loop_count += 1
+                if loop_count >= 50:
+                    await websocket.send_json({"type": "ping"})
+                    loop_count = 0
             except asyncio.CancelledError:
                 logger.info("WebSocket log streaming cancelled (connection closed)")
                 break
@@ -8184,7 +8244,84 @@ async def websocket_logs(
     finally:
         logger.debug("WebSocket connection closed")
 
+import hashlib
 
+@app.get("/api/thumbnail")
+async def get_thumbnail(path: str = Query(..., description="Path to the image"), width: int = Query(400, description="Thumbnail width")):
+    """Generate or retrieve a thumbnail for a given image path"""
+    try:
+        # The frontend might double-encode the path (e.g. %2520 for space), so we decode it again
+        import urllib.parse
+        path = urllib.parse.unquote(path)
+        
+        # Determine the real file path and its base directory based on the URL path prefix
+        real_path = None
+        base_dir = None
+        if path.startswith("/poster_assets/"):
+            base_dir = ASSETS_DIR
+            real_path = base_dir / path[len("/poster_assets/"):]
+        elif path.startswith("/manual_poster_assets/"):
+            base_dir = MANUAL_ASSETS_DIR
+            real_path = base_dir / path[len("/manual_poster_assets/"):]
+        elif path.startswith("/backup_assets/"):
+            base_dir = BACKUP_DIR
+            real_path = base_dir / path[len("/backup_assets/"):]
+        elif path.startswith("/test/"):
+            base_dir = TEST_DIR
+            real_path = base_dir / path[len("/test/"):]
+        elif path.startswith("/images/"):
+            base_dir = IMAGES_DIR
+            real_path = base_dir / path[len("/images/"):]
+        else:
+            raise HTTPException(status_code=400, detail="Invalid path prefix")
+            
+        # Ensure it's safe and prevent directory traversal
+        try:
+            real_path = real_path.resolve()
+            real_path.relative_to(base_dir.resolve())
+        except ValueError:
+            raise HTTPException(status_code=403, detail="Access denied: Invalid path")
+        
+        if not real_path.exists() or not real_path.is_file():
+            raise HTTPException(status_code=404, detail="Image not found")
+            
+        # Create thumbnails directory if it doesn't exist (using Cache instead of temp so they survive runs)
+        thumbs_dir = BASE_DIR / "Cache" / "thumbnails"
+        thumbs_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create a safe, unique filename for the thumbnail based on the path and last modified time
+        mtime = real_path.stat().st_mtime
+        hash_input = f"{str(real_path)}_{mtime}_{width}"
+        thumb_hash = hashlib.md5(hash_input.encode()).hexdigest()
+        thumb_path = thumbs_dir / f"{thumb_hash}.webp"
+        
+        # Generate thumbnail if it doesn't exist
+        if not thumb_path.exists():
+            with Image.open(real_path) as img:
+                # Calculate new height maintaining aspect ratio
+                w_percent = (width / float(img.size[0]))
+                h_size = int((float(img.size[1]) * float(w_percent)))
+                
+                # Resize using high quality resampling
+                img = img.resize((width, h_size), Image.Resampling.LANCZOS)
+                
+                # Convert to RGB if necessary (e.g., for PNGs with transparency)
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                    
+                # Save as WebP for optimal compression
+                img.save(thumb_path, "WEBP", quality=80)
+                
+        return FileResponse(thumb_path, media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating thumbnail for {path}: {e}")
+        # Fallback to the original file if thumbnail generation fails
+        if 'real_path' in locals() and real_path and real_path.exists():
+            return FileResponse(real_path)
+        raise HTTPException(status_code=500, detail="Internal server error")
 @app.get("/api/gallery")
 async def get_gallery():
     """Get poster gallery from assets directory (only poster.jpg) - uses cache"""
@@ -11586,10 +11723,11 @@ async def upload_asset_replacement(
                 or asset_path_lower.endswith((".jpg", ".png"))
                 and "background" not in asset_path_lower
                 and "titlecard" not in asset_path_lower
+                and "episodetemplate" not in asset_path_lower
                 and not re.search(r"s\d+e\d+", asset_path_lower, re.IGNORECASE)
             )
             is_background = "background" in asset_path_lower
-            is_titlecard = "titlecard" in asset_path_lower or re.search(
+            is_titlecard = "titlecard" in asset_path_lower or "episodetemplate" in asset_path_lower or re.search(
                 r"s\d+e\d+", asset_path_lower, re.IGNORECASE
             )
             is_season = (
@@ -13665,6 +13803,16 @@ async def tautulli_webhook(request: Request):
         # Filter out empty payloads
         if not payload:
             return {"success": False, "message": "Empty payload"}
+
+        # Handle Tautulli "Test" Webhook
+        # A test webhook from Tautulli either sends empty strings for values,
+        # or the literal placeholder strings if it doesn't substitute them.
+        all_empty = all(not str(v).strip() for v in payload.values())
+        has_placeholders = any(isinstance(v, str) and (v == "{rating_key}" or v == "{media_type}") for v in payload.values())
+        
+        if all_empty or has_placeholders:
+            logger.info("Received Test Webhook from Tautulli")
+            return {"success": True, "message": "Test successful"}
 
         # Define the Watcher Directory
         watcher_dir = BASE_DIR / "watcher"

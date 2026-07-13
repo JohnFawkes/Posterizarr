@@ -655,7 +655,7 @@ function FolderView() {
                     <div
                       className={`${getAssetAspectRatio(
                         asset.asset_type
-                      )} bg-theme-darker relative cursor-pointer overflow-hidden`}
+                      )} bg-theme-bg-dark relative cursor-pointer overflow-hidden`}
                       onClick={() => {
                         if (selectMode) {
                           toggleAssetSelection(asset.path);
@@ -665,7 +665,7 @@ function FolderView() {
                       }}
                     >
                       <img
-                        src={`${asset.url}?t=${cacheBuster}`}
+                        src={`/api/thumbnail?path=${encodeURIComponent(asset.url)}&t=${cacheBuster}`}
                         alt={asset.name}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                         loading="lazy"

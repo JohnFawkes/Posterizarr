@@ -18,6 +18,8 @@ CONFIG_TOOLTIPS = {
     "JellyfinAPIKey": "Your Jellyfin API key. You can create an API key from inside Jellyfin at Settings > Advanced > Api Keys.",
     "EmbyAPIKey": "Your Emby API key. You can create an API key from inside Emby at Settings > Advanced > Api Keys.",
     "FavProvider": "Set your preferred provider (default is tmdb). Possible values are tmdb (recommended), fanart, tvdb, or plex (not recommended). Plex should act as a last resort, especially if you prefer textless artwork, as it cannot be queried for text.",
+    "OverrideProviderOrder": "If true, Posterizarr will use the Provider Custom Order array to sequentially check providers for artwork instead of strictly adhering to FavProvider's single-provider logic.",
+    "ProviderOrder": "The sequential order in which Posterizarr searches for artwork when Override Provider Order is true. Valid values: TMDB, TVDB, Fanart, Plex.",
     "tmdb_vote_sorting": "Picture sorting via TMDB api, either by vote_average, vote_count or by primary (default tmdb view like on the website). Default is vote_average.",
     "PreferredLanguageOrder": "Specify language preferences. Default is xx,en,de (xx is Textless). Use 2-digit ISO 3166-1 language codes. If you set it to xx you tell the script it should only search for textless, posters with text will be skipped.",
     "PreferredSeasonLanguageOrder": "Specify language preferences for seasons. Default is xx,en,de (xx is Textless). Use 2-digit ISO 3166-1 language codes.",
@@ -29,6 +31,7 @@ CONFIG_TOOLTIPS = {
     "BgTcMinWidth": "Minimum background/titlecard width filter—greater than or equal to: 3840 (default value).",
     "BgTcMinHeight": "Minimum background/titlecard height filter—greater than or equal to: 2160 (default value).",
     "LogoLanguageOrder": "Specify language preferences for Logos. Default is en,de. Use 2-digit ISO 3166-1 language codes.",
+    "LibraryLanguageOverrides": "Override the language order on a per-library basis. Keyed by exact Plex/Jellyfin/Emby library name. Applies uniformly to that library's posters, season posters, and backgrounds.",
 
     # PlexPart
     "PlexLibstoExclude": "Libraries, by name, to exclude from processing on your Plex server.",
@@ -116,6 +119,10 @@ CONFIG_TOOLTIPS = {
     "NewLineWords": "A mapping of specific words to their desired replacement format. Each entry consists of a 'Key': 'Value' pair (e.g., 'FEUERZANGENBOWLE': 'FEUERZANGEN-\\nBOWLE'). This is used to manually force newlines or hyphens into long words for better visual layout.",
     "DisableHashValidation": "Set to true to skip hash validation (Default value is: false). Note: This may produce bloat, as every item will be re-uploaded to the media servers.",
     "DisableOnlineAssetFetch": "Set to true to skip all online lookups and use only locally available assets. (Default value is: false).",
+    "DisableOnlineTitleCardFetch": "Set to true to skip online lookups for Titlecards and use only locally available assets. (Default value is: false).",
+    "DisableOnlinePosterFetch": "Set to true to skip online lookups for Posters and use only locally available assets. (Default value is: false).",
+    "DisableOnlineBackgroundFetch": "Set to true to skip online lookups for Backgrounds and use only locally available assets. (Default value is: false).",
+    "DisableOnlineSeasonFetch": "Set to true to skip online lookups for Seasons and use only locally available assets. (Default value is: false).",
     "UseLogo": "Set to true to apply logos instead of title text to Posters.",
     "UseBGLogo": "Set to true to apply logos instead of title text to Backgrounds.",
     "UseClearlogo": "Set to true to use Clearlogo. A Clearlogo is a transparent PNG image that contains only the title text (logo) of a movie or show - no characters, no background, no extra artwork.",
@@ -125,6 +132,8 @@ CONFIG_TOOLTIPS = {
     "LogoFlatColor": "The specific color to use when Convert Logo Color is enabled (e.g., 'white', '#FFFFFF').",
     "UseOriginalTitle": "Set to true to use the original title instead of the localized version.",
     "telemetry": "Set to true to participate in anonymous telemetry that helps the developers understand global usage (sends instance ID, OS, Target, and Country).",
+    "ParallelJobs": "Determines how many poster creations run concurrently. Warning: ImageMagick is highly CPU/RAM intensive. Do not set higher than your logical CPU cores. If running on low-power NAS or Raspberry Pi, lower to 1 or 2 to avoid running out of memory.",
+
 
     # OverlayPart
     "ImageProcessing": "Set to true if you want the ImageMagick part (text, overlay and/or border); if false, it only downloads the posters.",

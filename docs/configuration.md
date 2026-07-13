@@ -29,6 +29,12 @@
 
         [Search order in script](searchorder.md)
 
+    - `OverrideProviderOrder`: If set to `true`, Posterizarr will ignore the legacy `FavProvider` hardcoded priority lists and instead strictly follow the array you define in `ProviderOrder`.
+    - `ProviderOrder`: A list specifying the exact sequential order in which Posterizarr searches for artwork when `OverrideProviderOrder` is true.
+        - Possible values: `"TMDB"`, `"TVDB"`, `"Fanart"`, `"Plex"`
+        - Example: `["TMDB", "TVDB", "Fanart", "Plex"]`
+
+
     - `WidthHeightFilter`: If set to `true`, an additional resolution filter will be applied to Posters/Backgrounds (TMDB and TVDB) and Titlecards (only on TMDB) searches.
     - `PosterMinWidth`: Minimum poster width filter—greater than or equal to: `2000` (default value)
     - `PosterMinHeight`: Minimum poster height filter—greater than or equal to: `3000` (default value)
@@ -44,6 +50,14 @@
     - `PreferredTCLanguageOrder`: Specify language preferences for TCs. Default is `PleaseFillMe` ( It will take your poster lang order / `xx` is Textless). Example configurations can be found in the config file. 2-digit language codes can be found here: [ISO 3166-1 Lang Codes](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).
         - If you set it to `xx` you tell the script it should only search for textless, posters with text will be skipped.
     - `LogoLanguageOrder`: Specify language preferences for Logos. Default is `en,de`. Example configurations can be found in the config file. 2-digit language codes can be found here: [ISO 3166-1 Lang Codes](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).
+    - `LibraryLanguageOverrides`: Override the language order above on a per-library basis, for libraries where the server-wide setting doesn't fit (e.g. a single French or German library on an otherwise English server). Keyed by exact Plex library name; each entry sets one `PreferredLanguageOrder` that is applied uniformly to that library's posters, season posters and backgrounds. Title cards keep their own textless-first (`xx`) lead automatically unless the override itself already starts with `xx`, since TC language is about finding a base still image rather than the library's spoken language. Libraries not listed here are unaffected and keep using the server-wide settings.
+        ```json
+        "LibraryLanguageOverrides": {
+          "German Movies": {
+            "PreferredLanguageOrder": ["de", "en"]
+          }
+        }
+        ```
 
 
     #### PlexPart
@@ -103,6 +117,8 @@
         - The container manages this automatically, so you can leave the default value in the configuration.
     - `maxLogs`: Number of Log folders you want to keep in `RotatedLogs` Folder (Log History).
     - `logLevel`: Sets the verbosity of logging. 1 logs Warning/Error messages. Default is 2 which logs Info/Warning/Error messages. 3 captures Info/Warning/Error/Debug messages and is the most verbose.
+    - `ParallelJobs`: Determines how many poster creations run concurrently. Default is 5.
+        - **Warning:** ImageMagick is highly CPU/RAM intensive. Do not set higher than your logical CPU cores. If running on low-power NAS or Raspberry Pi, lower to 1 or 2 to avoid running out of memory.
     - `font`: Font file name.
     - `RTLfont`: RTL Font file name.
     - `backgroundfont`: Background font file name.
@@ -146,17 +162,15 @@
     - `SkipTBA` : If set to `true`, TitleCard creation will be skipped when TitleText contains any word from `SkipWords`.
     - `SkipJapTitle` : Set to `true` to skip TitleCard creation if the Titletext is `Jap or Chinese`.
     - `AssetCleanup` : Set to `true` to cleanup Assets that are no longer in Plex.
-        ```diff
-        - !! IMPORTANT !! -
 
-        Risk of Data Loss from excluded Libraries:
+        !!! danger "Risk of Data Loss from excluded Libraries"
 
-        When you exclude libraries, any assets within these locations may be inadvertently deleted.
+            When you exclude libraries, any assets within these locations may be inadvertently deleted.
 
-        This happens because the script interprets these assets as "not needed anymore" during its execution since they are not found or listed as part of the active scan.
+            This happens because the script interprets these assets as "not needed anymore" during its execution since they are not found or listed as part of the active scan.
 
-        Ensure that all active asset libraries are included when using that setting on true to prevent unintended deletions.
-        ```
+            Ensure that all active asset libraries are included when using that setting on true to prevent unintended deletions.
+
     - `UseLogo` : Set to `true` to apply logos instead of title text to Posters.
     - `UseBGLogo` : Set to `true` to apply logos instead of title text to Backgrounds.
     - `UseOriginalTitle`: Set to `true` to use the original title instead of the localized version.
@@ -174,6 +188,10 @@
     - `DisableHashValidation` : Set to `true` to skip hash validation (Default value is: false).
         - _Note: This may produce bloat, as every item will be re-uploaded to the media servers._
     - `DisableOnlineAssetFetch` : Set to `true` to skip all online lookups and use only locally available assets. (Default value is: false).
+    - `DisableOnlineTitleCardFetch` : Set to `true` to skip online lookups for Titlecards and use only locally available assets. (Default value is: false).
+    - `DisableOnlinePosterFetch` : Set to `true` to skip online lookups for Posters and use only locally available assets. (Default value is: false).
+    - `DisableOnlineBackgroundFetch` : Set to `true` to skip online lookups for Backgrounds and use only locally available assets. (Default value is: false).
+    - `DisableOnlineSeasonFetch` : Set to `true` to skip online lookups for Seasons and use only locally available assets. (Default value is: false).
     - `FileTestOnTrigger` : On trigger run, checks whether the file is present locally. If set to $false, the test will be skipped and all images will be overwritten.
 
     #### OverlayPart
@@ -361,7 +379,7 @@
 | **Resizing**                             | - Automatically resizes all **poster images** to **2000x3000** for optimized media server use.                                                                                                                                                                                                                                                                                                                                                 |
 | **Preferred Language Selection**         | - Configure **language preferences** for media metadata, supporting multi-language ordering.<br> &nbsp; - **Season-specific language preferences** allow finer control over metadata for localized season information.                                                                                                                                                                                                                         |
 | **Poster and Background Minimum Size**   | - Set minimum dimensions for **posters** (2000x3000) and **backgrounds/title cards** (3840x2160), ensuring only high-quality images are used.                                                                                                                                                                                                                                                                                                  |
-| **Overlay Effects**                      | - Applies optional **overlays** to downloaded images:<br> &nbsp; - **Borders**: Adds polished framing.<br> &nbsp; - **Text**: Customizable title text.<br> &nbsp; - **Gradient Overlay**: Stylish gradient effect (custom options via **[gradient pack](gradient_background_poster_overlays.zip)**).                                                                                                                                           |
+| **Overlay Effects**                      | - Applies optional **overlays** to downloaded images:<br> &nbsp; - **Borders**: Adds polished framing.<br> &nbsp; - **Text**: Customizable title text.<br> &nbsp; - **Gradient Overlay**: Stylish gradient effect (custom options via **[gradient pack](https://raw.githubusercontent.com/fscorrupt/posterizarr/refs/heads/main/Overlayfiles/gradient_background_poster_overlays.zip)**).                                                                                                                                           |
 | **Automatic Library Search**             | - Autonomously scans **Plex**, **Jellyfin**, or **Emby** server for libraries, simplifying setup.                                                                                                                                                                                                                                                                                                                                              |
 | **Handling Multiple Versions**           | - Manages **multiple versions** of movies/shows (e.g., theatrical cuts, director’s cuts), ensuring complete coverage for all available versions.                                                                                                                                                                                                                                                                                               |
 | **CSV Export**                           | - Generates a **CSV file** with queried movie/show data:<br> &nbsp; - **Plex**: `$ScriptRoot\logs\PlexLibexport.csv`<br> &nbsp; - **Other Media Servers (Jellyfin/Emby)**: `$ScriptRoot\logs\OtherMediaServerLibExport.csv`                                                                                                                                                                                                                    |

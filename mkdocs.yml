@@ -17,11 +17,18 @@ theme:
     - search.highlight
     - content.code.annotate
     - content.code.copy
+    - navigation.instant
+    - navigation.tracking
+    - navigation.footer
+    - header.autohide
+    - search.share
+    - content.tabs.link
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: blue
+      accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
@@ -30,6 +37,7 @@ theme:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: blue
+      accent: indigo
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -59,6 +67,10 @@ nav:
     - 'Platform & Tools': 'platformandtools.md'
     - 'API Endpoints': 'endpoints.md'
     - 'Telemetry Server': 'telemetry.md'
+  - 'Developer Guide':
+    - 'PowerShell Scripts': 'powershell_scripts.md'
+    - 'Backend Python': 'backend_python.md'
+    - 'Frontend Components': 'frontend_components.md'
   - 'Reference':
     - 'Showcase': 'showcase.md'
 
@@ -72,6 +84,14 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.magiclink
 
 # Extra features (Adapted from example)
 extra:
@@ -82,5 +102,8 @@ extra:
     - icon: fontawesome/brands/discord
       link: https://discord.gg/fYyJQSGt54
       name: Discord Server
+    - icon: simple/kofi
+      link: https://ko-fi.com/R6R81S6SC
+      name: Support on Ko-fi
 
 copyright: Copyright &copy; 2025 fscorrupt

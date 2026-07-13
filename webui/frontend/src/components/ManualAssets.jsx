@@ -1021,7 +1021,7 @@ function ManualAssets() {
                   <div
                     className={`${getAssetAspectRatio(
                       asset.type
-                    )} bg-theme-darker relative cursor-pointer`}
+                    )} bg-theme-bg-dark relative cursor-pointer`}
                     onClick={() => {
                       if (bulkDeleteMode) {
                         toggleAssetSelection(asset.path);
@@ -1031,7 +1031,7 @@ function ManualAssets() {
                     }}
                   >
                     <img
-                      src={asset.url}
+                      src={`/api/thumbnail?path=${encodeURIComponent(asset.url)}`}
                       alt={asset.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -1598,7 +1598,7 @@ function ManualAssets() {
                           }}
                         >
                           <img
-                            src={asset.url}
+                            src={`/api/thumbnail?path=${encodeURIComponent(asset.url)}`}
                             alt={asset.name}
                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
                             loading="lazy"

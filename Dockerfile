@@ -1,5 +1,5 @@
 # ---- Frontend builder (temporary) ----
-FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:current-alpine3.24 AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -9,7 +9,6 @@ RUN npm install --force
 
 COPY webui/frontend/ ./
 RUN npm run build
-
 
 # ---- Final runtime image ----
 FROM python:3.13-alpine
@@ -56,7 +55,7 @@ RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/r
     && pwsh -NoProfile -Command " \
         Register-PSRepository -Default; \
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction Stop; \
-        Install-Module -Name FanartTvAPI -Scope AllUsers -Force -ErrorAction Stop; \
+        Install-Module -Name Celerium.FanartTV -Scope AllUsers -Force -ErrorAction Stop; \
         if (!(Test-Path (Split-Path \$PROFILE.AllUsersAllHosts))) { New-Item -ItemType Directory -Force (Split-Path \$PROFILE.AllUsersAllHosts) }; \
         'Set-PSReadLineOption -HistorySaveStyle SaveNothing' | Out-File -FilePath \$PROFILE.AllUsersAllHosts -Encoding utf8" \
     && mkdir -p /app /usr/share/fonts/custom /var/cache/fontconfig \
@@ -91,6 +90,7 @@ export PYTHONPATH=/app
 
 # Use APP_PORT environment variable, or default to 8000
 INTERNAL_PORT=${APP_PORT:-8000}
+UI_LOG_LEVEL=${UVICORN_LOG_LEVEL:-critical}
 
 # Check if the UI should be started (case-insensitive check)
 case "$DISABLE_UI" in
@@ -101,12 +101,26 @@ case "$DISABLE_UI" in
     *)
         # Default case: Runs if DISABLE_UI is "false", empty, or not set
         echo "Starting FastAPI Web UI (API + Frontend) on port ${INTERNAL_PORT}..."
-        python -m uvicorn backend.main:app --host 0.0.0.0 --port ${INTERNAL_PORT} --log-level critical --no-access-log &
+        python -m uvicorn backend.main:app --host 0.0.0.0 --port ${INTERNAL_PORT} --log-level ${UI_LOG_LEVEL} --no-access-log &
+        UVICORN_PID=$!
+
+        # Wait a moment to ensure it doesn't crash immediately (e.g., due to port conflict)
+        sleep 5
+        if ! kill -0 $UVICORN_PID 2>/dev/null; then
+            echo "CRITICAL ERROR: FastAPI Web UI failed to start! This is likely due to a port conflict (e.g., Gluetun using port ${INTERNAL_PORT})." >&2
+            echo "To see the exact error message, set the environment variable UVICORN_LOG_LEVEL=info and restart the container." >&2
+            exit 1
+        fi
         ;;
 esac
 
 # Start Posterizarr PowerShell automation
 echo "Starting Posterizarr PowerShell automation..."
+if [ "$#" -gt 0 ]; then
+    # Forward startup args (for example: --run) to Start.ps1.
+    exec /usr/bin/catatonit -- pwsh -NoProfile /app/Start.ps1 "$@"
+fi
+
 exec /usr/bin/catatonit -- pwsh -NoProfile /app/Start.ps1
 EOF
 

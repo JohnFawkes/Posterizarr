@@ -7,6 +7,13 @@
     "JellyfinAPIKey": "xxxxxxxxxxxxx",
     "EmbyAPIKey": "xxxxxxxxxxxxx",
     "FavProvider": "tmdb",
+    "OverrideProviderOrder": false,
+    "ProviderOrder": [
+      "TMDB",
+      "TVDB",
+      "Fanart",
+      "Plex"
+    ],
     "PreferredLanguageOrder": [
       "xx",
       "en",
@@ -90,6 +97,7 @@
     "DiscordUserName": "Posterizarr"
   },
   "PrerequisitePart": {
+    "ParallelJobs": "5",
     "AssetPath": "/assets",
     "magickinstalllocation": "C:\\PosterTemp\\ImageMagickPortable",
     "maxLogs": "5",
