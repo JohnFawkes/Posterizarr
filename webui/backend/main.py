@@ -13802,6 +13802,16 @@ async def tautulli_webhook(request: Request):
         if not payload:
             return {"success": False, "message": "Empty payload"}
 
+        # Handle Tautulli "Test" Webhook
+        # A test webhook from Tautulli either sends empty strings for values,
+        # or the literal placeholder strings if it doesn't substitute them.
+        all_empty = all(not str(v).strip() for v in payload.values())
+        has_placeholders = any(isinstance(v, str) and (v == "{rating_key}" or v == "{media_type}") for v in payload.values())
+        
+        if all_empty or has_placeholders:
+            logger.info("Received Test Webhook from Tautulli")
+            return {"success": True, "message": "Test successful"}
+
         # Define the Watcher Directory
         watcher_dir = BASE_DIR / "watcher"
         watcher_dir.mkdir(parents=True, exist_ok=True)

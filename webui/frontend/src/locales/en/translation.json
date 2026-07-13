@@ -2024,8 +2024,52 @@
       "selectMode": "Select Your Environment",
       "requirements": {
         "title": "Requirements",
+        "webhook": "None! This is the recommended and easiest way to setup Tautulli.",
         "docker": "Tautulli and Posterizarr must both be running as Docker containers",
         "windows": "Tautulli and Posterizarr must be installed on the same Windows system"
+      },
+      "webhook": {
+        "description": "Native webhook without custom scripts (Recommended)",
+        "steps": [
+          {
+            "title": "Configure Webhook",
+            "description": "Add a new Notification Agent in Tautulli.",
+            "substeps": [
+              "Go to Settings -> Notification Agents",
+              "Click 'Add a new notification agent' and select 'Webhook'",
+              "Set Webhook Method to POST"
+            ],
+            "code": [
+              {
+                "label": "Webhook URL",
+                "content": "http://YOUR_POSTERIZARR_IP:8000/api/webhook/tautulli?api_key=YOUR_API_KEY"
+              }
+            ]
+          },
+          {
+            "title": "Set Triggers",
+            "description": "Configure when the webhook should run.",
+            "substeps": [
+              "Go to the 'Triggers' tab",
+              "Scroll down and enable 'Recently Added'"
+            ]
+          },
+          {
+            "title": "Configure Data Payload",
+            "description": "Set the payload for the webhook.",
+            "substeps": [
+              "Go to the 'Data' tab",
+              "Scroll down to 'Recently Added'",
+              "Paste the following into JSON Data and click Save"
+            ],
+            "code": [
+              {
+                "label": "JSON Data",
+                "content": "{\n    \"RatingKey\": \"{rating_key}\",\n    \"mediatype\": \"{media_type}\",\n    \"parentratingkey\": \"{parent_rating_key}\",\n    \"grandparentratingkey\": \"{grandparent_rating_key}\"\n}"
+              }
+            ]
+          }
+        ]
       },
       "docker": {
         "description": "For containerized environments",
