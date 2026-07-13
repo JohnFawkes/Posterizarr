@@ -94,6 +94,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
             if is_api_key_valid:
                 return await call_next(request)
             else:
+                logger.info(f"Blocked unauthenticated webhook request to {path}. Please ensure your webhook URL includes the ?api_key= parameter.")
                 return self._unauthorized_response()
 
         # If API key is valid for other endpoints, bypass Basic Auth
