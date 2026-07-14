@@ -252,82 +252,119 @@ if (-not $module) {
 
 # Only connect if DisableOnlineAssetFetch is not set to false
 if ($global:DisableOnlineAssetFetch -eq 'false') {
+    $checkFanart = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'FANART')
+    $checkTMDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TMDB')
+    $checkTVDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TVDB')
+
+    Write-Entry -Message "Starting Provider Validation..." -Path $global:configLogging -Color White -log Info
+
     # Add Fanart API
-    Add-FanartTVAPIKey -ProjectKey $FanartTvAPIKey
+    if ($checkFanart) {
+        Write-Entry -Message "  Validating Fanart.tv API Key..." -Path $global:configLogging -Color Yellow -log Info
+        Add-FanartTVAPIKey -ProjectKey $FanartTvAPIKey
+        try {
+            $fanartTestUrl = "https://webservice.fanart.tv/v3/movies/10195?api_key=$FanartTvAPIKey"
+            Invoke-RestMethod -Uri $fanartTestUrl -Method Get -ErrorAction Stop | Out-Null
+            Write-Entry -Subtext "Fanart.tv API Key is valid." -Path $global:configLogging -Color Green -log Info
+        } catch {
+            Write-Entry -Subtext "Fanart.tv API Key validation failed. Please check your config file." -Path $global:configLogging -Color Red -log Error
+            $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
+            if ($global:FavProvider -eq 'Fanart') {
+                HandleScriptExit -Message "Invalid Fanart.tv API Key"
+            }
+        }
+    }
 
     # Check TMDB Token before building the Header.
-    if ($global:tmdbtoken.Length -le '35') {
-        Write-Entry -Message "TMDB Token is too short, you may have used the API key in your config file. Please use the 'API Read Access Token'." -Path $global:configLogging -Color Red -log Error
-        # Clear Running File
-        HandleScriptExit -Message "Wrong TMDB token"
+    if ($checkTMDB) {
+        Write-Entry -Message "  Validating TMDB Token..." -Path $global:configLogging -Color Yellow -log Info
+        if ($global:tmdbtoken.Length -le '35') {
+            Write-Entry -Subtext "TMDB Token is too short, you may have used the API key in your config file. Please use the 'API Read Access Token'." -Path $global:configLogging -Color Red -log Error
+            # Clear Running File
+            HandleScriptExit -Message "Wrong TMDB token"
+        } else {
+            # tmdb Header
+            $global:headers = @{}
+            $global:headers.Add("accept", "application/json")
+            $global:headers.Add("Authorization", "Bearer $global:tmdbtoken")
+
+            try {
+                $tmdbTestUrl = "https://api.themoviedb.org/3/authentication"
+                Invoke-RestMethod -Uri $tmdbTestUrl -Headers $global:headers -Method Get -ErrorAction Stop | Out-Null
+                Write-Entry -Subtext "TMDB Token is valid." -Path $global:configLogging -Color Green -log Info
+            } catch {
+                Write-Entry -Subtext "TMDB Token validation failed. Please check your config file." -Path $global:configLogging -Color Red -log Error
+                $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
+                if ($global:FavProvider -eq 'TMDB') {
+                    HandleScriptExit -Message "Invalid TMDB token"
+                }
+            }
+        }
     }
 
-    $maxRetries = 6
-    $retryCount = 0
-    $success = $false
-    Write-Entry -Message "Trying to receive a TVDB Token..." -Path $global:configLogging -Color White -log Info
+    if ($checkTVDB) {
+        $maxRetries = 6
+        $retryCount = 0
+        $success = $false
+        Write-Entry -Message "  Validating TVDB API Key (Fetching Token)..." -Path $global:configLogging -Color Yellow -log Info
 
-    while (-not $success -and $retryCount -lt $maxRetries) {
-        try {
-            # tvdb token Header
-            $global:apiUrl = "https://api4.thetvdb.com/v4/login"
-            if ($global:tvdbpin) {
-                $global:requestBody = @{
-                    apikey = $global:tvdbapi
-                    pin    = $global:tvdbpin
-                } | ConvertTo-Json
-            }
-            Else {
-                $global:requestBody = @{
-                    apikey = $global:tvdbapi
-                } | ConvertTo-Json
-            }
-            # tvdb Header
-            $global:tvdbtokenheader = @{
-                'accept'       = 'application/json'
-                'Content-Type' = 'application/json'
-            }
-
-            # Make tvdb the POST request
-            $global:tvdbtoken = (Invoke-RestMethod -Uri $global:apiUrl -Headers $global:tvdbtokenheader -Method Post -Body $global:requestBody).data.token
-            $global:tvdbheader = @{}
-            $global:tvdbheader.Add("accept", "application/json")
-            $global:tvdbheader.Add("Authorization", "Bearer $global:tvdbtoken")
-
-            if ($global:tvdbtoken) {
-                $success = $true
-                Write-Entry -Subtext "Successfully received a TVDB Token" -Path $global:configLogging -Color Green -log Info
-            }
-
-        }
-        catch {
-            $retryCount++
-
-            if ($retryCount -lt $maxRetries) {
-                Start-Sleep -Seconds 10  # Wait for 10 seconds before the next retry
-            }
-            else {
-                if ($global:FavProvider -eq 'TVDB') {
-                    Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
-                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-                    # Clear Running File
-                    HandleScriptExit -Message "Could not receive a TVDB Token"
+        while (-not $success -and $retryCount -lt $maxRetries) {
+            try {
+                # tvdb token Header
+                $global:apiUrl = "https://api4.thetvdb.com/v4/login"
+                if ($global:tvdbpin) {
+                    $global:requestBody = @{
+                        apikey = $global:tvdbapi
+                        pin    = $global:tvdbpin
+                    } | ConvertTo-Json
                 }
                 Else {
-                    Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
-                    $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                    $global:requestBody = @{
+                        apikey = $global:tvdbapi
+                    } | ConvertTo-Json
+                }
+                # tvdb Header
+                $global:tvdbtokenheader = @{
+                    'accept'       = 'application/json'
+                    'Content-Type' = 'application/json'
+                }
 
-                    break
+                # Make tvdb the POST request
+                $global:tvdbtoken = (Invoke-RestMethod -Uri $global:apiUrl -Headers $global:tvdbtokenheader -Method Post -Body $global:requestBody).data.token
+                $global:tvdbheader = @{}
+                $global:tvdbheader.Add("accept", "application/json")
+                $global:tvdbheader.Add("Authorization", "Bearer $global:tvdbtoken")
+
+                if ($global:tvdbtoken) {
+                    $success = $true
+                    Write-Entry -Subtext "TVDB API Key is valid (Token received)." -Path $global:configLogging -Color Green -log Info
+                }
+
+            }
+            catch {
+                $retryCount++
+
+                if ($retryCount -lt $maxRetries) {
+                    Start-Sleep -Seconds 10  # Wait for 10 seconds before the next retry
+                }
+                else {
+                    if ($global:FavProvider -eq 'TVDB') {
+                        Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
+
+                        # Clear Running File
+                        HandleScriptExit -Message "Could not receive a TVDB Token"
+                    }
+                    Else {
+                        Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
+                        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
+
+                        break
+                    }
                 }
             }
         }
     }
-
-    # tmdb Header
-    $global:headers = @{}
-    $global:headers.Add("accept", "application/json")
-    $global:headers.Add("Authorization", "Bearer $global:tmdbtoken")
 }
 
 #### MAIN SCRIPT START ####
