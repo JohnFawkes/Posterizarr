@@ -15,7 +15,7 @@ function SendMessage {
         $fieldList = [System.Collections.Generic.List[object]]::new()
 
         # Add all common fields
-        $fieldList.Add([PSCustomObject]@{ name = ""; value = ":bar_chart:"; inline = $false })
+        $fieldList.Add([PSCustomObject]@{ name = "$([char]0x200B)"; value = ":bar_chart:"; inline = $false })
         $fieldList.Add([PSCustomObject]@{ name = "Type"; value = $type; inline = $false })
         $fieldList.Add([PSCustomObject]@{ name = "Fallback"; value = $fallback; inline = $true })
         $fieldList.Add([PSCustomObject]@{ name = "Language"; value = $lang; inline = $true })
@@ -24,7 +24,7 @@ function SendMessage {
         # Removed conditional fields for Tautulli/Arr modes
 
         # Add remaining fields
-        $fieldList.Add([PSCustomObject]@{ name = ""; value = ":frame_photo:"; inline = $false })
+        $fieldList.Add([PSCustomObject]@{ name = "$([char]0x200B)"; value = ":frame_photo:"; inline = $false })
 
         # Add the title. ConvertTo-Json will handle any special characters in $title
         $fieldList.Add([PSCustomObject]@{ name = "Title"; value = $title; inline = $false })
