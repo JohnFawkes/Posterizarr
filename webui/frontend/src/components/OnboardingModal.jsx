@@ -561,7 +561,7 @@ const runModes = [
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
-                      <img src="/tmdb.png" alt="TMDb" className="w-5 h-5 mr-2 object-contain rounded" /> {t("onboarding.tmdbApiTokenRequired")}
+                      <img src="/tmdb.png" alt="TMDb" className="w-5 h-5 mr-2 object-contain rounded" /> {t("onboarding.tmdbApiTokenRequired")} <span className="ml-1 text-xs text-theme-primary">(Free)</span>
                     </label>
                     <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">{t("onboarding.howToGet")}<ExternalLink className="w-3 h-3 ml-1" />
                     </a>
@@ -577,12 +577,13 @@ const runModes = [
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
-                      <img src="/tvdb.png" alt="TVDb" className="w-5 h-5 mr-2 object-contain rounded bg-white/10 p-0.5" /> {t("onboarding.tvdbApiKeyRequired")}
+                      <img src="/tvdb.png" alt="TVDb" className="w-5 h-5 mr-2 object-contain rounded bg-white/10 p-0.5" /> {t("onboarding.tvdbApiKeyRequired")} <span className="ml-1 text-xs text-theme-primary">(Free)</span>
                     </label>
                     <a href="https://thetvdb.com/api-information" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">{t("onboarding.howToGet")}<ExternalLink className="w-3 h-3 ml-1" />
                     </a>
                   </div>
                   <ClearableInput value={config.tvdbapi} onChange={val => handleChange("tvdbapi", val)} placeholder={t("onboarding.v4ApiKey")} isPassword />
+                  <p className="text-[10px] text-theme-muted mt-1.5 leading-tight">Free for personal use. Consider subscribing to support their work!</p>
                 </div>
                 <div className="mt-6">
                   <ValidateButton type="tvdb" config={config} label={t("onboarding.test")} disabled={!config.tvdbapi} />
@@ -593,7 +594,7 @@ const runModes = [
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium text-white flex items-center">
-                      <img src="/fanart.png" alt="Fanart" className="w-5 h-5 mr-2 object-contain rounded" /> {t("onboarding.fanartTvApiKeyRequired")}
+                      <img src="/fanart.png" alt="Fanart" className="w-5 h-5 mr-2 object-contain rounded" /> {t("onboarding.fanartTvApiKeyRequired")} <span className="ml-1 text-xs text-theme-primary">(Free)</span>
                     </label>
                     <a href="https://fanart.tv/get-an-api-key/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary flex items-center hover:underline">{t("onboarding.howToGet")}<ExternalLink className="w-3 h-3 ml-1" />
                     </a>
