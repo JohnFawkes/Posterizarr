@@ -327,8 +327,20 @@ export default function Blueprints() {
   const [sampleLogoUrl, setSampleLogoUrl] = useState("/blueprint-previews/clearlogo.png");
   const [sampleArtUrl, setSampleArtUrl] = useState("/blueprint-previews/clearart.png");
 
+  const fetchOverlayFiles = async () => {
+    try {
+      const response = await fetch(`${API_URL}/overlayfiles`);
+      if (response.ok) {
+        const data = await response.json();
+        const imageFiles = data.filter(f => f.name.match(/\.(png|jpg|jpeg|webp)$/i)).map(f => ({ label: f.name, value: f.name }));
+        setOverlayFiles(imageFiles);
+      }
+    } catch (err) { console.error("Failed to load overlay files:", err); }
+  };
+
   useEffect(() => {
     fetchConfig();
+    fetchOverlayFiles();
     const stored = localStorage.getItem("posterizarr_custom_blueprints");
     if (stored) {
       try {
@@ -1259,7 +1271,7 @@ if (usingFlatStructure) {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-theme-muted flex-grow mb-4">{blueprint.customDescription || t(blueprint.descriptionKey)}</p>
+                  <p className="text-sm text-theme-muted flex-grow mb-4">{blueprint.customDescription || (blueprint.descriptionKey ? t(blueprint.descriptionKey) : "")}</p>
 
                   {blueprint.id.startsWith("custom_") && (
                     <button onClick={(e) => { e.stopPropagation(); deleteCustomPreset(blueprint.id); }} className="text-theme-muted hover:text-red-500 p-1.5 rounded-lg bg-theme-bg/50 hover:bg-red-500/10 transition-colors w-min mb-4 self-end" title="Delete Preset">
@@ -1578,24 +1590,24 @@ if (usingFlatStructure) {
                     <div className="space-y-4">
                       {previewType === 'Poster' || previewType === 'Season' || previewType === 'Collection' ? (
                          <>
-                           <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.poster4k} onChange={(v) => updateBuilder("ResolutionOverlays", "poster4k", v)} />
-                           <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Poster1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Poster1080p", v)} />
+                           <SelectInput label="4K Overlay File" value={builderState.ResolutionOverlays.poster4k} onChange={(v) => updateBuilder("ResolutionOverlays", "poster4k", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Poster1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Poster1080p", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4K DoVi Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4K HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4K DoVi+HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi+HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                          </>
                       ) : previewType === 'Background' ? (
                          <>
-                           <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.Background4k} onChange={(v) => updateBuilder("ResolutionOverlays", "Background4k", v)} />
-                           <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Background1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Background1080p", v)} />
+                           <SelectInput label="4K Overlay File" value={builderState.ResolutionOverlays.Background4k} onChange={(v) => updateBuilder("ResolutionOverlays", "Background4k", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="1080p Overlay File" value={builderState.ResolutionOverlays.Background1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "Background1080p", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4K DoVi Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4K HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K DoVi+HDR10 Overlay File" value={builderState.ResolutionOverlays["4K DoVi+HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi+HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                          </>
                       ) : (
                          <>
-                           <TextInput label="4K Overlay File" value={builderState.ResolutionOverlays.TC4k} onChange={(v) => updateBuilder("ResolutionOverlays", "TC4k", v)} />
-                           <TextInput label="1080p Overlay File" value={builderState.ResolutionOverlays.TC1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "TC1080p", v)} />
+                           <SelectInput label="4K Overlay File" value={builderState.ResolutionOverlays.TC4k} onChange={(v) => updateBuilder("ResolutionOverlays", "TC4k", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
+                           <SelectInput label="1080p Overlay File" value={builderState.ResolutionOverlays.TC1080p} onChange={(v) => updateBuilder("ResolutionOverlays", "TC1080p", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K DoVi Overlay File" value={builderState.ResolutionOverlays["4K DoVi Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K DoVi Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                            <SelectInput label="4K HDR10 Overlay File" value={builderState.ResolutionOverlays["4K HDR10 Overlay File"]} onChange={(v) => updateBuilder("ResolutionOverlays", "4K HDR10 Overlay File", v)} options={[{label: "None", value: ""}, ...overlayFiles]} />
                          </>
