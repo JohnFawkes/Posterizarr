@@ -332,7 +332,8 @@ export default function Blueprints() {
       const response = await fetch(`${API_URL}/overlayfiles`);
       if (response.ok) {
         const data = await response.json();
-        const imageFiles = data.filter(f => f.name.match(/\.(png|jpg|jpeg|webp)$/i)).map(f => ({ label: f.name, value: f.name }));
+        const filesArray = Array.isArray(data) ? data : data.files || [];
+        const imageFiles = filesArray.filter(f => f.name.match(/\.(png|jpg|jpeg|webp)$/i)).map(f => ({ label: f.name, value: f.name }));
         setOverlayFiles(imageFiles);
       }
     } catch (err) { console.error("Failed to load overlay files:", err); }

@@ -2991,6 +2991,7 @@ async def preview_overlay_file(filename: str):
         safe_filename = "".join(
             c for c in filename if c.isalnum() or c in "._- "
         ).strip()
+        safe_filename = os.path.basename(safe_filename)
 
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
@@ -3079,6 +3080,7 @@ async def upload_overlay_file(file: UploadFile = File(...)):
         safe_filename = "".join(
             c for c in file.filename if c.isalnum() or c in "._- "
         ).strip()
+        safe_filename = os.path.basename(safe_filename)
         logger.debug(f"Sanitized filename: {safe_filename}")
 
         if not safe_filename:
@@ -3168,6 +3170,7 @@ async def delete_overlay_file(filename: str):
         safe_filename = "".join(
             c for c in filename if c.isalnum() or c in "._- "
         ).strip()
+        safe_filename = os.path.basename(safe_filename)
 
         if not safe_filename:
             raise HTTPException(status_code=400, detail="Invalid filename")
@@ -3196,36 +3199,6 @@ async def delete_overlay_file(filename: str):
         logger.error(f"Error deleting overlay file: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-
-@app.get("/api/overlayfiles/preview/{filename}")
-async def preview_overlay_file(filename: str):
-    """Serve overlay file for preview"""
-    try:
-        # Sanitize filename
-        safe_filename = "".join(
-            c for c in filename if c.isalnum() or c in "._- "
-        ).strip()
-
-        if not safe_filename:
-            raise HTTPException(status_code=400, detail="Invalid filename")
-
-        file_path = OVERLAYFILES_DIR / safe_filename
-
-        if not file_path.exists():
-            raise HTTPException(status_code=404, detail="File not found")
-
-        # Serve file
-        return FileResponse(
-            file_path,
-            media_type="image/png",  # Will auto-detect based on extension
-            headers={"Cache-Control": "public, max-age=3600"},
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error serving overlay file: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================================
