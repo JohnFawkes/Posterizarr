@@ -10163,6 +10163,7 @@ class AssetReplaceRequest(BaseModel):
     year: Optional[int] = None  # Release year for fallback search
     season_number: Optional[int] = None
     episode_number: Optional[int] = None
+    is_manual_search: bool = False
 
 
 class AssetUploadRequest(BaseModel):
@@ -10200,7 +10201,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
         logger.info("=" * 80)
 
         # Try to get IDs from database if not provided in request
-        if not request.tmdb_id or not request.tvdb_id:
+        if (not request.tmdb_id or not request.tvdb_id) and not request.is_manual_search:
             try:
                 # Use the global thread-safe db instance
                 if not db:
@@ -10211,7 +10212,7 @@ async def fetch_asset_replacements(request: AssetReplaceRequest):
                 search_method = None
 
                 # Method 1: Search by asset path (for AssetReplacer)
-                if request.asset_path and not request.asset_path.startswith("manual_"):
+                if not request.is_manual_search and request.asset_path and not request.asset_path.startswith("manual_"):
                     # Extract show/movie name from asset path to match against Rootfolder
                     import os
 

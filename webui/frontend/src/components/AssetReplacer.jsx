@@ -1060,6 +1060,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         },
         body: JSON.stringify({
           asset_path: asset.path,
+          is_manual_search: isManualSearch,
           ...metadata,
         }),
       });
