@@ -59,10 +59,10 @@ export default function PlexOAuthButton({ onTokenReceived, className, disabled }
             disabled={loading || disabled}
             type="button"
             className={`flex items-center justify-center px-4 py-2.5 bg-[#E5A00D]/90 hover:bg-[#E5A00D] text-white font-semibold rounded-lg transition-colors ${(loading || disabled) ? 'opacity-70 cursor-not-allowed' : ''} ${className || ''}`}
-            title="Sign in with Plex to get your token automatically"
+            title="Securely authenticates with Plex.tv to automatically fetch your local token. No data is shared."
         >
             {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <img src="/plex.svg" alt="Plex" className="w-5 h-5 mr-2 object-contain" />}
-            {loading ? "Waiting for Auth..." : "Sign in with Plex"}
+            {loading ? "Waiting for Auth..." : "Auto-Fetch Token"}
         </button>
     );
 }
