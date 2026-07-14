@@ -121,6 +121,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       assetType = "season";
     } else if (asset.path?.match(/S\d+E\d+/) || asset.type === "titlecard") {
       assetType = "titlecard";
+    } else if (asset.path?.startsWith("Collections/") || asset.path?.startsWith("Collections\\") || asset.type === "collection") {
+      assetType = "collection";
     }
     console.log(`Detected asset type: ${assetType}`);
 
@@ -407,6 +409,14 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           imdb_id = imdbMatch[1];
           console.log(`Extracted IMDB ID from folder: ${imdb_id}`);
         }
+      }
+    }
+
+    // If collection, try stripping "Collection" from title for better TMDB/Fanart search
+    if (assetType === "collection" && title) {
+      title = title.replace(/\s*Collection$/i, "").trim();
+      if (showTitle) {
+        showTitle = showTitle.replace(/\s*Collection$/i, "").trim();
       }
     }
 
