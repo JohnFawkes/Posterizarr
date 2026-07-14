@@ -12397,9 +12397,15 @@ async def replace_asset_from_url(
                 path_parts = Path(asset_path).parts
 
                 if len(path_parts) >= 3:
-                    # Use provided library_name and folder_name if available, otherwise extract from path
-                    extracted_library_name = path_parts[0]
-                    extracted_folder_name = path_parts[1]
+                    is_collection = path_parts[0] == "Collections"
+                    
+                    if is_collection and len(path_parts) >= 4:
+                        extracted_library_name = path_parts[1]
+                        extracted_folder_name = path_parts[2]
+                    else:
+                        extracted_library_name = path_parts[0]
+                        extracted_folder_name = path_parts[1]
+                        
                     filename = path_parts[-1]
 
                     # Prefer user-provided values over extracted values
@@ -12417,7 +12423,7 @@ async def replace_asset_from_url(
                     ep_number = None
 
                     if filename == "poster.jpg":
-                        poster_type = "standard"
+                        poster_type = "collection" if is_collection else "standard"
                     elif filename == "background.jpg":
                         poster_type = "background"
                     elif re.match(r"^Season(\d+)\.jpg$", filename):
