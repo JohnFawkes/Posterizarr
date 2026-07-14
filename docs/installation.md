@@ -5,10 +5,10 @@
 
 2.  **Required API Keys**
 
-    - Get TMDB API Token from [TMDB](https://www.themoviedb.org/settings/api)
-    - Get Fanart API Key from [Fanart.tv](https://fanart.tv/get-an-api-key)
-    - Get TVDB API Key from [TVDB](https://thetvdb.com/api-information/signup)
-    - Review the [requirements](requirements.md) section for required software/plugins
+    - Get TMDB API Token from [TMDB](https://www.themoviedb.org/settings/api) (Free)
+    - Get Fanart API Key from [Fanart.tv](https://fanart.tv/get-an-api-key) (Free)
+    - Get TVDB Project API Key from [TVDB](https://thetvdb.com/api-information/signup) (Free)
+    - *For more information on API keys and required software/plugins, review the [requirements](requirements.md) section.*
 
 3.  **Basic Configuration**
 

@@ -11,9 +11,9 @@ CONFIG_TOOLTIPS = {
     "basicAuthPassword": "The password for UI authentication. IMPORTANT: Change this from the default 'posterizarr' before enabling auth! (Default: posterizarr)",
 
     # ApiPart
-    "tvdbapi": "Your TVDB Project API key. If you are a TVDB subscriber, you can append your PIN to the end of your API key in the format YourApiKey#YourPin. It is important to include a # between the API key and the PIN.",
-    "tmdbtoken": "Your TMDB API Read Access Token (the really long one).",
-    "FanartTvAPIKey": "Your Fanart personal API key.",
+    "tvdbapi": "Your TVDB Project API key (Free). If you are a TVDB subscriber, you can append your PIN to the end of your API key in the format YourApiKey#YourPin. It is important to include a # between the API key and the PIN. (Free for personal use. Consider subscribing to support their work)",
+    "tmdbtoken": "Your TMDB API Read Access Token (the really long one). (Free)",
+    "FanartTvAPIKey": "Your Fanart personal API key. (Free)",
     "PlexToken": "Your Plex token (Leave empty if not applicable).",
     "JellyfinAPIKey": "Your Jellyfin API key. You can create an API key from inside Jellyfin at Settings > Advanced > Api Keys.",
     "EmbyAPIKey": "Your Emby API key. You can create an API key from inside Emby at Settings > Advanced > Api Keys.",

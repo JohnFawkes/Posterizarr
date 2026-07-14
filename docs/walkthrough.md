@@ -9,11 +9,11 @@
 
 ### Requirements
 - Make sure to obtain all the api keys and tokens as you will need them later on for the `config.json`.
-    - **TMDB API Read Access Token:** [Obtain TMDB API Token](https://www.themoviedb.org/settings/api)
+    - **TMDB API Read Access Token:** [Obtain TMDB API Token](https://www.themoviedb.org/settings/api) (Free)
         - **NOTE** the **TMDB API Read Access Token** is the really, really long one
-    - **Fanart Personal API Key:** [Obtain Fanart API Key](https://fanart.tv/get-an-api-key)
-    - **TVDB API Key:** [Obtain TVDB API Key](https://thetvdb.com/api-information/signup)
-        - **Do not** use `"Legacy API Key"`, it only works with a Project Api Key.
+    - **Fanart Personal API Key:** [Obtain Fanart API Key](https://fanart.tv/get-an-api-key) (Free)
+    - **TVDB Project API Key:** [Obtain TVDB API Key](https://thetvdb.com/api-information/signup) (Free)
+        - **Do not** use `"Legacy API Key"`, it only works with a Project Api Key. *(The key is free for personal use. If configured, Posterizarr can utilize data provided by TheTVDB. If you would like to support their work, please consider paying for a subscription!)*
     - **Plex Token:** [Optain Plex Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)
 
 ### Docker/ARM
