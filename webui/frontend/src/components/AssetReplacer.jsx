@@ -1588,7 +1588,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
               {(metadata.asset_type === "poster" ||
                 metadata.asset_type === "background" ||
                 metadata.asset_type === "season" ||
-                metadata.asset_type === "titlecard") && (
+                metadata.asset_type === "titlecard" ||
+                metadata.asset_type === "collection") && (
                   <div className="bg-theme-hover border border-theme rounded-lg p-3 sm:p-4">
                     <div className="flex items-start sm:items-center justify-between gap-3 mb-2">
                       <div className="flex-1 min-w-0">
