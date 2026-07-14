@@ -44,6 +44,7 @@ const ClearableInput = ({ value, onChange, placeholder, isPassword }) => {
 import ValidateButton from "./ValidateButton";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
+import PlexOAuthButton from "./PlexOAuthButton";
 
 export default function OnboardingModal({ onComplete }) {
   const { t } = useTranslation();
@@ -354,7 +355,12 @@ const runModes = [
                   {t("onboarding.plexToken")}
                   <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" target="_blank" rel="noreferrer" className="text-[10px] text-theme-primary hover:underline font-normal">{t("onboarding.howToFindThis")}</a>
                 </label>
-                <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder={t("onboarding.yourPlexToken")} isPassword />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <ClearableInput value={config.PlexToken} onChange={val => handleChange("PlexToken", val)} placeholder={t("onboarding.yourPlexToken")} isPassword />
+                  </div>
+                  <PlexOAuthButton onTokenReceived={(token) => handleChange("PlexToken", token)} className="h-[38px] shrink-0" />
+                </div>
               </div>
               <div className="flex justify-end pt-1 shrink-0">
                 <ValidateButton type="plex" config={config} label={t("onboarding.testConnection")} disabled={!config.PlexUrl || !config.PlexToken} onSuccess={() => setPlexValidated(true)} />

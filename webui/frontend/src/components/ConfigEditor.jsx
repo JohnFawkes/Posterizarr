@@ -41,6 +41,7 @@ import ProviderOrderSelector from "./ProviderOrderSelector";
 import LibraryExclusionSelector from "./LibraryExclusionSelector";
 import { useToast } from "../context/ToastContext";
 import ConfirmDialog from "./ConfirmDialog";
+import PlexOAuthButton from "./PlexOAuthButton";
 
 const API_URL = "/api";
 
@@ -883,7 +884,15 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
             </div>
         );
 
-        if (settingKey === "PlexToken") return renderValidate("plex", disabled ? "Enable Plex first" : "Enter Plex Token");
+        if (settingKey === "PlexToken") return (
+            <div className="flex gap-2">
+                <div className="relative flex-1">
+                    <PasswordInput value={stringValue} onChange={(e) => updateValue(fieldKey, e.target.value)} disabled={disabled} placeholder={disabled ? "Enable Plex first" : "Enter Plex Token"} />
+                </div>
+                <PlexOAuthButton onTokenReceived={(token) => updateValue(fieldKey, token)} disabled={disabled} className="shrink-0" />
+                <ValidateButton type="plex" config={config} label="Validate" onSuccess={showSuccess} onError={showError} disabled={disabled} />
+            </div>
+        );
         if (settingKey === "JellyfinAPIKey") return renderValidate("jellyfin", disabled ? "Enable Jellyfin first" : "Enter Jellyfin API Key");
         if (settingKey === "EmbyAPIKey") return renderValidate("emby", disabled ? "Enable Emby first" : "Enter Emby API Key");
         if (settingKey === "tmdbtoken") return renderValidate("tmdb", "Enter TMDB Token");
