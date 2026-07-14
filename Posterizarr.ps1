@@ -63,9 +63,10 @@ $ProgressPreference = 'SilentlyContinue'
 #################
 # What you need #
 #####################################################################################################################
-# TMDB API Read Access Token      -> https://www.themoviedb.org/settings/api
-# FANART API                      -> https://fanart.tv/get-an-api-key
-# TVDB API                        -> https://thetvdb.com/api-information/signup
+# TMDB API Read Access Token      -> https://www.themoviedb.org/settings/api (Free)
+# FANART API                      -> https://fanart.tv/get-an-api-key (Free)
+# TVDB Project API Key            -> https://thetvdb.com/api-information/signup (Free)
+#                                    (Free for personal use. Consider subscribing to support their work)
 # ImageMagick                     -> https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-27-Q16-HDRI-x64-dll.exe
 # FanartTv API Powershell Wrapper -> https://github.com/Celerium/Celerium.FanartTV
 #####################################################################################################################
