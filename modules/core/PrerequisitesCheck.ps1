@@ -295,8 +295,8 @@ if (-not $module) {
     }
 }
 
-# Only connect if DisableOnlineAssetFetch is not set to false
-if ($global:DisableOnlineAssetFetch -eq 'false') {
+# Only connect if DisableOnlineAssetFetch is not set to false, and not running a mode that skips online search
+if ($global:DisableOnlineAssetFetch -eq 'false' -and !$SyncJelly -and !$SyncEmby -and !$Backup -and !$Manual -and !$PosterReset) {
     $checkFanart = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'FANART')
     $checkTMDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TMDB')
     $checkTVDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TVDB')
