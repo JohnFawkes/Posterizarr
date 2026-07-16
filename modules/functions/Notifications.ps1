@@ -34,29 +34,38 @@ function SendMessage {
         # Add the URL. ConvertTo-Json will handle any special characters in $favurl
         $fieldList.Add([PSCustomObject]@{ name = "Fav Url"; value = $favurl; inline = $true })
 
+        $isLocalUrl = $false
+        if ($DLSource -match "^https?://([^/]+)") {
+            $hostName = $matches[1] -replace ':\d+$', ''
+            if ($hostName -notmatch '\.' -or $hostName -match '^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.)' -or $hostName -match '\.local$|\.lan$') {
+                $isLocalUrl = $true
+            }
+        }
+
+        $embed = [PSCustomObject]@{
+            author      = @{
+                name = "Posterizarr @Github"
+                url  = "https://github.com/fscorrupt/posterizarr"
+            }
+            description = "Recently Added`n`n"
+            timestamp   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            color       = $(if ($errorCount -ge '1') { 16711680 } Elseif ($global:IsFallback -eq 'true' -or $global:IsTruncated -eq 'true') { 15120384 } Else { 5763719 })
+            fields      = $fieldList
+            footer      = @{
+                text = "$Platform  | vCurr: $CurrentScriptVersion | vNext: $LatestScriptVersion | IM vCurr: $global:CurrentImagemagickversion | IM vNext: $global:LatestImagemagickversion"
+            }
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($DLSource) -and -not $isLocalUrl) {
+            $embed | Add-Member -MemberType NoteProperty -Name "thumbnail" -Value @{ url = $DLSource }
+        }
+
         # Build the final payload object
         $payloadObject = [PSCustomObject]@{
             username   = $(if ([string]::IsNullOrWhiteSpace($global:DiscordUserName)) { "Posterizarr" } else { $global:DiscordUserName })
             avatar_url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
             # content    = ""
-            embeds     = @(
-                [PSCustomObject]@{
-                    author      = @{
-                        name = "Posterizarr @Github"
-                        url  = "https://github.com/fscorrupt/posterizarr"
-                    }
-                    description = "Recently Added`n`n"
-                    timestamp   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                    color       = $(if ($errorCount -ge '1') { 16711680 } Elseif ($global:IsFallback -eq 'true' -or $global:IsTruncated -eq 'true') { 15120384 } Else { 5763719 })
-                    fields      = $fieldList
-                    thumbnail   = @{
-                        url = $DLSource
-                    }
-                    footer      = @{
-                        text = "$Platform  | vCurr: $CurrentScriptVersion | vNext: $LatestScriptVersion | IM vCurr: $global:CurrentImagemagickversion | IM vNext: $global:LatestImagemagickversion"
-                    }
-                }
-            )
+            embeds     = @($embed)
         }
 
         # Convert the entire object to a JSON string safely
