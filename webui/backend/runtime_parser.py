@@ -269,9 +269,38 @@ def parse_runtime_from_json(json_path: Path, mode: str = None) -> Optional[Dict]
                     if textless_value == "true":
                         textless_count += 1
 
-        # Parse truncated and text counts (direct numbers in new format)
-        truncated_count = data.get("Truncated", 0)
-        text_count = data.get("Text", 0)
+        # Parse truncated and text counts (direct numbers in new format, handle list format if any)
+        truncated_count = 0
+        truncated_data = data.get("Truncated", 0)
+        if isinstance(truncated_data, int):
+            truncated_count = truncated_data
+        elif isinstance(truncated_data, list):
+            for item in truncated_data:
+                if isinstance(item, dict):
+                    truncated_value = str(item.get("Truncated", "false")).lower()
+                    if truncated_value == "true":
+                        truncated_count += 1
+        elif isinstance(truncated_data, dict):
+            # If it's a single dict instead of a list
+            truncated_value = str(truncated_data.get("Truncated", "false")).lower()
+            if truncated_value == "true":
+                truncated_count = 1
+
+        text_count = 0
+        text_data = data.get("Text", 0)
+        if isinstance(text_data, int):
+            text_count = text_data
+        elif isinstance(text_data, list):
+            for item in text_data:
+                if isinstance(item, dict):
+                    text_value = str(item.get("Text", "false")).lower()
+                    if text_value == "true":
+                        text_count += 1
+        elif isinstance(text_data, dict):
+            # If it's a single dict instead of a list
+            text_value = str(text_data.get("Text", "false")).lower()
+            if text_value == "true":
+                text_count = 1
 
         # --- START DATE FORMAT FIX ---
         start_time_raw = data.get("Start time", "")

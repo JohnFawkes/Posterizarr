@@ -121,6 +121,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
       assetType = "season";
     } else if (asset.path?.match(/S\d+E\d+/) || asset.type === "titlecard") {
       assetType = "titlecard";
+    } else if (asset.path?.startsWith("Collections/") || asset.path?.startsWith("Collections\\") || asset.type === "collection") {
+      assetType = "collection";
     }
     console.log(`Detected asset type: ${assetType}`);
 
@@ -407,6 +409,14 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
           imdb_id = imdbMatch[1];
           console.log(`Extracted IMDB ID from folder: ${imdb_id}`);
         }
+      }
+    }
+
+    // If collection, try stripping "Collection" from title for better TMDB/Fanart search
+    if (assetType === "collection" && title) {
+      title = title.replace(/\s*Collection$/i, "").trim();
+      if (showTitle) {
+        showTitle = showTitle.replace(/\s*Collection$/i, "").trim();
       }
     }
 
@@ -1060,6 +1070,7 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
         },
         body: JSON.stringify({
           asset_path: asset.path,
+          is_manual_search: isManualSearch,
           ...metadata,
         }),
       });
@@ -1577,7 +1588,8 @@ function AssetReplacer({ asset, onClose, onSuccess }) {
               {(metadata.asset_type === "poster" ||
                 metadata.asset_type === "background" ||
                 metadata.asset_type === "season" ||
-                metadata.asset_type === "titlecard") && (
+                metadata.asset_type === "titlecard" ||
+                metadata.asset_type === "collection") && (
                   <div className="bg-theme-hover border border-theme rounded-lg p-3 sm:p-4">
                     <div className="flex items-start sm:items-center justify-between gap-3 mb-2">
                       <div className="flex-1 min-w-0">

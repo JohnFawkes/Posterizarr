@@ -95,9 +95,16 @@ Else {
 
     New-Item -Path $CurrentlyRunning -Force -Value $RunMode | Out-Null
 }
-# Delete all files and subfolders within the temp directory
+# Delete all files and subfolders within the temp directory, excluding running file and overlay files
 if (Test-Path $TempPath) {
-    Get-ChildItem -Path (Join-Path $TempPath '*') -Recurse -Exclude 'Posterizarr.Running', 'font_preview*' | Remove-Item -Force
+    $excludes = @('Posterizarr.Running', 'font_preview*')
+    if (Test-Path -LiteralPath $global:OverlayPath) {
+        $overlayFiles = Get-ChildItem -Path $global:OverlayPath -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+        if ($null -ne $overlayFiles) {
+            $excludes += $overlayFiles
+        }
+    }
+    Get-ChildItem -Path (Join-Path $TempPath '*') -Recurse -Exclude $excludes | Remove-Item -Force
     Write-Entry -Message "Deleting temp folder: $TempPath" -Path $global:configLogging -Color White -log Info
 }
 if ($Testing) {
@@ -170,25 +177,57 @@ if ($DoMigration.Count -gt 0) {
     }
 }
 
-# Always copy files from OverlayPath to temp folder
+# Copy files from OverlayPath to temp folder only if missing or modified
+$copiedOverlays = 0
+$copiedFonts = 0
+$checkedFiles = 0
+
 $files = Get-ChildItem -Path $global:OverlayPath -File | Where-Object { $_.Extension -in $fileExtensions } -ErrorAction SilentlyContinue
 foreach ($file in $files) {
+    $checkedFiles++
     try {
-        Write-Entry -Subtext "Trying to copy '$($file.Name)' into temp dir..." -Path $global:configLogging -Color Cyan -log Debug
         $destinationPath = Join-Path -Path (Join-Path -Path $global:ScriptRoot -ChildPath 'temp') -ChildPath $file.Name
+        $needsCopy = $false
 
         if (!(Test-Path -LiteralPath $destinationPath)) {
+            $needsCopy = $true
+        } else {
+            $srcItem = Get-Item -LiteralPath $file.FullName
+            $dstItem = Get-Item -LiteralPath $destinationPath
+            if ($srcItem.LastWriteTimeUtc -gt $dstItem.LastWriteTimeUtc -or $srcItem.Length -ne $dstItem.Length) {
+                $needsCopy = $true
+            }
+        }
+
+        if ($needsCopy) {
+            $copiedOverlays++
+            Write-Entry -Subtext "Trying to copy '$($file.Name)' into temp dir..." -Path $global:configLogging -Color Cyan -log Debug
             Copy-Item -Path $file.FullName -Destination $destinationPath -Force -ErrorAction Stop
-            Write-Entry -Subtext "Found File: '$($file.Name)' in OverlayPath - copying it into temp folder..." -Path $global:configLogging -Color Cyan -log Info
+            Write-Entry -Subtext "Found/Updated File: '$($file.Name)' in OverlayPath - copying it into temp folder..." -Path $global:configLogging -Color Cyan -log Info
         }
 
         # Font handling...
         if ($file.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'TRUE') {
             $fontDestination = Join-Path -Path $Font_Cache -ChildPath $file.Name
-            Write-Entry -Subtext "Copying font '$($file.Name)' to ImageMagick cache..." -Path $global:configLogging -Color Cyan -log Info
-            Copy-Item -Path $file.FullName -Destination $fontDestination -Force -ErrorAction Stop
-            if (!(Test-Path -Path $IM_Font_Cache)) {
-                New-Item -ItemType Directory -Path $IM_Font_Cache -Force | Out-Null
+            $needsFontCopy = $false
+
+            if (!(Test-Path -LiteralPath $fontDestination)) {
+                $needsFontCopy = $true
+            } else {
+                $srcItem = Get-Item -LiteralPath $file.FullName
+                $dstItem = Get-Item -LiteralPath $fontDestination
+                if ($srcItem.LastWriteTimeUtc -gt $dstItem.LastWriteTimeUtc -or $srcItem.Length -ne $dstItem.Length) {
+                    $needsFontCopy = $true
+                }
+            }
+
+            if ($needsFontCopy) {
+                $copiedFonts++
+                Write-Entry -Subtext "Copying font '$($file.Name)' to ImageMagick cache..." -Path $global:configLogging -Color Cyan -log Info
+                Copy-Item -Path $file.FullName -Destination $fontDestination -Force -ErrorAction Stop
+                if (!(Test-Path -Path $IM_Font_Cache)) {
+                    New-Item -ItemType Directory -Path $IM_Font_Cache -Force | Out-Null
+                }
             }
         }
     }
@@ -198,8 +237,14 @@ foreach ($file in $files) {
 }
 
 
-# Refresh font cache if any fonts were copied
-if ($files.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'TRUE') {
+if ($copiedOverlays -eq 0 -and $copiedFonts -eq 0) {
+    Write-Entry -Subtext "All $checkedFiles files are up to date in temp dir and no copy needed." -Path $global:configLogging -Color Green -log Info
+} else {
+    Write-Entry -Subtext "Copied $copiedOverlays files and $copiedFonts fonts to temp dir / cache. (Skipped $( $checkedFiles - $copiedOverlays ) files because they are up to date)." -Path $global:configLogging -Color Green -log Info
+}
+
+# Refresh font cache if any fonts were actually copied
+if ($copiedFonts -gt 0 -and $env:POSTERIZARR_NON_ROOT -eq 'TRUE') {
     Write-Entry -Subtext "Updating ImageMagick font cache..." -Path $global:configLogging -Color Green -log Info
     & fc-cache -fv 1> $null 2> $null
 }
@@ -250,8 +295,8 @@ if (-not $module) {
     }
 }
 
-# Only connect if DisableOnlineAssetFetch is not set to false
-if ($global:DisableOnlineAssetFetch -eq 'false') {
+# Only connect if DisableOnlineAssetFetch is not set to false, and not running a mode that skips online search
+if ($global:DisableOnlineAssetFetch -eq 'false' -and !$SyncJelly -and !$SyncEmby -and !$Backup -and !$Manual -and !$PosterReset) {
     $checkFanart = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'FANART')
     $checkTMDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TMDB')
     $checkTVDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TVDB')
@@ -267,7 +312,10 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
             Invoke-RestMethod -Uri $fanartTestUrl -Method Get -ErrorAction Stop | Out-Null
             Write-Entry -Subtext "Fanart.tv API Key is valid." -Path $global:configLogging -Color Green -log Info
         } catch {
-            Write-Entry -Subtext "Fanart.tv API Key validation failed. Please check your config file." -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Fanart.tv API Key validation failed. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+            if ($_.Exception.Message -match '\(401\)|\(403\)') {
+                Write-Entry -Subtext "Please check your config file." -Path $global:configLogging -Color Red -log Error
+            }
             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
             if ($global:FavProvider -eq 'Fanart') {
                 HandleScriptExit -Message "Invalid Fanart.tv API Key"
@@ -293,7 +341,10 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
                 Invoke-RestMethod -Uri $tmdbTestUrl -Headers $global:headers -Method Get -ErrorAction Stop | Out-Null
                 Write-Entry -Subtext "TMDB Token is valid." -Path $global:configLogging -Color Green -log Info
             } catch {
-                Write-Entry -Subtext "TMDB Token validation failed. Please check your config file." -Path $global:configLogging -Color Red -log Error
+                Write-Entry -Subtext "TMDB Token validation failed. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                if ($_.Exception.Message -match '\(401\)|\(403\)') {
+                    Write-Entry -Subtext "Please check your config file." -Path $global:configLogging -Color Red -log Error
+                }
                 $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
                 if ($global:FavProvider -eq 'TMDB') {
                     HandleScriptExit -Message "Invalid TMDB token"
@@ -349,7 +400,10 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
                 }
                 else {
                     if ($global:FavProvider -eq 'TVDB') {
-                        Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
+                        Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries). Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        if ($_.Exception.Message -match '\(401\)|\(403\)') {
+                            Write-Entry -Subtext "You may have used a legacy API key in your config file. Please use a 'Project Api Key'." -Path $global:configLogging -Color Red -log Error
+                        }
                         $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
 
                         # Clear Running File

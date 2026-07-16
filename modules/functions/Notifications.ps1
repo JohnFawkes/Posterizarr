@@ -15,7 +15,7 @@ function SendMessage {
         $fieldList = [System.Collections.Generic.List[object]]::new()
 
         # Add all common fields
-        $fieldList.Add([PSCustomObject]@{ name = ""; value = ":bar_chart:"; inline = $false })
+        $fieldList.Add([PSCustomObject]@{ name = "__ZWSP__"; value = ":bar_chart:"; inline = $false })
         $fieldList.Add([PSCustomObject]@{ name = "Type"; value = $type; inline = $false })
         $fieldList.Add([PSCustomObject]@{ name = "Fallback"; value = $fallback; inline = $true })
         $fieldList.Add([PSCustomObject]@{ name = "Language"; value = $lang; inline = $true })
@@ -24,7 +24,7 @@ function SendMessage {
         # Removed conditional fields for Tautulli/Arr modes
 
         # Add remaining fields
-        $fieldList.Add([PSCustomObject]@{ name = ""; value = ":frame_photo:"; inline = $false })
+        $fieldList.Add([PSCustomObject]@{ name = "__ZWSP__"; value = ":frame_photo:"; inline = $false })
 
         # Add the title. ConvertTo-Json will handle any special characters in $title
         $fieldList.Add([PSCustomObject]@{ name = "Title"; value = $title; inline = $false })
@@ -34,34 +34,40 @@ function SendMessage {
         # Add the URL. ConvertTo-Json will handle any special characters in $favurl
         $fieldList.Add([PSCustomObject]@{ name = "Fav Url"; value = $favurl; inline = $true })
 
+        $isLocalUrl = $true
+        if ($DLSource -match 'tmdb\.org|thetvdb\.com|fanart\.tv|theposterdb\.com|mediux\.pro|imdb\.com') {
+            $isLocalUrl = $false
+        }
+
+        $embed = [PSCustomObject]@{
+            author      = @{
+                name = "Posterizarr @Github"
+                url  = "https://github.com/fscorrupt/posterizarr"
+            }
+            description = "Recently Added`n`n"
+            timestamp   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            color       = $(if ($errorCount -ge '1') { 16711680 } Elseif ($global:IsFallback -eq 'true' -or $global:IsTruncated -eq 'true') { 15120384 } Else { 5763719 })
+            fields      = $fieldList
+            footer      = @{
+                text = "$Platform  | vCurr: $CurrentScriptVersion | vNext: $LatestScriptVersion | IM vCurr: $global:CurrentImagemagickversion | IM vNext: $global:LatestImagemagickversion"
+            }
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($DLSource) -and -not $isLocalUrl) {
+            $embed | Add-Member -MemberType NoteProperty -Name "thumbnail" -Value @{ url = $DLSource }
+        }
+
         # Build the final payload object
         $payloadObject = [PSCustomObject]@{
             username   = $(if ([string]::IsNullOrWhiteSpace($global:DiscordUserName)) { "Posterizarr" } else { $global:DiscordUserName })
             avatar_url = "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/docs/images/webhook.png"
             # content    = ""
-            embeds     = @(
-                [PSCustomObject]@{
-                    author      = @{
-                        name = "Posterizarr @Github"
-                        url  = "https://github.com/fscorrupt/posterizarr"
-                    }
-                    description = "Recently Added`n`n"
-                    timestamp   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                    color       = $(if ($errorCount -ge '1') { 16711680 } Elseif ($global:IsFallback -eq 'true' -or $global:IsTruncated -eq 'true') { 15120384 } Else { 5763719 })
-                    fields      = $fieldList
-                    thumbnail   = @{
-                        url = $DLSource
-                    }
-                    footer      = @{
-                        text = "$Platform  | vCurr: $CurrentScriptVersion | vNext: $LatestScriptVersion | IM vCurr: $global:CurrentImagemagickversion | IM vNext: $global:LatestImagemagickversion"
-                    }
-                }
-            )
+            embeds     = @($embed)
         }
 
         # Convert the entire object to a JSON string safely
         # -Depth 6 is needed to make sure it nests everything (payload->embeds->fields)
-        return $payloadObject | ConvertTo-Json -Depth 6
+        return ($payloadObject | ConvertTo-Json -Depth 6) -replace '__ZWSP__', '\u200b'
     }
 
     if ($global:NotifyUrl -and $global:SendNotification -eq 'true') {
@@ -322,7 +328,7 @@ function Send-SummaryNotification {
         $fieldList = [System.Collections.Generic.List[object]]::new()
 
         # Stats Section
-        $fieldList.Add([PSCustomObject]@{ name = ""; value = ":bar_chart:"; inline = $false })
+        $fieldList.Add([PSCustomObject]@{ name = "__ZWSP__"; value = ":bar_chart:"; inline = $false })
         if ($ScriptMode -eq 'testing') {
             $fieldList.Add([PSCustomObject]@{ name = "Truncated"; value = $TruncatedCount; inline = $false })
         }
@@ -344,7 +350,7 @@ function Send-SummaryNotification {
         }
 
         # Images / Logos Section
-        $fieldList.Add([PSCustomObject]@{ name = ""; value = ":frame_photo:"; inline = $false })
+        $fieldList.Add([PSCustomObject]@{ name = "__ZWSP__"; value = ":frame_photo:"; inline = $false })
         if ($ScriptMode -eq 'backup') {
             $fieldList.Add([PSCustomObject]@{ name = "Posters Downloaded"; value = ($PosterCount - $SeasonCount - $BackgroundCount - $EpisodeCount); inline = $false })
             $fieldList.Add([PSCustomObject]@{ name = "Backgrounds Downloaded"; value = $BackgroundCount; inline = $true })
@@ -376,7 +382,7 @@ function Send-SummaryNotification {
 
         # Cleanup Section
         if ($AssetCleanup -eq 'true' -and $ScriptMode -ne 'testing' -and $ScriptMode -ne 'backup' -and $ScriptMode -ne 'syncjelly' -and $ScriptMode -ne 'syncemby' -and $ScriptMode -ne 'logoupdater') {
-            $fieldList.Add([PSCustomObject]@{ name = ""; value = ":recycle:"; inline = $false })
+            $fieldList.Add([PSCustomObject]@{ name = "__ZWSP__"; value = ":recycle:"; inline = $false })
             $fieldList.Add([PSCustomObject]@{ name = "Images cleared"; value = $ImagesCleared; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Folders Cleared"; value = $PathsCleared; inline = $true })
             $fieldList.Add([PSCustomObject]@{ name = "Space saved"; value = $SavedSizeString; inline = $true })
@@ -407,7 +413,7 @@ function Send-SummaryNotification {
             )
         }
 
-        $jsonPayload = $payloadObject | ConvertTo-Json -Depth 6
+        $jsonPayload = ($payloadObject | ConvertTo-Json -Depth 6) -replace '__ZWSP__', '\u200b'
         $webhookUrl = $global:NotifyUrl -replace '(?i)^discord://(?:[^@/]+@)?(.*)$', 'https://discord.com/api/webhooks/$1'
         Push-ObjectToDiscord -strDiscordWebhook $webhookUrl -objPayload $jsonPayload
     }

@@ -35,6 +35,7 @@ param (
     [string[]]$ExtraArgs # Required for Arrtrigger
 )
 
+$global:ExitRequested = $false
 $MainPSBoundParameters = $PSBoundParameters
 
 # Parse ExtraArgs into a hashtable
@@ -56,7 +57,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "3.0.2"
+$CurrentScriptVersion = "3.0.3"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -116,7 +117,9 @@ foreach ($funcFile in $functionFiles) {
 
 # Dot-source Core Variables and Prerequisites
 . "$PSScriptRoot\modules\core\Variables.ps1"
+if ($global:ExitRequested) { exit }
 . "$PSScriptRoot\modules\core\PrerequisitesCheck.ps1"
+if ($global:ExitRequested) { exit }
 
 $global:AppRoot = $PSScriptRoot
 

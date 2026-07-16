@@ -54,6 +54,7 @@ function HandleScriptExit {
 
     # Exit the script entirely
     Write-Entry -Message "Exiting Posterizarr run..." -Path $global:configLogging -Color Red -log Error
+    $global:ExitRequested = $true
     exit
 }
 
@@ -1178,6 +1179,7 @@ function CheckJsonPaths {
         $TCoverlay4KDoVi, $TCoverlay4KHDR10, $TCoverlay4KDoViHDR10
     )
 
+    $localMissingCount = 0
     foreach ($path in $paths) {
         # Only check the path if it's not null or empty.
         # This allows optional overlays (set to null in config) to pass.
@@ -1185,10 +1187,11 @@ function CheckJsonPaths {
             Write-Entry -Message "Could not find file in: $path" -Path $global:configLogging -Color Red -log Error
             Write-Entry -Subtext "Check config for typos and make sure that the file is present in scriptroot." -Path $global:configLogging -Color Yellow -log Warning
             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+            $localMissingCount++
         }
     }
 
-    if ($errorCount -ge 1) {
+    if ($localMissingCount -ge 1) {
         # Clear Running File
         HandleScriptExit -Message "File missing"
     }
