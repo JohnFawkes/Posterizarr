@@ -34,12 +34,9 @@ function SendMessage {
         # Add the URL. ConvertTo-Json will handle any special characters in $favurl
         $fieldList.Add([PSCustomObject]@{ name = "Fav Url"; value = $favurl; inline = $true })
 
-        $isLocalUrl = $false
-        if ($DLSource -match "^https?://([^/]+)") {
-            $hostName = $matches[1] -replace ':\d+$', ''
-            if ($hostName -notmatch '\.' -or $hostName -match '^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|127\.|169\.254\.)' -or $hostName -match '\.local$|\.lan$') {
-                $isLocalUrl = $true
-            }
+        $isLocalUrl = $true
+        if ($DLSource -match 'tmdb\.org|thetvdb\.com|fanart\.tv|theposterdb\.com|mediux\.pro|imdb\.com') {
+            $isLocalUrl = $false
         }
 
         $embed = [PSCustomObject]@{
