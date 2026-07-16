@@ -45,22 +45,23 @@ theme:
 # Page navigation
 nav:
   - 'Home': 'index.md'
+  - 'Showcase': 'showcase.md'
   - 'Getting Started':
-    - 'Quick Start': 'installation.md'
-    - 'Networking': 'networking.md'
-    - 'Walkthrough': 'walkthrough.md'
     - 'Requirements': 'requirements.md'
+    - 'Quick Start': 'installation.md'
+    - 'Manual UI Installation': 'uiinstallation.md'
+    - 'Walkthrough': 'walkthrough.md'
+    - 'Networking': 'networking.md'
     - 'FAQs': 'faqs.md'
   - 'Configuration': 'configuration.md'
   - 'Usage & Guides':
-    - 'Blueprints & Recipes': 'blueprints.md'
     - 'Usage & Modes': 'modes.md'
     - 'Action Center Guide': 'action_center.md'
-    - 'Homepage Custom API': 'homepage.md'
+    - 'Blueprints & Recipes': 'blueprints.md'
     - 'Kometa Integration': 'kometaintegration.md'
-    - 'Manual UI Installation': 'uiinstallation.md'
     - 'Jellyfin Plugin': 'jellyfin_plugin.md'
     - 'Emby Plugin': 'emby_plugin.md'
+    - 'Homepage Custom API': 'homepage.md'
   - 'Advanced':
     - 'Search Order': 'searchorder.md'
     - 'Naming Convention': 'namingconvention.md'
@@ -71,8 +72,6 @@ nav:
     - 'PowerShell Scripts': 'powershell_scripts.md'
     - 'Backend Python': 'backend_python.md'
     - 'Frontend Components': 'frontend_components.md'
-  - 'Reference':
-    - 'Showcase': 'showcase.md'
 
 
 # Extensions
