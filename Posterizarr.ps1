@@ -116,7 +116,9 @@ foreach ($funcFile in $functionFiles) {
 
 # Dot-source Core Variables and Prerequisites
 . "$PSScriptRoot\modules\core\Variables.ps1"
+if ($global:ExitRequested) { exit }
 . "$PSScriptRoot\modules\core\PrerequisitesCheck.ps1"
+if ($global:ExitRequested) { exit }
 
 $global:AppRoot = $PSScriptRoot
 
