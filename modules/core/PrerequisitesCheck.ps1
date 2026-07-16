@@ -178,8 +178,13 @@ if ($DoMigration.Count -gt 0) {
 }
 
 # Copy files from OverlayPath to temp folder only if missing or modified
+$copiedOverlays = 0
+$copiedFonts = 0
+$checkedFiles = 0
+
 $files = Get-ChildItem -Path $global:OverlayPath -File | Where-Object { $_.Extension -in $fileExtensions } -ErrorAction SilentlyContinue
 foreach ($file in $files) {
+    $checkedFiles++
     try {
         $destinationPath = Join-Path -Path (Join-Path -Path $global:ScriptRoot -ChildPath 'temp') -ChildPath $file.Name
         $needsCopy = $false
@@ -195,6 +200,7 @@ foreach ($file in $files) {
         }
 
         if ($needsCopy) {
+            $copiedOverlays++
             Write-Entry -Subtext "Trying to copy '$($file.Name)' into temp dir..." -Path $global:configLogging -Color Cyan -log Debug
             Copy-Item -Path $file.FullName -Destination $destinationPath -Force -ErrorAction Stop
             Write-Entry -Subtext "Found/Updated File: '$($file.Name)' in OverlayPath - copying it into temp folder..." -Path $global:configLogging -Color Cyan -log Info
@@ -216,6 +222,7 @@ foreach ($file in $files) {
             }
 
             if ($needsFontCopy) {
+                $copiedFonts++
                 Write-Entry -Subtext "Copying font '$($file.Name)' to ImageMagick cache..." -Path $global:configLogging -Color Cyan -log Info
                 Copy-Item -Path $file.FullName -Destination $fontDestination -Force -ErrorAction Stop
                 if (!(Test-Path -Path $IM_Font_Cache)) {
@@ -230,8 +237,14 @@ foreach ($file in $files) {
 }
 
 
-# Refresh font cache if any fonts were copied
-if ($files.Extension -match "\.(ttf|otf)$" -and $env:POSTERIZARR_NON_ROOT -eq 'TRUE') {
+if ($copiedOverlays -eq 0 -and $copiedFonts -eq 0) {
+    Write-Entry -Subtext "All $checkedFiles files are up to date in temp dir and no copy needed." -Path $global:configLogging -Color Green -log Info
+} else {
+    Write-Entry -Subtext "Copied $copiedOverlays files and $copiedFonts fonts to temp dir / cache. (Skipped $( $checkedFiles - $copiedOverlays ) files because they are up to date)." -Path $global:configLogging -Color Green -log Info
+}
+
+# Refresh font cache if any fonts were actually copied
+if ($copiedFonts -gt 0 -and $env:POSTERIZARR_NON_ROOT -eq 'TRUE') {
     Write-Entry -Subtext "Updating ImageMagick font cache..." -Path $global:configLogging -Color Green -log Info
     & fc-cache -fv 1> $null 2> $null
 }
