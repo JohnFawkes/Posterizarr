@@ -35,6 +35,7 @@ param (
     [string[]]$ExtraArgs # Required for Arrtrigger
 )
 
+$global:ExitRequested = $false
 $MainPSBoundParameters = $PSBoundParameters
 
 # Parse ExtraArgs into a hashtable

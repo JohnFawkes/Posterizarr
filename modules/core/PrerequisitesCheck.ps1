@@ -312,7 +312,10 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
             Invoke-RestMethod -Uri $fanartTestUrl -Method Get -ErrorAction Stop | Out-Null
             Write-Entry -Subtext "Fanart.tv API Key is valid." -Path $global:configLogging -Color Green -log Info
         } catch {
-            Write-Entry -Subtext "Fanart.tv API Key validation failed. Please check your config file." -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Fanart.tv API Key validation failed. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+            if ($_.Exception.Message -match '\(401\)|\(403\)') {
+                Write-Entry -Subtext "Please check your config file." -Path $global:configLogging -Color Red -log Error
+            }
             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
             if ($global:FavProvider -eq 'Fanart') {
                 HandleScriptExit -Message "Invalid Fanart.tv API Key"
@@ -338,7 +341,10 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
                 Invoke-RestMethod -Uri $tmdbTestUrl -Headers $global:headers -Method Get -ErrorAction Stop | Out-Null
                 Write-Entry -Subtext "TMDB Token is valid." -Path $global:configLogging -Color Green -log Info
             } catch {
-                Write-Entry -Subtext "TMDB Token validation failed. Please check your config file." -Path $global:configLogging -Color Red -log Error
+                Write-Entry -Subtext "TMDB Token validation failed. Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                if ($_.Exception.Message -match '\(401\)|\(403\)') {
+                    Write-Entry -Subtext "Please check your config file." -Path $global:configLogging -Color Red -log Error
+                }
                 $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
                 if ($global:FavProvider -eq 'TMDB') {
                     HandleScriptExit -Message "Invalid TMDB token"
@@ -394,7 +400,10 @@ if ($global:DisableOnlineAssetFetch -eq 'false') {
                 }
                 else {
                     if ($global:FavProvider -eq 'TVDB') {
-                        Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries) - you may have used an legacy API key in your config file. Please use an 'Project Api Key'" -Path $global:configLogging -Color Red -log Error
+                        Write-Entry -Subtext "Could not receive a TVDB Token - $($retryCount)/$($maxRetries). Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+                        if ($_.Exception.Message -match '\(401\)|\(403\)') {
+                            Write-Entry -Subtext "You may have used a legacy API key in your config file. Please use a 'Project Api Key'." -Path $global:configLogging -Color Red -log Error
+                        }
                         $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $global:errorCount" -Path $global:configLogging -Color Red -log Error
 
                         # Clear Running File

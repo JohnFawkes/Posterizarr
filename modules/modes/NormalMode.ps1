@@ -594,12 +594,16 @@
         $globalState[$_.Name] = $_.Value
     }
 
+    $sbStr = [System.Text.StringBuilder]::new()
+    foreach ($key in $globalState.Keys) {
+        $safeKey = $key -replace "'", "''"
+        [void]$sbStr.Append("`${global:$key} = `$state['$safeKey']; ")
+    }
+    $global:StateAssignerStr = $sbStr.ToString()
+
     # Movie Part
     $AllMovies | ForEach-Object -Parallel {
         $state = $using:globalState
-        foreach ($key in $state.Keys) {
-            try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
-        }
         if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
             $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
@@ -607,8 +611,11 @@
                 Import-Module -Name Celerium.FanartTV -ErrorAction SilentlyContinue
                 Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
             }
-            function Runspace-Initialized {}
-        }
+
+                function Runspace-Initialized {}
+            }
+            $StateAssignerSb = [scriptblock]::Create($using:StateAssignerStr)
+            & $StateAssignerSb
 
         Invoke-MoviePosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
@@ -617,9 +624,6 @@
     # Show Part
     $AllShows | ForEach-Object -Parallel {
         $state = $using:globalState
-        foreach ($key in $state.Keys) {
-            try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
-        }
         if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
             $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
             foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
@@ -627,8 +631,11 @@
                 Import-Module -Name Celerium.FanartTV -ErrorAction SilentlyContinue
                 Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
             }
-            function Runspace-Initialized {}
-        }
+
+                function Runspace-Initialized {}
+            }
+            $StateAssignerSb = [scriptblock]::Create($using:StateAssignerStr)
+            & $StateAssignerSb
 
         Invoke-ShowPosterCreation -entry $_
     } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
@@ -638,9 +645,6 @@
         Write-Entry -Message "Starting TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         $global:Episodedata | ForEach-Object -Parallel {
             $state = $using:globalState
-            foreach ($key in $state.Keys) {
-                try { Set-Variable -Name $key -Value $state[$key] -Scope Global -Force -ErrorAction SilentlyContinue } catch {}
-            }
             if (-not (Get-Command "Runspace-Initialized" -ErrorAction SilentlyContinue)) {
                 $functionFiles = Get-ChildItem -Path "$($state['AppRoot'])/modules/functions" -Filter "*.ps1"
                 foreach ($funcFile in $functionFiles) { . $funcFile.FullName }
@@ -648,8 +652,11 @@
                     Import-Module -Name Celerium.FanartTV -ErrorAction SilentlyContinue
                     Add-FanartTVAPIKey -ProjectKey $state['FanartTvAPIKey'] -ErrorAction SilentlyContinue
                 }
+
                 function Runspace-Initialized {}
             }
+            $StateAssignerSb = [scriptblock]::Create($using:StateAssignerStr)
+            & $StateAssignerSb
 
             Invoke-TitleCardCreation -episode $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
