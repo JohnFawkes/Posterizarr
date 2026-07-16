@@ -5044,6 +5044,11 @@ function SyncPlexArtwork {
         $destHeaders = @{}
     }
 
+    $requestHeaders = @{}
+    if ($PlexToken) {
+        $requestHeaders['X-Plex-Token'] = $PlexToken
+    }
+
     if ($show_skipped -eq 'true') {
         Write-Entry -Message "Starting SyncPlexArtwork for: $title" -Path $global:configLogging -Color White -log Info
         $startmessage = $true
