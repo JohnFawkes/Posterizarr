@@ -60,6 +60,13 @@ Posterizarr relies on a modular PowerShell architecture:
 - `MassDownloadPlexArtwork`, `MassDownloadJellyEmbyArtwork`: Loops over media libraries to pull down existing artwork for local processing.
 - `SyncPlexArtwork`: The critical function that pushes the final generated Posterizarr images via API `POST` requests back to the media server.
 
+### AssetCache.ps1
+
+**Purpose**: Responsible for rapidly indexing the asset directory.
+**Key Functions:**
+
+- `Get-AssetHashtable`: Centralized, highly optimized function that uses native `.NET` `EnumerateFiles` to recursively build a hashtable of all available local posters and artworks. It calculates total sizes and determines whether artwork exists without triggering slow file-system scans.
+
 ### CoreGeneration.ps1
 
 **Purpose**: The orchestration engine for image creation. It glues together `ApiHandlers` and `ImageMagick`.
