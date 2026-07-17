@@ -283,15 +283,24 @@ $module = Get-Module -ListAvailable -Name $moduleName
 if (-not $module) {
     # Try to install the module
     try {
-        Install-Module -Name $moduleName -Force -SkipPublisherCheck -AllowPrerelease -Scope AllUsers
-        Write-Entry -Message "$moduleName Module missing, installing it for you..." -Path $global:configLogging -Color Red -log Error
-        $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
-
-        Write-Entry -Subtext "$moduleName Module installed, importing it now..." -Path $global:configLogging -Color Green -log Info
-        Import-Module -Name $moduleName
+        Write-Entry -Message "$moduleName module is missing. Attempting to install it for the current user..." -Path $global:configLogging -Color Yellow -log Warning
+        Install-Module -Name $moduleName -Force -SkipPublisherCheck -AllowPrerelease -Scope CurrentUser -ErrorAction Stop
+        Write-Entry -Subtext "$moduleName module installed successfully. Importing it now..." -Path $global:configLogging -Color Green -log Info
+        Import-Module -Name $moduleName -ErrorAction Stop
     }
     catch {
-        Write-Host "Failed to install $moduleName module. Error: $_"
+        Write-Entry -Message "Failed to install $moduleName module." -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Subtext "Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Subtext "Please run manually: Install-Module -Name $moduleName -Scope CurrentUser" -Path $global:configLogging -Color Yellow -log Error
+        HandleScriptExit -Message "Missing required module: $moduleName"
+    }
+} else {
+    try {
+        Import-Module -Name $moduleName -ErrorAction Stop
+    } catch {
+        Write-Entry -Message "Failed to import $moduleName module." -Path $global:configLogging -Color Red -log Error
+        Write-Entry -Subtext "Error: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+        HandleScriptExit -Message "Failed to import required module: $moduleName"
     }
 }
 
