@@ -1,7 +1,7 @@
 #region Restore Mode
     Write-Entry -Message "Restore Mode Started..." -Path $global:configLogging -Color White -log Info
 
-    $restoreQueueFile = "$global:ScriptRoot\restore_queue.json"
+    $restoreQueueFile = Join-Path $global:ScriptRoot "restore_queue.json"
     $restoreItems = $null
 
     # Create temporary isolated staging directory
