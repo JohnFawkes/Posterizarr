@@ -9217,7 +9217,7 @@ async def bulk_delete_backup_assets(request: BulkDeleteRequest):
 async def restore_backup_assets(request: BulkRestoreRequest, background_tasks: BackgroundTasks):
     """Restore specific assets from the backup directory"""
     try:
-        queue_path = PROJECT_ROOT / "restore_queue.json"
+        queue_path = APP_DIR / "restore_queue.json"
         
         with open(queue_path, "w", encoding="utf-8") as f:
             json.dump(request.paths, f, ensure_ascii=False, indent=2)
