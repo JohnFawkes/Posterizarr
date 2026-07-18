@@ -27,6 +27,7 @@ import {
   ArrowUpDown,
   Download,
   Archive,
+  UploadCloud,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CompactImageSizeSlider from "./CompactImageSizeSlider";
@@ -297,6 +298,42 @@ function BackupAssets() {
       showError(error.message);
     }
   };
+
+  const restoreAsset = async (assetPath, assetName) => {
+    if (!confirm(`Are you sure you want to restore ${assetName}? This will overwrite the current asset and trigger an upload.`)) return;
+    try {
+      const response = await fetch(`${API_URL}/backup-assets/restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paths: [assetPath] }),
+      });
+      if (!response.ok) throw new Error("Failed to restore asset");
+
+      showSuccess(`Restore process started for ${assetName}`);
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+
+  const bulkRestoreAssets = async () => {
+    if (selectedAssets.size === 0) return;
+    if (!confirm(`Are you sure you want to restore ${selectedAssets.size} selected assets? This will overwrite the current assets and trigger an upload.`)) return;
+    try {
+      const response = await fetch(`${API_URL}/backup-assets/restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paths: Array.from(selectedAssets) }),
+      });
+      if (!response.ok) throw new Error("Failed to restore assets");
+
+      showSuccess(`Restore process started for ${selectedAssets.size} assets`);
+      clearSelection();
+      setBulkDeleteMode(false);
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+
 
   // Helpers
   const formatTimestamp = (ts) => {
@@ -725,6 +762,12 @@ function BackupAssets() {
                           {t("backupAssets.view")}
                         </button>
                         <button
+                          onClick={() => restoreAsset(asset.path, asset.name)}
+                          className="flex-1 bg-blue-500/10 text-blue-500 py-1 rounded hover:bg-blue-500 hover:text-white transition-colors"
+                        >
+                          Restore
+                        </button>
+                        <button
                           onClick={() => deleteAsset(asset.path, asset.name)}
                           className="flex-1 bg-red-500/10 text-red-500 py-1 rounded hover:bg-red-500 hover:text-white transition-colors"
                         >
@@ -850,6 +893,15 @@ function BackupAssets() {
                   >
                     <Trash2 className="w-4 h-4" />{" "}
                     {t("backupAssets.deleteSelected")} ({selectedAssets.size})
+                  </button>
+                )}
+                {bulkDeleteMode && selectedAssets.size > 0 && (
+                  <button
+                    onClick={bulkRestoreAssets}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700"
+                  >
+                    <UploadCloud className="w-4 h-4" />{" "}
+                    Restore ({selectedAssets.size})
                   </button>
                 )}
               </>
@@ -1108,6 +1160,17 @@ function BackupAssets() {
                               {t("backupAssets.delete")}
                             </button>
                           )}
+                          {!bulkDeleteMode && (
+                            <button
+                              onClick={() =>
+                                restoreAsset(asset.path, asset.name)
+                              }
+                              className="mt-2 w-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white py-1 rounded transition-colors flex items-center justify-center gap-1"
+                            >
+                              <UploadCloud className="w-3 h-3" />{" "}
+                              Restore
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1223,6 +1286,19 @@ function BackupAssets() {
                     className="flex items-center justify-center gap-2 btn bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 py-2.5 rounded-lg transition-all"
                   >
                     <Trash2 className="w-4 h-4" /> {t("backupAssets.delete")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(`Are you sure you want to restore ${selectedImage.name}? This will overwrite the current asset and trigger an upload.`)
+                      ) {
+                        restoreAsset(selectedImage.path, selectedImage.name);
+                        setSelectedImage(null);
+                      }
+                    }}
+                    className="flex items-center justify-center gap-2 btn bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white border border-blue-500/20 py-2.5 rounded-lg transition-all"
+                  >
+                    <UploadCloud className="w-4 h-4" /> Restore
                   </button>
                 </div>
               </div>

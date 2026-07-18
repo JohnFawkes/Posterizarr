@@ -7571,6 +7571,7 @@ async def run_script(mode: str):
             "testing": [ps_command, "-File", str(SCRIPT_PATH), "-Testing"],
             "manual": [ps_command, "-File", str(SCRIPT_PATH), "-Manual"],
             "backup": [ps_command, "-File", str(SCRIPT_PATH), "-Backup"],
+            "restore": [ps_command, "-File", str(SCRIPT_PATH), "-Restore"],
             "syncjelly": [ps_command, "-File", str(SCRIPT_PATH), "-SyncJelly"],
             "syncemby": [ps_command, "-File", str(SCRIPT_PATH), "-SyncEmby"],
         }
@@ -8352,6 +8353,9 @@ async def delete_poster(path: str):
 
 
 class BulkDeleteRequest(BaseModel):
+    paths: List[str]
+
+class BulkRestoreRequest(BaseModel):
     paths: List[str]
 
 class BulkResolveRequest(BaseModel):
@@ -9207,6 +9211,26 @@ async def bulk_delete_backup_assets(request: BulkDeleteRequest):
         }
     except Exception as e:
         logger.error(f"Error in bulk delete backups: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/api/backup-assets/restore")
+async def restore_backup_assets(request: BulkRestoreRequest, background_tasks: BackgroundTasks):
+    """Restore specific assets from the backup directory"""
+    try:
+        queue_path = PROJECT_ROOT / "restore_queue.json"
+        
+        with open(queue_path, "w", encoding="utf-8") as f:
+            json.dump(request.paths, f, ensure_ascii=False, indent=2)
+            
+        logger.info(f"Saved restore queue with {len(request.paths)} item(s).")
+        background_tasks.add_task(run_script, "restore")
+        
+        return {
+            "success": True, 
+            "message": f"Restore process started for {len(request.paths)} item(s)."
+        }
+    except Exception as e:
+        logger.error(f"Error in restore backups: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 # Mount Static Files for Backups

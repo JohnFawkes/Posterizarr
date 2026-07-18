@@ -31,6 +31,17 @@ function SendMessage {
 
         $fieldList.Add([PSCustomObject]@{ name = "Library"; value = $Lib; inline = $true })
 
+        $providerName = "Local / Plex"
+        if (-not [string]::IsNullOrWhiteSpace($DLSource) -and $DLSource -ne 'false') {
+            if ($DLSource -match 'tmdb\.org') { $providerName = "TMDB" }
+            elseif ($DLSource -match 'thetvdb\.com') { $providerName = "TVDB" }
+            elseif ($DLSource -match 'fanart\.tv') { $providerName = "Fanart" }
+            elseif ($DLSource -match 'theposterdb\.com') { $providerName = "TPDb" }
+            elseif ($DLSource -match 'mediux\.pro') { $providerName = "MediUX" }
+            elseif ($DLSource -match 'imdb\.com') { $providerName = "IMDb" }
+        }
+        $fieldList.Add([PSCustomObject]@{ name = "Provider Source"; value = $providerName; inline = $true })
+
         # Add the URL. ConvertTo-Json will handle any special characters in $favurl
         $fieldList.Add([PSCustomObject]@{ name = "Fav Url"; value = $favurl; inline = $true })
 
