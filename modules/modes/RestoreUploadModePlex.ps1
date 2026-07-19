@@ -1,10 +1,10 @@
-﻿$global:UploadExistingAssets = 'true'
-$global:DisableHashValidation = 'true'
-$global:DisableOnlineAssetFetch = 'true'
-$global:AssetCleanup = 'false'
-$global:EnableCaching = 'false'
-$global:Backup = 'false'
-$global:LogOnlyMissingAssets = 'false'
+$global:UploadExistingAssets = $true
+$global:DisableHashValidation = $true
+$global:DisableOnlineAssetFetch = $true
+$global:AssetCleanup = $false
+$global:EnableCaching = $false
+$global:Backup = $false
+$global:LogOnlyMissingAssets = $false
 #region Normal Mode
     if ($UISchedule -or $ContainerSchedule) {
         $Mode = "scheduled"
