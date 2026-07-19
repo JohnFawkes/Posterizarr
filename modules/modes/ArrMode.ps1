@@ -767,7 +767,6 @@
             Invoke-MoviePosterCreation -entry $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
         }
-        }
 
         Write-Entry -Message "Starting Show/Season Poster/Background/TitleCard Creation part..." -Path $global:configLogging -Color Green -log Info
         # Show Part
@@ -788,7 +787,6 @@
 
             Invoke-ShowPosterCreation -entry $_
         } -ThrottleLimit $(if ($config.PrerequisitePart.ParallelJobs) { $config.PrerequisitePart.ParallelJobs } else { 5 })
-        }
         }
 
         if ($global:TitleCards -eq 'true' -and $FormattedData) {
