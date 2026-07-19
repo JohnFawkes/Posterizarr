@@ -4,7 +4,6 @@ param (
     [switch]$Testing, # Required for Testing trigger
     [switch]$Tautulli, # Required for Tautulli trigger
     [switch]$Backup, # Required for Backup trigger
-    [switch]$Restore, # Required for Restore Backup trigger
     [switch]$dev, # Required for trigger dev branch
     [switch]$SyncJelly, # Required for Jellyfin Sync trigger
     [switch]$SyncEmby, # Required for Emby Sync trigger
@@ -139,9 +138,6 @@ elseif ($ArrTrigger) {
 }
 elseif ($Backup) {
     . "$PSScriptRoot\modules\modes\BackupMode.ps1"
-}
-elseif ($Restore) {
-    . "$PSScriptRoot\modules\modes\RestoreMode.ps1"
 }
 elseif ($SyncJelly -or $SyncEmby) {
     . "$PSScriptRoot\modules\modes\SyncMode.ps1"

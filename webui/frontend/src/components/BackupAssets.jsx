@@ -27,7 +27,6 @@ import {
   ArrowUpDown,
   Download,
   Archive,
-  UploadCloud,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CompactImageSizeSlider from "./CompactImageSizeSlider";
@@ -131,8 +130,6 @@ function BackupAssets() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedAssets, setSelectedAssets] = useState(new Set());
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [confirmRestore, setConfirmRestore] = useState(null);
 
   // Sorting
   const [sortOrder, setSortOrder] = useState(
@@ -301,44 +298,6 @@ function BackupAssets() {
     }
   };
 
-  // Restore Actions
-  const restoreAsset = (assetPath, assetName) => {
-    setConfirmRestore({ paths: [assetPath], name: assetName });
-  };
-
-  const bulkRestoreAssets = () => {
-    if (selectedAssets.size === 0) return;
-    setConfirmRestore({ 
-      paths: Array.from(selectedAssets), 
-      name: `${selectedAssets.size} selected assets` 
-    });
-  };
-
-  const executeRestore = async () => {
-    if (!confirmRestore) return;
-    try {
-      const response = await fetch(`${API_URL}/backup-assets/restore`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paths: confirmRestore.paths }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.detail || errorData?.message || "Failed to restore asset");
-      }
-
-      showSuccess(`Restore process started for ${confirmRestore.name}`);
-      clearSelection();
-      setBulkDeleteMode(false);
-      setSelectedImage(null);
-    } catch (error) {
-      showError(error.message);
-    } finally {
-      setConfirmRestore(null);
-    }
-  };
-
-
   // Helpers
   const formatTimestamp = (ts) => {
     if (!ts) return "Unknown";
@@ -366,8 +325,6 @@ function BackupAssets() {
   };
 
   const matchesSearch = (asset, folder, library) => {
-    if (typeFilter !== "all" && asset.type !== typeFilter) return false;
-
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -379,7 +336,7 @@ function BackupAssets() {
   // Reset page when filters change
   useEffect(
     () => setCurrentPage(1),
-    [searchQuery, activeLibrary, viewMode, sortOrder, typeFilter, currentPath, itemsPerPage]
+    [searchQuery, viewMode, activeLibrary, currentPath, itemsPerPage]
   );
 
   // Data Aggregation
@@ -573,13 +530,6 @@ function BackupAssets() {
                   : t("backupAssets.select")}
               </button>
 
-              <button
-                onClick={() => setConfirmRestore({ paths: ["ALL"], name: "ALL backups (Everything)" })}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-theme-primary hover:bg-theme-primary/80 text-white"
-              >
-                <UploadCloud className="w-4 h-4" /> Restore All
-              </button>
-
               {/* Sort Dropdown */}
               <div className="relative" ref={sortDropdownRef}>
                 <button
@@ -647,24 +597,6 @@ function BackupAssets() {
                 }`}
               >
                 {lib.name}
-              </button>
-            ))}
-          </div>
-          
-          {/* Type Filter */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="flex items-center text-sm font-medium text-theme-muted mr-2">Type:</span>
-            {["all", "poster", "season", "background", "titlecard"].map((type) => (
-              <button
-                key={type}
-                onClick={() => setTypeFilter(type)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border ${
-                  typeFilter === type
-                    ? "bg-theme-primary text-white border-theme-primary"
-                    : "bg-theme-bg border-theme-border"
-                }`}
-              >
-                {type === "all" ? "All Types" : type.charAt(0).toUpperCase() + type.slice(1)}
               </button>
             ))}
           </div>
@@ -791,12 +723,6 @@ function BackupAssets() {
                           className="flex-1 bg-theme-hover py-1 rounded hover:text-theme-primary"
                         >
                           {t("backupAssets.view")}
-                        </button>
-                        <button
-                          onClick={() => restoreAsset(asset.path, asset.name)}
-                          className="flex-1 bg-blue-500/10 text-blue-500 py-1 rounded hover:bg-blue-500 hover:text-white transition-colors"
-                        >
-                          Restore
                         </button>
                         <button
                           onClick={() => deleteAsset(asset.path, asset.name)}
@@ -926,15 +852,6 @@ function BackupAssets() {
                     {t("backupAssets.deleteSelected")} ({selectedAssets.size})
                   </button>
                 )}
-                {bulkDeleteMode && selectedAssets.size > 0 && (
-                  <button
-                    onClick={bulkRestoreAssets}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700"
-                  >
-                    <UploadCloud className="w-4 h-4" />{" "}
-                    Restore ({selectedAssets.size})
-                  </button>
-                )}
               </>
             )}
 
@@ -1018,39 +935,16 @@ function BackupAssets() {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {viewData.items.map((lib) => (
-                    <div
+                    <button
                       key={lib.name}
+                      onClick={() => navigateToLibrary(lib.name)}
                       className="group relative bg-theme-card border border-theme-border rounded-lg p-4 transition-all text-left shadow-sm hover:shadow-md hover:border-theme-primary"
                     >
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
-                        {bulkDeleteMode && (
-                          <input
-                            type="checkbox"
-                            checked={selectedAssets.has(lib.name)}
-                            onChange={() => toggleAssetSelection(lib.name)}
-                            className="w-5 h-5 accent-theme-primary cursor-pointer mt-2 mr-2"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            restoreAsset(lib.name, lib.name);
-                          }}
-                          className="p-2 bg-theme-primary/20 text-theme-primary hover:bg-theme-primary hover:text-white rounded-lg transition-colors"
-                          title="Restore entire library"
-                        >
-                          <UploadCloud className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div 
-                        className="flex items-start gap-3 cursor-pointer"
-                        onClick={() => navigateToLibrary(lib.name)}
-                      >
+                      <div className="flex items-start gap-3">
                         <div className="p-3 bg-theme-hover rounded-full group-hover:bg-theme-primary transition-colors">
                           <Archive className="w-6 h-6 text-theme-muted group-hover:text-white" />
                         </div>
-                        <div className="flex-1 min-w-0 pr-8">
+                        <div className="flex-1 min-w-0">
                           <h3 className="font-medium text-theme-text truncate mb-1 text-lg">
                             {lib.name}
                           </h3>
@@ -1107,7 +1001,7 @@ function BackupAssets() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                   {viewData.items.length === 0 && (
                     <div className="col-span-full text-center text-theme-muted py-8">
@@ -1120,39 +1014,18 @@ function BackupAssets() {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {viewData.items.map((folder) => (
-                    <div
+                    <button
                       key={folder.name}
+                      onClick={() =>
+                        navigateToFolder(currentPath[0], folder.name)
+                      }
                       className="group relative bg-theme-card border border-theme-border rounded-lg p-4 transition-all text-left shadow-sm hover:shadow-md hover:border-theme-primary"
                     >
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
-                        {bulkDeleteMode && (
-                          <input
-                            type="checkbox"
-                            checked={selectedAssets.has(`${currentPath[0]}/${folder.name}`)}
-                            onChange={() => toggleAssetSelection(`${currentPath[0]}/${folder.name}`)}
-                            className="w-5 h-5 accent-theme-primary cursor-pointer mt-2 mr-2"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            restoreAsset(`${currentPath[0]}/${folder.name}`, folder.name);
-                          }}
-                          className="p-2 bg-theme-primary/20 text-theme-primary hover:bg-theme-primary hover:text-white rounded-lg transition-colors"
-                          title="Restore entire folder"
-                        >
-                          <UploadCloud className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div 
-                        className="flex items-start gap-3 cursor-pointer"
-                        onClick={() => navigateToFolder(currentPath[0], folder.name)}
-                      >
+                      <div className="flex items-start gap-3">
                         <div className="p-3 bg-theme-hover rounded-full group-hover:bg-theme-primary transition-colors">
                           <Folder className="w-6 h-6 text-theme-muted group-hover:text-white" />
                         </div>
-                        <div className="flex-1 min-w-0 pr-8">
+                        <div className="flex-1 min-w-0">
                           <h3 className="font-medium text-theme-text truncate mb-1">
                             {folder.name}
                           </h3>
@@ -1161,7 +1034,7 @@ function BackupAssets() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                   {viewData.items.length === 0 && (
                     <div className="col-span-full text-center text-theme-muted py-8">
@@ -1233,17 +1106,6 @@ function BackupAssets() {
                             >
                               <Trash2 className="w-3 h-3" />{" "}
                               {t("backupAssets.delete")}
-                            </button>
-                          )}
-                          {!bulkDeleteMode && (
-                            <button
-                              onClick={() =>
-                                restoreAsset(asset.path, asset.name)
-                              }
-                              className="mt-2 w-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white py-1 rounded transition-colors flex items-center justify-center gap-1"
-                            >
-                              <UploadCloud className="w-3 h-3" />{" "}
-                              Restore
                             </button>
                           )}
                         </div>
@@ -1362,47 +1224,8 @@ function BackupAssets() {
                   >
                     <Trash2 className="w-4 h-4" /> {t("backupAssets.delete")}
                   </button>
-                  <button
-                    onClick={() => {
-                      restoreAsset(selectedImage.path, selectedImage.name);
-                    }}
-                    className="flex items-center justify-center gap-2 btn bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white border border-blue-500/20 py-2.5 rounded-lg transition-all"
-                  >
-                    <UploadCloud className="w-4 h-4" /> Restore
-                  </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* 5. RESTORE CONFIRM MODAL */}
-      {confirmRestore && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-theme-card border border-theme-primary/30 p-6 rounded-lg max-w-md w-full shadow-2xl">
-            <div className="flex items-center gap-3 mb-4 text-theme-primary">
-              <UploadCloud className="w-8 h-8" />
-              <h2 className="text-xl font-semibold">Confirm Restore</h2>
-            </div>
-            <p className="text-theme-text mb-2">
-              Are you sure you want to restore <strong>{confirmRestore.name}</strong>?
-            </p>
-            <p className="text-sm text-theme-muted mb-6">
-              This will overwrite the current asset and instantly trigger an upload to your media server.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setConfirmRestore(null)}
-                className="px-4 py-2 bg-theme-bg hover:bg-theme-hover border border-theme-border rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={executeRestore}
-                className="px-4 py-2 bg-theme-primary hover:bg-theme-primary/80 text-white rounded-lg transition-all flex items-center gap-2"
-              >
-                <UploadCloud className="w-4 h-4" /> Restore
-              </button>
             </div>
           </div>
         </div>
