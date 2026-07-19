@@ -30,22 +30,22 @@
                 # 2. Stage to temporary AssetPath
                 $destPathTemp = Join-Path $TempAssetPath $item
                 
-                if (Test-Path $sourcePath -PathType Container) {
-                    if (-not (Test-Path $destPathPermanent)) { New-Item -ItemType Directory -Path $destPathPermanent -Force | Out-Null }
-                    if (-not (Test-Path $destPathTemp)) { New-Item -ItemType Directory -Path $destPathTemp -Force | Out-Null }
+                if (Test-Path -LiteralPath $sourcePath -PathType Container) {
+                    if (-not (Test-Path -LiteralPath $destPathPermanent)) { New-Item -ItemType Directory -Path $destPathPermanent -Force | Out-Null }
+                    if (-not (Test-Path -LiteralPath $destPathTemp)) { New-Item -ItemType Directory -Path $destPathTemp -Force | Out-Null }
                     
-                    Copy-Item -Path "$sourcePath\*" -Destination $destPathPermanent -Recurse -Force
-                    Copy-Item -Path "$sourcePath\*" -Destination $destPathTemp -Recurse -Force
+                    Copy-Item -LiteralPath $sourcePath -Destination $destPathPermanent -Recurse -Force
+                    Copy-Item -LiteralPath $sourcePath -Destination $destPathTemp -Recurse -Force
                     Write-Entry -Subtext "Restored Directory: $item" -Path $global:configLogging -Color Cyan -log Debug
-                } elseif (Test-Path $sourcePath -PathType Leaf) {
+                } elseif (Test-Path -LiteralPath $sourcePath -PathType Leaf) {
                     $destDirPermanent = Split-Path $destPathPermanent -Parent
                     $destDirTemp = Split-Path $destPathTemp -Parent
                     
-                    if (-not (Test-Path $destDirPermanent)) { New-Item -ItemType Directory -Path $destDirPermanent -Force | Out-Null }
-                    if (-not (Test-Path $destDirTemp)) { New-Item -ItemType Directory -Path $destDirTemp -Force | Out-Null }
+                    if (-not (Test-Path -LiteralPath $destDirPermanent)) { New-Item -ItemType Directory -Path $destDirPermanent -Force | Out-Null }
+                    if (-not (Test-Path -LiteralPath $destDirTemp)) { New-Item -ItemType Directory -Path $destDirTemp -Force | Out-Null }
                     
-                    Copy-Item -Path $sourcePath -Destination $destPathPermanent -Force
-                    Copy-Item -Path $sourcePath -Destination $destPathTemp -Force
+                    Copy-Item -LiteralPath $sourcePath -Destination $destPathPermanent -Force
+                    Copy-Item -LiteralPath $sourcePath -Destination $destPathTemp -Force
                     Write-Entry -Subtext "Restored File: $item" -Path $global:configLogging -Color Cyan -log Debug
                 } else {
                     Write-Entry -Message "Backup file not found: $sourcePath" -Path $global:configLogging -Color Red -log Error
@@ -64,21 +64,31 @@
     $originalAssetPath = $global:AssetPath
     $global:AssetPath = $TempAssetPath
 
-    $global:UploadExistingAssets = 'true'
-    $global:DisableHashValidation = 'true'
-    $global:DisableOnlineAssetFetch = 'true'
-
-    Write-Entry -Message "Files dynamically isolated in $TempAssetPath. Triggering NormalMode..." -Path $global:configLogging -Color Green -log Info
-
-    try {
-        . "$PSScriptRoot\modules\modes\NormalMode.ps1"
-    }
-    finally {
-        # Cleanup temporary staging directory and restore original AssetPath reference
-        $global:AssetPath = $originalAssetPath
-        if (Test-Path $TempAssetPath) {
-            Remove-Item -Path $TempAssetPath -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Entry -Message "Restore staging directory cleaned up." -Path $global:configLogging -Color Cyan -log Debug
+    if ($UseOtherMediaServer -eq 'true') {
+        Write-Entry -Message "Files dynamically isolated in $TempAssetPath. Triggering RestoreUploadModeEmby..." -Path $global:configLogging -Color Green -log Info
+        try {
+            . "$global:ScriptRoot\modules\modes\RestoreUploadModeEmby.ps1"
+        }
+        finally {
+            # Cleanup temporary staging directory and restore original AssetPath reference
+            $global:AssetPath = $originalAssetPath
+            if (Test-Path -LiteralPath $TempAssetPath) {
+                Remove-Item -LiteralPath $TempAssetPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Entry -Message "Restore staging directory cleaned up." -Path $global:configLogging -Color Cyan -log Debug
+            }
+        }
+    } else {
+        Write-Entry -Message "Files dynamically isolated in $TempAssetPath. Triggering RestoreUploadModePlex..." -Path $global:configLogging -Color Green -log Info
+        try {
+            . "$global:ScriptRoot\modules\modes\RestoreUploadModePlex.ps1"
+        }
+        finally {
+            # Cleanup temporary staging directory and restore original AssetPath reference
+            $global:AssetPath = $originalAssetPath
+            if (Test-Path -LiteralPath $TempAssetPath) {
+                Remove-Item -LiteralPath $TempAssetPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Entry -Message "Restore staging directory cleaned up." -Path $global:configLogging -Color Cyan -log Debug
+            }
         }
     }
 #endregion

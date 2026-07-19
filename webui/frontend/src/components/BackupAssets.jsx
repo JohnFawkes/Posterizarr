@@ -330,6 +330,7 @@ function BackupAssets() {
       showSuccess(`Restore process started for ${confirmRestore.name}`);
       clearSelection();
       setBulkDeleteMode(false);
+      setSelectedImage(null);
     } catch (error) {
       showError(error.message);
     } finally {
@@ -570,6 +571,13 @@ function BackupAssets() {
                 {bulkDeleteMode
                   ? t("backupAssets.cancel")
                   : t("backupAssets.select")}
+              </button>
+
+              <button
+                onClick={() => setConfirmRestore({ paths: ["ALL"], name: "ALL backups (Everything)" })}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-theme-primary hover:bg-theme-primary/80 text-white"
+              >
+                <UploadCloud className="w-4 h-4" /> Restore All
               </button>
 
               {/* Sort Dropdown */}
@@ -1014,7 +1022,16 @@ function BackupAssets() {
                       key={lib.name}
                       className="group relative bg-theme-card border border-theme-border rounded-lg p-4 transition-all text-left shadow-sm hover:shadow-md hover:border-theme-primary"
                     >
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+                        {bulkDeleteMode && (
+                          <input
+                            type="checkbox"
+                            checked={selectedAssets.has(lib.name)}
+                            onChange={() => toggleAssetSelection(lib.name)}
+                            className="w-5 h-5 accent-theme-primary cursor-pointer mt-2 mr-2"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1107,7 +1124,16 @@ function BackupAssets() {
                       key={folder.name}
                       className="group relative bg-theme-card border border-theme-border rounded-lg p-4 transition-all text-left shadow-sm hover:shadow-md hover:border-theme-primary"
                     >
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+                        {bulkDeleteMode && (
+                          <input
+                            type="checkbox"
+                            checked={selectedAssets.has(`${currentPath[0]}/${folder.name}`)}
+                            onChange={() => toggleAssetSelection(`${currentPath[0]}/${folder.name}`)}
+                            className="w-5 h-5 accent-theme-primary cursor-pointer mt-2 mr-2"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1338,12 +1364,7 @@ function BackupAssets() {
                   </button>
                   <button
                     onClick={() => {
-                      if (
-                        confirm(`Are you sure you want to restore ${selectedImage.name}? This will overwrite the current asset and trigger an upload.`)
-                      ) {
-                        restoreAsset(selectedImage.path, selectedImage.name);
-                        setSelectedImage(null);
-                      }
+                      restoreAsset(selectedImage.path, selectedImage.name);
                     }}
                     className="flex items-center justify-center gap-2 btn bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white border border-blue-500/20 py-2.5 rounded-lg transition-all"
                   >
