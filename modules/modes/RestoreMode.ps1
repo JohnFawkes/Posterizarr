@@ -67,7 +67,7 @@
     if ($UseOtherMediaServer -eq 'true') {
         Write-Entry -Message "Files dynamically isolated in $TempAssetPath. Triggering RestoreUploadModeEmby..." -Path $global:configLogging -Color Green -log Info
         try {
-            . "$global:ScriptRoot\modules\modes\RestoreUploadModeEmby.ps1"
+            . "$PSScriptRoot\RestoreUploadModeEmby.ps1"
         }
         finally {
             # Cleanup temporary staging directory and restore original AssetPath reference
@@ -80,7 +80,7 @@
     } else {
         Write-Entry -Message "Files dynamically isolated in $TempAssetPath. Triggering RestoreUploadModePlex..." -Path $global:configLogging -Color Green -log Info
         try {
-            . "$global:ScriptRoot\modules\modes\RestoreUploadModePlex.ps1"
+            . "$PSScriptRoot\RestoreUploadModePlex.ps1"
         }
         finally {
             # Cleanup temporary staging directory and restore original AssetPath reference
