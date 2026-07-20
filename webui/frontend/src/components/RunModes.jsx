@@ -31,7 +31,7 @@ import DangerZone from "./DangerZone";
 import RestoreModeModal from "./modals/RestoreModeModal";
 import { useToast } from "../context/ToastContext";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "/api";
 
 // ============================================================================
 // LOG FILE MAPPING - Maps run modes to their respective log files

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "/api";
 
 const RestoreModeModal = React.memo(({ show, onClose, onStart, loading, status, initialLibrary = "", initialItem = "" }) => {
   const [restoreScope, setRestoreScope] = useState(initialLibrary ? "specific" : "all");

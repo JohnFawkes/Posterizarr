@@ -37,7 +37,7 @@ import ScrollToButtons from "./ScrollToButtons";
 import { buildResponsiveGridClass } from "../utils/gridClass";
 import RestoreModeModal from "./modals/RestoreModeModal";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "/api";
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // ++ PAGINATION COMPONENT
