@@ -102,7 +102,17 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # 3. Identify "Browser-Based" assets that need to bypass strict Basic Auth
-        if path.startswith(("/api/fonts/preview/", "/api/overlayfiles/preview/", "/api/thumbnail")):
+        browser_assets = (
+            "/api/fonts/preview/", 
+            "/api/overlayfiles/preview/", 
+            "/api/thumbnail",
+            "/poster_assets/",
+            "/manual_poster_assets/",
+            "/backup_assets/",
+            "/test/",
+            "/images/"
+        )
+        if path.startswith(browser_assets):
             referer = request.headers.get("referer", "")
             host = request.headers.get("host", "")
 
@@ -111,9 +121,9 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
         # 4. Whitelist Static Files & Frontend (CRITICAL FIX)
-        # If the request is NOT for the API, let it pass so the UI can load.
-        # The UI will then make API calls which WILL be caught by step 5 or 6.
-        if not path.startswith("/api/"):
+        # Let frontend files pass, but EXPLICITLY do not whitelist protected static assets or API endpoints
+        protected_static = ("/poster_assets/", "/manual_poster_assets/", "/backup_assets/", "/test/", "/images/")
+        if not path.startswith("/api/") and not path.startswith(protected_static):
              return await call_next(request)
 
         # 5. Public Access Logic (When Basic Auth is DISABLED)
