@@ -102,7 +102,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # 3. Identify "Browser-Based" assets that need to bypass strict Basic Auth
-        if path.startswith(("/api/fonts/preview/", "/api/overlayfiles/preview/")):
+        if path.startswith(("/api/fonts/preview/", "/api/overlayfiles/preview/", "/api/thumbnail")):
             referer = request.headers.get("referer", "")
             host = request.headers.get("host", "")
 
