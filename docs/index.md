@@ -4,7 +4,7 @@
   <h1 align="center">Welcome to Posterizarr</h1>
 
   <p>
-    Automate the creation of beautiful, textless posters for your Plex, Jellyfin, or Emby library.
+    Automate the creation of beautiful assets for your Plex, Jellyfin, or Emby library.
   </p>
 </div>
 
