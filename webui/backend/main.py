@@ -1437,9 +1437,44 @@ def scan_and_cache_assets():
 
                     library_name = library_dir.name
                     folders = []
+                    root_assets = []
 
                     for folder_dir in library_dir.iterdir():
-                        if not folder_dir.is_dir() or folder_dir.name == "@eaDir":
+                        if folder_dir.name == "@eaDir":
+                            continue
+
+                        if folder_dir.is_file() and folder_dir.suffix.lower() in [
+                            ".jpg", ".jpeg", ".png", ".webp"
+                        ]:
+                            filename_lower = folder_dir.name.lower()
+
+                            # Determine Asset Type based on filename patterns
+                            if "poster" in filename_lower:
+                                asset_type = "poster"
+                            elif "background" in filename_lower:
+                                asset_type = "background"
+                            elif filename_lower.startswith("season"):
+                                asset_type = "season"
+                            elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE) or filename_lower.startswith("episodetemplate"):
+                                asset_type = "titlecard"
+                            else:
+                                asset_type = "other"
+
+                            relative_path = f"{library_name}/{folder_dir.name}"
+                            encoded_relative_path = quote(relative_path, safe="/")
+
+                            root_assets.append({
+                                "name": folder_dir.name,
+                                "path": relative_path,
+                                "type": asset_type,
+                                "size": folder_dir.stat().st_size,
+                                "url": f"/backup_assets/{encoded_relative_path}", # Points to static mount
+                                "modified": folder_dir.stat().st_mtime
+                            })
+                            backup_total_assets += 1
+                            continue
+
+                        if not folder_dir.is_dir():
                             continue
 
                         folder_name = folder_dir.name
@@ -1488,6 +1523,14 @@ def scan_and_cache_assets():
                                 "assets": assets,
                                 "asset_count": len(assets),
                             })
+
+                    if root_assets:
+                        folders.append({
+                            "name": "Root Assets",
+                            "path": library_name,
+                            "assets": root_assets,
+                            "asset_count": len(root_assets),
+                        })
 
                     if folders:
                         backup_libraries.append({
@@ -9197,8 +9240,28 @@ async def get_backup_assets_gallery():
     """Get all assets from backup directory - (uses cache)"""
     try:
         cache = get_fresh_assets()
-        # Return empty structure if not found in cache yet
-        return cache.get("backup_gallery", {"libraries": [], "total_assets": 0})
+        gallery = cache.get("backup_gallery", {"libraries": [], "total_assets": 0})
+        
+        # Determine configured libraries from server_libraries_db
+        configured_libraries = set()
+        if SERVER_LIBRARIES_DB_AVAILABLE and server_libraries_db is not None:
+            for srv_type in ["plex", "jellyfin", "emby"]:
+                try:
+                    res = server_libraries_db.get_media_server_libraries(srv_type)
+                    if res.get("success"):
+                        for lib in res.get("libraries", []):
+                            configured_libraries.add(lib.get("name"))
+                except Exception:
+                    pass
+
+        annotated_libraries = []
+        for lib in gallery.get("libraries", []):
+            lib_copy = lib.copy()
+            # If no configured libraries exist yet (e.g. not synced), we default to True
+            lib_copy["is_configured"] = True if not configured_libraries else (lib_copy["name"] in configured_libraries)
+            annotated_libraries.append(lib_copy)
+            
+        return {"libraries": annotated_libraries, "total_assets": gallery.get("total_assets", 0)}
     except Exception as e:
         logger.error(f"Error getting backup gallery: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

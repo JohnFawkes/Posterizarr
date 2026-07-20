@@ -426,6 +426,7 @@ function BackupAssets() {
                 ...asset,
                 libraryName: library.name,
                 folderName: folder.name,
+                is_configured: library.is_configured,
               });
             }
           }
@@ -480,7 +481,7 @@ function BackupAssets() {
             items: getSortedAssets(
               folder.assets.filter((a) =>
                 a.name.toLowerCase().includes(searchQuery.toLowerCase())
-              )
+              ).map(a => ({...a, libraryName: lib.name, folderName: folder.name, is_configured: lib.is_configured}))
             ),
           }
         : { type: "assets", items: [] };
@@ -898,12 +899,14 @@ function BackupAssets() {
                         >
                           {t("backupAssets.view")}
                         </button>
-                        <button
-                          onClick={() => confirmRestore(asset)}
-                          className="w-full bg-blue-500/10 text-blue-500 py-1 rounded hover:bg-blue-500 hover:text-white transition-colors"
-                        >
-                          {t("backupAssets.restore")}
-                        </button>
+                        {asset.is_configured && (
+                          <button
+                            onClick={() => confirmRestore(asset)}
+                            className="w-full bg-blue-500/10 text-blue-500 py-1 rounded hover:bg-blue-500 hover:text-white transition-colors"
+                          >
+                            {t("backupAssets.restore")}
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setAssetToDelete(asset);
@@ -1292,13 +1295,15 @@ function BackupAssets() {
                               >
                                 <Trash2 className="w-4 h-4" /> Delete
                               </button>
-                              <button
-                                onClick={() => confirmRestore(asset)}
-                                className="w-full bg-blue-500 text-white hover:bg-blue-600 py-1.5 rounded-md transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                                title="Restore to Media Server"
-                              >
-                                <UploadCloud className="w-4 h-4" /> Restore
-                              </button>
+                              {asset.is_configured && (
+                                <button
+                                  onClick={() => confirmRestore(asset)}
+                                  className="w-full bg-blue-500 text-white hover:bg-blue-600 py-1.5 rounded-md transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                                  title="Restore to Media Server"
+                                >
+                                  <UploadCloud className="w-4 h-4" /> Restore
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1400,16 +1405,18 @@ function BackupAssets() {
                     <Download className="w-4 h-4" />{" "}
                     {t("backupAssets.download")}
                   </a>
-                  <button
-                    onClick={() => {
-                      const img = selectedImage;
-                      setSelectedImage(null);
-                      confirmRestore(img);
-                    }}
-                    className="flex items-center justify-center gap-2 btn bg-blue-500 text-white hover:bg-blue-600 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-500/20"
-                  >
-                    <UploadCloud className="w-4 h-4" /> {t("backupAssets.restore", "Restore")}
-                  </button>
+                  {selectedImage?.is_configured && (
+                    <button
+                      onClick={() => {
+                        const img = selectedImage;
+                        setSelectedImage(null);
+                        confirmRestore(img);
+                      }}
+                      className="flex items-center justify-center gap-2 btn bg-blue-500 text-white hover:bg-blue-600 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-500/20"
+                    >
+                      <UploadCloud className="w-4 h-4" /> {t("backupAssets.restore", "Restore")}
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       if (

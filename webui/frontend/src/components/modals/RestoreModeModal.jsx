@@ -35,7 +35,7 @@ const RestoreModeModal = React.memo(({ show, onClose, onStart, loading, status, 
         .then((res) => res.json())
         .then((data) => {
           const allLibraries = data.libraries || [];
-          setLibraryItems(allLibraries.filter((lib) => lib.name !== "Collections"));
+          setLibraryItems(allLibraries.filter((lib) => lib.is_configured));
         })
         .catch((err) => console.error("Error fetching libraries:", err))
         .finally(() => setLoadingLibraries(false));
