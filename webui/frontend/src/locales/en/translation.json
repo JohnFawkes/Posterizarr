@@ -475,7 +475,8 @@
     "nameLabel": "Name",
     "pathLabel": "Path",
     "sizeLabel": "Size",
-    "modifiedLabel": "Modified"
+    "modifiedLabel": "Modified",
+    "restore": "Restore"
   },
   "manualAssets": {
     "title": "Manual Assets",

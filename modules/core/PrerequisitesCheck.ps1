@@ -89,6 +89,22 @@ Else {
         $RunMode = "Reset"
         Write-Entry -Message "Reset running file created..." -Path $global:configLogging -Color White -log Info
     }
+    Elseif ($Restore) {
+        $RunMode = "Restore"
+        Write-Entry -Message "Restore running file created..." -Path $global:configLogging -Color White -log Info
+    }
+    Elseif ($LogoUpdater) {
+        $RunMode = "LogoUpdater"
+        Write-Entry -Message "LogoUpdater running file created..." -Path $global:configLogging -Color White -log Info
+    }
+    Elseif ($LogoRevert) {
+        $RunMode = "LogoRevert"
+        Write-Entry -Message "LogoRevert running file created..." -Path $global:configLogging -Color White -log Info
+    }
+    Elseif ($GatherLogs) {
+        $RunMode = "GatherLogs"
+        Write-Entry -Message "GatherLogs running file created..." -Path $global:configLogging -Color White -log Info
+    }
     Else {
         Write-Entry -Message "Posterizarr running file created..." -Path $global:configLogging -Color White -log Info
     }
@@ -305,7 +321,7 @@ if (-not $module) {
 }
 
 # Only connect if DisableOnlineAssetFetch is not set to false, and not running a mode that skips online search
-if ($global:DisableOnlineAssetFetch -eq 'false' -and !$SyncJelly -and !$SyncEmby -and !$Backup -and !$Manual -and !$PosterReset) {
+if ($global:DisableOnlineAssetFetch -eq 'false' -and !$SyncJelly -and !$SyncEmby -and !$Backup -and !$Manual -and !$PosterReset -and !$Restore) {
     $checkFanart = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'FANART')
     $checkTMDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TMDB')
     $checkTVDB = (-not $global:OverrideProviderOrder) -or ($global:ProviderOrder -contains 'TVDB')

@@ -475,7 +475,8 @@
     "nameLabel": "Name",
     "pathLabel": "Pfad",
     "sizeLabel": "Größe",
-    "modifiedLabel": "Geändert"
+    "modifiedLabel": "Geändert",
+    "restore": "Wiederherstellen"
   },
   "manualAssets": {
     "title": "Manuelle Assets",

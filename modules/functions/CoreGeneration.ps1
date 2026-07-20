@@ -1560,7 +1560,7 @@ function Invoke-MoviePosterCreation {
             }
         }
         catch {
-            Write-Entry -Subtext "Could not query entries from movies array, error message: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+            Write-Entry -Subtext "Error processing movie '$($entry.title)': $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
             write-Entry -Subtext "At line $($_.InvocationInfo.ScriptLineNumber)" -Path $global:configLogging -Color Red -log Error
             $global:errorCount = Increment-GlobalStat 'errorCount'; Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
             if ($global:PosterOnlyTextless) {

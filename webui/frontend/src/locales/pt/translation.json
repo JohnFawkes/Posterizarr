@@ -475,7 +475,8 @@
     "nameLabel": "Nome",
     "pathLabel": "Caminho",
     "sizeLabel": "Tamanho",
-    "modifiedLabel": "Modificado"
+    "modifiedLabel": "Modificado",
+    "restore": "Restaurar"
   },
   "manualAssets": {
     "title": "Ativos manuais",

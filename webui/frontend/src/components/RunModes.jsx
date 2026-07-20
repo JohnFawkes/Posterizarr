@@ -23,13 +23,15 @@ import {
   ExternalLink,
   Download,
   Search, // <--- Added Search Icon
+  Upload,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "./ConfirmDialog";
 import DangerZone from "./DangerZone";
+import RestoreModeModal from "./modals/RestoreModeModal";
 import { useToast } from "../context/ToastContext";
 
-const API_URL = "/api";
+const API_URL = "http://127.0.0.1:8000/api";
 
 // ============================================================================
 // LOG FILE MAPPING - Maps run modes to their respective log files
@@ -512,6 +514,7 @@ function RunModes() {
   const [showJellyfinSyncModal, setShowJellyfinSyncModal] = useState(false);
   const [showEmbySyncModal, setShowEmbySyncModal] = useState(false);
   const [showBackupModeModal, setShowBackupModeModal] = useState(false);
+  const [showRestoreModeModal, setShowRestoreModeModal] = useState(false);
   const [showLogoUpdaterModal, setShowLogoUpdaterModal] = useState(false);
   const [logoUpdaterLibrary, setLogoUpdaterLibrary] = useState("");
   const [forceLogoReplace, setForceLogoReplace] = useState(false);
@@ -724,6 +727,41 @@ function RunModes() {
     setShowLibrarySelector(false);
     setLibrarySearchQuery("");
     showSuccess(`Library "${libraryName}" selected`);
+  };
+
+  const handleRunRestore = async (options) => {
+    if (status.running) {
+      showError(
+        `${t("runModes.scriptRunning")} - ${t("runModes.status.mode")}: ${status.current_mode}`
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/run-restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(options),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        showSuccess(t("runModes.startedMode", { mode: "Restore" }));
+        fetchStatus();
+
+        const logFile = getLogFileForMode("restore");
+        const logExists = await waitForLogFile(logFile);
+        navigate("/logs", { state: { logFile: logFile } });
+      } else {
+        showError(`Error: ${data.detail || data.message || "Failed to start restore mode"}`);
+      }
+    } catch (error) {
+      showError(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const runScript = async (mode) => {
@@ -1643,6 +1681,10 @@ const BackupModeModal = React.memo(({ show, onClose, onStart, loading, status, t
   );
 });
 
+// ============================================================================
+// RESTORE MODE MODAL (Moved to src/components/modals/RestoreModeModal.jsx)
+// ============================================================================
+
 
   // Dynamic hints based on poster type
   const getHints = (type) => {
@@ -1923,6 +1965,17 @@ const LogoUpdaterModal = React.memo(({
         status={status}
         t={t}
       />
+      <RestoreModeModal
+        show={showRestoreModeModal}
+        onClose={() => setShowRestoreModeModal(false)}
+        onStart={(options) => {
+          setShowRestoreModeModal(false);
+          handleRunRestore(options);
+        }}
+        loading={loading}
+        status={status}
+        t={t}
+      />
       <LogoUpdaterModal
         show={showLogoUpdaterModal}
         onClose={() => setShowLogoUpdaterModal(false)}
@@ -2048,7 +2101,7 @@ const LogoUpdaterModal = React.memo(({
           {t("runModes.quickRun.title")}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           {/* Normal Mode */}
           <button
             onClick={() => runScript("normal")}
@@ -2091,6 +2144,21 @@ const LogoUpdaterModal = React.memo(({
             </h3>
             <p className="text-sm text-theme-muted text-center">
               {t("runModes.quickRun.backup.description")}
+            </p>
+          </button>
+
+          {/* Restore Mode */}
+          <button
+            onClick={() => setShowRestoreModeModal(true)}
+            disabled={loading || status.running}
+            className="flex flex-col items-center justify-center p-6 bg-theme-hover hover:bg-theme-primary/20 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 rounded-lg border border-theme-primary/30 hover:border-theme-primary transition-all group"
+          >
+            <Upload className="w-8 h-8 text-blue-400 mb-3 group-hover:scale-110 transition-transform" />
+            <h3 className="font-semibold text-theme-text mb-1">
+              Restore Mode
+            </h3>
+            <p className="text-sm text-theme-muted text-center">
+              Push local backup assets back to your media server
             </p>
           </button>
 

@@ -27,14 +27,17 @@ import {
   ArrowUpDown,
   Download,
   Archive,
+  Upload,
+  UploadCloud,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CompactImageSizeSlider from "./CompactImageSizeSlider";
 import { useToast } from "../context/ToastContext";
 import ScrollToButtons from "./ScrollToButtons";
 import { buildResponsiveGridClass } from "../utils/gridClass";
+import RestoreModeModal from "./modals/RestoreModeModal";
 
-const API_URL = "/api";
+const API_URL = "http://127.0.0.1:8000/api";
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // ++ PAGINATION COMPONENT
@@ -130,6 +133,14 @@ function BackupAssets() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedAssets, setSelectedAssets] = useState(new Set());
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+  const [restoreModalOpen, setRestoreModalOpen] = useState(false);
+  const [assetToRestore, setAssetToRestore] = useState(null);
+  
+  const [advancedRestoreOpen, setAdvancedRestoreOpen] = useState(false);
+  const [initialRestoreLibrary, setInitialRestoreLibrary] = useState("");
+  const [initialRestoreItem, setInitialRestoreItem] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [assetToDelete, setAssetToDelete] = useState(null);
 
   // Sorting
   const [sortOrder, setSortOrder] = useState(
@@ -249,11 +260,75 @@ function BackupAssets() {
 
   const clearSelection = () => setSelectedAssets(new Set());
 
+  const confirmRestore = (asset) => {
+    setAssetToRestore(asset);
+    setRestoreModalOpen(true);
+  };
+
+  const openAdvancedRestore = (library = "", item = "") => {
+    setInitialRestoreLibrary(library);
+    setInitialRestoreItem(item);
+    setAdvancedRestoreOpen(true);
+  };
+
+  const handleRunAdvancedRestore = async (options) => {
+    try {
+      const response = await fetch(`${API_URL}/run-restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(options),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        showSuccess(t("runModes.startedMode", { mode: "Restore" }));
+      } else {
+        showError(`Error: ${data.detail || data.message || "Failed to start restore mode"}`);
+      }
+    } catch (error) {
+      showError(`Error: ${error.message}`);
+    }
+  };
+
+  const restoreAsset = async (assetPath, assetName) => {
+    let library = null;
+    let item = null;
+    let type = null;
+    
+    const parts = assetPath.split(/[\/\\]/);
+    if (parts.length >= 3) {
+      library = parts[0];
+      item = parts[1];
+    } else if (parts.length === 2) {
+      item = parts[0];
+    }
+    
+    if (assetName.toLowerCase().includes('poster')) type = 'poster';
+    if (assetName.toLowerCase().includes('background')) type = 'background';
+    if (assetName.toLowerCase().includes('season')) type = 'season';
+    if (assetName.toLowerCase().includes('titlecard')) type = 'titlecard';
+
+    try {
+      const response = await fetch(`${API_URL}/run-restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          library_name: library,
+          item_name: item,
+          asset_type: type
+        })
+      });
+      if (!response.ok) throw new Error("Failed to start restore");
+      showSuccess(`Started restore for ${assetName}`);
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+
   // Delete Actions
   const deleteAsset = async (assetPath, assetName) => {
-    if (!confirm(t("backupAssets.deleteConfirm", { name: assetName }))) return;
     try {
-      // FIX: Use safeEncodePath instead of encodeURIComponent
       const response = await fetch(
         `${API_URL}/backup-assets/${safeEncodePath(assetPath)}`,
         { method: "DELETE" }
@@ -264,9 +339,9 @@ function BackupAssets() {
       showSuccess(t("backupAssets.deleteSuccess", { name: assetName }));
 
       // Refresh logic
-      const isLastItem = displayedGridAssets.length === 1 && currentPage > 1;
       await fetchAssets();
-      if (isLastItem) setCurrentPage((p) => p - 1);
+      setDeleteModalOpen(false);
+      setAssetToDelete(null);
     } catch (error) {
       showError(error.message);
     }
@@ -452,6 +527,98 @@ function BackupAssets() {
   return (
     <div className="space-y-6">
       <ScrollToButtons />
+      
+      {/* Restore Modal */}
+      <RestoreModeModal
+        isOpen={advancedRestoreOpen}
+        onClose={() => setAdvancedRestoreOpen(false)}
+        onRun={handleRunAdvancedRestore}
+        initialLibrary={initialRestoreLibrary}
+        initialItem={initialRestoreItem}
+      />
+
+      {/* Restore Confirmation Modal */}
+      {restoreModalOpen && assetToRestore && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-theme-bg border border-theme-border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <UploadCloud className="w-8 h-8 text-yellow-500" />
+                <h3 className="text-xl font-semibold text-yellow-500">
+                  Confirm Restore
+                </h3>
+              </div>
+              <div className="text-theme-text space-y-4">
+                <p>
+                  Are you sure you want to restore <span className="font-bold">{assetToRestore.name}</span>?
+                </p>
+                <p className="text-sm text-theme-muted">
+                  This will overwrite the current asset and instantly trigger an upload to your media server.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 bg-theme-card/50 border-t border-theme-border">
+              <button
+                onClick={() => {
+                  setRestoreModalOpen(false);
+                  setAssetToRestore(null);
+                }}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-theme-hover text-theme-text hover:bg-theme-border transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setRestoreModalOpen(false);
+                  await restoreAsset(assetToRestore.path, assetToRestore.name);
+                  setAssetToRestore(null);
+                }}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors flex items-center gap-2 shadow-sm shadow-yellow-500/20"
+              >
+                <UploadCloud className="w-4 h-4" /> Restore
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && assetToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-theme-bg border border-theme-border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Trash2 className="w-8 h-8 text-red-500" />
+                <h3 className="text-xl font-semibold text-red-500">
+                  Confirm Delete
+                </h3>
+              </div>
+              <div className="text-theme-text">
+                <p>
+                  Are you sure you want to permanently delete <span className="font-bold">{assetToDelete.name}</span>?
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 bg-theme-card/50 border-t border-theme-border">
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setAssetToDelete(null);
+                }}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-theme-hover text-theme-text hover:bg-theme-border transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteAsset(assetToDelete.path, assetToDelete.name)}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center gap-2 shadow-sm shadow-red-500/20"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 1. Header & View Mode Toggle */}
       <div className="bg-theme-card border border-theme-border rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -463,7 +630,14 @@ function BackupAssets() {
             {t("backupAssets.viewModeDesc")}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap items-center">
+          <button
+            onClick={() => openAdvancedRestore()}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all bg-theme-primary/10 text-theme-primary hover:bg-theme-primary/20 border border-theme-primary/20"
+          >
+            <UploadCloud className="w-4 h-4" /> <span className="hidden sm:inline">Restore Mode</span>
+          </button>
+          <div className="h-6 w-px bg-theme-border mx-1"></div>
           <button
             onClick={() => setViewMode("grid")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
@@ -717,16 +891,25 @@ function BackupAssets() {
                     </p>
 
                     {!bulkDeleteMode && (
-                      <div className="flex gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex flex-col gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setSelectedImage(asset)}
-                          className="flex-1 bg-theme-hover py-1 rounded hover:text-theme-primary"
+                          className="w-full bg-theme-hover py-1 rounded hover:text-theme-primary"
                         >
                           {t("backupAssets.view")}
                         </button>
                         <button
-                          onClick={() => deleteAsset(asset.path, asset.name)}
-                          className="flex-1 bg-red-500/10 text-red-500 py-1 rounded hover:bg-red-500 hover:text-white transition-colors"
+                          onClick={() => confirmRestore(asset)}
+                          className="w-full bg-blue-500/10 text-blue-500 py-1 rounded hover:bg-blue-500 hover:text-white transition-colors"
+                        >
+                          {t("backupAssets.restore")}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAssetToDelete(asset);
+                            setDeleteModalOpen(true);
+                          }}
+                          className="w-full bg-red-500/10 text-red-500 py-1 rounded hover:bg-red-500 hover:text-white transition-colors"
                         >
                           {t("backupAssets.delete")}
                         </button>
@@ -1098,15 +1281,25 @@ function BackupAssets() {
                         <div className="p-2 text-xs">
                           <p className="truncate font-medium">{asset.name}</p>
                           {!bulkDeleteMode && (
-                            <button
-                              onClick={() =>
-                                deleteAsset(asset.path, asset.name)
-                              }
-                              className="mt-2 w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white py-1 rounded transition-colors flex items-center justify-center gap-1"
-                            >
-                              <Trash2 className="w-3 h-3" />{" "}
-                              {t("backupAssets.delete")}
-                            </button>
+                            <div className="flex flex-col gap-2 mt-3">
+                              <button
+                                onClick={() => {
+                                  setAssetToDelete(asset);
+                                  setDeleteModalOpen(true);
+                                }}
+                                className="w-full bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white py-1.5 rounded-md transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                                title={t("backupAssets.delete")}
+                              >
+                                <Trash2 className="w-4 h-4" /> Delete
+                              </button>
+                              <button
+                                onClick={() => confirmRestore(asset)}
+                                className="w-full bg-blue-500 text-white hover:bg-blue-600 py-1.5 rounded-md transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                                title="Restore to Media Server"
+                              >
+                                <UploadCloud className="w-4 h-4" /> Restore
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1209,6 +1402,16 @@ function BackupAssets() {
                   </a>
                   <button
                     onClick={() => {
+                      const img = selectedImage;
+                      setSelectedImage(null);
+                      confirmRestore(img);
+                    }}
+                    className="flex items-center justify-center gap-2 btn bg-blue-500 text-white hover:bg-blue-600 py-2.5 rounded-lg transition-colors shadow-sm shadow-blue-500/20"
+                  >
+                    <UploadCloud className="w-4 h-4" /> {t("backupAssets.restore", "Restore")}
+                  </button>
+                  <button
+                    onClick={() => {
                       if (
                         confirm(
                           t("backupAssets.deleteConfirm", {
@@ -1230,6 +1433,20 @@ function BackupAssets() {
           </div>
         </div>
       )}
+      
+      {/* Restore Mode Modal */}
+      <RestoreModeModal
+        show={advancedRestoreOpen}
+        onClose={() => setAdvancedRestoreOpen(false)}
+        onStart={(options) => {
+          setAdvancedRestoreOpen(false);
+          handleRunAdvancedRestore(options);
+        }}
+        loading={loading}
+        status={{ running: false }}
+        initialLibrary={initialRestoreLibrary}
+        initialItem={initialRestoreItem}
+      />
     </div>
   );
 }

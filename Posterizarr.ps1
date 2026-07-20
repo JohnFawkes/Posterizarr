@@ -4,6 +4,7 @@ param (
     [switch]$Testing, # Required for Testing trigger
     [switch]$Tautulli, # Required for Tautulli trigger
     [switch]$Backup, # Required for Backup trigger
+    [switch]$Restore, # Required for Restore trigger
     [switch]$dev, # Required for trigger dev branch
     [switch]$SyncJelly, # Required for Jellyfin Sync trigger
     [switch]$SyncEmby, # Required for Emby Sync trigger
@@ -23,6 +24,9 @@ param (
     [string]$Titletext, # Required for Manual Trigger
     [string]$FolderName, # Required for Manual Trigger
     [string]$LibraryName, # Required for Manual Trigger
+    [string]$RestoreLibrary, # Optional for Restore Mode
+    [string]$RestoreItem, # Optional for Restore Mode
+    [string]$RestoreType, # Optional for Restore Mode
     [string]$SeasonPosterName, # Required for Manual Trigger
     [string]$EPTitleName, # Required for Manual Trigger
     [string]$EpisodeNumber, # Required for Manual Trigger
@@ -57,7 +61,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "3.0.4"
+$CurrentScriptVersion = "3.1.0"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 
@@ -138,6 +142,9 @@ elseif ($ArrTrigger) {
 }
 elseif ($Backup) {
     . "$PSScriptRoot\modules\modes\BackupMode.ps1"
+}
+elseif ($Restore) {
+    . "$PSScriptRoot\modules\modes\RestoreMode.ps1"
 }
 elseif ($SyncJelly -or $SyncEmby) {
     . "$PSScriptRoot\modules\modes\SyncMode.ps1"

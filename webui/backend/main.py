@@ -2310,6 +2310,11 @@ class LogoUpdaterRequest(BaseModel):
     force_replace: bool = False
     revert: bool = False
 
+class RestoreModeRequest(BaseModel):
+    library_name: Optional[str] = None
+    item_name: Optional[str] = None
+    asset_type: Optional[str] = None
+
 class ManualModeRequest(BaseModel):
     model_config = {"extra": "ignore"}  # Ignore extra fields from frontend
 
@@ -7571,6 +7576,7 @@ async def run_script(mode: str):
             "testing": [ps_command, "-File", str(SCRIPT_PATH), "-Testing"],
             "manual": [ps_command, "-File", str(SCRIPT_PATH), "-Manual"],
             "backup": [ps_command, "-File", str(SCRIPT_PATH), "-Backup"],
+            "restore": [ps_command, "-File", str(SCRIPT_PATH), "-Restore"],
             "syncjelly": [ps_command, "-File", str(SCRIPT_PATH), "-SyncJelly"],
             "syncemby": [ps_command, "-File", str(SCRIPT_PATH), "-SyncEmby"],
         }
@@ -7745,6 +7751,64 @@ async def run_logoupdater(request: LogoUpdaterRequest):
             logger.error(f"Error running LogoUpdater: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
+
+@app.post("/api/run-restore")
+async def run_restore(request: RestoreModeRequest):
+    """Run Restore mode with optional filters"""
+    global current_process, current_mode, current_start_time
+    with process_lock:
+        if current_process and current_process.poll() is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot run Restore while script is already running.",
+            )
+
+        if not SCRIPT_PATH.exists():
+            raise HTTPException(status_code=404, detail="Posterizarr.ps1 not found")
+
+        import platform
+        if platform.system() == "Windows":
+            ps_command = "pwsh"
+            try:
+                subprocess.run([ps_command, "-v"], capture_output=True, check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                ps_command = "powershell"
+        else:
+            ps_command = "pwsh"
+
+        command = [
+            ps_command,
+            "-File",
+            str(SCRIPT_PATH),
+            "-Restore"
+        ]
+
+        if request.library_name:
+            command.extend(["-RestoreLibrary", request.library_name.strip()])
+        if request.item_name:
+            command.extend(["-RestoreItem", request.item_name.strip()])
+        if request.asset_type:
+            command.extend(["-RestoreType", request.asset_type.strip()])
+
+        try:
+            logger.info(f"Running Restore for library: {request.library_name}, item: {request.item_name}, type: {request.asset_type}")
+            current_process = subprocess.Popen(
+                command,
+                cwd=str(BASE_DIR),
+                stdout=None,
+                stderr=None,
+                text=True,
+            )
+            current_mode = "restore"
+            current_start_time = datetime.now().isoformat()
+            return {
+                "success": True,
+                "message": f"Started Restore mode",
+                "pid": current_process.pid,
+            }
+        except Exception as e:
+            logger.error(f"Error running Restore: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/stop")
 async def stop_script():

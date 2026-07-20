@@ -12,7 +12,6 @@ function Write-MagickLog {
         $mutex.Dispose()
     }
 }
-
 function Test-IsPosterizarrAsset {
     param ([string]$Path)
 
@@ -38,7 +37,6 @@ function Test-IsPosterizarrAsset {
         return $false
     }
 }
-
 function New-TextSizeCacheKey {
     param([Parameter(Mandatory)][string]$Text, [Parameter(Mandatory)][hashtable]$Params)
     $list = [System.Collections.Generic.List[string]]::new()
@@ -53,7 +51,6 @@ function New-TextSizeCacheKey {
     $hash = ($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('x2') }) -join ''
     return $hash
 }
-
 function Set-TextSizeCacheEntry {
     param([Parameter(Mandatory)][string]$Key, [Parameter(Mandatory)]$Result, [string]$Path = $Global:TextSizeCachePath)
 
@@ -95,7 +92,6 @@ function Set-TextSizeCacheEntry {
         $mutex.Dispose()
     }
 }
-
 function Get-OptimalPointSize {
     param(
         [string]$text,
@@ -181,7 +177,6 @@ function Get-OptimalPointSize {
     $script:CurrentTextSizeSource = 'calculated'
     return $current_pointsize
 }
-
 function CheckImageMagick {
     param (
         [string]$magick,
@@ -209,7 +204,6 @@ function CheckImageMagick {
         }
     }
 }
-
 function CheckOverlayDimensions {
     param (
         [string]$Posteroverlay,
@@ -298,7 +292,6 @@ function CheckOverlayDimensions {
     Test-Dimension -OverlayPath $TCoverlay4KHDR10 -ExpectedSize $BackgroundSize -OverlayName "4K HDR10 TitleCard overlay"
     Test-Dimension -OverlayPath $TCoverlay4KDoViHDR10 -ExpectedSize $BackgroundSize -OverlayName "4K DoVi/HDR10 TitleCard overlay"
 }
-
 function InvokeMagickCommand {
     param (
         [string]$Command,
@@ -382,7 +375,6 @@ function InvokeMagickCommand {
 
     }
 }
-
 function Write-TextSizeCacheSummary {
     param([string]$Label = "Text-size cache")
     $tsHits = if ($global:tsHitsBag) { $global:tsHitsBag.Count } else { 0 }
