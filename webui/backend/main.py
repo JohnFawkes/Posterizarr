@@ -6578,7 +6578,11 @@ async def search_tmdb_posters(request: TMDBSearchRequest):
         # Always do a title search (unless we only got an ID without title search)
         if not request.query.isdigit() or request.query.isdigit():
             # Query is a title - search for it
-            search_url = f"https://api.themoviedb.org/3/search/{request.media_type}"
+            allowed_media_types = {"movie": "movie", "tv": "tv"}
+            if request.media_type not in allowed_media_types:
+                raise ValueError(f"Invalid media_type: {request.media_type}")
+            safe_media_type = allowed_media_types[request.media_type]
+            search_url = f"https://api.themoviedb.org/3/search/{safe_media_type}"
             search_params = {"query": request.query, "page": 1}
 
             logger.info(
