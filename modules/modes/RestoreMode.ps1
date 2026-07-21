@@ -1,9 +1,9 @@
-#region Backup Mode
+#region Restore Mode
 if ($UsePlex -eq 'true') {
-    MassDownloadPlexArtwork
+    MassRestorePlexArtwork
 }
 Else {
-    MassDownloadJellyEmbyArtwork
+    MassRestoreJellyEmbyArtwork
 }
 
 if (Test-Path $CurrentlyRunning) {

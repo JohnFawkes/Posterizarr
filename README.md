@@ -6,7 +6,7 @@
   </a>
 
   <p align="center">
-    Automate the creation of beautiful, textless posters for your Plex, Jellyfin, or Emby library.
+    Automate the creation of beautiful assets for your Plex, Jellyfin, or Emby library.
   </p>
 </div>
 <br />

@@ -528,7 +528,12 @@ function Dashboard() {
                             let statusText = t("dashboard.controlDeck.upcoming") || 'Upcoming';
                             let statusTextColor = "text-gray-500";
 
-                            if (s.status === "success") {
+                            if (!isPast) {
+                              tickClass = "bg-slate-600 border-slate-500 shadow-[0_0_5px_rgba(100,116,139,0.3)]";
+                              dotColorClass = "bg-slate-400";
+                              statusText = t("dashboard.controlDeck.pending", "Pending");
+                              statusTextColor = "text-slate-400 font-semibold";
+                            } else if (s.status === "success") {
                               tickClass = "bg-green-500 border-green-400 shadow-[0_0_5px_rgba(74,222,128,0.3)]";
                               dotColorClass = "bg-green-400";
                               statusText = t("dashboard.controlDeck.completed") || 'Completed';

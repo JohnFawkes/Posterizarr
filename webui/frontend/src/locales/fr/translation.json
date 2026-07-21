@@ -475,7 +475,8 @@
     "nameLabel": "Nom",
     "pathLabel": "Chemin",
     "sizeLabel": "Taille",
-    "modifiedLabel": "Modifié"
+    "modifiedLabel": "Modifié",
+    "restore": "Restaurer"
   },
   "manualAssets": {
     "title": "Ressources manuelles",

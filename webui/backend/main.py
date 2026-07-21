@@ -1437,9 +1437,44 @@ def scan_and_cache_assets():
 
                     library_name = library_dir.name
                     folders = []
+                    root_assets = []
 
                     for folder_dir in library_dir.iterdir():
-                        if not folder_dir.is_dir() or folder_dir.name == "@eaDir":
+                        if folder_dir.name == "@eaDir":
+                            continue
+
+                        if folder_dir.is_file() and folder_dir.suffix.lower() in [
+                            ".jpg", ".jpeg", ".png", ".webp"
+                        ]:
+                            filename_lower = folder_dir.name.lower()
+
+                            # Determine Asset Type based on filename patterns
+                            if "poster" in filename_lower:
+                                asset_type = "poster"
+                            elif "background" in filename_lower:
+                                asset_type = "background"
+                            elif filename_lower.startswith("season"):
+                                asset_type = "season"
+                            elif re.match(r"^s\d+e\d+\.", filename_lower, re.IGNORECASE) or filename_lower.startswith("episodetemplate"):
+                                asset_type = "titlecard"
+                            else:
+                                asset_type = "other"
+
+                            relative_path = f"{library_name}/{folder_dir.name}"
+                            encoded_relative_path = quote(relative_path, safe="/")
+
+                            root_assets.append({
+                                "name": folder_dir.name,
+                                "path": relative_path,
+                                "type": asset_type,
+                                "size": folder_dir.stat().st_size,
+                                "url": f"/backup_assets/{encoded_relative_path}", # Points to static mount
+                                "modified": folder_dir.stat().st_mtime
+                            })
+                            backup_total_assets += 1
+                            continue
+
+                        if not folder_dir.is_dir():
                             continue
 
                         folder_name = folder_dir.name
@@ -1488,6 +1523,14 @@ def scan_and_cache_assets():
                                 "assets": assets,
                                 "asset_count": len(assets),
                             })
+
+                    if root_assets:
+                        folders.append({
+                            "name": "Root Assets",
+                            "path": library_name,
+                            "assets": root_assets,
+                            "asset_count": len(root_assets),
+                        })
 
                     if folders:
                         backup_libraries.append({
@@ -2309,6 +2352,11 @@ class LogoUpdaterRequest(BaseModel):
     library: str
     force_replace: bool = False
     revert: bool = False
+
+class RestoreModeRequest(BaseModel):
+    library_name: Optional[str] = None
+    item_name: Optional[str] = None
+    asset_type: Optional[str] = None
 
 class ManualModeRequest(BaseModel):
     model_config = {"extra": "ignore"}  # Ignore extra fields from frontend
@@ -7571,6 +7619,7 @@ async def run_script(mode: str):
             "testing": [ps_command, "-File", str(SCRIPT_PATH), "-Testing"],
             "manual": [ps_command, "-File", str(SCRIPT_PATH), "-Manual"],
             "backup": [ps_command, "-File", str(SCRIPT_PATH), "-Backup"],
+            "restore": [ps_command, "-File", str(SCRIPT_PATH), "-Restore"],
             "syncjelly": [ps_command, "-File", str(SCRIPT_PATH), "-SyncJelly"],
             "syncemby": [ps_command, "-File", str(SCRIPT_PATH), "-SyncEmby"],
         }
@@ -7745,6 +7794,64 @@ async def run_logoupdater(request: LogoUpdaterRequest):
             logger.error(f"Error running LogoUpdater: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
+
+@app.post("/api/run-restore")
+async def run_restore(request: RestoreModeRequest):
+    """Run Restore mode with optional filters"""
+    global current_process, current_mode, current_start_time
+    with process_lock:
+        if current_process and current_process.poll() is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot run Restore while script is already running.",
+            )
+
+        if not SCRIPT_PATH.exists():
+            raise HTTPException(status_code=404, detail="Posterizarr.ps1 not found")
+
+        import platform
+        if platform.system() == "Windows":
+            ps_command = "pwsh"
+            try:
+                subprocess.run([ps_command, "-v"], capture_output=True, check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                ps_command = "powershell"
+        else:
+            ps_command = "pwsh"
+
+        command = [
+            ps_command,
+            "-File",
+            str(SCRIPT_PATH),
+            "-Restore"
+        ]
+
+        if request.library_name:
+            command.extend(["-RestoreLibrary", request.library_name.strip()])
+        if request.item_name:
+            command.extend(["-RestoreItem", request.item_name.strip()])
+        if request.asset_type:
+            command.extend(["-RestoreType", request.asset_type.strip()])
+
+        try:
+            logger.info(f"Running Restore for library: {request.library_name}, item: {request.item_name}, type: {request.asset_type}")
+            current_process = subprocess.Popen(
+                command,
+                cwd=str(BASE_DIR),
+                stdout=None,
+                stderr=None,
+                text=True,
+            )
+            current_mode = "restore"
+            current_start_time = datetime.now().isoformat()
+            return {
+                "success": True,
+                "message": f"Started Restore mode",
+                "pid": current_process.pid,
+            }
+        except Exception as e:
+            logger.error(f"Error running Restore: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/stop")
 async def stop_script():
@@ -9133,8 +9240,28 @@ async def get_backup_assets_gallery():
     """Get all assets from backup directory - (uses cache)"""
     try:
         cache = get_fresh_assets()
-        # Return empty structure if not found in cache yet
-        return cache.get("backup_gallery", {"libraries": [], "total_assets": 0})
+        gallery = cache.get("backup_gallery", {"libraries": [], "total_assets": 0})
+        
+        # Determine configured libraries from server_libraries_db
+        configured_libraries = set()
+        if SERVER_LIBRARIES_DB_AVAILABLE and server_libraries_db is not None:
+            for srv_type in ["plex", "jellyfin", "emby"]:
+                try:
+                    res = server_libraries_db.get_media_server_libraries(srv_type)
+                    if res.get("success"):
+                        for lib in res.get("libraries", []):
+                            configured_libraries.add(lib.get("name"))
+                except Exception:
+                    pass
+
+        annotated_libraries = []
+        for lib in gallery.get("libraries", []):
+            lib_copy = lib.copy()
+            # If no configured libraries exist yet (e.g. not synced), we default to True
+            lib_copy["is_configured"] = True if not configured_libraries else (lib_copy["name"] in configured_libraries)
+            annotated_libraries.append(lib_copy)
+            
+        return {"libraries": annotated_libraries, "total_assets": gallery.get("total_assets", 0)}
     except Exception as e:
         logger.error(f"Error getting backup gallery: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

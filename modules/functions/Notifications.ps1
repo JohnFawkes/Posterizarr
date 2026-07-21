@@ -101,7 +101,6 @@ function SendMessage {
         }
     }
 }
-
 function Push-ObjectToDiscord {
     [CmdletBinding()]
     param(
@@ -175,7 +174,6 @@ function Push-ObjectToDiscord {
         Write-Entry -Message "Failing Payload: $objPayload" -Path $global:configLogging -Color Red -log Error
     }
 }
-
 function Send-PosterizarrTelemetry {
     # Immediately return/exit if the config's telemetry toggle is set to false.
     if ($config.PrerequisitePart.telemetry -eq $false -or $config.PrerequisitePart.telemetry -eq 'false') {
@@ -243,7 +241,6 @@ function Send-PosterizarrTelemetry {
         Write-Verbose "Telemetry failed silently: $($_.Exception.Message)"
     }
 }
-
 function Send-UptimeKumaWebhook {
     param (
         [string]$status,
@@ -260,7 +257,6 @@ function Send-UptimeKumaWebhook {
         Write-Entry -Message "Failed to send Uptime Kuma webhook: $_" -Path $global:configLogging -Color Red -log Error
     }
 }
-
 function Send-SummaryNotification {
     param (
         [string]$ScriptMode,

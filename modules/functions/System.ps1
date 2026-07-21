@@ -18,7 +18,6 @@ function Increment-GlobalStat {
         $mutex.Dispose()
     }
 }
-
 function Sync-GlobalStats {
     if ($global:runspaceStats) {
         foreach ($key in $global:runspaceStats.Keys) {
@@ -26,7 +25,6 @@ function Sync-GlobalStats {
         }
     }
 }
-
 function HandleScriptExit {
     param (
         [string]$Message,
@@ -57,7 +55,6 @@ function HandleScriptExit {
     $global:ExitRequested = $true
     exit
 }
-
 function New-PosterizarrSupportZip {
     param(
         [string]$BasePath
@@ -364,7 +361,6 @@ conn.close()
 
     return $zipPath
 }
-
 function Get-TextSizeFromCache {
     param([Parameter(Mandatory)][string]$Key, [string]$Path = $Global:TextSizeCachePath)
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
@@ -391,7 +387,6 @@ function Get-TextSizeFromCache {
     }
     return $null
 }
-
 function InvokeIMChecks {
     # Check for latest Imagemagick Version
     if ($global:OSarch -eq "Arm64") {
@@ -479,7 +474,6 @@ function InvokeIMChecks {
         }
     }
 }
-
 function Output-ConfigJson {
     param (
         $obj,
@@ -543,7 +537,6 @@ function Output-ConfigJson {
         Write-Entry -Subtext ("{0}{1}" -f ('  ' * $indentLevel), $obj) -Path $global:configLogging -Color Cyan -log Info
     }
 }
-
 function Initialize-LanguageSettings {
     param (
         [string]$SettingName, # e.g. "PreferredLanguageOrder"
@@ -605,7 +598,6 @@ function Initialize-LanguageSettings {
     Write-Entry -Subtext "$Label OnlyTextless Value: $onlyTextless" -Path "$global:configLogging" -Color Cyan -log Debug
 
 }
-
 function Set-LibraryLanguageOverride {
     # A library override sets one language order (PreferredLanguageOrder) that
     # applies to every asset type for that library - a "this library is
@@ -651,7 +643,6 @@ function Set-LibraryLanguageOverride {
     Initialize-LanguageSettings -SettingName "PreferredTCLanguageOrder"         -Label "TC"
     Initialize-LanguageSettings -SettingName "PreferredBackgroundLanguageOrder" -Label "Background"
 }
-
 function Test-PathPermissions {
     param (
         [string]$PathToTest
@@ -695,7 +686,6 @@ function Test-PathPermissions {
         }
     }
 }
-
 function Get-Resolution {
     param ($Width)
     switch ($true) {
@@ -711,7 +701,6 @@ function Get-Resolution {
         default { return "unknown" }
     }
 }
-
 function Get-CPUModel {
     if ($Platform -eq 'Docker') {
         $cpuInfo = cat /proc/cpuinfo | Out-String
@@ -735,7 +724,6 @@ function Get-CPUModel {
     }
     return $cpuModel
 }
-
 function GetHash {
     param ([byte[]]$imageBytes)
 
@@ -749,7 +737,6 @@ function GetHash {
     $hashString = [BitConverter]::ToString($hashBytes) -replace "-", ""
     return $hashString
 }
-
 function Set-OSTypeAndScriptRoot {
     if ($env:POWERSHELL_DISTRIBUTION_CHANNEL -like 'PSDocker*') {
         $global:OSType = "Docker"
@@ -769,7 +756,6 @@ function Set-OSTypeAndScriptRoot {
         $global:OSType = [System.Environment]::OSVersion.Platform
     }
 }
-
 function Write-Entry {
     [CmdletBinding()]
     param(
@@ -993,7 +979,6 @@ function Write-Entry {
         }
     }
 }
-
 function AddTrailingSlash($path) {
     $path = $path.TrimEnd()
     if (-not ($path -match '[\\/]$')) {
@@ -1001,14 +986,12 @@ function AddTrailingSlash($path) {
     }
     return $path
 }
-
 function RemoveTrailingSlash($path) {
     if ($path -match '[\\/]$') {
         $path = $path.TrimEnd('\', '/')
     }
     return $path
 }
-
 function CheckJson {
     [CmdletBinding()]
     param(
@@ -1139,7 +1122,6 @@ function CheckJson {
         HandleScriptExit -Message "$($_.Exception.Message)"
     }
 }
-
 function CheckJsonPaths {
     param (
         [string]$font,
@@ -1196,7 +1178,6 @@ function CheckJsonPaths {
         HandleScriptExit -Message "File missing"
     }
 }
-
 function Get-Platform {
     if ($global:OSType -eq 'Docker') {
         return 'Docker'
@@ -1218,7 +1199,6 @@ function Get-Platform {
         return 'Unknown'
     }
 }
-
 function Get-LatestScriptVersion {
     try {
         return Invoke-RestMethod -Uri "https://github.com/fscorrupt/posterizarr/raw/$($Branch)/Release.txt" -Method Get -ErrorAction Stop
@@ -1228,7 +1208,6 @@ function Get-LatestScriptVersion {
         return $null
     }
 }
-
 function RotateLogs {
     param (
         [string]$ScriptRoot
@@ -1259,7 +1238,6 @@ function RotateLogs {
         }
     }
 }
-
 function CheckConfigFile {
     param (
         [string]$ScriptRoot
@@ -1274,7 +1252,6 @@ function CheckConfigFile {
         HandleScriptExit -Message "Configure config file"
     }
 }
-
 function Test-And-Download {
     param(
         [string]$url,
@@ -1285,7 +1262,6 @@ function Test-And-Download {
         Invoke-WebRequest -Uri $url -OutFile $destination
     }
 }
-
 function RedactMediaServerUrl {
     param(
         [string]$url
@@ -1321,7 +1297,6 @@ function RedactMediaServerUrl {
         return $url  # Return original if no match found
     }
 }
-
 function CheckCharLimit {
     # Attempt to get the registry key
     try {

@@ -17,6 +17,7 @@ import {
   Loader2,
   LifeBuoy,
   X,
+  Info,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Notification from "./Notification";
@@ -980,6 +981,14 @@ function LogViewer() {
                 <span>{t("logViewer.status.reconnecting")}</span>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Hint Box */}
+        <div className="bg-theme-primary/10 border border-theme-primary/30 rounded-lg p-3 mb-4 flex gap-3 text-sm text-theme-text items-start">
+          <Info className="w-5 h-5 text-theme-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <strong>Hint:</strong> When reading logs during parallel processing, look at the Worker ID (e.g. <code className="bg-black/30 px-1 rounded text-theme-primary">[T32]</code>). Logs from the same worker runspace will have the same ID.
           </div>
         </div>
 

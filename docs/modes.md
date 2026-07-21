@@ -201,6 +201,50 @@ On [docker](platformandtools.md#docker) this way:
   docker exec -it posterizarr pwsh /app/Posterizarr.ps1 -Backup
 ```
 
+### Restore Mode
+
+Run the script with the `-Restore` flag. In this mode, the script will push all artwork from your local backup folder to your media server (Plex, Jellyfin, or Emby).
+
+!!! tip
+    This is handy for quickly recreating your library posters after a crash, or if you prefer to edit assets in bulk locally and then push them.
+
+!!! warning
+    Running this command directly without any additional flags will automatically attempt to restore **ALL** assets for **ALL** items across **ALL** your included libraries. To prevent this, use the targeted restore flags below.
+
+```powershell
+.\Posterizarr.ps1 -Restore
+```
+
+On [docker](platformandtools.md#docker) this way:
+
+```sh
+  docker exec -it posterizarr pwsh /app/Posterizarr.ps1 -Restore
+```
+
+**Targeted Restore**
+You can filter what gets restored using additional flags. These flags can be used independently or combined together. For example, you don't need to specify the library or type if you only want to restore one specific item.
+
+- `-RestoreType` (options: `poster`, `background`, `season`, `episode`, `titlecard`)
+- `-RestoreLibrary` (e.g. `"Movies"`)
+- `-RestoreItem` (Accepts the exact Media Title, the Original Title, OR the exact Root Folder name!)
+
+**Examples:**
+
+Restore only the posters for a specific movie using its exact folder name:
+```powershell
+.\Posterizarr.ps1 -Restore -RestoreItem "Alien (1979) [imdb-tt0078748]" -RestoreType "poster"
+```
+
+Restore all artwork types for a specific show using its title:
+```powershell
+.\Posterizarr.ps1 -Restore -RestoreItem "Breaking Bad"
+```
+
+Restore only backgrounds for an entire library:
+```powershell
+.\Posterizarr.ps1 -Restore -RestoreLibrary "Movies" -RestoreType "background"
+```
+
 ### Poster reset Mode
 
 Run the script with the `-PosterReset -LibraryToReset "Test Lib"` flag. In this mode, posterizarr will reset every artwork from a specifc plex lib.
