@@ -192,6 +192,7 @@ function Push-PlexAsset {
         $uri = "$PlexUrl/library/metadata/$RatingKey/$Type"
         try {
             Invoke-RestMethod -Uri $uri -Method Post -Body $bytes -ContentType "image/jpeg" -Headers $PlexHeaders
+            Write-Entry -Subtext "$Type successfully restored for $RatingKey..." -Path $global:configLogging -Color Green -log Info
             return $true
         } catch {
             Write-Entry -Subtext "Failed to restore $Type for $RatingKey. Error: $_" -Path $global:configLogging -Color Red -log Error
@@ -214,6 +215,7 @@ function Push-EmbyAsset {
         $uri = "$OtherMediaServerUrl/Items/$ItemId/Images/$Type/"
         try {
             Invoke-RestMethod -Uri $uri -Method Post -Body $imageBase64 -ContentType "image/jpeg" -Headers $global:OtherMediaServerHeaders
+            Write-Entry -Subtext "$Type successfully restored for $ItemId..." -Path $global:configLogging -Color Green -log Info
             return $true
         } catch {
             Write-Entry -Subtext "Failed to restore $Type for $ItemId. Error: $_" -Path $global:configLogging -Color Red -log Error
