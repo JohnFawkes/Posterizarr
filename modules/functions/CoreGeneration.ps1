@@ -6276,6 +6276,10 @@ function Invoke-TitleCardCreation {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
+                                                            if ($UseOtherMediaServer -eq 'true' -and $global:episode_ratingkey) {
+                                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                                                UploadOtherMediaServerArtwork -itemId $global:episode_ratingkey -imageType "Primary" -imagePath $EpisodeImage
+                                                            }
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
                                                                     Write-Entry -Subtext "Uploading Artwork to Plex..." -Path $global:configLogging -Color DarkMagenta -log Info
