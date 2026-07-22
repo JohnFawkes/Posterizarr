@@ -7,6 +7,23 @@ function UploadOtherMediaServerArtwork {
         [switch]$SkipExifCheck # Added optional parameter
     )
 
+    $userAssetType = $imageType
+    if ($imageType -eq 'Backdrop') {
+        $userAssetType = "Background"
+    }
+    elseif ($imageType -eq 'Primary') {
+        $filename = [System.IO.Path]::GetFileName($imagePath)
+        if ($filename -match 'S\d{2}E\d{2}') {
+            $userAssetType = "TitleCard"
+        }
+        elseif ($filename -match '(?i)season\d{2}') {
+            $userAssetType = "Season Poster"
+        }
+        else {
+            $userAssetType = "Poster"
+        }
+    }
+
     # Check if current image already has exif data
     $Imageinfo = Invoke-RestMethod -Method Get -Uri "$OtherMediaServerUrl/items/$itemId/images/" -Headers $global:OtherMediaServerHeaders
     $Imageinfotemp = $Imageinfo | Where-Object imagetype -eq $imageType | Select-Object Height, Width, Path
@@ -22,7 +39,8 @@ function UploadOtherMediaServerArtwork {
         if (($imageinfotemp.Height) -and ($imageinfotemp.width)) {
             try {
                 $ImageUrl = "$OtherMediaServerUrl/items/$itemId/images/$imageType/?width=$($imageinfotemp.width)&height=$($imageinfotemp.Height)"
-                $tempFile = Join-Path -Path $global:ScriptRoot -ChildPath "temp\hashcompare.jpg"
+                $guid = [guid]::NewGuid().ToString()
+                $tempFile = Join-Path -Path $global:ScriptRoot -ChildPath "temp\hashcompare_$guid.jpg"
 
                 # Try to download the image
                 $response = Invoke-WebRequest -Uri $ImageUrl -OutFile $tempFile -TimeoutSec 30 -ErrorAction Stop
@@ -106,7 +124,8 @@ function UploadOtherMediaServerArtwork {
                 try {
                     $response = Invoke-RestMethod -Uri $thumbapiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
 
-                    Write-Entry -Subtext "Thumb Image successfully uploaded..." -Path $global:configLogging -Color Green -log Info
+                    $logTitle = if ($Titletext) { "$Titletext " } else { "" }
+                    Write-Entry -Subtext "$($logTitle)Thumb successfully uploaded..." -Path $global:configLogging -Color Green -log Info
                     $global:UploadCount = Increment-GlobalStat 'UploadCount'
                 }
                 catch {
@@ -126,24 +145,37 @@ function UploadOtherMediaServerArtwork {
             }
         }
         # Make the API request to upload the image
-        try {
-            $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
+        $maxRetries = 3
+        $retryCount = 0
+        $success = $false
 
-            Write-Entry -Subtext "Image successfully uploaded..." -Path $global:configLogging -Color Green -log Info
-            $global:UploadCount = Increment-GlobalStat 'UploadCount'
-        }
-        catch {
-            if ($_.Exception.Response -is [System.Net.Http.HttpResponseMessage] -and $_.Exception.Response.Content) {
-                try {
-                    $response = $_.Exception.Response.Content.ReadAsStringAsync().Result
-                }
-                catch {
-                    $response = "Unable to read server response (content may be disposed)."
-                }
-                Write-Entry -Subtext "Failed to upload image. Server response: $response" -Path $global:configLogging -Color Red -log Error
+        while (-not $success -and $retryCount -lt $maxRetries) {
+            try {
+                $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $imageBase64 -ContentType $contentType -ErrorAction Stop -Headers $global:OtherMediaServerHeaders
+                $success = $true
+                $logTitle = if ($Titletext) { "$Titletext " } else { "" }
+                Write-Entry -Subtext "$($logTitle)$userAssetType successfully uploaded..." -Path $global:configLogging -Color Green -log Info
+                $global:UploadCount = Increment-GlobalStat 'UploadCount'
             }
-            else {
-                Write-Entry -Subtext "Failed to upload image. Error: $_" -Path $global:configLogging -Color Red -log Error
+            catch {
+                $retryCount++
+                if ($retryCount -ge $maxRetries) {
+                    if ($_.Exception.Response -is [System.Net.Http.HttpResponseMessage] -and $_.Exception.Response.Content) {
+                        try {
+                            $responseMsg = $_.Exception.Response.Content.ReadAsStringAsync().Result
+                        }
+                        catch {
+                            $responseMsg = "Unable to read server response (content may be disposed)."
+                        }
+                        Write-Entry -Subtext "Failed to upload image after $maxRetries attempts. Server response: $responseMsg" -Path $global:configLogging -Color Red -log Error
+                    }
+                    else {
+                        Write-Entry -Subtext "Failed to upload image after $maxRetries attempts. Error: $_" -Path $global:configLogging -Color Red -log Error
+                    }
+                } else {
+                    Write-Entry -Subtext "Upload failed, retrying ($retryCount/$maxRetries)..." -Path $global:configLogging -Color Yellow -log Warning
+                    Start-Sleep -Seconds (Get-Random -Minimum 1 -Maximum 4)
+                }
             }
         }
     }
@@ -179,7 +211,7 @@ function Push-EmbyAsset {
         $bytes = [System.IO.File]::ReadAllBytes($AssetPath)
         $imageBase64 = [Convert]::ToBase64String($bytes)
 
-        $uri = "$OtherMediaServerUrl/Items/$ItemId/Images/$Type?api_key=$OtherMediaServerApiKey"
+        $uri = "$OtherMediaServerUrl/Items/$ItemId/Images/$Type/"
         try {
             Invoke-RestMethod -Uri $uri -Method Post -Body $imageBase64 -ContentType "image/jpeg" -Headers $global:OtherMediaServerHeaders
             return $true

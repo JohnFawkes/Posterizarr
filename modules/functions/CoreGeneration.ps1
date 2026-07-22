@@ -762,45 +762,50 @@ function Invoke-MoviePosterCreation {
                             if ($global:UploadExistingAssets -eq 'true') {
                                 if ($entry.PlexPosterUrl -like "/library/*") {
                                     $Arturl = $plexurl + $entry.PlexPosterUrl
-                                }
-                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                                try {
-                                    GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage
-                                    if ($global:PlexartworkDownloaded -eq 'true') {
-                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                        $fileContent = [System.IO.File]::ReadAllBytes($PosterImageoriginal)
-                                        # Verify variables before uploading
-                                        Write-Entry -Subtext "PosterImage: $PosterImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                        Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                        $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
-                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                        # Try uploading, capturing the response in detail
-                                        $Upload = Invoke-WebRequest -Uri $uri `
-                                            -Method Post `
-                                            -Headers $extraPlexHeaders `
-                                            -Body $fileContent `
-                                            -ContentType 'application/octet-stream' `
-                                            -SkipHttpErrorCheck `
-                                            -ErrorAction Stop
-
-                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                    try {
+                                        GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage
+                                        if ($global:PlexartworkDownloaded -eq 'true') {
+                                            Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                            $fileContent = [System.IO.File]::ReadAllBytes($PosterImageoriginal)
+                                            # Verify variables before uploading
+                                            Write-Entry -Subtext "PosterImage: $PosterImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                            Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                            Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                            $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
+                                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                            # Try uploading, capturing the response in detail
+                                            $Upload = Invoke-WebRequest -Uri $uri `
+                                                -Method Post `
+                                                -Headers $extraPlexHeaders `
+                                                -Body $fileContent `
+                                                -ContentType 'application/octet-stream' `
+                                                -SkipHttpErrorCheck `
+                                                -ErrorAction Stop
+    
+                                            if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                                Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                                Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                            }
+                                            else {
+                                                Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                                Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                            }
+                                            $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                         }
-                                        else {
-                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                        }
-                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                    }
+                                    catch {
+                                        Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                        $global:errorCount = Increment-GlobalStat 'errorCount'
+                                        Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                     }
                                 }
-                                catch {
-                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                    $global:errorCount = Increment-GlobalStat 'errorCount'
-                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                elseif ($entry.Id) {
+                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                    Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                    UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImageoriginal
                                 }
                                 if (Test-Path $PosterImage -ErrorAction SilentlyContinue) {
                                     Remove-Item -LiteralPath $PosterImage | Out-Null
@@ -1494,48 +1499,50 @@ function Invoke-MoviePosterCreation {
                             if ($global:UploadExistingAssets -eq 'true') {
                                 if ($entry.PlexBackgroundUrl -like "/library/*") {
                                     $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                                }
-                                elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                    $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
-                                }
-                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                                try {
-                                    GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
-                                    if ($global:PlexartworkDownloaded -eq 'true') {
-                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                        $fileContent = [System.IO.File]::ReadAllBytes($backgroundImageoriginal)
-                                        # Verify variables before uploading
-                                        Write-Entry -Subtext "BackgroundImage: $backgroundImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                        Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                        $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
-                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                        # Try uploading, capturing the response in detail
-                                        $Upload = Invoke-WebRequest -Uri $uri `
-                                            -Method Post `
-                                            -Headers $extraPlexHeaders `
-                                            -Body $fileContent `
-                                            -ContentType 'application/octet-stream' `
-                                            -SkipHttpErrorCheck `
-                                            -ErrorAction Stop
-
-                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                    try {
+                                        GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
+                                        if ($global:PlexartworkDownloaded -eq 'true') {
+                                            Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                            $fileContent = [System.IO.File]::ReadAllBytes($backgroundImageoriginal)
+                                            # Verify variables before uploading
+                                            Write-Entry -Subtext "BackgroundImage: $backgroundImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                            Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                            Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                            $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
+                                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                            # Try uploading, capturing the response in detail
+                                            $Upload = Invoke-WebRequest -Uri $uri `
+                                                -Method Post `
+                                                -Headers $extraPlexHeaders `
+                                                -Body $fileContent `
+                                                -ContentType 'application/octet-stream' `
+                                                -SkipHttpErrorCheck `
+                                                -ErrorAction Stop
+    
+                                            if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                                Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                                Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                            }
+                                            else {
+                                                Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                                Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                            }
+                                            $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                         }
-                                        else {
-                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                        }
-                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                    }
+                                    catch {
+                                        Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                        $global:errorCount = Increment-GlobalStat 'errorCount'
+                                        Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                     }
                                 }
-                                catch {
-                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                    $global:errorCount = Increment-GlobalStat 'errorCount'
-                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                elseif ($entry.Id) {
+                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                    Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                    UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Backdrop" -imagePath $backgroundImageoriginal
                                 }
                                 if (Test-Path $backgroundImage -ErrorAction SilentlyContinue) {
                                     Remove-Item -LiteralPath $backgroundImage | Out-Null
@@ -2343,45 +2350,50 @@ function Invoke-ShowPosterCreation {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($entry.PlexPosterUrl -like "/library/*") {
                                 $Arturl = $plexurl + $entry.PlexPosterUrl
-                            }
-                            Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                            try {
-                                GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage
-                                if ($global:PlexartworkDownloaded -eq 'true') {
-                                    Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                    $fileContent = [System.IO.File]::ReadAllBytes($PosterImageoriginal)
-                                    # Verify variables before uploading
-                                    Write-Entry -Subtext "PosterImage: $PosterImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                    $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
-                                    Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                    # Try uploading, capturing the response in detail
-                                    $Upload = Invoke-WebRequest -Uri $uri `
-                                        -Method Post `
-                                        -Headers $extraPlexHeaders `
-                                        -Body $fileContent `
-                                        -ContentType 'application/octet-stream' `
-                                        -SkipHttpErrorCheck `
-                                        -ErrorAction Stop
-
-                                    if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                        Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                try {
+                                    GetPlexArtwork -Type "$Titletext Artwork." -ArtUrl $Arturl -TempImage $PosterImage
+                                    if ($global:PlexartworkDownloaded -eq 'true') {
+                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                        $fileContent = [System.IO.File]::ReadAllBytes($PosterImageoriginal)
+                                        # Verify variables before uploading
+                                        Write-Entry -Subtext "PosterImage: $PosterImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                        $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/posters"
+                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                        # Try uploading, capturing the response in detail
+                                        $Upload = Invoke-WebRequest -Uri $uri `
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
+    
+                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                        }
+                                        else {
+                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                        }
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
-                                    else {
-                                        Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                        Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                    }
-                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                }
+                                catch {
+                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
+                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                             }
-                            catch {
-                                Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                $global:errorCount = Increment-GlobalStat 'errorCount'
-                                Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            elseif ($entry.Id) {
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Primary" -imagePath $PosterImageoriginal
                             }
                             if (Test-Path $PosterImage -ErrorAction SilentlyContinue) {
                                 Remove-Item -LiteralPath $PosterImage | Out-Null
@@ -3090,48 +3102,50 @@ function Invoke-ShowPosterCreation {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($entry.PlexBackgroundUrl -like "/library/*") {
                                 $Arturl = $plexurl + $entry.PlexBackgroundUrl
-                            }
-                            elseif ($entry.OtherMediaServerBackgroundUrl) {
-                                $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
-                            }
-                            Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                            try {
-                                GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
-                                if ($global:PlexartworkDownloaded -eq 'true') {
-                                    Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                    $fileContent = [System.IO.File]::ReadAllBytes($backgroundImageoriginal)
-                                    # Verify variables before uploading
-                                    Write-Entry -Subtext "BackgroundImage: $backgroundImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                    $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
-                                    Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                    # Try uploading, capturing the response in detail
-                                    $Upload = Invoke-WebRequest -Uri $uri `
-                                        -Method Post `
-                                        -Headers $extraPlexHeaders `
-                                        -Body $fileContent `
-                                        -ContentType 'application/octet-stream' `
-                                        -SkipHttpErrorCheck `
-                                        -ErrorAction Stop
-
-                                    if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                        Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                try {
+                                    GetPlexArtwork -Type " $Titletext | Backgound Artwork." -ArtUrl $Arturl -TempImage $backgroundImage
+                                    if ($global:PlexartworkDownloaded -eq 'true') {
+                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                        $fileContent = [System.IO.File]::ReadAllBytes($backgroundImageoriginal)
+                                        # Verify variables before uploading
+                                        Write-Entry -Subtext "BackgroundImage: $backgroundImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "RatingKey: $($entry.ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                        $uri = "$PlexUrl/library/metadata/$($entry.ratingkey)/arts"
+                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                        # Try uploading, capturing the response in detail
+                                        $Upload = Invoke-WebRequest -Uri $uri `
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
+    
+                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                        }
+                                        else {
+                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                        }
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
-                                    else {
-                                        Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                        Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                    }
-                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                }
+                                catch {
+                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
+                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                             }
-                            catch {
-                                Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                $global:errorCount = Increment-GlobalStat 'errorCount'
-                                Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            elseif ($entry.Id) {
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                UploadOtherMediaServerArtwork -itemId $entry.Id -imageType "Backdrop" -imagePath $backgroundImageoriginal
                             }
                             if (Test-Path $backgroundImage -ErrorAction SilentlyContinue) {
                                 Remove-Item -LiteralPath $backgroundImage | Out-Null
@@ -4086,48 +4100,50 @@ function Invoke-ShowPosterCreation {
                             if ($global:UploadExistingAssets -eq 'true') {
                                 if ($global:PlexSeasonUrl -like "/library/*") {
                                     $Arturl = $plexurl + $global:PlexSeasonUrl
-                                }
-                                elseif ($global:OtherMediaServerSeasonUrls.Count -gt $i -and $global:OtherMediaServerSeasonUrls[$i]) {
-                                    $Arturl = $global:OtherMediaServerSeasonUrls[$i]
-                                }
-                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                                try {
-                                    GetPlexArtwork -Type " $Titletext | $global:seasontmp Artwork."  -ArtUrl $Arturl -TempImage $SeasonImage
-                                    if ($global:PlexartworkDownloaded -eq 'true') {
-                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                        $fileContent = [System.IO.File]::ReadAllBytes($SeasonImageoriginal)
-                                        # Verify variables before uploading
-                                        Write-Entry -Subtext "SeasonImage: $SeasonImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                        Write-Entry -Subtext "RatingKey: $($global:SeasonRatingKey)" -Path $global:configLogging -Color Cyan -log Debug
-                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                        $uri = "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters"
-                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                        # Try uploading, capturing the response in detail
-                                        $Upload = Invoke-WebRequest -Uri $uri `
-                                            -Method Post `
-                                            -Headers $extraPlexHeaders `
-                                            -Body $fileContent `
-                                            -ContentType 'application/octet-stream' `
-                                            -SkipHttpErrorCheck `
-                                            -ErrorAction Stop
-
-                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                    try {
+                                        GetPlexArtwork -Type " $Titletext | $global:seasontmp Artwork."  -ArtUrl $Arturl -TempImage $SeasonImage
+                                        if ($global:PlexartworkDownloaded -eq 'true') {
+                                            Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                            $fileContent = [System.IO.File]::ReadAllBytes($SeasonImageoriginal)
+                                            # Verify variables before uploading
+                                            Write-Entry -Subtext "SeasonImage: $SeasonImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                            Write-Entry -Subtext "RatingKey: $($global:SeasonRatingKey)" -Path $global:configLogging -Color Cyan -log Debug
+                                            Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                            $uri = "$PlexUrl/library/metadata/$($global:SeasonRatingKey)/posters"
+                                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                            # Try uploading, capturing the response in detail
+                                            $Upload = Invoke-WebRequest -Uri $uri `
+                                                -Method Post `
+                                                -Headers $extraPlexHeaders `
+                                                -Body $fileContent `
+                                                -ContentType 'application/octet-stream' `
+                                                -SkipHttpErrorCheck `
+                                                -ErrorAction Stop
+    
+                                            if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                                Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                                Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                            }
+                                            else {
+                                                Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                                Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                            }
+                                            $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                         }
-                                        else {
-                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                        }
-                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                    }
+                                    catch {
+                                        Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                        $global:errorCount = Increment-GlobalStat 'errorCount'
+                                        Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                     }
                                 }
-                                catch {
-                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                    $global:errorCount = Increment-GlobalStat 'errorCount'
-                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                elseif ($global:seasonId) {
+                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                    Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                    UploadOtherMediaServerArtwork -itemId $global:seasonId -imageType "Primary" -imagePath $SeasonImageoriginal
                                 }
                                 if (Test-Path $SeasonImage -ErrorAction SilentlyContinue) {
                                     Remove-Item -LiteralPath $SeasonImage | Out-Null
@@ -4227,6 +4243,7 @@ function Invoke-TitleCardCreation {
         if ($null -ne $episode."Resolutions") { $global:EPResolutions = $episode."Resolutions".Split(",") } else { $global:EPResolutions = @() }
         if ($null -ne $episode."Episodes") { $global:episode_numbers = $episode."Episodes".Split(",") } else { $global:episode_numbers = @() }
         if ($null -ne $episode."RatingKeys") { $global:episode_ratingkeys = $episode."RatingKeys".Split(",") } else { $global:episode_ratingkeys = @() }
+        if ($null -ne $episode."EpisodeIds") { $global:episode_ids = $episode."EpisodeIds".Split(",") } else { $global:episode_ids = @() }
         if ($null -ne $episode."Title") { $global:titles = $episode."Title".Split(";") } else { $global:titles = @() }
         if ($null -ne $episode."PlexTitleCardUrls") { $global:PlexTitleCardUrls = $episode."PlexTitleCardUrls".Split(",") } else { $global:PlexTitleCardUrls = @() }
         if ($null -ne $episode."OtherMediaServerTitleCardUrls") { $global:OtherMediaServerTitleCardUrls = $episode."OtherMediaServerTitleCardUrls".Split(",") } else { $global:OtherMediaServerTitleCardUrls = @() }
@@ -4256,13 +4273,15 @@ function Invoke-TitleCardCreation {
                 $LocalAddOverlay = $AddTitleCardOverlay
                 $LocalAddBorder = $AddTitleCardBorder
                 $global:PlexTitleCardUrl = $episode.PlexBackgroundUrl
-                $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim())
-                $global:EPTitle = $($global:titles[$i].Trim())
-                $global:EPResolution = $($global:EPResolutions[$i].Trim())
-                $global:episodenumber = $($global:episode_numbers[$i].Trim())
-                $global:FileNaming = "S" + $global:season_number.PadLeft(2, '0') + "E" + $global:episodenumber.PadLeft(2, '0')
+                if ($global:episode_ratingkeys.Count -gt $i -and $null -ne $global:episode_ratingkeys[$i]) { $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim()) } else { $global:episode_ratingkey = $null }
+                if ($global:episode_ids.Count -gt $i -and $null -ne $global:episode_ids[$i]) { $global:episodeid = $($global:episode_ids[$i].Trim()) } else { $global:episodeid = $null }
+                if ($global:titles.Count -gt $i -and $null -ne $global:titles[$i]) { $global:EPTitle = $($global:titles[$i].Trim()) } else { $global:EPTitle = $null }
+                if ($global:EPResolutions.Count -gt $i -and $null -ne $global:EPResolutions[$i]) { $global:EPResolution = $($global:EPResolutions[$i].Trim()) } else { $global:EPResolution = $null }
+                if ($global:episode_numbers.Count -gt $i -and $null -ne $global:episode_numbers[$i]) { $global:episodenumber = $($global:episode_numbers[$i].Trim()) } else { $global:episodenumber = $null }
+                $global:FileNaming = "S" + "$global:season_number".PadLeft(2, '0') + "E" + "$global:episodenumber".PadLeft(2, '0')
                 $bullet = [char]0x2022
                 $global:SeasonEPNumber = "$SeasonTCText $global:season_number $bullet $EpisodeTCText $global:episodenumber"
+                $Titletext = "$global:show_name ($global:FileNaming)"
 
                 if ($LibraryFolders -eq 'true') {
                     $EpisodeImageoriginal = "$EntryDir\$global:FileNaming.jpg"
@@ -4908,55 +4927,54 @@ function Invoke-TitleCardCreation {
                         }
 
                     }
-                    else {
+                    } else {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($global:PlexTitleCardUrl -like "/library/*") {
                                 $Arturl = $plexurl + $global:PlexTitleCardUrl
-                            }
-                            elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
-                                $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
-                            }
-                            elseif ($episode.OtherMediaServerBackgroundUrl) {
-                                $Arturl = "$OtherMediaServerUrl/items/$($episode.ShowId)/images/backdrop/"
-                            }
-                            Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                            try {
-                                GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
-                                if ($global:PlexartworkDownloaded -eq 'true') {
-                                    Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                    $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
-                                    # Verify variables before uploading
-                                    Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                    $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                    Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                    # Try uploading, capturing the response in detail
-                                    $Upload = Invoke-WebRequest -Uri $uri `
-                                        -Method Post `
-                                        -Headers $extraPlexHeaders `
-                                        -Body $fileContent `
-                                        -ContentType 'application/octet-stream' `
-                                        -SkipHttpErrorCheck `
-                                        -ErrorAction Stop
-
-                                    if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                        Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                try {
+                                    GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
+                                    if ($global:PlexartworkDownloaded -eq 'true') {
+                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                        $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
+                                        # Verify variables before uploading
+                                        Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                        $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
+                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                        # Try uploading, capturing the response in detail
+                                        $Upload = Invoke-WebRequest -Uri $uri `
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
+    
+                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                        }
+                                        else {
+                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                        }
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
-                                    else {
-                                        Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                        Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                    }
-                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                }
+                                catch {
+                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
+                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                             }
-                            catch {
-                                Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                $global:errorCount = Increment-GlobalStat 'errorCount'
-                                Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            elseif ($global:episodeid) {
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImageoriginal
                             }
                             if (Test-Path $EpisodeImage -ErrorAction SilentlyContinue) {
                                 Remove-Item -LiteralPath $EpisodeImage | Out-Null
@@ -5266,7 +5284,6 @@ function Invoke-TitleCardCreation {
                                 }
                             }
                         }
-                            }
                         if ($global:posterurl -or $global:PlexartworkDownloaded -or $TakeLocal) {
                             $global:IsTruncated = $null
                             if ($global:ImageProcessing -eq 'true') {
@@ -5657,56 +5674,54 @@ function Invoke-TitleCardCreation {
 
                         }
 
-                    }
-                    else {
+                    } else {
                         if ($global:UploadExistingAssets -eq 'true') {
                             if ($global:PlexTitleCardUrl -like "/library/*") {
                                 $Arturl = $plexurl + $global:PlexTitleCardUrl
-                            }
-                            elseif ($global:OtherMediaServerTitleCardUrls.Count -gt $i -and $global:OtherMediaServerTitleCardUrls[$i]) {
-                                $Arturl = $global:OtherMediaServerTitleCardUrls[$i]
-                            }
-                            elseif ($episode.OtherMediaServerBackgroundUrl) {
-                                $Arturl = "$OtherMediaServerUrl/items/$($episode.ShowId)/images/backdrop/"
-                            }
-                            Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                            try {
-                                GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
-                                if ($global:PlexartworkDownloaded -eq 'true') {
-                                    Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                    $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
-                                    # Verify variables before uploading
-                                    Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                    Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                    $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                    Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                    # Try uploading, capturing the response in detail
-                                    $Upload = Invoke-WebRequest -Uri $uri `
-                                        -Method Post `
-                                        -Headers $extraPlexHeaders `
-                                        -Body $fileContent `
-                                        -ContentType 'application/octet-stream' `
-                                        -SkipHttpErrorCheck `
-                                        -ErrorAction Stop
-
-                                    if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                        Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                        Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                try {
+                                    GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
+                                    if ($global:PlexartworkDownloaded -eq 'true') {
+                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                        $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
+                                        # Verify variables before uploading
+                                        Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                        $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
+                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                        # Try uploading, capturing the response in detail
+                                        $Upload = Invoke-WebRequest -Uri $uri `
+                                            -Method Post `
+                                            -Headers $extraPlexHeaders `
+                                            -Body $fileContent `
+                                            -ContentType 'application/octet-stream' `
+                                            -SkipHttpErrorCheck `
+                                            -ErrorAction Stop
+    
+                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                        }
+                                        else {
+                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                        }
+                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                     }
-                                    else {
-                                        Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                        Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                    }
-                                    $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                }
+                                catch {
+                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                    $global:errorCount = Increment-GlobalStat 'errorCount'
+                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                 }
                             }
-                            catch {
-                                Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                $global:errorCount = Increment-GlobalStat 'errorCount'
-                                Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                            elseif ($global:episodeid) {
+                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImageoriginal
                             }
                             if (Test-Path $EpisodeImage -ErrorAction SilentlyContinue) {
                                 Remove-Item -LiteralPath $EpisodeImage | Out-Null
@@ -5722,7 +5737,7 @@ function Invoke-TitleCardCreation {
                 }
             }
         }
-                            Else {
+                            if ($false) {
                                 for ($i = 0; $i -lt $global:episode_numbers.Count; $i++) {
                                     $SkippingText = 'false'
 
@@ -6403,50 +6418,54 @@ function Invoke-TitleCardCreation {
 
                                             }
 
-                                        }
-                                        else {
+                                        } else {
                                             if ($global:UploadExistingAssets -eq 'true') {
                                                 if ($global:PlexTitleCardUrl -like "/library/*") {
                                                     $Arturl = $plexurl + $global:PlexTitleCardUrl
-                                                }
-                                                Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
-                                                try {
-                                                    GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
-                                                    if ($global:PlexartworkDownloaded -eq 'true') {
-                                                        Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
-                                                        $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
-                                                        # Verify variables before uploading
-                                                        Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
-                                                        Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                                        Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
-
-                                                        $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
-                                                        Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
-                                                        # Try uploading, capturing the response in detail
-                                                        $Upload = Invoke-WebRequest -Uri $uri `
-                                                            -Method Post `
-                                                            -Headers $extraPlexHeaders `
-                                                            -Body $fileContent `
-                                                            -ContentType 'application/octet-stream' `
-                                                            -SkipHttpErrorCheck `
-                                                            -ErrorAction Stop
-
-                                                        if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
-                                                            Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
-                                                            Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                                    try {
+                                                        GetPlexArtwork -Type " $Titletext | $global:FileNaming Artwork." -ArtUrl $Arturl -TempImage $EpisodeImage
+                                                        if ($global:PlexartworkDownloaded -eq 'true') {
+                                                            Write-Entry -Subtext "Uploading Existing Artwork for: $Titletext" -Path $global:configLogging -Color White -log Info
+                                                            $fileContent = [System.IO.File]::ReadAllBytes($EpisodeImageoriginal)
+                                                            # Verify variables before uploading
+                                                            Write-Entry -Subtext "EpisodeImage: $EpisodeImageoriginal" -Path $global:configLogging -Color Cyan -log Debug
+                                                            Write-Entry -Subtext "RatingKey: $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
+                                                            Write-Entry -Subtext "File size: $($fileContent.Length) bytes" -Path $global:configLogging -Color Cyan -log Debug
+    
+                                                            $uri = "$PlexUrl/library/metadata/$($global:episode_ratingkey)/posters"
+                                                            Write-Entry -Subtext "Upload URI: $(RedactMediaServerUrl -url $uri)" -Path $global:configLogging -Color Cyan -log Debug
+                                                            # Try uploading, capturing the response in detail
+                                                            $Upload = Invoke-WebRequest -Uri $uri `
+                                                                -Method Post `
+                                                                -Headers $extraPlexHeaders `
+                                                                -Body $fileContent `
+                                                                -ContentType 'application/octet-stream' `
+                                                                -SkipHttpErrorCheck `
+                                                                -ErrorAction Stop
+    
+                                                            if ($Upload.StatusCode -ne 200 -and $Upload.StatusCode -ne 201) {
+                                                                Write-Entry -Subtext "Upload failed: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color Red -log Error
+                                                                Write-Entry -Subtext "Response body:`n$($Upload.Content)" -Path $global:configLogging -Color Cyan-log Debug
+                                                            }
+                                                            else {
+                                                                Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
+                                                                Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
+                                                            }
+                                                            $global:UploadCount = Increment-GlobalStat 'UploadCount'
                                                         }
-                                                        else {
-                                                            Write-Entry -Subtext "Upload OK: HTTP $($Upload.StatusCode)" -Path $global:configLogging -Color White -log Debug
-                                                            Write-Entry -Subtext "Artwork uploaded successfully..." -Path $global:configLogging -Color Green -log Info
-                                                        }
-                                                        $global:UploadCount = Increment-GlobalStat 'UploadCount'
+                                                    }
+                                                    catch {
+                                                        Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
+    
+                                                        $global:errorCount = Increment-GlobalStat 'errorCount'
+                                                        Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
                                                     }
                                                 }
-                                                catch {
-                                                    Write-Entry -Subtext "Invoke-WebRequest failed at transport level: $($_.Exception.Message)" -Path $global:configLogging -Color Red -log Error
-
-                                                    $global:errorCount = Increment-GlobalStat 'errorCount'
-                                                    Write-Entry -Subtext "[ERROR-HERE] See above. ^^^ errorCount: $errorCount" -Path $global:configLogging -Color Red -log Error
+                                                elseif ($global:episodeid) {
+                                                    Write-Entry -Message "Starting Existing Asset Upload..." -Path $global:configLogging -Color Green -log Info
+                                                    Write-Entry -Subtext "Searching for $Titletext Artwork on Media Server." -Path $global:configLogging -Color Cyan -log Info
+                                                    UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImageoriginal
                                                 }
                                                 if (Test-Path $EpisodeImage -ErrorAction SilentlyContinue) {
                                                     Remove-Item -LiteralPath $EpisodeImage | Out-Null
@@ -6468,4 +6487,5 @@ function Invoke-TitleCardCreation {
         $global:errorCount = Increment-GlobalStat 'errorCount'
     }
 }
+
 
