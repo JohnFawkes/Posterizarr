@@ -192,13 +192,13 @@
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
                     if ($videoStream.ExtendedVideoSubTypeDescription -and $videoStream.ExtendedVideoSubTypeDescription -ne 'None') {
-                        Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                        Write-Entry -Subtext "[$($movie.Name)] Raw Video Description: $($videoStream.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                         if ($videoStream.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10') {
                             $hdrType = 'DOVIHDR10'
                         }
                     }
                     Else {
-                        Write-Entry -Subtext "Raw Video Description: $($videoStream.ExtendedVideoType)" -Path $global:configLogging -Color Cyan -log Debug
+                        Write-Entry -Subtext "[$($movie.Name)] Raw Video Description: $($videoStream.ExtendedVideoType)" -Path $global:configLogging -Color Cyan -log Debug
                         $hdrType = $videoStream.ExtendedVideoType
                     }
 
@@ -286,7 +286,7 @@
 
                     # Grab the primary video stream to check for HDR
                     $videoStream = $movie.MediaStreams | Where-Object Type -eq 'Video' | Select-Object -First 1
-                    Write-Entry -Subtext "Raw Video Description: $($videoStream.VideoRangeType)" -Path $global:configLogging -Color Cyan -log Debug
+                    Write-Entry -Subtext "[$($movie.Name)] Raw Video Description: $($videoStream.VideoRangeType)" -Path $global:configLogging -Color Cyan -log Debug
                     $hdrType = $videoStream.VideoRangeType
 
                     # Build the final string
@@ -467,9 +467,9 @@
                 $currentRange = ($UseEmby -eq 'true') ? $vid.ExtendedVideoType : $vid.VideoRangeType
 
                 if ($currentRange -and $currentRange -ne 'None') {
-                    Write-Entry -Subtext "Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
+                    Write-Entry -Subtext "[$($show.title) - S$(([int]$ep.ParentIndexNumber).ToString('00'))E$(([int]$ep.IndexNumber).ToString('00')) - $($ep.Name)] Raw Video Description: $($currentRange)" -Path $global:configLogging -Color Cyan -log Debug
                     if ($UseEmby -eq 'true' -and $vid.ExtendedVideoSubTypeDescription -and $vid.ExtendedVideoSubTypeDescription -ne 'None') {
-                        Write-Entry -Subtext "Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
+                        Write-Entry -Subtext "[$($show.title) - S$(([int]$ep.ParentIndexNumber).ToString('00'))E$(([int]$ep.IndexNumber).ToString('00')) - $($ep.Name)] Raw Sub Video Description: $($vid.ExtendedVideoSubTypeDescription)" -Path $global:configLogging -Color Cyan -log Debug
                     }
                     # Refine for Dolby Vision + HDR10 Hybrid (Profile 7 or 8)
                     if ($vid.ExtendedVideoSubTypeDescription -match 'Profile.*HDR10' -or $vid.VideoRangeType -match 'HDR10|EL' -or $vid.ExtendedVideoType -match 'HDR10|EL') {
