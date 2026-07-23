@@ -146,7 +146,7 @@ function Invoke-MoviePosterCreation {
                                 $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/"
                             }
 
-                            foreach ($ext in $allowedExtensions) {
+                            foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
                                     Write-Entry -Message "Local file exists: $filePath" -Path $global:configLogging -Color Cyan -log Debug
@@ -364,7 +364,7 @@ function Invoke-MoviePosterCreation {
                                             $global:IsFallback = $true
                                         }
                                     }
-                                    elseif ($global:posterurl -like "$PlexUrl*") {
+                                    elseif ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                         Write-Entry -Subtext "Downloading Poster from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                         if ($global:FavProvider -ne 'PLEX') {
                                             $global:IsFallback = $true
@@ -904,7 +904,7 @@ function Invoke-MoviePosterCreation {
                                 $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                             }
 
-                            foreach ($ext in $allowedExtensions) {
+                            foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                                 $filePath = "$ManualTestPath$ext"
                                 if (Test-Path -LiteralPath $filePath) {
                                     Write-Entry -Message "Local file exists: $filePath" -Path $global:configLogging -Color Cyan -log Debug
@@ -1101,7 +1101,7 @@ function Invoke-MoviePosterCreation {
                                             $global:IsFallback = $true
                                         }
                                     }
-                                    elseif ($global:posterurl -like "$PlexUrl*") {
+                                    elseif ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                         Write-Entry -Subtext "Downloading Background from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                         if ($global:FavProvider -ne 'PLEX') {
                                             $global:IsFallback = $true
@@ -1750,7 +1750,7 @@ function Invoke-ShowPosterCreation {
                         elseif ($entry.OtherMediaServerPosterUrl) {
                             $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/Primary/"
                         }
-                        foreach ($ext in $allowedExtensions) {
+                        foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                             $filePath = "$ManualTestPath$ext"
                             if (Test-Path -LiteralPath $filePath) {
                                 Write-Entry -Message "Local file exists: $filePath" -Path $global:configLogging -Color Cyan -log Debug
@@ -1953,7 +1953,7 @@ function Invoke-ShowPosterCreation {
                                         $global:IsFallback = $true
                                     }
                                 }
-                                elseif ($global:posterurl -like "$PlexUrl*") {
+                                elseif ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                     Write-Entry -Subtext "Downloading Poster from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                     if ($global:FavProvider -ne 'PLEX') {
                                         $global:IsFallback = $true
@@ -2502,7 +2502,7 @@ function Invoke-ShowPosterCreation {
                             $Arturl = "$OtherMediaServerUrl/items/$($entry.Id)/images/backdrop/"
                         }
 
-                        foreach ($ext in $allowedExtensions) {
+                        foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                             $filePath = "$ManualTestPath$ext"
                             if (Test-Path -LiteralPath $filePath) {
                                 Write-Entry -Message "Local file exists: $filePath" -Path $global:configLogging -Color Cyan -log Debug
@@ -2704,7 +2704,7 @@ function Invoke-ShowPosterCreation {
                                         $global:IsFallback = $true
                                     }
                                 }
-                                elseif ($global:posterurl -like "$PlexUrl*") {
+                                elseif ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                     Write-Entry -Subtext "Downloading Background from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                     if ($global:FavProvider -ne 'PLEX') {
                                         $global:IsFallback = $true
@@ -3298,7 +3298,7 @@ function Invoke-ShowPosterCreation {
                             elseif ($global:OtherMediaServerSeasonUrls.Count -gt $i -and $global:OtherMediaServerSeasonUrls[$i]) {
                                 $Arturl = $global:OtherMediaServerSeasonUrls[$i]
                             }
-                            foreach ($ext in $allowedExtensions) {
+                            foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                                 $manualFile = "$ManualTestPath$ext"
                                 $templateFile = "$Templatetestpath$ext"
                                 $filePath = $null
@@ -3609,7 +3609,7 @@ function Invoke-ShowPosterCreation {
                                                 $global:IsFallback = $true
                                             }
                                         }
-                                        elseif ($global:posterurl -like "$PlexUrl*") {
+                                        elseif ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                             Write-Entry -Subtext "Downloading Poster from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                             if ($global:FavProvider -ne 'PLEX') {
                                                 $global:IsFallback = $true
@@ -3945,7 +3945,7 @@ function Invoke-ShowPosterCreation {
                                                 $global:IsFallback = $true
                                             }
                                         }
-                                        elseif ($global:posterurl -like "$PlexUrl*") {
+                                        elseif ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                             Write-Entry -Subtext "Downloading Poster from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                             if ($global:FavProvider -ne 'PLEX') {
                                                 $global:IsFallback = $true
@@ -4369,7 +4369,7 @@ function Invoke-TitleCardCreation {
                         elseif ($episode.OtherMediaServerBackgroundUrl) {
                             $Arturl = "$OtherMediaServerUrl/items/$($episode.ShowId)/images/backdrop/"
                         }
-                        foreach ($ext in $allowedExtensions) {
+                        foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                             $manualFile = "$ManualTestPath$ext"
                             $templateFile = "$Templatetestpath$ext"
                             $filePath = $null
@@ -4566,7 +4566,7 @@ function Invoke-TitleCardCreation {
                                                 $global:IsFallback = $true
                                             }
                                         }
-                                        if ($global:posterurl -like "$PlexUrl*") {
+                                        if ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                             Write-Entry -Subtext "Downloading Title Card from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                             if ($global:FavProvider -ne 'PLEX') {
                                                 $global:IsFallback = $true
@@ -4779,7 +4779,7 @@ function Invoke-TitleCardCreation {
                                             $global:IsFallback = $true
                                         }
                                     }
-                                    if ($global:posterurl -like "$PlexUrl*") {
+                                    if ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                         Write-Entry -Subtext "Downloading Title Card from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                         if ($global:FavProvider -ne 'PLEX') {
                                             $global:IsFallback = $true
@@ -4799,9 +4799,9 @@ function Invoke-TitleCardCreation {
                                 if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
                                     if ($global:IsTruncated -ne $true) {
-                                        if ($UseOtherMediaServer -eq 'true' -and $global:episode_ratingkey) {
-                                            Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                            UploadOtherMediaServerArtwork -itemId $global:episode_ratingkey -imageType "Primary" -imagePath $EpisodeImage
+                                        if ($UseOtherMediaServer -eq 'true' -and $global:episodeid) {
+                                            Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episodeid)" -Path $global:configLogging -Color Cyan -log Debug
+                                            UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                         }
                                         if ($Upload2Plex -eq 'true') {
                                             try {
@@ -5024,6 +5024,7 @@ function Invoke-TitleCardCreation {
                 $LocalAddBorder = $AddTitleCardBorder
                 if ($global:PlexTitleCardUrls.Count -gt $i -and $null -ne $global:PlexTitleCardUrls[$i]) { $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim()) } else { $global:PlexTitleCardUrl = $null }
                 if ($global:episode_ratingkeys.Count -gt $i -and $null -ne $global:episode_ratingkeys[$i]) { $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim()) } else { $global:episode_ratingkey = $null }
+                if ($global:episode_ids.Count -gt $i -and $null -ne $global:episode_ids[$i]) { $global:episodeid = $($global:episode_ids[$i].Trim()) } else { $global:episodeid = $null }
                 if ($global:titles.Count -gt $i -and $null -ne $global:titles[$i]) { $global:EPTitle = $($global:titles[$i].Trim()) } else { $global:EPTitle = $null }
                 if ($global:EPResolutions.Count -gt $i -and $null -ne $global:EPResolutions[$i]) { $global:EPResolution = $($global:EPResolutions[$i].Trim()) } else { $global:EPResolution = $null }
                 if ($global:episode_numbers.Count -gt $i -and $null -ne $global:episode_numbers[$i]) { $global:episodenumber = $($global:episode_numbers[$i].Trim()) } else { $global:episodenumber = $null }
@@ -5106,7 +5107,7 @@ function Invoke-TitleCardCreation {
                         elseif ($episode.OtherMediaServerBackgroundUrl) {
                             $Arturl = "$OtherMediaServerUrl/items/$($episode.ShowId)/images/backdrop/"
                         }
-                        foreach ($ext in $allowedExtensions) {
+                        foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                             $manualFile = "$ManualTestPath$ext"
                             $templateFile = "$Templatetestpath$ext"
                             $filePath = $null
@@ -5328,7 +5329,7 @@ function Invoke-TitleCardCreation {
                                             $global:IsFallback = $true
                                         }
                                     }
-                                    if ($global:posterurl -like "$PlexUrl*") {
+                                    if ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                         Write-Entry -Subtext "Downloading Title Card from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                         if ($global:FavProvider -ne 'PLEX') {
                                             $global:IsFallback = $true
@@ -5527,7 +5528,7 @@ function Invoke-TitleCardCreation {
                                             $global:IsFallback = $true
                                         }
                                     }
-                                    if ($global:posterurl -like "$PlexUrl*") {
+                                    if ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                         Write-Entry -Subtext "Downloading Title Card from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                         if ($global:FavProvider -ne 'PLEX') {
                                             $global:IsFallback = $true
@@ -5547,9 +5548,9 @@ function Invoke-TitleCardCreation {
                                 if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                     # Move file back to original naming with Brackets.
                                     if ($global:IsTruncated -ne $true) {
-                                        if ($UseOtherMediaServer -eq 'true' -and $global:episode_ratingkey) {
-                                            Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                            UploadOtherMediaServerArtwork -itemId $global:episode_ratingkey -imageType "Primary" -imagePath $EpisodeImage
+                                        if ($UseOtherMediaServer -eq 'true' -and $global:episodeid) {
+                                            Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episodeid)" -Path $global:configLogging -Color Cyan -log Debug
+                                            UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                         }
                                         if ($Upload2Plex -eq 'true') {
                                             try {
@@ -5767,6 +5768,8 @@ function Invoke-TitleCardCreation {
                                     $LocalAddBorder = $AddTitleCardBorder
                                     if ($global:PlexTitleCardUrls.Count -gt $i -and $null -ne $global:PlexTitleCardUrls[$i]) { $global:PlexTitleCardUrl = $($global:PlexTitleCardUrls[$i].Trim()) } else { $global:PlexTitleCardUrl = $null }
                                     if ($global:episode_ratingkeys.Count -gt $i -and $null -ne $global:episode_ratingkeys[$i]) { $global:episode_ratingkey = $($global:episode_ratingkeys[$i].Trim()) } else { $global:episode_ratingkey = $null }
+                                    if ($global:episode_ids.Count -gt $i -and $null -ne $global:episode_ids[$i]) { $global:episodeid = $($global:episode_ids[$i].Trim()) } else { $global:episodeid = $null }
+                                    if ($global:episode_ids.Count -gt $i -and $null -ne $global:episode_ids[$i]) { $global:episodeid = $($global:episode_ids[$i].Trim()) } else { $global:episodeid = $null }
                                     if ($global:titles.Count -gt $i -and $null -ne $global:titles[$i]) { $global:EPTitle = $($global:titles[$i].Trim()) } else { $global:EPTitle = $null }
                                     if ($global:EPResolutions.Count -gt $i -and $null -ne $global:EPResolutions[$i]) { $global:EPResolution = $($global:EPResolutions[$i].Trim()) } else { $global:EPResolution = $null }
                                     if ($global:episode_numbers.Count -gt $i -and $null -ne $global:episode_numbers[$i]) { $global:episodenumber = $($global:episode_numbers[$i].Trim()) } else { $global:episodenumber = $null }
@@ -5850,7 +5853,7 @@ function Invoke-TitleCardCreation {
                                             if ($global:PlexTitleCardUrl -like "/library/*") {
                                                 $Arturl = $plexurl + $global:PlexTitleCardUrl
                                             }
-                                            foreach ($ext in $allowedExtensions) {
+                                            foreach ($ext in @('.jpg', '.jpeg', '.png', '.webp', '.bmp')) {
                                                 $manualFile = "$ManualTestPath$ext"
                                                 $templateFile = "$Templatetestpath$ext"
                                                 $filePath = $null
@@ -6072,7 +6075,7 @@ function Invoke-TitleCardCreation {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
-                                                        if ($global:posterurl -like "$PlexUrl*") {
+                                                        if ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                                             Write-Entry -Subtext "Downloading Title Card from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                                             if ($global:FavProvider -ne 'PLEX') {
                                                                 $global:IsFallback = $true
@@ -6271,7 +6274,7 @@ function Invoke-TitleCardCreation {
                                                                 $global:IsFallback = $true
                                                             }
                                                         }
-                                                        if ($global:posterurl -like "$PlexUrl*") {
+                                                        if ($PlexUrl -and $global:posterurl -like "$PlexUrl*") {
                                                             Write-Entry -Subtext "Downloading Title Card from 'Plex'" -Path $global:configLogging -Color DarkMagenta -log Info
                                                             if ($global:FavProvider -ne 'PLEX') {
                                                                 $global:IsFallback = $true
@@ -6291,9 +6294,9 @@ function Invoke-TitleCardCreation {
                                                     if (Get-ChildItem -LiteralPath $EpisodeImage -ErrorAction SilentlyContinue) {
                                                         # Move file back to original naming with Brackets.
                                                         if ($global:IsTruncated -ne $true) {
-                                                            if ($UseOtherMediaServer -eq 'true' -and $global:episode_ratingkey) {
-                                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episode_ratingkey)" -Path $global:configLogging -Color Cyan -log Debug
-                                                                UploadOtherMediaServerArtwork -itemId $global:episode_ratingkey -imageType "Primary" -imagePath $EpisodeImage
+                                                            if ($UseOtherMediaServer -eq 'true' -and $global:episodeid) {
+                                                                Write-Entry -Subtext "Calling UploadOtherMediaServerArtwork for ID $($global:episodeid)" -Path $global:configLogging -Color Cyan -log Debug
+                                                                UploadOtherMediaServerArtwork -itemId $global:episodeid -imageType "Primary" -imagePath $EpisodeImage
                                                             }
                                                             if ($Upload2Plex -eq 'true') {
                                                                 try {
