@@ -375,7 +375,7 @@ In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex
 
 1. Go to `Triggers`, scroll down and select `Recently Added`.
 
-    ![backgroundtesting](images/Tautulli_Step2.png
+    ![backgroundtesting](images/Tautulli_Step2.png)
 
 1. Go to `Conditions`, you can now specify when the script should get called.
    - In my case i specified the **Media Type**: `episode, movie, show and season`
@@ -391,7 +391,7 @@ In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex
    <movie>RatingKey "{rating_key}" mediatype "{media_type}"</movie><show>RatingKey "{rating_key}" mediatype "{media_type}"</show><season>parentratingkey "{parent_rating_key}" mediatype "{media_type}"</season><episode>RatingKey "{rating_key}" parentratingkey "{parent_rating_key}" grandparentratingkey "{grandparent_rating_key}" mediatype "{media_type}"</episode>
    ```
 
-   ![backgroundtesting](images/Tautulli_Step4.png
+   ![backgroundtesting](images/Tautulli_Step4.png)
 
 ### Tautulli Mode (Native Webhook)
 

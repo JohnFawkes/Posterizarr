@@ -41,44 +41,52 @@ The frontend follows a component-based architecture located entirely within `web
 
 ### Media & Assets Management
 
-
 - **`AssetsManager.jsx` & `AssetOverview.jsx`**: High-level views for managing generated posters, local assets, and storage usage.
-- **`GalleryHub.jsx`, `Gallery.jsx`, `SeasonGallery.jsx`, `TitleCardGallery.jsx`**: Interactive grids displaying generated artwork. They handle lazy loading, filtering, and detailed inspection.
-- **`ImagePreviewModal.jsx`**: A modal component to view full-resolution posters.
-- **`AssetReplacer.jsx`**: Interface for manually overriding or replacing specific assets.
-- **`LogoBrowser.jsx`**: A dedicated browser for exploring your media server libraries and checking for missing or existing clearlogos.
-- **`LogoSearchModal.jsx`**: A search interface to fetch replacement clearlogos from providers (TMDB, TVDB, Fanart) via text or ID and upload them directly to the media server.
+- **`RecentAssets.jsx`**: Dashboard carousel displaying recently processed assets with direct integration into `AssetReplacer` for instant correction.
+- **`GalleryHub.jsx`, `Gallery.jsx`, `SeasonGallery.jsx`, `TitleCardGallery.jsx`, `TestGallery.jsx`**: Interactive grids displaying generated artwork with lazy loading, filtering, pagination, and detailed inspection.
 - **`BackgroundsGallery.jsx`**: Specialized gallery for viewing and selecting background source images.
+- **`ManualAssets.jsx` & `FolderView.jsx`**: Tree and grid explorer for user-provided images under `/manualassets` that override automated scrapers.
+- **`BackupAssets.jsx`**: Gallery view for inspecting and managing original images preserved under `/assetsbackup`.
+- **`ImagePreviewModal.jsx`**: A modal component to view full-resolution posters, EXIF metadata, and provider links.
+- **`AssetReplacer.jsx`**: Deep inspection and replacement modal for swapping out posters or logos on the fly.
+- **`AssetSearchModal.jsx`**: Provider search modal (TMDB, TVDB, Fanart) to find and apply replacement artwork or clearlogos by title or ID.
+- **`LogoBrowser.jsx`**: Media server library browser for inspecting, filtering, and uploading missing ClearLogos directly to Plex, Jellyfin, or Emby.
+- **`CollectionExplorer.jsx`**: Visual collection manager listing collections across connected media servers with status badges.
+- **`CollectionLiveEditor.jsx`**: Real-time interactive collection poster designer featuring linear/radial gradients, top/bottom matte fades, vignettes, tiled grain, border radius, typography alignment/drop shadows, preset thumbnails, and direct media server uploads.
 
 ### Monitoring & Status
 
-
 - **`LogViewer.jsx`**: A real-time terminal-like component that connects to the backend WebSocket to stream Posterizarr execution logs.
-- **`QueueView.jsx`**: Displays the status of backend tasks (running, pending, failed).
-- **`RuntimeStats.jsx` & `RuntimeHistory.jsx`**: Charts and tables displaying historical execution data, durations, and success rates.
-- **`SystemInfo.jsx`**: Displays host system resources (CPU, Memory, versions).
+- **`QueueView.jsx`**: Displays backend task queue states (running, pending, completed, failed) with abort controls.
+- **`RuntimeStats.jsx` & `RuntimeHistory.jsx`**: Charts and tables displaying historical execution metrics, processing durations, and asset counts.
+- **`SystemInfo.jsx`**: Displays host system resources (CPU, Memory, Alpine/Docker environment, versions).
+- **`AssetsStats.jsx`**: Real-time counter widgets for library folders, poster counts, and total asset sizes.
 
 ### Integrations & Export
 
-
 - **`PlexExport.jsx` & `JellyfinEmbyExport.jsx`**: Interfaces dedicated to managing metadata and artwork sync for specific media servers.
-- **`AutoTriggers.jsx`**: UI to configure webhooks from Radarr, Sonarr, or Tautulli.
+- **`AutoTriggers.jsx`**: UI to configure automated webhooks from Radarr, Sonarr, or Tautulli.
+- **`PlexOAuthButton.jsx`**: Interactive OAuth component allowing users to log into Plex and automatically retrieve their server token.
 
-### Utility & Feedback Components
-
+### Utility, Feedback & Modal Components
 
 - **`ConfirmDialog.jsx` & `ToastNotification.jsx`**: Reusable components for user feedback and destructive action confirmation.
 - **`DangerZone.jsx`**: A section component for high-risk actions (factory reset, wipe database).
+- **`RestoreModeModal.jsx`**: Targeted restore modal allowing users to restore artwork filtered by library, item title/folder, and asset type.
+- **`ValidateButton.jsx`**: Triggers backend configuration validation (`CheckJson`) with status feedback.
+- **`VersionBadge.jsx` & `ReleasesSection.jsx`**: Visual version indicators and GitHub release notes viewer.
 - **`ImageSizeSlider.jsx` & `CompactImageSizeSlider.jsx`**: UI controls for adjusting the size of items in gallery grids.
+- **`ScrollToButtons.jsx`**: Floating helper to quickly navigate to the top or bottom of extensive media libraries.
 
 ---
 
 ## Global State (`src/context/`)
 
-- **`AuthContext.jsx`**: Manages user login tokens and session state.
-- **`ThemeContext.jsx`**: Toggles between light and dark modes (or system default) using Tailwind classes.
-- **`ToastContext.jsx`**: Exposes a hook (`useToast`) to fire non-blocking notification popups from anywhere in the app.
-- **`SidebarContext.jsx`**: Manages the open/collapsed state of the navigation sidebar.
+- **`AuthContext.jsx`**: Manages user authentication tokens, basic auth states, and session persistence.
+- **`ThemeContext.jsx`**: Toggles between light, dark, and system color palettes using Tailwind CSS variables.
+- **`ToastContext.jsx`**: Exposes a hook (`useToast`) to fire non-blocking notification alerts throughout the UI.
+- **`SidebarContext.jsx`**: Manages responsive expansion/collapse states for the navigation sidebar.
+- **`DashboardLoadingContext.jsx`**: Coordinates startup loading transitions, dashboard data prefetching, and splash screens.
 
 ---
 

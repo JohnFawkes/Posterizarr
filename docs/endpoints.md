@@ -738,15 +738,31 @@ Submits data or triggers an action at `/api/validate/uptimekuma`.
 
 ### `/api/validate/agregarr`
 Validates the Agregarr URL and API key against its read-only Posterizarr
-integration status endpoint.
+integration status endpoint (`GET /api/v1/posterizarr/status`).
 
-??? example "View Response"
+*(Note: Requires the [bitr8/agregarr](https://github.com/bitr8/agregarr-dev) fork image `bitr8/agregarr:develop` with [PR #103](https://github.com/bitr8/agregarr-dev/pull/103). Official/stock Agregarr releases without this PR will return HTTP 404 with a message explaining the requirement).*
+
+??? example "View Response (Success)"
     ```json
     {
       "valid": true,
       "message": "Agregarr connection and API key are valid.",
       "details": {
         "status_code": 200
+      }
+    }
+    ```
+
+??? example "View Response (Missing bitr8 Fork / 404)"
+    ```json
+    {
+      "valid": false,
+      "message": "Agregarr is reachable, but its Posterizarr integration endpoint is unavailable. Requires the bitr8 Agregarr fork (Docker image bitr8/agregarr:develop) with PR #103. Upstream agregarr/agregarr does not have this endpoint.",
+      "details": {
+        "status_code": 404,
+        "required_image": "bitr8/agregarr:develop",
+        "fork_url": "https://github.com/bitr8/agregarr-dev",
+        "pending_pr": "https://github.com/bitr8/agregarr-dev/pull/103"
       }
     }
     ```

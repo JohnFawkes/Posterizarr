@@ -49,6 +49,7 @@ nav:
   - 'Getting Started':
     - 'Requirements': 'requirements.md'
     - 'Quick Start': 'installation.md'
+    - 'Main Capabilities': 'capabilities.md'
     - 'Manual UI Installation': 'uiinstallation.md'
     - 'Walkthrough': 'walkthrough.md'
     - 'Networking': 'networking.md'

@@ -156,19 +156,38 @@ Posterizarr relies on a modular PowerShell architecture:
 These scripts represent the different "Modes" the application can run in. They do not define functions but instead represent linear logic flows that dot-source and call the functions described above.
 
 - **`NormalMode.ps1`**: The default mode. Iterates through all configured media server libraries and processes every item sequentially.
-- **`ArrMode.ps1`**: Designed to be triggered by Radarr/Sonarr custom scripts or webhooks. It reads the specific TMDB/TVDB ID passed by the Arr application and processes *only* that single item.
-- **`TautulliMode.ps1`**: Specifically designed to be triggered by Tautulli webhooks (e.g., on 'Recently Added' events) to process newly added items without scanning the entire library.
-- **`ManualMode.ps1`**: Processes a specific ID or Title provided manually by the user via CLI arguments.
-- **`SyncMode.ps1`**: Syncs generated artwork between different connected media servers (e.g., copying posters from Plex to Jellyfin).
-- **`EmbyJellyMode.ps1`**: Logic flow specifically optimized for iterating through Emby/Jellyfin libraries (as opposed to Plex).
-- **`BackupMode.ps1`**: Downloads existing artwork from media servers to the local filesystem for backup.
-- **`RestoreMode.ps1`**: Pushes existing artwork from the local backup folder directly to your media server, skipping Posterizarr image generation. **Note:** Running this mode directly (e.g., `pwsh /app/Posterizarr.ps1 -Restore`) without any additional filters will automatically attempt to restore ALL assets for ALL items across ALL included libraries.
-- **`LogoUpdaterMode.ps1`**: Bypasses poster generation and purely runs a check to fetch and update clearlogos.
-- **`PosterresetMode.ps1`**: Deletes Posterizarr-generated images and reverts the media server items back to their default scraped posters.
-- **`TestingMode.ps1`**: Used in the Web UI for live previews. It generates test images without connecting to Media Servers, allowing users to safely test border and text configurations. Contains helper functions:
-  - `New-TestImage-IfNotExists`
-  - `Get-BorderOverlay-Arguments`
-  - `Get-TextOverlay-Arguments`
+- **`ArrMode.ps1`**: Designed to be triggered by Radarr/Sonarr custom scripts (`ArrTrigger.sh`) or webhooks (`/api/webhook/arr`). Parses TMDB/TVDB IDs and media paths to process *only* the newly imported item. Also dispatches callbacks to **Agregarr** if configured.
+- **`TautulliMode.ps1`**: Triggered by Tautulli webhooks or `trigger.py` on 'Recently Added' events to process new items without a full library scan.
+- **`ManualMode.ps1`**: Processes a specific media item using interactive prompts or CLI switches:
+  - Switches: `-MoviePosterCard`, `-ShowPosterCard`, `-SeasonPoster`, `-CollectionCard`, `-BackgroundCard`, `-TitleCard`.
+  - Arguments: `-PicturePath`, `-Titletext`, `-FolderName`, `-LibraryName`, `-SeasonPosterName`, `-EPTitleName`, `-EpisodeNumber`.
+- **`SyncMode.ps1`**: Cross-server synchronization mode (`-SyncJelly`, `-SyncEmby`). Compares image hashes between Plex and Jellyfin/Emby and mirrors artwork.
+- **`EmbyJellyMode.ps1`**: Optimized execution loop for setups running Jellyfin or Emby without Plex (`UseOtherMediaServer = "true"`).
+- **`BackupMode.ps1`**: Downloads existing artwork and EXIF metadata from media servers to the local backup path (`/assetsbackup` or `BackupPath`).
+- **`RestoreMode.ps1`**: Pushes artwork from the local backup directory back to the media server, skipping regeneration. Supports granular targeting:
+  - `-RestoreLibrary "Movies"`: Restricts restore to a single library.
+  - `-RestoreItem "Alien (1979)"`: Restores assets for a specific item (by title, original title, or folder name).
+  - `-RestoreType "poster"`: Restores only specific asset categories (`poster`, `background`, `season`, `episode`, `titlecard`).
+- **`LogoUpdaterMode.ps1`**: Dedicated clearlogo management engine:
+  - `-LogoUpdater`: Scans libraries for missing clearlogos and pushes found assets to Plex.
+  - `-LogoRevert`: Uses embedded fingerprints to detect and delete only Posterizarr-uploaded logos, leaving user-uploaded logos intact.
+  - `-ForceReplace`: Overwrites existing logos on the server.
+  - `-LibraryName`: Targets a specific library or `"all"`.
+- **`PosterresetMode.ps1`**: Resets posters in a specified library back to the media server's default scraped art:
+  - `-LibraryToReset "Movies"`: Specifies the target library.
+- **`TestingMode.ps1`**: Generates pink dummy posters, backgrounds, and title cards under `./test` with varying text lengths and styles, allowing safe verification of overlay alignment and typography.
+
+---
+
+## 5. Media Server Plugins & Automation Triggers (`modules/`)
+
+### C# Media Server Plugins
+- **`Posterizarr.Plugin/`**: In-tree C# plugin for **Jellyfin**. Hooks into Jellyfin's item added and metadata refresh events to trigger Posterizarr processing automatically.
+- **`Posterizarr.Plugin.Emby/`**: In-tree C# plugin for **Emby**, providing native event hooks and seamless communication with the Posterizarr backend.
+
+### External Automation Scripts
+- **`ArrTrigger.sh`**: Lightweight shell script configured as a Custom Script in Radarr and Sonarr (`On File Import`). Writes `.posterizarr` trigger descriptor files into `/posterizarr/watcher` for file-based containerized triggers.
+- **`trigger.py`**: Python notification agent script configured in Tautulli to format and dispatch recently added Plex items to Posterizarr.
 
 ---
 

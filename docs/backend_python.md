@@ -42,19 +42,27 @@ The backend handles the following core responsibilities:
 - **`scheduler.py`**: Handles cron-like scheduling for automated tasks (e.g., triggering `Posterizarr.ps1` at set intervals).
 - **`runtime_parser.py`**: Parses the output of the PowerShell scripts to update the `runtime_database.py` with execution statistics.
 
-### Utilities
+### Utilities & Helpers
 
 - **`logs_watcher.py`**: A utility that monitors Posterizarr log files in real-time, allowing the frontend to stream logs via WebSockets.
 - **`improve_logging.py`**: Enhances standard Python logging for the backend application.
-- **`overlay_generator.py`**: A backend helper script, potentially used for generating quick preview overlays for the UI without invoking the full PowerShell stack.
+- **`overlay_generator.py`**: A backend helper script used for generating quick preview overlays for the UI without invoking the full PowerShell stack.
+- **`studio_logos.py`**: Handles studio, network, and production company logo resolution, local caching, and transparent PNG delivery for collection designs and media badges.
 - **`migrate_runtime_data.py`**: A migration script used to upgrade database schemas or runtime data formats between versions.
+
+### Security Utilities (`main.py`)
+
+- **`is_safe_url(url, allow_private, allow_apprise_schemes)`**: Validates URL schemes (`http`/`https` or custom Apprise schemes) and resolves DNS hostnames to ensure loopback (`127.0.0.1`, `localhost`, `::1`) and private/link-local/multicast IP addresses are strictly blocked against SSRF attacks (unless private network access is explicitly authorized for configured media servers).
+- **`get_safe_path(base_dir, user_path)`**: Enforces strict directory containment, preventing path traversal attacks when resolving user-specified asset files or collection presets.
+- **`sanitize_command_arg(arg)`**: Cleans command line arguments passed to PowerShell, stripping null bytes and non-printable control characters, and disallowing unintended flag injections.
+- **`mask_secret(secret)`**: Redacts sensitive strings (API keys, tokens, passwords) before writing to server logs.
 
 ---
 
 ## Contribution Guidelines
 When making a Pull Request to the Python backend:
 
--
-- **New Endpoints**: Define routes in `main.py` (or a dedicated router file if it grows) and ensure they are protected by `auth_middleware.py`.
+- **New Endpoints**: Define routes in `main.py` (or a dedicated router file if it grows) and ensure they are protected by `auth_middleware.py` or appropriate security decorators.
 - **Database Schema Changes**: Ensure you provide a migration strategy or update `migrate_runtime_data.py` so existing users do not lose their data.
 - **Configuration Parsing**: If a new feature introduces a new `config.json` field, update `config_mapper.py` and provide a tooltip in `config_tooltips.py`.
+- **Security Protections**: When proxying remote URLs or writing local files, always apply `is_safe_url` and `get_safe_path`.
