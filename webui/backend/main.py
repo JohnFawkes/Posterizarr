@@ -4555,8 +4555,13 @@ async def validate_agregarr(request: AgregarrValidationRequest):
         if response.status_code == 404:
             return {
                 "valid": False,
-                "message": "Agregarr is reachable, but its Posterizarr integration endpoint is unavailable.",
-                "details": {"status_code": 404},
+                "message": "Agregarr is reachable, but its Posterizarr integration endpoint is unavailable. Requires the bitr8 Agregarr fork (Docker image bitr8/agregarr:develop) with PR #103. Upstream agregarr/agregarr does not have this endpoint.",
+                "details": {
+                    "status_code": 404,
+                    "required_image": "bitr8/agregarr:develop",
+                    "fork_url": "https://github.com/bitr8/agregarr-dev",
+                    "pending_pr": "https://github.com/bitr8/agregarr-dev/pull/103",
+                },
             }
 
         return {

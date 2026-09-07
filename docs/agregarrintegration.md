@@ -1,5 +1,10 @@
 # Agregarr integration
 
+!!! warning "Requires bitr8 Agregarr Fork & Pending PR #103"
+    This integration is built for the active [bitr8 Agregarr fork](https://github.com/bitr8/agregarr-dev) and requires [PR #103](https://github.com/bitr8/agregarr-dev/pull/103), which is currently not yet merged upstream into `agregarr/agregarr`.
+
+    To use this feature, the forked Docker image [`bitr8/agregarr:develop`](https://hub.docker.com/r/bitr8/agregarr) is required. Testing against standard upstream Agregarr images will return `Agregarr is reachable, but its Posterizarr integration endpoint is unavailable.`
+
 Posterizarr can notify Agregarr after an Arr-triggered movie or show poster has
 been successfully uploaded to Plex. Agregarr then checks that single Plex item,
 adds it to matching collections, and applies its configured overlays. Sonarr
@@ -15,8 +20,8 @@ UI and configure:
 - **Agregarr Retry Timeout**
 
 Use **Test** beside the URL to verify that Posterizarr can reach Agregarr
-and authenticate. The test reads Agregarr's integration status and does not
-queue collection or overlay work.
+and authenticate. The test reads Agregarr's integration status (`GET /api/v1/posterizarr/status`) and does not
+queue collection or overlay work. Note that this test requires the `bitr8/agregarr:develop` Docker image (or a build containing [PR #103](https://github.com/bitr8/agregarr-dev/pull/103)); standard `agregarr/agregarr` releases will return HTTP 404.
 
 These settings use Posterizarr's central `config.json` configuration. They can
 also be edited directly under the existing `Notification` section:
@@ -76,6 +81,4 @@ artwork, avoiding a full-library scan.
 A callback failure is logged as a warning and does not make the completed
 Posterizarr run fail.
 
-The target Agregarr build must provide `POST /api/v1/posterizarr/trigger`. The
-callback authenticates with the normal Agregarr API key through the
-`X-Api-Key` header.
+The target Agregarr container must be running the [bitr8/agregarr fork](https://github.com/bitr8/agregarr-dev) (tag `:develop` or with [PR #103](https://github.com/bitr8/agregarr-dev/pull/103)), providing `POST /api/v1/posterizarr/trigger` and `GET /api/v1/posterizarr/status`. The callback authenticates with the normal Agregarr API key through the `X-Api-Key` header.

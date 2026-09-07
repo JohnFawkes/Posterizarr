@@ -27,7 +27,7 @@ Posterizarr is a modular media automation system that combines a multi-threaded 
 - [Blueprints & Recipes](https://fscorrupt.github.io/posterizarr/blueprints/): Curated overlay styling blueprints and community design recipes.
 
 ## Integrations & Media Servers
-- [Agregarr Integration](https://fscorrupt.github.io/posterizarr/agregarrintegration/): Setup and webhook callback specifications, multi-episode import expansion, and retry timeout handling.
+- [Agregarr Integration](https://fscorrupt.github.io/posterizarr/agregarrintegration/): Setup and webhook callback specifications, bitr8/agregarr:develop fork requirements and PR #103 details, multi-episode import expansion, and retry timeout handling.
 - [Kometa Integration](https://fscorrupt.github.io/posterizarr/kometaintegration/): Docker volume sharing, asset folder directory structure alignment, and metadata prioritization.
 - [Jellyfin Plugin](https://fscorrupt.github.io/posterizarr/jellyfin_plugin/): Installation and setup of the native C# plugin for Jellyfin event automation.
 - [Emby Plugin](https://fscorrupt.github.io/posterizarr/emby_plugin/): Installation and setup of the native C# plugin for Emby event automation.

@@ -378,6 +378,7 @@ The backend (`webui/backend/main.py`) provides over 170 REST and WebSocket endpo
 ## 11. Integrations & Companion Ecosystem
 
 ### 1. Agregarr Integration (`docs/agregarrintegration.md`)
+- **Status**: Posterizarr implementation complete; requires the [bitr8/agregarr](https://github.com/bitr8/agregarr-dev) fork (`bitr8/agregarr:develop`) with [PR #103](https://github.com/bitr8/agregarr-dev/pull/103). Official upstream `agregarr/agregarr` releases return 404 as they do not include this integration.
 - **Workflow**: When Posterizarr finishes processing an Arr-triggered media item and uploads it to Plex, it sends an authenticated callback to Agregarr (`POST /api/v1/posterizarr/trigger`).
 - **Multi-Episode Handling**: Multi-episode file imports from Sonarr are expanded into separate jobs so each episode receives an individual callback.
 - **Retry Architecture**: If Agregarr is busy (HTTP 409/429), Posterizarr honors the suggested delay and retries up to `AgregarrRetryTimeout` (default: 60s, configurable). Terminal errors (HTTP 403) are logged without retrying.

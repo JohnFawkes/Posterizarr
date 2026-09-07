@@ -881,7 +881,7 @@ function ConfigEditor() {
 // Extracted Setting Card Component for cleaner main loop
 const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiLogLevel, updateWebuiLogLevel, useJellySync, setUseJellySync, useEmbySync, setUseEmbySync, updateValue, getDisplayName, tooltips, commonInputClass, handleJumpToSetting, searchQuery, isFieldDisabled, overlayFiles, fontFiles, uploadingOverlay, uploadingFont, handleOverlayFileUpload, handleFontFileUpload, setPreviewOverlay, setPreviewFont, showSuccess, showError, setConfig, setHasUnsavedChanges }) => {
     const value = usingFlatStructure ? config[settingKey] : config[groupName]?.[settingKey];
-    const isWide = (settingKey === "NewLineOnSpecificSymbols" && groupName === "Text Formatting") || settingKey.includes("ResolutionOverlays") || settingKey.includes("LibstoExclude");
+    const isWide = (settingKey === "NewLineOnSpecificSymbols" && groupName === "Text Formatting") || settingKey.includes("ResolutionOverlays") || settingKey.includes("LibstoExclude") || settingKey === "AgregarrTriggerEnabled";
     const uniqueId = `setting-${groupName}-${settingKey}`;
     const fieldKey = usingFlatStructure ? settingKey : `${groupName}.${settingKey}`;
     const disabled = isFieldDisabled(settingKey, groupName);
@@ -1368,6 +1368,20 @@ const SettingCard = ({ settingKey, groupName, config, usingFlatStructure, webuiL
                     <div className="mt-4 pt-4 border-t border-theme/30 flex items-center justify-between">
                         <div><span className="text-sm font-medium text-theme-text block">Use EmbySync</span><span className="text-xs text-theme-muted">UI Only (Disabled when Emby is active)</span></div>
                         <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={useEmbySync} onChange={(e) => setUseEmbySync(e.target.checked)} disabled={value === "true" || value === true} className="sr-only peer" /><div className="w-9 h-5 bg-gray-600 rounded-full peer-checked:bg-theme-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div></label>
+                    </div>
+                )}
+                {settingKey === "AgregarrTriggerEnabled" && (
+                    <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300 flex items-start gap-2.5">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+                        <div>
+                            <span className="font-semibold text-amber-200">Requires bitr8 Fork Image &amp; Pending PR #103:</span>
+                            <p className="mt-1 text-amber-300/90 leading-relaxed">
+                                This feature is built for the active <a href="https://github.com/bitr8/agregarr-dev" target="_blank" rel="noopener noreferrer" className="underline hover:text-white inline-flex items-center gap-0.5 font-medium">bitr8 Agregarr fork<ExternalLink className="w-3 h-3 inline ml-0.5" /></a> and requires <a href="https://github.com/bitr8/agregarr-dev/pull/103" target="_blank" rel="noopener noreferrer" className="underline hover:text-white inline-flex items-center gap-0.5 font-medium">PR #103<ExternalLink className="w-3 h-3 inline ml-0.5" /></a>.
+                            </p>
+                            <p className="mt-1 text-amber-300/90 leading-relaxed">
+                                Standard <code className="bg-amber-950/60 px-1 py-0.5 rounded text-amber-200">agregarr/agregarr</code> does not support this integration. Use Docker image <code className="bg-amber-950/60 px-1 py-0.5 rounded text-amber-200 font-mono">bitr8/agregarr:develop</code> (or a build containing PR #103).
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>
