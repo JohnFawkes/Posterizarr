@@ -129,7 +129,7 @@
     - `ManualAssetPath`: If assets are placed in this directory with the **exact** [naming convention](namingconvention.md#manual-assets-naming), they will be preferred. (it has to follow the same naming convention as you have in `/assets`)
     - `SkipAddText`: If set to `true`, Posterizarr will skip adding text/logo to the poster if it is flagged as a `Poster with text` by the provider.
     - `SkipLocalPosterTextAdd`: If set to `true`, Posterizarr will skip adding text to the local poster.
-    - `SkipLocalBackgroundrTextAdd`: If set to `true`, Posterizarr will skip adding text to the local background poster.
+    - `SkipLocalBackgroundTextAdd`: If set to `true`, Posterizarr will skip adding text to the local background poster.
     - `SkipLocalSeasonTextAdd`: If set to `true`, Posterizarr will skip adding text to the local season poster.
     - `SkipLocalTCTextAdd`: If set to `true`, Posterizarr will skip adding text to the local TC.
     - `SkipAddTextAndOverlay`: If set to `true`, Posterizarr will skip adding text/overlay to the poster if it is flagged as a `Poster with text` by the provider.
@@ -146,12 +146,15 @@
     - `logLevel`: Sets the verbosity of logging. 1 logs Warning/Error messages. Default is 2 which logs Info/Warning/Error messages. 3 captures Info/Warning/Error/Debug messages and is the most verbose.
     - `ParallelJobs`: Determines how many poster creations run concurrently. Default is 5.
         - **Warning:** ImageMagick is highly CPU/RAM intensive. Do not set higher than your logical CPU cores. If running on low-power NAS or Raspberry Pi, lower to 1 or 2 to avoid running out of memory.
-    - `font`: Font file name.
-    - `RTLfont`: RTL Font file name.
+    - `font`: Font file name for standard posters.
+    - `collectionfont`: Font file name for collection posters.
+    - `RTLfont`: RTL Font file name for right-to-left scripts.
     - `backgroundfont`: Background font file name.
-    - `overlayfile`: Overlay file name.
+    - `titlecardfont`: Title Card font file name.
+    - `overlayfile`: Default poster overlay file name.
     - `showoverlayfile`: Show Overlay file name.
     - `seasonoverlayfile`: Season overlay file name.
+    - `collectionoverlayfile`: Collection overlay file name.
     - `backgroundoverlayfile`: Background overlay file name.
     - `showbackgroundoverlayfile`: Show Background overlay file name.
     - `titlecardoverlayfile` : Title Card overlay file name.
@@ -213,6 +216,8 @@
         - `What the setting does:` When set to `true`, the system will use the Clearart image instead of the standard title text.
     - `LogoTextFallback` : Set to `true` to fallback to `Text` if no logos are found.
     - `TextlessPosterBypass` : Set to `true` to bypass 'Prefer Textless' and download a standard Text Poster if no logos are found.
+    - `ConvertLogoColor` : Set to `true` to transform the fetched logo into a monochrome solid silhouette/flat color.
+    - `LogoFlatColor` : The target solid color when `ConvertLogoColor` is enabled (e.g. `"white"` or `"#FFFFFF"`). Default is `"white"`.
     - `AutoUpdateIM` : Set to `true` to AutoUpdate Imagemagick Portable Version (Does not work with Docker/Unraid).
         - Doing this could break things, cause you then uses IM Versions that are not tested with Posterizarr.
     - `DisableHashValidation` : Set to `true` to skip hash validation (Default value is: false).
@@ -396,7 +401,7 @@
 
 
 3. Rename the config file to `config.json`.
-4. Place the `overlay.png`, or whatever file you defined earlier in `overlayfile`, and `Rocky.ttf` font, or whatever font you defined earlier in `font` files in the same directory as Posterizarr.ps1 which is `$ScriptRoot`.
+4. Place your overlay images (e.g. `overlay-innerglow.png` defined in `overlayfile`) and font files (e.g. `Colus-Regular.ttf` defined in `font`) into `Overlayfiles/` (or the script root if running bare-metal). Docker containers already bundle default overlays and fonts in `/app/Overlayfiles`.
 
 
 ## Main Capabilities of Posterizarr
