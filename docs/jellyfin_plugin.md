@@ -15,6 +15,7 @@ The Posterizarr Plugin acts as a local asset proxy for Jellyfin. It is designed 
 *   **Local Asset Mapping:** Maps local files to library items without replacing original metadata permanently in some configurations.
 *   **Metadata Provider:** Registers as a metadata provider for images.
 *   **Support for Multiple Asset Types:** Handles Posters, Backgrounds (Fanart), and Title Cards.
+*   **Version Compatibility:** Fully compatible with both **Jellyfin 10.11.x** (.NET 9) and **Jellyfin 12.0.x** (.NET 10). The repository manifest automatically serves the appropriate build for your server version.
 
 ## Installation
 

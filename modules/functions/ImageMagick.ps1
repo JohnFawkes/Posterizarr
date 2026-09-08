@@ -434,3 +434,27 @@ function Write-TextSizeCacheSummary {
         -Path $global:configLogging -Color Green -log Info
 }
 
+function Get-LogoColorEffect {
+    param (
+        [string]$ImagePath
+    )
+
+    if ($ConvertLogoColor -ne "true" -or [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
+        return ""
+    }
+
+    if ($PreserveMultiColorLogos -eq "true") {
+        $_chkLogo = if ($ImagePath -and (Test-Path -LiteralPath $ImagePath)) { $ImagePath } else { $null }
+        $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
+
+        if ([double]$_chromaStd -ge 0.25) {
+            Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info
+            return ""
+        }
+        Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info
+        return "-fill `"$LogoFlatColor`" -colorize 100"
+    }
+
+    Write-Entry -Subtext "Converting logo to $LogoFlatColor..." -Path $global:configLogging -Color Cyan -log Info
+    return "-fill `"$LogoFlatColor`" -colorize 100"
+}

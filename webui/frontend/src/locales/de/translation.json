@@ -2520,13 +2520,21 @@
         "title": "Logo (Clearart)",
         "description": "Ersetzt Standardtext durch das Clearart des Films/der Serie."
       },
+      "flatClearlogoPreserve": {
+        "title": "Flaches Weißes Logo (Clearlogo - Farben beibehalten)",
+        "description": "Ersetzt Standardtext durch ein in flaches Weiß konvertiertes Clearlogo, behält jedoch mehrfarbige Logos in ihren Originalfarben bei."
+      },
       "flatClearlogo": {
-        "title": "Flaches Weißes Logo (Clearlogo)",
-        "description": "Ersetzt Standardtext durch ein in ein flaches Weiß konvertiertes Clearlogo für besseren Kontrast."
+        "title": "Flaches Weißes Logo (Clearlogo - Weiß erzwingen)",
+        "description": "Ersetzt Standardtext durch ein in flaches Weiß konvertiertes Clearlogo und erzwingt Weiß für alle Logos unabhängig von ihren Originalfarben."
+      },
+      "flatClearartPreserve": {
+        "title": "Flaches Weißes Logo (Clearart - Farben beibehalten)",
+        "description": "Ersetzt Standardtext durch ein in flaches Weiß konvertiertes Clearart, behält jedoch mehrfarbige Logos in ihren Originalfarben bei."
       },
       "flatClearart": {
-        "title": "Flaches Weißes Logo (Clearart)",
-        "description": "Ersetzt Standardtext durch ein in ein flaches Weiß konvertiertes Clearart für besseren Kontrast."
+        "title": "Flaches Weißes Logo (Clearart - Weiß erzwingen)",
+        "description": "Ersetzt Standardtext durch ein in flaches Weiß konvertiertes Clearart und erzwingt Weiß für alle Logos unabhängig von ihren Originalfarben."
       },
       "showTitleSeason": {
         "title": "Titel auf Staffel anzeigen",
@@ -2577,6 +2585,7 @@
       "useClearart": "Clearart verwenden",
       "useOriginalTitle": "Originaltitel verwenden",
       "flatWhiteLogo": "Flaches weißes Logo",
+      "preserveMultiColorLogos": "Mehrfarbige Logos beibehalten",
       "showTitleOnSeason": "Titel auf Staffel anzeigen",
       "resolutionOverlays": "Auflösungs-Overlays",
       "onlyTextless": "Nur textlose Kunstwerke herunterladen",

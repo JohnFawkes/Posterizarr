@@ -442,6 +442,7 @@ $global:DisableOnlineSeasonFetch = "$($config.PrerequisitePart.DisableOnlineSeas
 $UseLogo = "$($config.PrerequisitePart.UseLogo)".ToLower()
 $ConvertLogoColor = "$($config.PrerequisitePart.ConvertLogoColor)".ToLower()
 $LogoFlatColor = "$($config.PrerequisitePart.LogoFlatColor)".ToLower()
+$PreserveMultiColorLogos = "$($config.PrerequisitePart.PreserveMultiColorLogos)".ToLower()
 $UseOriginalTitle = "$($config.PrerequisitePart.UseOriginalTitle)".ToLower()
 $UseBGLogo = "$($config.PrerequisitePart.UseBGLogo)".ToLower()
 $TextFallback = "$($config.PrerequisitePart.LogoTextFallback)".ToLower()

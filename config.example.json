@@ -214,6 +214,7 @@
     "TextlessPosterBypass": "false",
     "ConvertLogoColor": "false",
     "LogoFlatColor": "white",
+    "PreserveMultiColorLogos": "true",
     "UseOriginalTitle": "false"
   },
   "OverlayPart": {

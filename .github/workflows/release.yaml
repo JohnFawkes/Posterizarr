@@ -124,6 +124,7 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
+            10.0.x
 
       - name: Set Version String
         id: vars
@@ -159,11 +160,18 @@ jobs:
         run: |
           mkdir -p release_package
           
-          # Jellyfin
+          # Jellyfin (10.11.x - net9.0)
           mkdir -p temp_jellyfin
           cp modules/Posterizarr.Plugin/bin/Release/net9.0/Posterizarr.Plugin.dll temp_jellyfin/
           cd temp_jellyfin
           zip -r ../release_package/Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}.zip *
+          cd ..
+
+          # Jellyfin (12.0.x - net10.0)
+          mkdir -p temp_jellyfin_12
+          cp modules/Posterizarr.Plugin/bin/Release/net10.0/Posterizarr.Plugin.dll temp_jellyfin_12/
+          cd temp_jellyfin_12
+          zip -r ../release_package/Posterizarr.Plugin_v${{ steps.vars.outputs.VERSION }}-jf12.zip *
           cd ..
           
           # Emby

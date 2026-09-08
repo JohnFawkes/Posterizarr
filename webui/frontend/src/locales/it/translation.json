@@ -2467,13 +2467,21 @@
         "title": "Logo (Clearart)",
         "description": "Sostituisce il testo standard con il clearart del film/serie."
       },
+      "flatClearlogoPreserve": {
+        "title": "Logo Bianco Piatto (Clearlogo - Mantieni Colori)",
+        "description": "Sostituisce il testo standard con un clearlogo convertito in bianco piatto, mantenendo i loghi multicolore nei loro colori originali."
+      },
       "flatClearlogo": {
-        "title": "Logo Bianco Piatto (Clearlogo)",
-        "description": "Sostituisce il testo standard con un clearlogo convertito in bianco piatto per un migliore contrasto."
+        "title": "Logo Bianco Piatto (Clearlogo - Forza Bianco)",
+        "description": "Sostituisce il testo standard con un clearlogo convertito in bianco piatto, forzando tutti i loghi in bianco indipendentemente dai colori originali."
+      },
+      "flatClearartPreserve": {
+        "title": "Logo Bianco Piatto (Clearart - Mantieni Colori)",
+        "description": "Sostituisce il testo standard con un clearart convertito in bianco piatto, mantenendo i loghi multicolore nei loro colori originali."
       },
       "flatClearart": {
-        "title": "Logo Bianco Piatto (Clearart)",
-        "description": "Sostituisce il testo standard con un clearart convertito in bianco piatto per un migliore contrasto."
+        "title": "Logo Bianco Piatto (Clearart - Forza Bianco)",
+        "description": "Sostituisce il testo standard con un clearart convertito in bianco piatto, forzando tutti i loghi in bianco indipendentemente dai colori originali."
       },
       "showTitleSeason": {
         "title": "Mostra Titolo sulla Stagione",
@@ -2524,6 +2532,7 @@
       "useClearart": "Usa Clearart",
       "useOriginalTitle": "Usa Titolo Originale",
       "flatWhiteLogo": "Logo Bianco Piatto",
+      "preserveMultiColorLogos": "Mantieni i loghi multicolore",
       "showTitleOnSeason": "Mostra Titolo sulla Stagione",
       "resolutionOverlays": "Overlay di Risoluzione",
       "onlyTextless": "Scarica solo artwork senza testo",

@@ -72,16 +72,6 @@ def update_manifest():
         plugin_id = config["id"]
         manifest_name = config["manifest_name"]
 
-        zip_name = f"{plugin_id}_v{version_str}.zip"
-        zip_path = os.path.join("release_package", zip_name)
-
-        if not os.path.exists(zip_path):
-            print(f"Skipping {plugin_id}: ZIP not found at {zip_path}")
-            continue
-
-        print(f"Updating {plugin_id} in manifest...")
-        checksum = get_md5(zip_path)
-
         # Find the plugin in the manifest by name or guid
         plugin = next((p for p in manifest if p.get("name") == manifest_name or p.get("guid") == config["guid"]), None)
 
@@ -92,8 +82,6 @@ def update_manifest():
         # Separate Logic for Prod vs Dev
         if event_name == "release":
             # PRODUCTION
-            source_url = f"https://github.com/{repo}/releases/download/{version_str}/{zip_name}"
-            
             release_body = os.getenv("RELEASE_BODY")
             extracted_changelog = extract_plugin_changelog(release_body)
             
@@ -106,23 +94,45 @@ def update_manifest():
             plugin["versions"] = [v for v in plugin["versions"] if not v["version"].startswith("99.0.")]
         else:
             # DEV / NIGHTLY
-            source_url = f"https://raw.githubusercontent.com/{repo}/builds/{zip_name}"
             changelog = f"Dev build: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 
             # This line removes any existing version that starts with "99.0." to prevent duplicates/bloat
             if version_str.startswith("99.0."):
                 plugin["versions"] = [v for v in plugin["versions"] if not v["version"].startswith("99.0.")]
 
-        new_version = {
-            "version": version_str,
-            "changelog": changelog,
-            "targetAbi": "10.11.0.0",
-            "sourceUrl": source_url,
-            "checksum": checksum
-        }
+        # Support both Jellyfin 10.11.x (net9.0) and Jellyfin 12.0.x (net10.0)
+        # Order: 10.11 inserted first, then 12.0 inserted at index 0 so 12.0 is at top
+        targets = [
+            {"suffix": "", "target_abi": "10.11.0.0"},
+            {"suffix": "-jf12", "target_abi": "12.0.0.0"}
+        ]
 
-        # Insert the newest version at the beginning of the list
-        plugin["versions"].insert(0, new_version)
+        for target in targets:
+            zip_name = f"{plugin_id}_v{version_str}{target['suffix']}.zip"
+            zip_path = os.path.join("release_package", zip_name)
+
+            if not os.path.exists(zip_path):
+                print(f"Skipping {zip_name}: ZIP not found at {zip_path}")
+                continue
+
+            print(f"Updating {plugin_id} ({target['target_abi']}) in manifest...")
+            checksum = get_md5(zip_path)
+
+            if event_name == "release":
+                source_url = f"https://github.com/{repo}/releases/download/{version_str}/{zip_name}"
+            else:
+                source_url = f"https://raw.githubusercontent.com/{repo}/builds/{zip_name}"
+
+            new_version = {
+                "version": version_str,
+                "changelog": changelog,
+                "targetAbi": target["target_abi"],
+                "sourceUrl": source_url,
+                "checksum": checksum
+            }
+
+            # Insert the newest version at the beginning of the list
+            plugin["versions"].insert(0, new_version)
 
     # Save the updated manifest back to disk
     with open(manifest_path, "w") as f:

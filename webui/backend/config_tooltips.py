@@ -142,6 +142,7 @@ CONFIG_TOOLTIPS = {
     "TextlessPosterBypass": "Set to true to bypass 'Prefer Textless' and download a standard Text Poster if no logos are found.",
     "ConvertLogoColor": "Set to true to convert the logo image to a solid color (monochrome).",
     "LogoFlatColor": "The specific color to use when Convert Logo Color is enabled (e.g., 'white', '#FFFFFF').",
+    "PreserveMultiColorLogos": "When Convert Logo Color is enabled, keep logos with multi-colored artwork in their original colors instead of converting to a solid color.",
     "UseOriginalTitle": "Set to true to use the original title instead of the localized version.",
     "telemetry": "Set to true to participate in anonymous telemetry that helps the developers understand global usage (sends instance ID, OS, Target, and Country).",
     "ParallelJobs": "Determines how many poster creations run concurrently. Warning: ImageMagick is highly CPU/RAM intensive. Do not set higher than your logical CPU cores. If running on low-power NAS or Raspberry Pi, lower to 1 or 2 to avoid running out of memory.",
