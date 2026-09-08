@@ -511,6 +511,7 @@ The configuration file `config.json` (modeled by `config.example.json`) contains
 - `LogoTextFallback` (bool): Fall back to typography if no logo is available.
 - `TextlessPosterBypass` (bool): Bypass textless preference if no logo is found.
 - `ConvertLogoColor` (bool) & `LogoFlatColor` (str): Convert logos to solid color silhouettes.
+- `PreserveMultiColorLogos` (bool): When converting logo color, preserve multi-colored logos in original hues.
 - `UseOriginalTitle` (bool): Use original media title instead of localized string.
 - `SkipAddText` / `SkipAddTextAndOverlay` / `SkipAddTextAndBorder`: Skip compositing elements if provider flags image as texted.
 - `SkipLocalPosterTextAdd` / `SkipLocalBackgroundTextAdd` / `SkipLocalSeasonTextAdd` / `SkipLocalTCTextAdd`: Skip adding text to local source files.

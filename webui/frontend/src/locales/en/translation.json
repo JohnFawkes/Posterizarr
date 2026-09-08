@@ -2515,13 +2515,21 @@
         "title": "Logo (Clearart)",
         "description": "Replaces standard text with the movie/show clearart."
       },
+      "flatClearlogoPreserve": {
+        "title": "Flat White Logo (Clearlogo - Preserve Colors)",
+        "description": "Replaces standard text with a clearlogo converted to flat white, while preserving multi-colored logos in their original colors."
+      },
       "flatClearlogo": {
-        "title": "Flat White Logo (Clearlogo)",
-        "description": "Replaces standard text with a clearlogo converted to a flat white color for better contrast."
+        "title": "Flat White Logo (Clearlogo - Force White)",
+        "description": "Replaces standard text with a clearlogo converted to flat white, forcing all logos to white regardless of original colors."
+      },
+      "flatClearartPreserve": {
+        "title": "Flat White Logo (Clearart - Preserve Colors)",
+        "description": "Replaces standard text with a clearart converted to flat white, while preserving multi-colored logos in their original colors."
       },
       "flatClearart": {
-        "title": "Flat White Logo (Clearart)",
-        "description": "Replaces standard text with a clearart converted to a flat white color for better contrast."
+        "title": "Flat White Logo (Clearart - Force White)",
+        "description": "Replaces standard text with a clearart converted to flat white, forcing all art to white regardless of original colors."
       },
       "showTitleSeason": {
         "title": "Show Title on Season",
@@ -2572,6 +2580,7 @@
       "useClearart": "Use Clearart",
       "useOriginalTitle": "Use Original Title",
       "flatWhiteLogo": "Flat White Logo",
+      "preserveMultiColorLogos": "Preserve Multi-Color Logos",
       "showTitleOnSeason": "Show Title on Season",
       "resolutionOverlays": "Resolution Overlays",
       "onlyTextless": "Only Download Textless Artwork",

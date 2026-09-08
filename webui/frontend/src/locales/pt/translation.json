@@ -2463,13 +2463,21 @@
         "title": "Logo (Clearart)",
         "description": "Substitui o texto padrão pelo clearart do filme/série."
       },
+      "flatClearlogoPreserve": {
+        "title": "Logo Branco Plano (Clearlogo - Preservar Cores)",
+        "description": "Substitui o texto padrão por um clearlogo convertido em branco plano, preservando logos multicoloridos em suas cores originais."
+      },
       "flatClearlogo": {
-        "title": "Logo Branco Plano (Clearlogo)",
-        "description": "Substitui o texto padrão por um clearlogo convertido em branco plano para melhor contraste."
+        "title": "Logo Branco Plano (Clearlogo - Forçar Branco)",
+        "description": "Substitui o texto padrão por um clearlogo convertido em branco plano, forçando todos os logos em branco independentemente das cores originais."
+      },
+      "flatClearartPreserve": {
+        "title": "Logo Branco Plano (Clearart - Preservar Cores)",
+        "description": "Substitui o texto padrão por um clearart convertido em branco plano, preservando logos multicoloridos em suas cores originais."
       },
       "flatClearart": {
-        "title": "Logo Branco Plano (Clearart)",
-        "description": "Substitui o texto padrão por um clearart convertido em branco plano para melhor contraste."
+        "title": "Logo Branco Plano (Clearart - Forçar Branco)",
+        "description": "Substitui o texto padrão por um clearart convertido em branco plano, forçando todos os logos em branco independentemente das cores originais."
       },
       "showTitleSeason": {
         "title": "Mostrar Título na Temporada",
@@ -2520,6 +2528,7 @@
       "useClearart": "Usar Clearart",
       "useOriginalTitle": "Usar Título Original",
       "flatWhiteLogo": "Logo Branco Plano",
+      "preserveMultiColorLogos": "Preservar logotipos multicoloridos",
       "showTitleOnSeason": "Mostrar Título na Temporada",
       "resolutionOverlays": "Overlays de Resolução",
       "onlyTextless": "Baixar apenas artes sem texto",

@@ -37,15 +37,45 @@ export const BLUEPRINTS = [
     }
   },
   {
+    id: "flat-clearlogo-preserve-color",
+    titleKey: "blueprints.items.flatClearlogoPreserve.title",
+    descriptionKey: "blueprints.items.flatClearlogoPreserve.description",
+    icon: Image,
+    images: ["/blueprint-previews/flat-clearlogo-instead-of-text_poster.png", "/blueprint-previews/flat-clearlogo-instead-of-text_background.png"],
+    updates: {
+      flat: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "true", UseClearart: "false", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "true", PosterAddText: "true", BackgroundAddText: "true" },
+      nested: {
+        PrerequisitePart: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "true", UseClearart: "false", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "true" },
+        PosterOverlayPart: { AddText: "true" },
+        BackgroundOverlayPart: { AddText: "true" }
+      }
+    }
+  },
+  {
     id: "flat-clearlogo-instead-of-text",
     titleKey: "blueprints.items.flatClearlogo.title",
     descriptionKey: "blueprints.items.flatClearlogo.description",
     icon: Image,
     images: ["/blueprint-previews/flat-clearlogo-instead-of-text_poster.png", "/blueprint-previews/flat-clearlogo-instead-of-text_background.png"],
     updates: {
-      flat: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "true", UseClearart: "false", ConvertLogoColor: "true", LogoFlatColor: "white", PosterAddText: "true", BackgroundAddText: "true" },
+      flat: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "true", UseClearart: "false", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "false", PosterAddText: "true", BackgroundAddText: "true" },
       nested: {
-        PrerequisitePart: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "true", UseClearart: "false", ConvertLogoColor: "true", LogoFlatColor: "white" },
+        PrerequisitePart: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "true", UseClearart: "false", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "false" },
+        PosterOverlayPart: { AddText: "true" },
+        BackgroundOverlayPart: { AddText: "true" }
+      }
+    }
+  },
+  {
+    id: "flat-clearart-preserve-color",
+    titleKey: "blueprints.items.flatClearartPreserve.title",
+    descriptionKey: "blueprints.items.flatClearartPreserve.description",
+    icon: Image,
+    images: ["/blueprint-previews/flat-clearart-instead-of-text_poster.png", "/blueprint-previews/flat-clearart-instead-of-text_background.png"],
+    updates: {
+      flat: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "false", UseClearart: "true", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "true", PosterAddText: "true", BackgroundAddText: "true" },
+      nested: {
+        PrerequisitePart: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "false", UseClearart: "true", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "true" },
         PosterOverlayPart: { AddText: "true" },
         BackgroundOverlayPart: { AddText: "true" }
       }
@@ -58,9 +88,9 @@ export const BLUEPRINTS = [
     icon: Image,
     images: ["/blueprint-previews/flat-clearart-instead-of-text_poster.png", "/blueprint-previews/flat-clearart-instead-of-text_background.png"],
     updates: {
-      flat: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "false", UseClearart: "true", ConvertLogoColor: "true", LogoFlatColor: "white", PosterAddText: "true", BackgroundAddText: "true" },
+      flat: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "false", UseClearart: "true", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "false", PosterAddText: "true", BackgroundAddText: "true" },
       nested: {
-        PrerequisitePart: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "false", UseClearart: "true", ConvertLogoColor: "true", LogoFlatColor: "white" },
+        PrerequisitePart: { UseLogo: "true", UseBGLogo: "true", UseClearlogo: "false", UseClearart: "true", ConvertLogoColor: "true", LogoFlatColor: "white", PreserveMultiColorLogos: "false" },
         PosterOverlayPart: { AddText: "true" },
         BackgroundOverlayPart: { AddText: "true" }
       }
@@ -288,6 +318,7 @@ const DEFAULT_BUILDER_STATE = {
       UseClearart: false,
       UseOriginalTitle: false,
       FlatWhiteLogo: false,
+      PreserveMultiColorLogos: false,
       TextlessOnly: false
     }
   };
@@ -399,6 +430,7 @@ export default function Blueprints() {
         UseOriginalTitle: flat.UseOriginalTitle,
         ConvertLogoColor: flat.ConvertLogoColor,
         LogoFlatColor: flat.LogoFlatColor,
+        PreserveMultiColorLogos: flat.PreserveMultiColorLogos,
         SkipAddText: flat.SkipAddText,
         UsePosterResolutionOverlays: flat.UsePosterResolutionOverlays,
         UseBackgroundResolutionOverlays: flat.UseBackgroundResolutionOverlays,
@@ -574,6 +606,7 @@ export default function Blueprints() {
       UseOriginalTitle: nested.PrerequisitePart?.UseOriginalTitle,
       ConvertLogoColor: nested.PrerequisitePart?.ConvertLogoColor,
       LogoFlatColor: nested.PrerequisitePart?.LogoFlatColor,
+      PreserveMultiColorLogos: nested.PrerequisitePart?.PreserveMultiColorLogos,
       SkipAddText: nested.PrerequisitePart?.SkipAddText,
       UsePosterResolutionOverlays: nested.PrerequisitePart?.UsePosterResolutionOverlays,
       UseBackgroundResolutionOverlays: nested.PrerequisitePart?.UseBackgroundResolutionOverlays,
@@ -924,6 +957,7 @@ export default function Blueprints() {
              UseClearart: configData.PrerequisitePart?.UseClearart !== undefined ? configData.PrerequisitePart.UseClearart === "true" : prev.Global.UseClearart,
              UseOriginalTitle: configData.PrerequisitePart?.UseOriginalTitle === "true",
              FlatWhiteLogo: configData.PrerequisitePart?.ConvertLogoColor === "true",
+             PreserveMultiColorLogos: configData.PrerequisitePart?.PreserveMultiColorLogos === "true",
              TextlessOnly: configData.PrerequisitePart?.SkipAddText === "true"
           }
     }));
@@ -1051,6 +1085,7 @@ export default function Blueprints() {
         UseOriginalTitle: state.Global.UseOriginalTitle ? "true" : "false",
         ConvertLogoColor: state.Global.FlatWhiteLogo ? "true" : "false",
         LogoFlatColor: state.Global.FlatWhiteLogo ? "white" : undefined,
+        PreserveMultiColorLogos: state.Global.FlatWhiteLogo ? (state.Global.PreserveMultiColorLogos ? "true" : "false") : undefined,
         SkipAddText: state.Global.TextlessOnly ? "true" : "false",
         UsePosterResolutionOverlays: state.Poster.UseResolutionOverlays ? "true" : "false",
         UseBackgroundResolutionOverlays: state.Background.UseResolutionOverlays ? "true" : "false",
@@ -1852,6 +1887,11 @@ export default function Blueprints() {
                       <Toggle label={t("blueprints.builder.useClearlogo", "Use Clearlogo")} checked={builderState.Global.UseClearlogo} onChange={(v) => updateBuilder("Global", "UseClearlogo", v)} />
                       <Toggle label={t("blueprints.builder.useClearart", "Use Clearart")} checked={builderState.Global.UseClearart} onChange={(v) => updateBuilder("Global", "UseClearart", v)} />
                       <Toggle label={t("blueprints.builder.flatWhiteLogo", "Flat White Logo")} checked={builderState.Global.FlatWhiteLogo} onChange={(v) => updateBuilder("Global", "FlatWhiteLogo", v)} />
+                      {builderState.Global.FlatWhiteLogo && (
+                        <div className="pl-4">
+                          <Toggle label={t("blueprints.builder.preserveMultiColorLogos", "Preserve Multi-Color Logos")} checked={builderState.Global.PreserveMultiColorLogos} onChange={(v) => updateBuilder("Global", "PreserveMultiColorLogos", v)} />
+                        </div>
+                      )}
                       <div className="border-t border-theme/50 my-2 pt-2"></div>
                       <Toggle label={t("blueprints.builder.onlyTextless", "Textless Artwork")} checked={builderState.Global.TextlessOnly} onChange={(v) => updateBuilder("Global", "TextlessOnly", v)} />
                     </div>

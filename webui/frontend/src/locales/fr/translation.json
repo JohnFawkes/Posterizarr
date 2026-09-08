@@ -2468,13 +2468,21 @@
         "title": "Logo (Clearart)",
         "description": "Remplace le texte standard par le clearart du film/de la série."
       },
+      "flatClearlogoPreserve": {
+        "title": "Logo Blanc Plat (Clearlogo - Conserver les Couleurs)",
+        "description": "Remplace le texte standard par un clearlogo converti en blanc plat, tout en conservant les logos multicolores dans leurs couleurs d'origine."
+      },
       "flatClearlogo": {
-        "title": "Logo Blanc Plat (Clearlogo)",
-        "description": "Remplace le texte standard par un clearlogo converti en couleur blanche plate pour un meilleur contraste."
+        "title": "Logo Blanc Plat (Clearlogo - Forcer le Blanc)",
+        "description": "Remplace le texte standard par un clearlogo converti en blanc plat, forçant tous les logos en blanc indépendamment de leurs couleurs d'origine."
+      },
+      "flatClearartPreserve": {
+        "title": "Logo Blanc Plat (Clearart - Conserver les Couleurs)",
+        "description": "Remplace le texte standard par un clearart converti en blanc plat, tout en conservant les arts multicolores dans leurs couleurs d'origine."
       },
       "flatClearart": {
-        "title": "Logo Blanc Plat (Clearart)",
-        "description": "Remplace le texte standard par un clearart converti en couleur blanche plate pour un meilleur contraste."
+        "title": "Logo Blanc Plat (Clearart - Forcer le Blanc)",
+        "description": "Remplace le texte standard par un clearart converti en blanc plat, forçant tous les arts en blanc indépendamment de leurs couleurs d'origine."
       },
       "showTitleSeason": {
         "title": "Afficher le Titre sur la Saison",
@@ -2525,6 +2533,7 @@
       "useClearart": "Utiliser Clearart",
       "useOriginalTitle": "Utiliser le Titre Original",
       "flatWhiteLogo": "Logo Blanc Plat",
+      "preserveMultiColorLogos": "Conserver les logos multicolores",
       "showTitleOnSeason": "Afficher le Titre sur la Saison",
       "resolutionOverlays": "Overlays de Résolution",
       "onlyTextless": "Télécharger uniquement des œuvres sans texte",

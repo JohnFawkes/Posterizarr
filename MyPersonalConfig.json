@@ -198,6 +198,7 @@
     "UseBGLogo": "false",
     "ConvertLogoColor": "false",
     "LogoFlatColor": "white",
+    "PreserveMultiColorLogos": "true",
     "SkipAddTextAndBorder": "false",
     "NewLineOnSpecificWords": "false",
     "NewLineWords": {

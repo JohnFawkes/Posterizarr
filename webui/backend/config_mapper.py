@@ -393,6 +393,7 @@ CONFIG_GROUPS = {
     "TextlessPosterBypass": "PrerequisitePart",
     "ConvertLogoColor": "PrerequisitePart",
     "LogoFlatColor": "PrerequisitePart",
+    "PreserveMultiColorLogos": "PrerequisitePart",
     "UseOriginalTitle": "PrerequisitePart",
     "telemetry": "PrerequisitePart",
     "ParallelJobs": "PrerequisitePart",
@@ -637,6 +638,7 @@ UI_GROUPS = {
         "TextlessPosterBypass",
         "ConvertLogoColor",
         "LogoFlatColor",
+        "PreserveMultiColorLogos",
         "UseOriginalTitle",
         "NewLineOnSpecificSymbols",
         "NewLineSymbols",
@@ -1169,6 +1171,7 @@ DISPLAY_NAMES = {
     "TextlessPosterBypass": "Textless Poster Bypass",
     "ConvertLogoColor": "Convert Logo Color",
     "LogoFlatColor": "Flat Logo Color",
+    "PreserveMultiColorLogos": "Preserve Multi-Color Logos",
     "UseOriginalTitle": "Use the original title instead of the localized version",
     # Image Processing
     "ImageProcessing": "Image Processing",

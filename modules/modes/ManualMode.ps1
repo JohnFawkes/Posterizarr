@@ -814,16 +814,8 @@
                 }
                 elseif ($CollectionCard -and ($AddCollectionText -eq 'true' -or $isLogo)) {
                     if ($isLogo) {
-                        $colorEffect = ""
-                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
-
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
-
-                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
-
-                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
-                        }
+                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                        $colorEffect = Get-LogoColorEffect -ImagePath $_chkLogo
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$Collectionboxsize`" `) -gravity `"$Collectiontextgravity`" -geometry +0+`"$Collectiontext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
@@ -899,16 +891,8 @@
                 }
                 Elseif ($BackgroundCard -and $AddBackgroundText -eq 'true') {
                     if ($isLogo) {
-                        $colorEffect = ""
-                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
-
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
-
-                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
-
-                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
-                        }
+                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                        $colorEffect = Get-LogoColorEffect -ImagePath $_chkLogo
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$Backgroundboxsize`" `) -gravity `"$Backgroundtextgravity`" -geometry +0+`"$Backgroundtext_offset`" -quality $global:outputQuality -composite `"$PosterImage`""
@@ -937,16 +921,8 @@
                 }
                 Elseif ($AddText -eq 'true' -or $isLogo) {
                     if ($isLogo) {
-                        $colorEffect = ""
-                        if ($ConvertLogoColor -eq "true" -and -not [string]::IsNullOrWhiteSpace($LogoFlatColor)) {
-                            $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
-
-                            $_chromaStd = if ($_chkLogo) { (& $magick $_chkLogo -trim +repage -background black -alpha remove -colorspace HCL -channel Green -separate -format "%[fx:standard_deviation]" info: 2>$null) } else { "0" }
-
-                            if ([double]$_chromaStd -lt 0.25) { $colorEffect = "-fill `"$LogoFlatColor`" -colorize 100"; Write-Entry -Subtext "Converting logo to $LogoFlatColor (chroma:$([math]::Round([double]$_chromaStd,3)))..." -Path $global:configLogging -Color Cyan -log Info }
-
-                            else { $colorEffect = ""; Write-Entry -Subtext "Logo multi-color (chroma:$([math]::Round([double]$_chromaStd,3))), keeping original" -Path $global:configLogging -Color Yellow -log Info }
-                        }
+                        $_chkLogo = if ($LogoImage -and (Test-Path $LogoImage)) { $LogoImage } elseif ($LogoSource -and (Test-Path $LogoSource)) { $LogoSource } else { $null }
+                        $colorEffect = Get-LogoColorEffect -ImagePath $_chkLogo
                         if ($Titletext -match "(?i)\.svg") {
                             Write-Entry -Subtext "Detected SVG. Applying High-Res settings." -Path $global:configLogging -Color Cyan -log Info
                             $Arguments = "`"$PosterImage`" ( -background none -density 300 `"$LogoSource`" $colorEffect -resize `"$boxsize`" `) -gravity `"$textgravity`" -geometry +0+`"$text_offset`" -quality $global:outputQuality -composite `"$PosterImage`""

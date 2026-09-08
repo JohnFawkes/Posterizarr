@@ -218,6 +218,7 @@
     - `TextlessPosterBypass` : Set to `true` to bypass 'Prefer Textless' and download a standard Text Poster if no logos are found.
     - `ConvertLogoColor` : Set to `true` to transform the fetched logo into a monochrome solid silhouette/flat color.
     - `LogoFlatColor` : The target solid color when `ConvertLogoColor` is enabled (e.g. `"white"` or `"#FFFFFF"`). Default is `"white"`.
+    - `PreserveMultiColorLogos` : When `ConvertLogoColor` is enabled, set to `true` to preserve multi-colored logos in their original hues rather than flattening them to a single solid color. Default is `false`.
     - `AutoUpdateIM` : Set to `true` to AutoUpdate Imagemagick Portable Version (Does not work with Docker/Unraid).
         - Doing this could break things, cause you then uses IM Versions that are not tested with Posterizarr.
     - `DisableHashValidation` : Set to `true` to skip hash validation (Default value is: false).
