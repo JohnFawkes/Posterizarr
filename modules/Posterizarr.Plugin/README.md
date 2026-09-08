@@ -15,6 +15,7 @@ The Posterizarr Plugin acts as a local asset proxy for Jellyfin. It is designed 
 *   **Local Asset Mapping:** Maps local files to library items without replacing original metadata permanently in some configurations.
 *   **Metadata Provider:** Registers as a metadata provider for images.
 *   **Support for Multiple Asset Types:** Handles Posters, Backgrounds (Fanart), and Title Cards.
+*   **Broad Version Compatibility:** Multi-targeted for **Jellyfin 10.11.x** (.NET 9) and **Jellyfin 12.0.x** (.NET 10). The plugin repository manifest automatically serves the appropriate build for your server version.
 
 > [!WARNING]
 > Only use this if you are not syncing from Plex, as it will overwrite your synced items with locally created assets from Posterizarr.
@@ -61,7 +62,12 @@ The plugin registers a scheduled background task (default: daily at 02:00 AM) th
 ## Building from Source
 
 ```bash
-dotnet publish -c Release -o publish
+# Build for both Jellyfin 10.11.x (.NET 9) and 12.0.x (.NET 10)
+dotnet build -c Release
+
+# Or publish specifically for a target version:
+dotnet publish -c Release -f net9.0 -o publish/net9.0
+dotnet publish -c Release -f net10.0 -o publish/net10.0
 ```
 
-The compiled `Posterizarr.Plugin.dll` will be in the `publish/` directory.
+The compiled `Posterizarr.Plugin.dll` will be placed in the respective output folder.

@@ -16099,7 +16099,10 @@ async def upload_media_server_logo(request: UploadLogoRequest):
                     upload_resp = await client.post(upload_url, headers=headers, content=f.read())
             else:
                 upload_url = f"{url}/Items/{safe_item_id}/Images/Logo"
-                headers = {"X-Emby-Token": request.token, "Content-Type": "image/png"}
+                headers = {
+                    "Authorization": f'MediaBrowser Token="{request.token}"',
+                    "Content-Type": "image/png"
+                }
                 import base64
                 with open(temp_logo, "rb") as f:
                     base64_str = base64.b64encode(f.read()).decode("utf-8")

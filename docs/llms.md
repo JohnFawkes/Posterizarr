@@ -28,7 +28,7 @@
 | **Image Processing** | ImageMagick 7 (`magick`) + Pillow | Alpine packages / `Overlayfiles/` | Compositing overlays, badge positioning, typography rendering, color extraction, textless detection, and UI preview rendering. |
 | **Databases** | SQLite3 | `database/*.db` | Six specialized databases: `imagechoices.db`, `config.db`, `queue.db`, `server_libraries.db`, `media_export.db`, `runtime_history.db`. |
 | **Containerization** | Docker (Alpine 3.24) | `Dockerfile`, `Start.ps1`, `start.sh` | Multi-stage build with multi-process orchestration (`uvicorn` backend daemon + `pwsh Start.ps1` scheduler/worker). |
-| **Media Server Plugins** | C# (.NET 8/9) | `modules/Posterizarr.Plugin*/` | Native plugins for Jellyfin and Emby providing automated event notifications and metadata sync. |
+| **Media Server Plugins** | C# (.NET 8/9/10) | `modules/Posterizarr.Plugin*/` | Native plugins for Jellyfin (10.11.x on .NET 9, 12.0.x on .NET 10) and Emby (on .NET 8) providing automated event notifications and metadata sync. |
 
 ---
 
