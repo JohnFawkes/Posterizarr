@@ -8,6 +8,20 @@
     "category": "Metadata",
     "versions": [
       {
+        "version": "3.3.2",
+        "changelog": "Official Release 3.3.2\n\n- **Jellyfin 12.0.x & 10.11.x Multi-Targeting**: Compiled for both `.NET 9` (Jellyfin 10.11.x) and `.NET 10` (Jellyfin 12.0.x) with target-specific ABI dependencies (`10.11.0.0` and `12.0.0.0`).\n- **Automated Dual Packaging**: Manifest and release pipelines now generate separate distribution archives (`Posterizarr.Plugin_v3.3.2.zip` and `Posterizarr.Plugin_v3.3.2-jf12.zip`).\n- **Emby API Token Authentication**: Updated media server logo upload headers to use `MediaBrowser Token=\"{token}\"` format, resolving upload failures on Emby servers.\n\n---",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/3.3.2/Posterizarr.Plugin_v3.3.2-jf12.zip",
+        "checksum": "AE309AAC10CBD4568634CFE4EA61A89E"
+      },
+      {
+        "version": "3.3.2",
+        "changelog": "Official Release 3.3.2\n\n- **Jellyfin 12.0.x & 10.11.x Multi-Targeting**: Compiled for both `.NET 9` (Jellyfin 10.11.x) and `.NET 10` (Jellyfin 12.0.x) with target-specific ABI dependencies (`10.11.0.0` and `12.0.0.0`).\n- **Automated Dual Packaging**: Manifest and release pipelines now generate separate distribution archives (`Posterizarr.Plugin_v3.3.2.zip` and `Posterizarr.Plugin_v3.3.2-jf12.zip`).\n- **Emby API Token Authentication**: Updated media server logo upload headers to use `MediaBrowser Token=\"{token}\"` format, resolving upload failures on Emby servers.\n\n---",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/3.3.2/Posterizarr.Plugin_v3.3.2.zip",
+        "checksum": "9974BD6BF97F4CED45D743BDE22DD549"
+      },
+      {
         "version": "3.3.1",
         "changelog": "Official Release 3.3.1",
         "targetAbi": "10.11.0.0",
