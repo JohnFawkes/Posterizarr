@@ -191,10 +191,14 @@ jobs:
 
           git clone --single-branch --branch builds https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} builds_repo
 
-          rm -rf builds_repo/*
+          # Copy new builds into builds_repo without deleting everything immediately,
+          # avoiding 404 errors for clients with cached manifests.
           cp -r $TEMP_DIR/* builds_repo/
 
           cd builds_repo
+          # Retain the 25 newest zip packages, pruning older ones to prevent repo bloat
+          ls -t *.zip 2>/dev/null | tail -n +26 | xargs -r rm -f
+
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "build: update dev zips v${{ steps.vars.outputs.VERSION }}"
