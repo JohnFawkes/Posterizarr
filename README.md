@@ -97,6 +97,7 @@ I review and test every line before it’s committed.
 
 > [!IMPORTANT]
 >
+> - Please review our full [Contributing Guidelines](.github/CONTRIBUTING.md) and [Code of Conduct](.github/CODE_OF_CONDUCT.md) before submitting a pull request.
 > - Adjust on each PR the version number in script on Line 78 `$CurrentScriptVersion = "3.0.0"`
 > - Adjust the version number in [Release.txt](Release.txt) to match the one in script.
 >   - this is required because the script checks against this file if a newer version is available.
