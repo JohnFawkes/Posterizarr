@@ -84,9 +84,9 @@
             </div>
 
             <div class="inputContainer">
-                <label class="inputLabel inputLabelUnfocused" for="txtPosterizarrApiKey">Posterizarr API Key (Optional)</label>
+                <label class="inputLabel inputLabelUnfocused" for="txtPosterizarrApiKey">Posterizarr API Key (Required for Real-Time Sync)</label>
                 <input is="emby-input" type="password" id="txtPosterizarrApiKey" />
-                <div class="fieldDescription">Required if authentication is enabled in Posterizarr. Sent securely via X-API-Key HTTP header (never in URL).</div>
+                <div class="fieldDescription">Mandatory for real-time WebSocket connection. Sent securely via X-API-Key HTTP header (never in URL).</div>
             </div>
 
             <div class="inputContainer" style="margin-top: 1em; margin-bottom: 1.5em;">

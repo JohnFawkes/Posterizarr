@@ -45,7 +45,7 @@ The Posterizarr Plugin acts as a local asset proxy for Jellyfin. It is designed 
 5. **Real-Time Sync (WebSocket) Settings:**
     *   **Enable Real-Time Sync (WebSocket):** Check this box to enable instant updates.
     *   **Posterizarr URL:** Enter the base URL of your Posterizarr server (e.g., `http://192.168.1.50:8000` or `http://localhost:8000`).
-    *   **Posterizarr API Key (Optional):** If authentication is configured in Posterizarr, enter your API key here.
+    *   **Posterizarr API Key (Required):** Enter your Posterizarr API key. The key is transmitted securely via the `X-API-Key` HTTP header and is mandatory for WebSocket authentication.
 6. Click **Save Settings**.
 7. Go to your **Dashboard** -> **Libraries**.
 8. Manage a library (e.g., Movies).

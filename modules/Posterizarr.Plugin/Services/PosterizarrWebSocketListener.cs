@@ -118,6 +118,7 @@ public class PosterizarrWebSocketListener : IHostedService, IDisposable
 
     private bool _hasLoggedMissingEndpoint = false;
     private bool _hasLoggedConnectionRefused = false;
+    private bool _hasLoggedMissingApiKey = false;
 
     private async Task ConnectionLoopAsync(CancellationToken ct)
     {
@@ -126,15 +127,30 @@ public class PosterizarrWebSocketListener : IHostedService, IDisposable
         while (!ct.IsCancellationRequested)
         {
             var config = Plugin.Instance?.Configuration;
-            if (config == null || !config.EnableRealtimeSync || string.IsNullOrWhiteSpace(config.PosterizarrApiUrl))
+            if (config == null || !config.EnableRealtimeSync || string.IsNullOrWhiteSpace(config.PosterizarrApiUrl) || string.IsNullOrWhiteSpace(config.PosterizarrApiKey))
             {
-                // Feature is disabled or URL not configured; idle sleep and re-check periodically
+                if (config != null && config.EnableRealtimeSync && !string.IsNullOrWhiteSpace(config.PosterizarrApiUrl) && string.IsNullOrWhiteSpace(config.PosterizarrApiKey))
+                {
+                    if (!_hasLoggedMissingApiKey)
+                    {
+                        _logger.LogWarning("[Posterizarr WS] Real-time synchronization is enabled, but Posterizarr API Key is missing. An API key is required. Please set your API key in the plugin configuration.");
+                        _hasLoggedMissingApiKey = true;
+                    }
+                }
+                else
+                {
+                    _hasLoggedMissingApiKey = false;
+                }
+
+                // Feature is disabled or configuration incomplete; idle sleep and re-check periodically
                 _hasLoggedMissingEndpoint = false;
                 _hasLoggedConnectionRefused = false;
                 retryDelaySeconds = 5;
                 await Task.Delay(TimeSpan.FromSeconds(60), ct).ConfigureAwait(false);
                 continue;
             }
+
+            _hasLoggedMissingApiKey = false;
 
             Uri? wsUri = BuildWebSocketUri(config.PosterizarrApiUrl);
             if (wsUri == null)

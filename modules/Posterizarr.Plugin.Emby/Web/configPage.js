@@ -62,6 +62,14 @@ define(['loading', 'emby-input', 'emby-button', 'emby-checkbox'], function (load
             var txtKey = view.querySelector('#txtPosterizarrApiKey');
             config.PosterizarrApiKey = txtKey ? (txtKey.value || '').trim() : '';
 
+            if (config.EnableRealtimeSync && (!config.PosterizarrApiUrl || !config.PosterizarrApiKey)) {
+                loading.hide();
+                Dashboard.alert({
+                    message: "Both Posterizarr URL and API Key are required when Real-Time Sync is enabled."
+                });
+                return;
+            }
+
             ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
                 Dashboard.processPluginConfigurationUpdateResult(result);
                 loading.hide();
@@ -93,16 +101,21 @@ define(['loading', 'emby-input', 'emby-button', 'emby-checkbox'], function (load
                     return;
                 }
 
+                if (!apiKey) {
+                    if (resultDiv) {
+                        resultDiv.textContent = 'Please enter your Posterizarr API Key (required).';
+                        resultDiv.style.color = '#e5a00d';
+                    }
+                    return;
+                }
+
                 if (resultDiv) {
                     resultDiv.textContent = 'Testing connection to Posterizarr...';
                     resultDiv.style.color = '#aaa';
                 }
 
                 var probeUrl = rawUrl.replace(/\/+$/, '') + '/ws/events';
-                var headers = {};
-                if (apiKey) {
-                    headers['X-API-Key'] = apiKey;
-                }
+                var headers = { 'X-API-Key': apiKey };
 
                 fetch(probeUrl, { method: 'GET', headers: headers })
                     .then(function (res) {

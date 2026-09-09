@@ -87,16 +87,21 @@
                     return;
                 }
 
+                if (!apiKey) {
+                    if (resultDiv) {
+                        resultDiv.textContent = 'Please enter your Posterizarr API Key (required).';
+                        resultDiv.style.color = '#e5a00d';
+                    }
+                    return;
+                }
+
                 if (resultDiv) {
                     resultDiv.textContent = 'Testing connection to Posterizarr...';
                     resultDiv.style.color = '#aaa';
                 }
 
                 const probeUrl = rawUrl.replace(/\/+$/, '') + '/ws/events';
-                const headers = {};
-                if (apiKey) {
-                    headers['X-API-Key'] = apiKey;
-                }
+                const headers = { 'X-API-Key': apiKey };
 
                 fetch(probeUrl, { method: 'GET', headers: headers })
                     .then(function (res) {
@@ -166,6 +171,14 @@
 
                     const txtApiKey = view.querySelector('#txtPosterizarrApiKey');
                     config.PosterizarrApiKey = txtApiKey ? (txtApiKey.value || "").trim() : "";
+
+                    if (config.EnableRealtimeSync && (!config.PosterizarrApiUrl || !config.PosterizarrApiKey)) {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert({
+                            message: "Both Posterizarr URL and API Key are required when Real-Time Sync is enabled."
+                        });
+                        return;
+                    }
 
                     console.log("[Posterizarr] Saving new configuration:", config);
 

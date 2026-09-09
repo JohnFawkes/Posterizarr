@@ -43,7 +43,7 @@ The Posterizarr Plugin acts as a local asset proxy for Emby. It is designed to w
 5. **Real-Time Sync (WebSocket) Settings:**
     *   **Enable Real-Time Sync (WebSocket):** Check this box to enable instant updates.
     *   **Posterizarr URL:** Enter your Posterizarr server URL (e.g., `http://192.168.1.50:8000` or `http://localhost:8000`).
-    *   **Posterizarr API Key (Optional):** Enter your API key if authentication is enabled in Posterizarr.
+    *   **Posterizarr API Key (Required):** Enter your Posterizarr API key. The key is transmitted securely via the `X-API-Key` HTTP header and is mandatory for WebSocket authentication.
 6. Click **Save**.
 7. Go to your **Dashboard** → **Libraries**.
 8. Manage a library (e.g., Movies).

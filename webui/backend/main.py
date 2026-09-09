@@ -8777,11 +8777,24 @@ async def broadcast_asset_event(
 
 
 @app.get("/ws/events")
-async def websocket_events_status():
+async def websocket_events_status(request: Request):
     """
     Status probe endpoint for the real-time WebSocket event stream.
-    Used by Jellyfin and Emby plugins to verify connectivity and feature availability.
+    Requires valid API key via X-API-Key or Authorization: Bearer header.
     """
+    headers = request.headers
+    api_key = headers.get("x-api-key") or headers.get("X-API-Key")
+    if not api_key:
+        auth_header = headers.get("authorization") or headers.get("Authorization") or ""
+        if auth_header.lower().startswith("bearer "):
+            api_key = auth_header[7:].strip()
+
+    if not api_key:
+        raise HTTPException(status_code=401, detail="Unauthorized: Missing X-API-Key header")
+
+    if config_db and not config_db.validate_api_key(api_key):
+        raise HTTPException(status_code=403, detail="Forbidden: Invalid API key")
+
     return {
         "status": "online",
         "websocket": True,
@@ -8806,36 +8819,20 @@ async def websocket_events(websocket: WebSocket):
         if auth_header.lower().startswith("bearer "):
             api_key = auth_header[7:].strip()
 
-    # 2. Check if authentication is enabled in Posterizarr
-    auth_enabled = False
-    try:
-        auth_conf = load_auth_config(CONFIG_PATH)
-        auth_enabled = auth_conf.get("enabled", False)
-    except Exception as e:
-        logger.debug(f"[WS-Events] Could not check auth config: {e}")
+    # 2. Enforce strict authentication: API Key is ALWAYS required
+    if not api_key:
+        logger.warning("[WS-Events] Connection rejected: Missing X-API-Key header (API Key is strictly required)")
+        await websocket.close(code=1008, reason="Unauthorized: Missing X-API-Key header")
+        return
 
-    # 3. Enforce authentication
-    if auth_enabled:
-        if not api_key:
-            logger.warning("[WS-Events] Connection rejected: Missing X-API-Key header (Authentication is enabled)")
-            await websocket.close(code=1008, reason="Unauthorized: Missing X-API-Key header")
-            return
+    is_valid = False
+    if config_db:
+        is_valid = config_db.validate_api_key(api_key)
 
-        is_valid = False
-        if config_db:
-            is_valid = config_db.validate_api_key(api_key)
-
-        if not is_valid:
-            logger.warning("[WS-Events] Connection rejected: Invalid API key in header")
-            await websocket.close(code=1008, reason="Unauthorized: Invalid API key")
-            return
-    else:
-        # If auth is disabled but client provided a key, validate if DB is ready
-        if api_key and config_db:
-            if not config_db.validate_api_key(api_key):
-                logger.warning("[WS-Events] Connection rejected: Invalid API key provided")
-                await websocket.close(code=1008, reason="Unauthorized: Invalid API key")
-                return
+    if not is_valid:
+        logger.warning("[WS-Events] Connection rejected: Invalid API key in header")
+        await websocket.close(code=1008, reason="Unauthorized: Invalid API key")
+        return
 
     # 4. Accept connection
     await event_manager.connect(websocket)
