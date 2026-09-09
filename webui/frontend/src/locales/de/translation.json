@@ -974,6 +974,46 @@
       "setupTautulliDocker": "Einrichtung Tautulli (Docker)",
       "setupTautulliWin": "Einrichtung Tautulli (Win)"
     },
+    "plugins": {
+      "title": "Media Server Plugins & Echtzeit-Synchronisierung",
+      "subtitle": "Direkte Middleware-Plugins für Jellyfin und Emby, die lokale Assets zuordnen und auf Echtzeit-WebSocket-Events lauschen.",
+      "jellyfin": {
+        "title": "Posterizarr für Jellyfin",
+        "tag": "Jellyfin 10.11 / 12.0 (.NET 9 & 10)",
+        "badge": "Offizielles Plugin",
+        "description": "Fungiert als lokaler Asset-Proxy für Jellyfin. Ordnet Poster, Hintergründe, Staffel-Poster und Titlecards aus Ihrem /assets-Ordner automatisch Bibliothekselementen zu.",
+        "features": [
+          "Echtzeit-WebSocket-Ereignissynchronisierung (/ws/events)",
+          "Direkte Zuordnung lokaler Dateien ohne vollständige Bibliotheks-Neuscans",
+          "Eigenes Repository-Manifest für automatische Updates und Versionsauswahl",
+          "Autonomer Betrieb in gemeinsamen UnionFS/assets-Umgebungen"
+        ],
+        "button": "Jellyfin Plugin Dokumentation"
+      },
+      "emby": {
+        "title": "Posterizarr für Emby",
+        "tag": "Emby Server (.NET 8)",
+        "badge": "Offizielles Plugin",
+        "description": "Portierte Middleware für den Emby Server. Bietet lokale Asset-Zuordnung, geplante Hintergrund-Synchronisierungsaufgaben und sofortige Artwork-Aktualisierungen über WebSockets.",
+        "features": [
+          "Echtzeit-WebSocket-Ereignissynchronisierung (/ws/events)",
+          "Geplante Hintergrundaufgabe (konfigurierbarer Intervall-/Tagesplan)",
+          "Automatischer Metadaten-Provider für Poster, Hintergründe und Episoden-Titlecards",
+          "Autonomer Betrieb in gemeinsamen UnionFS/assets-Umgebungen"
+        ],
+        "button": "Emby Plugin Dokumentation"
+      },
+      "realtimeBridge": {
+        "title": "So funktioniert die Echtzeit-WebSocket-Synchronisierung",
+        "badge": "Instant Push Bridge",
+        "description": "Posterizarr bietet einen aktiven Ereignis-Stream, damit Jellyfin und Emby sofort synchronisiert werden, ohne auf tägliche Aufgaben oder manuelle Trigger warten zu müssen:",
+        "step1": "Bearbeiten / Hochladen: Ersetzen oder rendern Sie beliebige Poster, Hintergründe oder Titlecards in der Posterizarr WebUI.",
+        "step2": "Sofortige Übertragung: Posterizarr sendet ein asset_updated Event über WebSocket (/ws/events).",
+        "step3": "Sicherer Handshake & Validierung: Verbundene Plugins authentifizieren sich über den X-API-Key HTTP-Header und validieren Pfade gegen Directory Traversal (CWE-22).",
+        "step4": "Sofortige Aktualisierung: Das Plugin aktualisiert das Zielmedium (Film, Serie, Staffel oder Episode) sofort und aktualisiert den Sync-Cache.",
+        "note": "Autonomer Betrieb: Auch wenn Posterizarr mit Plex aktiviert und Jellyfin/Emby deaktiviert läuft, lauschen die Plugins auf dem geteilten /assets-Verzeichnis und aktualisieren das Artwork nahtlos."
+      }
+    },
     "technical": {
       "title": "Technische Highlights",
       "smartCaching": "<strong>Intelligentes Caching:</strong> Erstellt nur fehlende Artworks und überspringt vorhandene Assets",

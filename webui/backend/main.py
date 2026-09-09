@@ -27,7 +27,7 @@ import asyncio
 import os
 import httpx
 from pathlib import Path
-from typing import Optional, List, Literal, Dict, Any
+from typing import Optional, List, Literal, Dict, Any, Union
 import logging
 import re
 import time
@@ -8683,6 +8683,182 @@ async def websocket_logs(
     finally:
         logger.debug("WebSocket connection closed")
 
+
+# ==============================================================================
+# REAL-TIME MEDIA SERVER EVENT BRIDGE (Jellyfin / Emby Plugins)
+# ==============================================================================
+
+class EventWebSocketManager:
+    """Manages WebSocket connections for real-time asset updates to media servers (Jellyfin/Emby)."""
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+        self._lock = asyncio.Lock()
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        async with self._lock:
+            self.active_connections.append(websocket)
+        logger.info(f"[WS-Events] Media server client connected ({len(self.active_connections)} active)")
+
+    async def disconnect(self, websocket: WebSocket):
+        async with self._lock:
+            if websocket in self.active_connections:
+                self.active_connections.remove(websocket)
+        logger.info(f"[WS-Events] Media server client disconnected ({len(self.active_connections)} active)")
+
+    async def broadcast(self, data: dict):
+        """Broadcast an event payload to all connected media servers."""
+        async with self._lock:
+            connections = list(self.active_connections)
+
+        if not connections:
+            return
+
+        logger.info(f"[WS-Events] Broadcasting '{data.get('event')}' for folder '{data.get('folder_name')}' to {len(connections)} client(s)")
+        for ws in connections:
+            try:
+                await ws.send_json(data)
+            except Exception as e:
+                logger.debug(f"[WS-Events] Failed to send to client, removing: {e}")
+                await self.disconnect(ws)
+
+event_manager = EventWebSocketManager()
+
+
+async def broadcast_asset_event(
+    library_name: Optional[str],
+    folder_name: Optional[str],
+    asset_type: Optional[str],
+    relative_path: Optional[str] = None,
+    season_number: Optional[Union[str, int]] = None,
+    episode_number: Optional[Union[str, int]] = None,
+    title: Optional[str] = None,
+):
+    """Safely format and broadcast an asset update event to connected media servers."""
+    try:
+        clean_library = str(library_name).strip() if library_name else ""
+        clean_folder = str(folder_name).strip() if folder_name else ""
+        clean_type = str(asset_type).strip().lower() if asset_type else "poster"
+        clean_path = str(relative_path).replace("\\", "/").lstrip("/") if relative_path else ""
+
+        if not clean_path and clean_library and clean_folder:
+            filename = "poster.jpg"
+            if clean_type in ["background", "backdrop"]:
+                filename = "background.jpg"
+            elif clean_type == "season" and season_number is not None:
+                try:
+                    s_num = int(season_number)
+                    filename = f"season{s_num:02d}.jpg"
+                except ValueError:
+                    filename = f"season{season_number}.jpg"
+            elif clean_type == "titlecard" and season_number is not None and episode_number is not None:
+                try:
+                    s_num = int(season_number)
+                    e_num = int(episode_number)
+                    filename = f"S{s_num:02d}E{e_num:02d}.jpg"
+                except ValueError:
+                    filename = f"S{season_number}E{episode_number}.jpg"
+            clean_path = f"{clean_library}/{clean_folder}/{filename}"
+
+        payload = {
+            "event": "asset_updated",
+            "library_name": clean_library,
+            "folder_name": clean_folder,
+            "asset_type": clean_type,
+            "season_number": season_number,
+            "episode_number": episode_number,
+            "title": title,
+            "relative_path": clean_path,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+        await event_manager.broadcast(payload)
+    except Exception as ex:
+        logger.error(f"[WS-Events] Error formatting/broadcasting asset event: {ex}")
+
+
+@app.get("/ws/events")
+async def websocket_events_status():
+    """
+    Status probe endpoint for the real-time WebSocket event stream.
+    Used by Jellyfin and Emby plugins to verify connectivity and feature availability.
+    """
+    return {
+        "status": "online",
+        "websocket": True,
+        "endpoint": "/ws/events",
+        "version": "2.0",
+        "active_clients": len(event_manager.active_connections),
+    }
+
+
+@app.websocket("/ws/events")
+async def websocket_events(websocket: WebSocket):
+    """
+    Real-Time WebSocket event bridge for Jellyfin and Emby plugins.
+    SECURITY: Authenticates via 'X-API-Key' or 'Authorization: Bearer <key>' headers.
+    Does NOT accept API keys via URL/query parameters to avoid credential leakage.
+    """
+    # 1. Extract API Key strictly from request headers
+    headers = websocket.headers
+    api_key = headers.get("x-api-key") or headers.get("X-API-Key")
+    if not api_key:
+        auth_header = headers.get("authorization") or headers.get("Authorization") or ""
+        if auth_header.lower().startswith("bearer "):
+            api_key = auth_header[7:].strip()
+
+    # 2. Check if authentication is enabled in Posterizarr
+    auth_enabled = False
+    try:
+        auth_conf = load_auth_config(CONFIG_PATH)
+        auth_enabled = auth_conf.get("enabled", False)
+    except Exception as e:
+        logger.debug(f"[WS-Events] Could not check auth config: {e}")
+
+    # 3. Enforce authentication
+    if auth_enabled:
+        if not api_key:
+            logger.warning("[WS-Events] Connection rejected: Missing X-API-Key header (Authentication is enabled)")
+            await websocket.close(code=1008, reason="Unauthorized: Missing X-API-Key header")
+            return
+
+        is_valid = False
+        if config_db:
+            is_valid = config_db.validate_api_key(api_key)
+
+        if not is_valid:
+            logger.warning("[WS-Events] Connection rejected: Invalid API key in header")
+            await websocket.close(code=1008, reason="Unauthorized: Invalid API key")
+            return
+    else:
+        # If auth is disabled but client provided a key, validate if DB is ready
+        if api_key and config_db:
+            if not config_db.validate_api_key(api_key):
+                logger.warning("[WS-Events] Connection rejected: Invalid API key provided")
+                await websocket.close(code=1008, reason="Unauthorized: Invalid API key")
+                return
+
+    # 4. Accept connection
+    await event_manager.connect(websocket)
+    try:
+        # Send initial welcome handshake
+        await websocket.send_json({
+            "event": "connected",
+            "message": "Posterizarr real-time event stream connected",
+            "version": "2.0"
+        })
+
+        # Keep connection open, process heartbeats / pings
+        while True:
+            data = await websocket.receive_text()
+            if data.strip().lower() == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        await event_manager.disconnect(websocket)
+    except Exception as e:
+        logger.debug(f"[WS-Events] WebSocket connection closed: {e}")
+        await event_manager.disconnect(websocket)
+
+
 import hashlib
 
 @app.get("/api/thumbnail")
@@ -12478,6 +12654,24 @@ async def upload_asset_replacement(
             "was_replacement": is_replacement,
         }
 
+        # Broadcast real-time asset update to connected media servers (Jellyfin/Emby) if saving directly without overlays
+        if not process_with_overlays:
+            try:
+                path_parts = Path(normalized_path).parts
+                extracted_lib = library_name or (path_parts[0] if len(path_parts) >= 3 else None)
+                extracted_folder = folder_name or (path_parts[1] if len(path_parts) >= 3 else None)
+                asyncio.create_task(broadcast_asset_event(
+                    library_name=extracted_lib,
+                    folder_name=extracted_folder,
+                    asset_type=asset_type,
+                    relative_path=normalized_path,
+                    season_number=season_number,
+                    episode_number=episode_number,
+                    title=title_text
+                ))
+            except Exception as e:
+                logger.debug(f"[WS-Events] Could not broadcast asset event: {e}")
+
         # If process_with_overlays is enabled, trigger Manual Run
         if process_with_overlays:
             logger.info(f"Processing with overlays enabled for: {asset_path}")
@@ -12571,6 +12765,36 @@ async def upload_asset_replacement(
                     logger.info(
                         f"Manual Run started (PID: {current_process.pid}) for overlay processing"
                     )
+
+                    # Background task to monitor process completion and broadcast event
+                    async def _monitor_manual_run_and_broadcast(proc, lib, fold, atype, relpath, snum, enum, ttext):
+                        try:
+                            loop = asyncio.get_running_loop()
+                            await loop.run_in_executor(None, proc.wait)
+                            if proc.returncode == 0:
+                                logger.info(f"[WS-Events] Manual run completed successfully for {fold}. Broadcasting...")
+                                await broadcast_asset_event(
+                                    library_name=lib,
+                                    folder_name=fold,
+                                    asset_type=atype,
+                                    relative_path=relpath,
+                                    season_number=snum,
+                                    episode_number=enum,
+                                    title=ttext
+                                )
+                        except Exception as ex:
+                            logger.debug(f"[WS-Events] Manual run broadcast error: {ex}")
+
+                    asyncio.create_task(_monitor_manual_run_and_broadcast(
+                        current_process,
+                        final_library_name,
+                        final_folder_name,
+                        asset_type,
+                        normalized_path,
+                        season_number,
+                        episode_number,
+                        final_title_text
+                    ))
 
                     result["manual_run_triggered"] = True
                     result["message"] = (
@@ -13053,6 +13277,24 @@ async def replace_asset_from_url(
             "queued": False
         }
 
+        # Broadcast real-time asset update to connected media servers (Jellyfin/Emby) if saving directly without overlays
+        if not process_with_overlays:
+            try:
+                path_parts = Path(asset_path).parts
+                extracted_lib = library_name or (path_parts[0] if len(path_parts) >= 3 else None)
+                extracted_folder = folder_name or (path_parts[1] if len(path_parts) >= 3 else None)
+                asyncio.create_task(broadcast_asset_event(
+                    library_name=extracted_lib,
+                    folder_name=extracted_folder,
+                    asset_type=asset_type,
+                    relative_path=asset_path,
+                    season_number=season_number,
+                    episode_number=episode_number,
+                    title=title_text
+                ))
+            except Exception as e:
+                logger.debug(f"[WS-Events] Could not broadcast asset event: {e}")
+
         # If process_with_overlays is enabled, trigger Manual Run
         if process_with_overlays:
             logger.info(f"Processing with overlays enabled for: {asset_path}")
@@ -13177,6 +13419,37 @@ async def replace_asset_from_url(
 
                     # Call run_manual_mode (we need to make it callable)
                     await trigger_manual_run_internal(manual_request)
+
+                    # Monitor completion of manual run to broadcast real-time update
+                    if current_process:
+                        async def _monitor_url_manual_run(proc, lib, fold, atype, relpath, snum, enum, ttext):
+                            try:
+                                loop = asyncio.get_running_loop()
+                                await loop.run_in_executor(None, proc.wait)
+                                if proc.returncode == 0:
+                                    logger.info(f"[WS-Events] Manual run from URL completed for {fold}. Broadcasting...")
+                                    await broadcast_asset_event(
+                                        library_name=lib,
+                                        folder_name=fold,
+                                        asset_type=atype,
+                                        relative_path=relpath,
+                                        season_number=snum,
+                                        episode_number=enum,
+                                        title=ttext
+                                    )
+                            except Exception as ex:
+                                logger.debug(f"[WS-Events] Error in URL manual run broadcast: {ex}")
+
+                        asyncio.create_task(_monitor_url_manual_run(
+                            current_process,
+                            final_library_name,
+                            final_folder_name,
+                            poster_type,
+                            asset_path,
+                            season_poster_name,
+                            ep_number,
+                            final_title_text
+                        ))
 
                     result["message"] = (
                         "Asset replaced and queued for overlay processing"

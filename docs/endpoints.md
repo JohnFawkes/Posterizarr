@@ -2060,3 +2060,40 @@ Securely proxies image streams directly from Plex, Jellyfin, or Emby servers wit
 
 ### `POST /api/media-server/upload-logo`
 Downloads a selected logo (from URL or data URI), applies Posterizarr metadata tags using Pillow/ImageMagick, and uploads it directly to the media server as a clearLogo.
+
+---
+
+## 🔌 WebSockets
+
+### `WebSocket /ws/events`
+Real-time event bridge for media server integration plugins (Jellyfin and Emby). Dispatches instantaneous notifications whenever artwork is created, uploaded, replaced, or processed with overlays.
+
+**Authentication:**
+- Strictly via `X-API-Key: YOUR_KEY` or `Authorization: Bearer YOUR_KEY` HTTP headers during WebSocket upgrade handshake. (API keys in URL query parameters are rejected).
+
+**Supported Events:**
+- `welcome`: Sent upon successful handshake connection.
+- `ping`: Sent periodically to keep connections alive (client replies with `pong`).
+- `asset_updated`: Dispatched when an asset is modified or overlay processing completes.
+
+??? example "View Event Payload (`asset_updated`)"
+    ```json
+    {
+      "event": "asset_updated",
+      "library_name": "Movies",
+      "folder_name": "Inception (2010) {tmdb-27205}",
+      "asset_type": "poster",
+      "season_number": null,
+      "episode_number": null,
+      "title": "Inception",
+      "relative_path": "Movies/Inception (2010) {tmdb-27205}/poster.jpg",
+      "timestamp": "2026-09-09T14:30:00Z"
+    }
+    ```
+
+### `WebSocket /ws/logs`
+Streams live execution logs line-by-line directly to the Web UI terminal viewer (`LogViewer.jsx`).
+
+### `WebSocket /ws/status`
+Broadcasts live system metrics, background execution states, and queue progress to the UI.
+

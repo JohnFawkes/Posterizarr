@@ -19,7 +19,8 @@ The Posterizarr Plugin acts as a local asset proxy for Emby. It is designed to w
 
 *   **Local Asset Mapping:** Maps local files to library items without replacing original metadata permanently in some configurations.
 *   **Metadata Provider:** Registers as a metadata provider for images.
-*   **Support for Multiple Asset Types:** Handles Posters, Backgrounds (Fanart), and Title Cards.
+*   **Support for Multiple Asset Types:** Handles Posters, Backgrounds, Seasons, and Title Cards.
+*   **Real-Time WebSocket Sync:** Connects directly to Posterizarr's event stream. Automatically refreshes Emby library items immediately when artwork is created, edited, or overlay-processed in Posterizarr.
 *   **Scheduled Sync Task:** Registers a background task to keep library images in sync with your local assets automatically on a customized schedule.
 
 ## Installation
@@ -38,12 +39,47 @@ The Posterizarr Plugin acts as a local asset proxy for Emby. It is designed to w
 1. After restarting, go to **Dashboard** → **Plugins** → **Installed Plugins** and click **Posterizarr Emby**.
 2. Click on **Settings**.
 3. Configure your **Root Asset Folder Path** (the directory where your curated images are stored, e.g., `/assets`).
-4. Click **Save**.
-5. Go to your **Dashboard** → **Libraries**.
-6. Manage a library (e.g., Movies).
-7. Enable **Posterizarr** under the **Image Fetchers** settings.
-8. Ensure it is prioritized according to your preferences.
-9. Refresh metadata (**Search for missing metadata** → **Replace existing images**) for your library to pick up local assets.
+4. **Image Target Types:** Select which artwork types to automatically apply (Posters, Season Posters, Titlecards, Backdrops, Thumbnails).
+5. **Real-Time Sync (WebSocket) Settings:**
+    *   **Enable Real-Time Sync (WebSocket):** Check this box to enable instant updates.
+    *   **Posterizarr URL:** Enter your Posterizarr server URL (e.g., `http://192.168.1.50:8000` or `http://localhost:8000`).
+    *   **Posterizarr API Key (Optional):** Enter your API key if authentication is enabled in Posterizarr.
+6. Click **Save**.
+7. Go to your **Dashboard** → **Libraries**.
+8. Manage a library (e.g., Movies).
+9. Enable **Posterizarr** under the **Image Fetchers** settings.
+10. Ensure it is prioritized according to your preferences.
+11. Refresh metadata (**Search for missing metadata** → **Replace existing images**) for your library to pick up local assets for the first time.
+
+## Real-Time Synchronization (WebSocket)
+
+The Emby plugin includes a real-time event listener service (`PosterizarrWebSocketListener`) that connects directly to Posterizarr's `/ws/events` WebSocket endpoint.
+
+### How It Works
+
+```mermaid
+sequenceDiagram
+    participant WebUI as Posterizarr WebUI
+    participant Backend as Posterizarr Backend (/ws/events)
+    participant Plugin as Emby Plugin
+    participant Emby as Emby Media Server
+
+    WebUI->>Backend: Replace / Upload Asset (or Overlay Process)
+    Backend-->>Plugin: WebSocket event: "asset_updated"
+    Plugin->>Plugin: Validate path & confine to Asset Root (CWE-22)
+    Plugin->>Emby: Lookup item & SetImage(...)
+    Plugin->>Emby: UpdateItem (Refresh UI)
+```
+
+1. **Instant Event Broadcast:** When an asset is saved or overlay-processed in Posterizarr WebUI, an `asset_updated` payload is immediately broadcast across active WebSocket connections.
+2. **Autonomous Operation:** Even if Posterizarr is configured with `UsePlex: true` and `UseJellyfin: false` / `UseEmby: false`, the Emby plugin operates autonomously by monitoring the shared `/assets` directory. When an asset is modified, Emby updates instantaneously without waiting for the daily scheduled task.
+3. **Smart Cache Synchronization:** Once an item is updated via real-time sync, its hash is updated in the plugin's `SyncCacheManager`, ensuring scheduled tasks skip it without redundant re-processing.
+
+### Security Highlights
+
+* **Strict Header-Based Authentication:** The API key is **never** passed in the URL or query parameters. It is transmitted securely via the `X-API-Key` HTTP header during the WebSocket upgrade handshake, preventing accidental disclosure in web server access logs or proxy headers.
+* **Path Traversal Protection (CWE-22):** All event paths are strictly sanitized against directory traversal sequences (`..`), invalid characters, and rooted paths, and are cryptographically verified to reside within the canonical `AssetFolderPath` root boundary before any file operation takes place.
+* **DoS & Buffer Protections (CWE-400):** Incoming frames are enforced with maximum message limits (64 KB) to avoid memory exhaustion.
 
 ## Scheduled Tasks & Automation
 

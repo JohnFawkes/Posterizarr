@@ -12,6 +12,9 @@ namespace Posterizarr.Plugin.Configuration
         public bool UpdateTitlecard { get; set; }
         public bool UpdateBackdrop { get; set; }
         public bool UpdateThumbnail { get; set; }
+        public string PosterizarrApiUrl { get; set; }
+        public string PosterizarrApiKey { get; set; }
+        public bool EnableRealtimeSync { get; set; }
 
         public PluginConfiguration()
         {
@@ -23,6 +26,9 @@ namespace Posterizarr.Plugin.Configuration
             UpdateTitlecard = true;
             UpdateBackdrop = true;
             UpdateThumbnail = false;
+            PosterizarrApiUrl = string.Empty;
+            PosterizarrApiKey = string.Empty;
+            EnableRealtimeSync = false;
         }
     }
 }

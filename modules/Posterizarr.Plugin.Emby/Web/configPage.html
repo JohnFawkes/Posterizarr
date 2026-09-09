@@ -68,6 +68,34 @@
                 <div class="fieldDescription checkboxFieldDescription">Enable detailed logging for troubleshooting file lookups.</div>
             </div>
 
+            <h2 class="sectionTitle" style="margin-top: 2em;">Real-Time Sync (WebSocket)</h2>
+            <div class="checkboxContainer checkboxContainer-withDescription">
+                <label>
+                    <input is="emby-checkbox" type="checkbox" id="chkEnableRealtimeSync" />
+                    <span>Enable Real-Time Sync (WebSocket)</span>
+                </label>
+                <div class="fieldDescription checkboxFieldDescription">Connect directly to Posterizarr's event stream. Automatically refreshes media items immediately when an asset is created or edited, without waiting for scheduled tasks.</div>
+            </div>
+
+            <div class="inputContainer">
+                <label class="inputLabel inputLabelUnfocused" for="txtPosterizarrApiUrl">Posterizarr URL</label>
+                <input is="emby-input" type="text" id="txtPosterizarrApiUrl" placeholder="http://192.168.1.50:8000" />
+                <div class="fieldDescription">The base URL of your Posterizarr server (e.g., http://localhost:8000 or http://posterizarr:8000).</div>
+            </div>
+
+            <div class="inputContainer">
+                <label class="inputLabel inputLabelUnfocused" for="txtPosterizarrApiKey">Posterizarr API Key (Optional)</label>
+                <input is="emby-input" type="password" id="txtPosterizarrApiKey" />
+                <div class="fieldDescription">Required if authentication is enabled in Posterizarr. Sent securely via X-API-Key HTTP header (never in URL).</div>
+            </div>
+
+            <div class="inputContainer" style="margin-top: 1em; margin-bottom: 1.5em;">
+                <button is="emby-button" type="button" id="btnTestPosterizarr" class="raised" style="margin-right: 1em;">
+                    <span>Test Connection</span>
+                </button>
+                <div id="testConnectionResult" style="margin-top: 8px; font-weight: 500; font-size: 0.95em; min-height: 1.2em;"></div>
+            </div>
+
             <div style="margin-top: 2em;">
                 <button is="emby-button" type="submit" class="raised button-submit block">
                     <i class="md-icon">save</i>
