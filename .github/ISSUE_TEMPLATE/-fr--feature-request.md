@@ -1,20 +1,33 @@
 ---
 name: "[FR] Feature request"
-about: Suggest an idea for this project
+about: Suggest an idea or enhancement for Posterizarr
 title: "[FR] "
 labels: enhancement, Feature Request
 assignees: fscorrupt
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+### Category
+<!-- Which component does this request relate to? -->
+- [ ] Web UI / Frontend Dashboard
+- [ ] Core Script & Image Processing (Posterizarr.ps1)
+- [ ] Media Server Integration (Plex / Jellyfin / Emby)
+- [ ] Metadata Provider (Fanart.tv / TMDB / TVDB / Plex / IMDb)
+- [ ] Docker / Container Deployment
+- [ ] Notification / Apprise Integration
+- [ ] Other
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+### Problem or Motivation
+<!-- Is your feature request related to a problem or missing capability? Please describe clearly. -->
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+### Proposed Solution
+<!-- A clear and concise description of what you want to happen and how it should behave. -->
+
+
+### Alternatives Considered
+<!-- A clear and concise description of any alternative solutions, scripts, or workarounds you've considered. -->
+
+
+### Additional Context
+<!-- Add any mockups, screenshots, or additional information here. -->

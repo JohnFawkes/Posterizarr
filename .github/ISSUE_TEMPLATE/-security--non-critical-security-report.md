@@ -22,7 +22,7 @@ If this issue allows for remote code execution, unauthorized access, or server c
 
 ### 3. Environment Details
 <!-- Please provide your environment details to help reproduce the issue. -->
-* **Posterizarr Version:** (e.g., v1.2.3)
+* **Posterizarr Version:** (e.g., 3.0.0)
 * **Media Server Environment:** (Plex / Jellyfin / Emby)
 * **Operating System / Docker:** (e.g., Windows 11, Docker on Ubuntu)
 
