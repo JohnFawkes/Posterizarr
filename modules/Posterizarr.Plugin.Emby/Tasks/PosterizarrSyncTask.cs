@@ -87,7 +87,24 @@ namespace Posterizarr.Plugin.Tasks
                     if (string.IsNullOrEmpty(localPath)) continue;
 
                     var existingImage = item.GetImageInfo(type, 0);
-                    if (existingImage == null || !IsHashMatch(localPath, existingImage.Path))
+                    bool needUpdate = false;
+                    if (existingImage == null)
+                    {
+                        needUpdate = true;
+                    }
+                    else if (string.Equals(localPath, existingImage.Path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (File.GetLastWriteTimeUtc(localPath) > existingImage.DateModified.AddSeconds(2))
+                        {
+                            needUpdate = true;
+                        }
+                    }
+                    else if (!IsHashMatch(localPath, existingImage.Path))
+                    {
+                        needUpdate = true;
+                    }
+
+                    if (needUpdate)
                     {
                         item.SetImage(new ItemImageInfo
                         {
