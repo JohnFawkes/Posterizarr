@@ -8811,6 +8811,11 @@ async def internal_asset_event(request: Request):
     """Internal endpoint to receive asset events from PowerShell or internal triggers."""
     try:
         data = await request.json()
+    except Exception as e:
+        logger.warning(f"[WS-Events] Invalid JSON in internal asset event: {e}")
+        return JSONResponse(status_code=400, content={"success": False, "error": "Invalid JSON payload"})
+
+    try:
         await broadcast_asset_event(
             library_name=data.get("library_name"),
             folder_name=data.get("folder_name"),
@@ -8823,7 +8828,7 @@ async def internal_asset_event(request: Request):
         return {"success": True, "message": "Asset event broadcast queued"}
     except Exception as e:
         logger.error(f"[WS-Events] Error handling internal asset event: {e}")
-        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+        return JSONResponse(status_code=500, content={"success": False, "error": "Internal server error"})
 
 
 @app.get("/ws/events")
