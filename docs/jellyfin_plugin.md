@@ -61,21 +61,22 @@ The plugin features a built-in background service (`PosterizarrWebSocketListener
 
 ```mermaid
 sequenceDiagram
-    participant WebUI as Posterizarr WebUI
+    participant Engine as Posterizarr Engine / WebUI
     participant Backend as Posterizarr Backend (/ws/events)
     participant Plugin as Jellyfin Plugin
     participant Jellyfin as Jellyfin Media Server
 
-    WebUI->>Backend: Replace / Upload Asset (or Overlay Process)
+    Engine->>Backend: Render Asset / Upload / Replace Artwork
     Backend-->>Plugin: WebSocket event: "asset_updated"
     Plugin->>Plugin: Validate path & confine to Asset Root (CWE-22)
     Plugin->>Jellyfin: Lookup item & SaveImage(Stream)
-    Plugin->>Jellyfin: UpdateItemAsync (Refresh UI)
+    Plugin->>Jellyfin: UpdateItemAsync (Instant Refresh)
 ```
 
-1. **Instant Event Broadcast:** When an asset is saved or overlay-processed in Posterizarr WebUI, an `asset_updated` payload is immediately broadcast across active WebSocket connections.
-2. **Autonomous Operation:** Even if Posterizarr is configured with `UsePlex: true` and `UseJellyfin: false`, the Jellyfin plugin operates autonomously by monitoring the shared `/assets` directory. When an asset is modified, Jellyfin updates instantaneously without running a full library scan.
-3. **Smart Cache Synchronization:** Once an item is updated via real-time sync, its hash is recorded in the plugin's `SyncCacheManager`, ensuring future scheduled tasks skip it without redundant disk reads or CPU overhead.
+1. **Instant Event Broadcast:** Whether artwork is generated during automated runs (Tautulli Recently Added, Sonarr/Radarr webhooks, manual runs, scheduled runs) or replaced in the WebUI, `LogsWatcher` detects the change and immediately broadcasts an `asset_updated` event over `/ws/events`.
+2. **Direct Image Application:** Upon receiving the event, the Jellyfin plugin directly opens the rendered file from disk and calls Jellyfin's internal `SaveImage` and `UpdateItemAsync` APIs. The item refreshes in under a second without requiring a full library scan.
+3. **Autonomous Operation:** Even if Posterizarr is configured with `UsePlex: true` and `UseJellyfin: false`, the Jellyfin plugin operates autonomously by monitoring the shared `/assets` directory. When an asset is modified, Jellyfin updates instantaneously.
+4. **Smart Cache Synchronization:** Once an item is updated via real-time sync, its hash is recorded in the plugin's `SyncCacheManager`, ensuring future scheduled tasks skip it without redundant disk reads or CPU overhead.
 
 ### Security Highlights
 

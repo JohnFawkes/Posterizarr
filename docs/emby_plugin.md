@@ -59,21 +59,22 @@ The Emby plugin includes a real-time event listener service (`PosterizarrWebSock
 
 ```mermaid
 sequenceDiagram
-    participant WebUI as Posterizarr WebUI
+    participant Engine as Posterizarr Engine / WebUI
     participant Backend as Posterizarr Backend (/ws/events)
     participant Plugin as Emby Plugin
     participant Emby as Emby Media Server
 
-    WebUI->>Backend: Replace / Upload Asset (or Overlay Process)
+    Engine->>Backend: Render Asset / Upload / Replace Artwork
     Backend-->>Plugin: WebSocket event: "asset_updated"
     Plugin->>Plugin: Validate path & confine to Asset Root (CWE-22)
     Plugin->>Emby: Lookup item & SetImage(...)
-    Plugin->>Emby: UpdateItem (Refresh UI)
+    Plugin->>Emby: UpdateItem (Instant Refresh)
 ```
 
-1. **Instant Event Broadcast:** When an asset is saved or overlay-processed in Posterizarr WebUI, an `asset_updated` payload is immediately broadcast across active WebSocket connections.
-2. **Autonomous Operation:** Even if Posterizarr is configured with `UsePlex: true` and `UseJellyfin: false` / `UseEmby: false`, the Emby plugin operates autonomously by monitoring the shared `/assets` directory. When an asset is modified, Emby updates instantaneously without waiting for the daily scheduled task.
-3. **Smart Cache Synchronization:** Once an item is updated via real-time sync, its hash is updated in the plugin's `SyncCacheManager`, ensuring scheduled tasks skip it without redundant re-processing.
+1. **Instant Event Broadcast:** Whether artwork is generated during automated runs (Tautulli Recently Added, Sonarr/Radarr webhooks, manual runs, scheduled runs) or replaced in the WebUI, `LogsWatcher` detects the change and immediately broadcasts an `asset_updated` event over `/ws/events`.
+2. **Direct Image Application:** Upon receiving the event, the Emby plugin directly opens the rendered file from disk and applies it to the library item via Emby's internal `SetImage` and `UpdateItem` APIs. The item refreshes in under a second without requiring a full library scan or waiting for scheduled tasks.
+3. **Autonomous Operation:** Even if Posterizarr is configured with `UsePlex: true` and `UseJellyfin: false` / `UseEmby: false`, the Emby plugin operates autonomously by monitoring the shared `/assets` directory. When an asset is modified, Emby updates instantaneously without waiting for the daily scheduled task.
+4. **Smart Cache Synchronization:** Once an item is updated via real-time sync, its hash is updated in the plugin's `SyncCacheManager`, ensuring scheduled tasks skip it without redundant re-processing.
 
 ### Security Highlights
 
