@@ -16,6 +16,9 @@ Features:
 import logging
 import time
 import threading
+import asyncio
+import csv
+import re
 from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -38,6 +41,9 @@ class LogsWatcher:
         db_instance=None,
         runtime_db_instance=None,
         media_export_db_instance=None,
+        broadcast_callback=None,
+        loop=None,
+        assets_dir: Optional[Path] = None,
     ):
         """
         Initialize the logs watcher
@@ -47,11 +53,19 @@ class LogsWatcher:
             db_instance: ImageChoices database instance
             runtime_db_instance: Runtime database instance
             media_export_db_instance: Plex export database instance
+            broadcast_callback: Async callback to broadcast asset events to WebSocket clients
+            loop: Running asyncio event loop for threadsafe dispatch
+            assets_dir: Path to the assets directory
         """
         self.logs_dir = Path(logs_dir)
         self.db = db_instance
         self.runtime_db = runtime_db_instance
         self.media_export_db = media_export_db_instance
+        self.broadcast_callback = broadcast_callback
+        self.loop = loop
+        self.assets_dir = Path(assets_dir) if assets_dir else None
+        self.csv_broadcast_lock = threading.Lock()
+        self.last_csv_row_count = 0
 
         self.observer: Any = None  # watchdog.observers.Observer instance
         self.handler: Any = None  # LogsFileHandler instance
@@ -134,6 +148,20 @@ class LogsWatcher:
             )
 
             self.is_running = True
+
+            # Record baseline ImageChoices.csv row count (only rows appended after startup will be broadcast)
+            csv_path = self.logs_dir / "ImageChoices.csv"
+            if csv_path.exists():
+                try:
+                    with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+                        reader = csv.DictReader(f, delimiter=";")
+                        self.last_csv_row_count = sum(1 for row in reader if row.get("Title") or row.get("Rootfolder"))
+                    logger.info(f"[WS-Events] Baseline ImageChoices.csv row count initialized to {self.last_csv_row_count}")
+                except Exception as e:
+                    logger.warning(f"[WS-Events] Could not read baseline ImageChoices.csv: {e}")
+                    self.last_csv_row_count = 0
+            else:
+                self.last_csv_row_count = 0
 
             # Record which files exist at startup (to prevent restart duplicates)
             logger.debug("Recording existing files at startup...")
@@ -623,13 +651,13 @@ class LogsWatcher:
         logger.info("=" * 80)
 
         try:
+            csv_path = self.logs_dir / "ImageChoices.csv"
+            if not csv_path.exists():
+                logger.warning(f"{csv_path.name} not found, skipping import.")
+                return
+
             if self.db:
                 logger.debug(f"[Thread {thread_id}] Calling db.import_from_csv()...")
-                csv_path = self.logs_dir / "ImageChoices.csv"
-                if not csv_path.exists():
-                    logger.warning(f"{csv_path.name} not found, skipping import.")
-                    return
-
                 start_time = time.time()
                 stats = self.db.import_from_csv(csv_path)
                 elapsed = time.time() - start_time
@@ -641,9 +669,12 @@ class LogsWatcher:
                 logger.info(f"  Stats: {stats['added']} added, {stats['skipped']} skipped, {stats['errors']} errors")
                 logger.info("=" * 80)
             else:
-                logger.error(
-                    f"[Thread {thread_id}] [ERROR] CSV import failed: db_instance is None"
+                logger.warning(
+                    f"[Thread {thread_id}] CSV DB import skipped: db_instance is None"
                 )
+
+            # Broadcast newly appended rows over WebSocket to connected media servers
+            self._process_new_imagechoices_and_broadcast()
 
         except Exception as e:
             logger.error("=" * 80)
@@ -869,6 +900,9 @@ class LogsWatcher:
                     logger.info(f"  Thread: {thread_name}")
                     logger.info(f"  Duration: {elapsed:.2f}s")
                     logger.info("=" * 80)
+
+                    # Also check for any new image choices appended during this run
+                    self._process_new_imagechoices_and_broadcast()
                 else:
                     logger.warning(f"[WARN]  No runtime data parsed from {json_path.name}")
 
@@ -886,6 +920,132 @@ class LogsWatcher:
             logger.error("=" * 80)
         finally:
             logger.debug(f"[Thread {thread_id}] Runtime import thread finishing")
+
+    def _process_new_imagechoices_and_broadcast(self):
+        """Check ImageChoices.csv for new rows and broadcast real-time update events."""
+        if not self.broadcast_callback or not self.loop:
+            return
+
+        csv_path = self.logs_dir / "ImageChoices.csv"
+        if not csv_path.exists():
+            return
+
+        with self.csv_broadcast_lock:
+            try:
+                with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+                    reader = csv.DictReader(f, delimiter=";")
+                    all_rows = [
+                        {k.strip('"').strip(): v.strip('"').strip() for k, v in row.items() if k}
+                        for row in reader
+                    ]
+                    all_rows = [r for r in all_rows if r.get("Title") or r.get("Rootfolder")]
+
+                total_rows = len(all_rows)
+                if total_rows < self.last_csv_row_count:
+                    logger.info(
+                        f"[WS-Events] ImageChoices.csv rotated/shortened ({total_rows} < {self.last_csv_row_count}). Resetting baseline."
+                    )
+                    self.last_csv_row_count = 0
+
+                if total_rows <= self.last_csv_row_count:
+                    return
+
+                new_rows = all_rows[self.last_csv_row_count:]
+                self.last_csv_row_count = total_rows
+                logger.info(f"[WS-Events] Detected {len(new_rows)} new entries in ImageChoices.csv to broadcast")
+
+                for row in new_rows:
+                    self._broadcast_single_row(row)
+
+            except Exception as e:
+                logger.error(f"[WS-Events] Error processing new ImageChoices rows: {e}", exc_info=True)
+
+    def _broadcast_single_row(self, row: dict):
+        """Extract metadata and broadcast a single ImageChoices row."""
+        try:
+            raw_title = row.get("Title", "")
+            raw_type = row.get("Type", "")
+            root_folder = row.get("Rootfolder", "")
+            library_name = row.get("LibraryName", "")
+
+            if not root_folder:
+                return
+
+            type_lower = raw_type.lower()
+            season_number = None
+            episode_number = None
+            clean_title = raw_title
+
+            if "episode" in type_lower:
+                asset_type = "titlecard"
+                ep_match = re.search(r"S(\d+)E(\d+)", raw_title, re.IGNORECASE)
+                if ep_match:
+                    season_number = int(ep_match.group(1))
+                    episode_number = int(ep_match.group(2))
+                if "|" in raw_title:
+                    clean_title = raw_title.split("|", 1)[1].strip()
+                base_name = f"S{season_number:02d}E{episode_number:02d}" if season_number and episode_number else "poster"
+
+            elif "season" in type_lower:
+                asset_type = "season"
+                s_match = re.search(r"Season\s*(\d+)", raw_title, re.IGNORECASE)
+                if s_match:
+                    season_number = int(s_match.group(1))
+                else:
+                    season_number = 1
+                if "|" in raw_title:
+                    clean_title = raw_title.split("|")[0].strip()
+                base_name = f"Season{season_number:02d}"
+
+            elif "background" in type_lower or "backdrop" in type_lower:
+                asset_type = "background"
+                base_name = "background"
+
+            else:
+                # Movie, Show, Poster
+                asset_type = "poster"
+                base_name = "poster"
+
+            # Resolve relative path
+            relative_path = None
+            if self.assets_dir and self.assets_dir.exists():
+                for ext in [".jpg", ".png", ".jpeg", ".webp"]:
+                    if library_name:
+                        check_path = self.assets_dir / library_name / root_folder / f"{base_name}{ext}"
+                        if check_path.exists():
+                            relative_path = f"{library_name}/{root_folder}/{base_name}{ext}"
+                            break
+                    check_path = self.assets_dir / root_folder / f"{base_name}{ext}"
+                    if check_path.exists():
+                        relative_path = f"{root_folder}/{base_name}{ext}"
+                        break
+
+            if not relative_path:
+                if library_name:
+                    relative_path = f"{library_name}/{root_folder}/{base_name}.jpg"
+                else:
+                    relative_path = f"{root_folder}/{base_name}.jpg"
+
+            logger.info(
+                f"[WS-Events] Broadcasting real-time asset: '{clean_title}' "
+                f"(Type: {asset_type}, Folder: '{root_folder}', Path: '{relative_path}')"
+            )
+
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    self.broadcast_callback(
+                        library_name=library_name,
+                        folder_name=root_folder,
+                        asset_type=asset_type,
+                        relative_path=relative_path,
+                        season_number=season_number,
+                        episode_number=episode_number,
+                        title=clean_title,
+                    ),
+                    self.loop,
+                )
+        except Exception as ex:
+            logger.error(f"[WS-Events] Error broadcasting single row: {ex}", exc_info=True)
 
 class LogsFileHandler(FileSystemEventHandler):
     """File system event handler for logs directory"""
@@ -1024,6 +1184,9 @@ def create_logs_watcher(
     db_instance=None,
     runtime_db_instance=None,
     media_export_db_instance=None,
+    broadcast_callback=None,
+    loop=None,
+    assets_dir: Optional[Path] = None,
 ) -> LogsWatcher:
     """
     Factory function to create and configure a LogsWatcher
@@ -1033,6 +1196,9 @@ def create_logs_watcher(
         db_instance: ImageChoices database instance
         runtime_db_instance: Runtime database instance
         media_export_db_instance: Plex export database instance
+        broadcast_callback: Async callback to broadcast asset events to WebSocket clients
+        loop: Running asyncio event loop for threadsafe dispatch
+        assets_dir: Path to the assets directory
 
     Returns:
         Configured LogsWatcher instance
@@ -1058,7 +1224,9 @@ def create_logs_watcher(
         db_instance=db_instance,
         runtime_db_instance=runtime_db_instance,
         media_export_db_instance=media_export_db_instance,
-        # Callbacks are no longer needed here
+        broadcast_callback=broadcast_callback,
+        loop=loop,
+        assets_dir=assets_dir,
     )
 
     logger.info("[OK] LogsWatcher instance created successfully")

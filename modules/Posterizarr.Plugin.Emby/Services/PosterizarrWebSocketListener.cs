@@ -348,14 +348,21 @@ namespace Posterizarr.Plugin.Services
 
         private void HandleAssetUpdatedEvent(AssetEventPayload payload, PluginConfiguration config)
         {
+            _logger.Info("[Posterizarr WS] Received real-time update event: {0} for '{1}' (Folder: '{2}')",
+                payload.AssetType ?? "poster", payload.Title ?? payload.FolderName, payload.FolderName);
+
             // =========================================================================
             // SECURITY: CWE-22 Path Traversal & Injection Defenses
             // =========================================================================
-            if (string.IsNullOrWhiteSpace(payload.RelativePath) ||
-                string.IsNullOrWhiteSpace(config.AssetFolderPath) ||
-                string.IsNullOrWhiteSpace(payload.FolderName))
+            if (string.IsNullOrWhiteSpace(config.AssetFolderPath))
             {
-                LogDebug("Skipping event with missing relative path, asset folder, or folder name.");
+                _logger.Warn("[Posterizarr WS] Real-time event ignored: Root Asset Folder Path is not configured in Emby plugin settings.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(payload.RelativePath) || string.IsNullOrWhiteSpace(payload.FolderName))
+            {
+                LogDebug("Skipping event with missing relative path or folder name.");
                 return;
             }
 
@@ -369,11 +376,24 @@ namespace Posterizarr.Plugin.Services
                 return;
             }
 
+            // Normalize away redundant leading assets/ or manualassets/ prefix
+            string relativeForTarget = rawRelative;
+            if (relativeForTarget.StartsWith("assets/", StringComparison.OrdinalIgnoreCase) ||
+                relativeForTarget.StartsWith("assets\\", StringComparison.OrdinalIgnoreCase))
+            {
+                relativeForTarget = relativeForTarget.Substring(7);
+            }
+            else if (relativeForTarget.StartsWith("manualassets/", StringComparison.OrdinalIgnoreCase) ||
+                     relativeForTarget.StartsWith("manualassets\\", StringComparison.OrdinalIgnoreCase))
+            {
+                relativeForTarget = relativeForTarget.Substring(13);
+            }
+
             // 2. Canonicalize path and ensure it strictly resides within AssetFolderPath root
             string normalizedRoot = Path.GetFullPath(config.AssetFolderPath)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
-            string fullTargetFile = Path.GetFullPath(Path.Combine(config.AssetFolderPath, rawRelative.Replace('/', Path.DirectorySeparatorChar)));
+            string fullTargetFile = Path.GetFullPath(Path.Combine(config.AssetFolderPath, relativeForTarget.Replace('/', Path.DirectorySeparatorChar)));
 
             if (!fullTargetFile.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
             {
@@ -381,10 +401,17 @@ namespace Posterizarr.Plugin.Services
                 return;
             }
 
-            // 3. Verify file exists on disk
+            // 3. Verify file exists on disk (retry up to 5 times / 2s in case of minor flush delay)
+            int retries = 0;
+            while (!File.Exists(fullTargetFile) && retries < 5)
+            {
+                Thread.Sleep(400);
+                retries++;
+            }
+
             if (!File.Exists(fullTargetFile))
             {
-                LogDebug("Asset file does not exist on disk yet: '{0}'. Skipping.", fullTargetFile);
+                _logger.Warn("[Posterizarr WS] Asset file does not exist on disk at '{0}'. Verify that Emby's Root Asset Folder Path ('{1}') is correctly mounted to Posterizarr's asset directory.", fullTargetFile, config.AssetFolderPath);
                 return;
             }
 

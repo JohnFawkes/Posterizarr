@@ -713,6 +713,7 @@ db: Optional["ImageChoicesDB"] = None
 config_db: Optional["ConfigDB"] = None
 media_export_db: Optional["MediaExportDatabase"] = None
 server_libraries_db: Optional["ServerLibrariesDB"] = None
+logs_watcher: Optional[Any] = None
 
 # Initialize cache variables early to prevent race conditions
 cache_refresh_task = None
@@ -2249,6 +2250,9 @@ async def lifespan(app: FastAPI):
                 media_export_db_instance=(
                     media_export_db if MEDIA_EXPORT_DB_AVAILABLE else None
                 ),
+                broadcast_callback=broadcast_asset_event,
+                loop=asyncio.get_running_loop(),
+                assets_dir=ASSETS_DIR,
             )
             logs_watcher.start()
             logger.info(
@@ -8723,6 +8727,7 @@ class EventWebSocketManager:
                 await self.disconnect(ws)
 
 event_manager = EventWebSocketManager()
+_recently_broadcast_assets: dict[str, float] = {}
 
 
 async def broadcast_asset_event(
@@ -8740,6 +8745,12 @@ async def broadcast_asset_event(
         clean_folder = str(folder_name).strip() if folder_name else ""
         clean_type = str(asset_type).strip().lower() if asset_type else "poster"
         clean_path = str(relative_path).replace("\\", "/").lstrip("/") if relative_path else ""
+
+        # Normalize away any redundant leading root directory aliases
+        if clean_path.lower().startswith("assets/"):
+            clean_path = clean_path[7:].lstrip("/")
+        elif clean_path.lower().startswith("manualassets/"):
+            clean_path = clean_path[13:].lstrip("/")
 
         if not clean_path and clean_library and clean_folder:
             filename = "poster.jpg"
@@ -8760,6 +8771,18 @@ async def broadcast_asset_event(
                     filename = f"S{season_number}E{episode_number}.jpg"
             clean_path = f"{clean_library}/{clean_folder}/{filename}"
 
+        # Deduplication check: prevent identical broadcasts within 5 seconds
+        now = time.time()
+        for k, ts in list(_recently_broadcast_assets.items()):
+            if now - ts > 15.0:
+                _recently_broadcast_assets.pop(k, None)
+
+        cache_key = f"{clean_path.lower()}:{clean_type}"
+        if cache_key in _recently_broadcast_assets and (now - _recently_broadcast_assets[cache_key]) < 5.0:
+            logger.debug(f"[WS-Events] Deduplicating broadcast for '{clean_path}' (already sent)")
+            return
+        _recently_broadcast_assets[cache_key] = now
+
         payload = {
             "event": "asset_updated",
             "library_name": clean_library,
@@ -8774,6 +8797,26 @@ async def broadcast_asset_event(
         await event_manager.broadcast(payload)
     except Exception as ex:
         logger.error(f"[WS-Events] Error formatting/broadcasting asset event: {ex}")
+
+
+@app.post("/api/internal/asset-event")
+async def internal_asset_event(request: Request):
+    """Internal endpoint to receive asset events from PowerShell or internal triggers."""
+    try:
+        data = await request.json()
+        await broadcast_asset_event(
+            library_name=data.get("library_name"),
+            folder_name=data.get("folder_name"),
+            asset_type=data.get("asset_type"),
+            relative_path=data.get("relative_path"),
+            season_number=data.get("season_number"),
+            episode_number=data.get("episode_number"),
+            title=data.get("title"),
+        )
+        return {"success": True, "message": "Asset event broadcast queued"}
+    except Exception as e:
+        logger.error(f"[WS-Events] Error handling internal asset event: {e}")
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 
 @app.get("/ws/events")
