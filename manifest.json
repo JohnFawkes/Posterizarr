@@ -9,6 +9,20 @@
     "imageUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/main/docs/images/Plugin_logo.png",
     "versions": [
       {
+        "version": "3.3.3",
+        "changelog": "Official Release 3.3.3\n\n- **Persistent State Caching**: Added `posterizarr_sync_cache.json` in the plugin data directory to track file sizes, timestamps, and image metadata. Unchanged assets are skipped instantly in memory with zero network I/O.\n- **Directory & File Caching**: Added `AssetPathResolver` to cache root library shares and folder file listings. Reduces tens of thousands of remote SMB/NFS round-trips to a single query per media folder.\n- **Parallel Async Sync Task**: Upgraded `PosterizarrSyncTask` to use `Parallel.ForEachAsync` with adaptive concurrency, replacing single-threaded sequential processing.\n- **Tiered Image Verification**: Added 4KB header and file-length pre-checks to eliminate continuous ~30 MB/s full-file MD5 hash calculations across the network.\n- **Debug Mode Toggle**: Debug messages (`[Posterizarr DEBUG]`) are now directly controlled by the plugin's `EnableDebugMode` setting and visible in the Jellyfin log viewer without changing server logging configurations.\n- **Emby Optimization**: Added same-path timestamp comparison to prevent double-hashing identical local files in Emby.\n- **Performance Benchmark**: Successfully verified on a 39,000-item library, reducing task runtime from **32m 51s to 13 seconds (~151x faster)** with near-zero network and disk utilization.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/3.3.3/Posterizarr.Plugin_v3.3.3-jf12.zip",
+        "checksum": "5181C3CFCC80346CC06582A0726769BF"
+      },
+      {
+        "version": "3.3.3",
+        "changelog": "Official Release 3.3.3\n\n- **Persistent State Caching**: Added `posterizarr_sync_cache.json` in the plugin data directory to track file sizes, timestamps, and image metadata. Unchanged assets are skipped instantly in memory with zero network I/O.\n- **Directory & File Caching**: Added `AssetPathResolver` to cache root library shares and folder file listings. Reduces tens of thousands of remote SMB/NFS round-trips to a single query per media folder.\n- **Parallel Async Sync Task**: Upgraded `PosterizarrSyncTask` to use `Parallel.ForEachAsync` with adaptive concurrency, replacing single-threaded sequential processing.\n- **Tiered Image Verification**: Added 4KB header and file-length pre-checks to eliminate continuous ~30 MB/s full-file MD5 hash calculations across the network.\n- **Debug Mode Toggle**: Debug messages (`[Posterizarr DEBUG]`) are now directly controlled by the plugin's `EnableDebugMode` setting and visible in the Jellyfin log viewer without changing server logging configurations.\n- **Emby Optimization**: Added same-path timestamp comparison to prevent double-hashing identical local files in Emby.\n- **Performance Benchmark**: Successfully verified on a 39,000-item library, reducing task runtime from **32m 51s to 13 seconds (~151x faster)** with near-zero network and disk utilization.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/fscorrupt/posterizarr/releases/download/3.3.3/Posterizarr.Plugin_v3.3.3.zip",
+        "checksum": "CEE9D73414EE6B0FE78B4FCBFCBA9C5D"
+      },
+      {
         "version": "3.3.2",
         "changelog": "Official Release 3.3.2\n\n- **Jellyfin 12.0.x & 10.11.x Multi-Targeting**: Compiled for both `.NET 9` (Jellyfin 10.11.x) and `.NET 10` (Jellyfin 12.0.x) with target-specific ABI dependencies (`10.11.0.0` and `12.0.0.0`).\n- **Automated Dual Packaging**: Manifest and release pipelines now generate separate distribution archives (`Posterizarr.Plugin_v3.3.2.zip` and `Posterizarr.Plugin_v3.3.2-jf12.zip`).\n- **Emby API Token Authentication**: Updated media server logo upload headers to use `MediaBrowser Token=\"{token}\"` format, resolving upload failures on Emby servers.\n\n---",
         "targetAbi": "12.0.0.0",
