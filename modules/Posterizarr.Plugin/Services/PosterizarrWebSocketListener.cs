@@ -19,22 +19,61 @@ using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Configuration;
 using Posterizarr.Plugin.Tasks;
 
+using System.Text.Json.Serialization;
+
 namespace Posterizarr.Plugin.Services;
 
 /// <summary>
 /// Strongly typed payload received from Posterizarr WebSocket event stream.
+/// Supports both snake_case and camelCase property names.
 /// </summary>
 public class AssetEventPayload
 {
+    [JsonPropertyName("event")]
     public string? Event { get; set; }
+
+    [JsonPropertyName("library_name")]
     public string? LibraryName { get; set; }
+
+    [JsonPropertyName("folder_name")]
     public string? FolderName { get; set; }
+
+    [JsonPropertyName("asset_type")]
     public string? AssetType { get; set; }
+
+    [JsonPropertyName("season_number")]
     public object? SeasonNumber { get; set; }
+
+    [JsonPropertyName("episode_number")]
     public object? EpisodeNumber { get; set; }
+
+    [JsonPropertyName("title")]
     public string? Title { get; set; }
+
+    [JsonPropertyName("relative_path")]
     public string? RelativePath { get; set; }
+
+    [JsonPropertyName("timestamp")]
     public string? Timestamp { get; set; }
+
+    // Fallback setters for camelCase / PascalCase
+    [JsonPropertyName("libraryName")]
+    public string? LibraryNameCamel { set { if (string.IsNullOrEmpty(LibraryName)) LibraryName = value; } }
+
+    [JsonPropertyName("folderName")]
+    public string? FolderNameCamel { set { if (string.IsNullOrEmpty(FolderName)) FolderName = value; } }
+
+    [JsonPropertyName("assetType")]
+    public string? AssetTypeCamel { set { if (string.IsNullOrEmpty(AssetType)) AssetType = value; } }
+
+    [JsonPropertyName("seasonNumber")]
+    public object? SeasonNumberCamel { set { if (SeasonNumber == null) SeasonNumber = value; } }
+
+    [JsonPropertyName("episodeNumber")]
+    public object? EpisodeNumberCamel { set { if (EpisodeNumber == null) EpisodeNumber = value; } }
+
+    [JsonPropertyName("relativePath")]
+    public string? RelativePathCamel { set { if (string.IsNullOrEmpty(RelativePath)) RelativePath = value; } }
 
     public int? GetSeasonNumber()
     {

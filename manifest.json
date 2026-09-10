@@ -6,6 +6,7 @@
     "overview": "A custom plugin for Posterizarr that acts as a local asset proxy for Jellyfin.",
     "owner": "Posterizarr",
     "category": "Metadata",
+    "imageUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/main/docs/images/Plugin_logo.png",
     "versions": [
       {
         "version": "3.3.2",

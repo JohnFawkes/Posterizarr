@@ -8793,6 +8793,13 @@ async def broadcast_asset_event(
             "title": title,
             "relative_path": clean_path,
             "timestamp": datetime.utcnow().isoformat() + "Z",
+            # CamelCase aliases for universal compatibility with .NET plugin deserializers
+            "libraryName": clean_library,
+            "folderName": clean_folder,
+            "assetType": clean_type,
+            "seasonNumber": season_number,
+            "episodeNumber": episode_number,
+            "relativePath": clean_path,
         }
         await event_manager.broadcast(payload)
     except Exception as ex:
