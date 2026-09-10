@@ -398,7 +398,7 @@ The backend (`webui/backend/main.py`) provides over 170 REST and WebSocket endpo
 ### 5. Media Server C# Plugins
 - **`modules/Posterizarr.Plugin`**: In-tree C# plugin for Jellyfin.
 - **`modules/Posterizarr.Plugin.Emby`**: In-tree C# plugin for Emby.
-- Enables media servers to natively notify Posterizarr upon library updates without external webhook scrapers.
+- Provides local asset middleware and persistent WebSocket event listeners (`/ws/events`), instantaneously applying posters, backgrounds, season art, and title cards to media server library items without full library scans.
 
 ### 6. Monitoring & Notification Channels
 - **Uptime Kuma**: Pings push URL on run start and completion with execution time and exit status.

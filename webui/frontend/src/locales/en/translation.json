@@ -981,6 +981,46 @@
       "setupTautulliDocker": "Setup Tautulli (Docker)",
       "setupTautulliWin": "Setup Tautulli (Win)"
     },
+    "plugins": {
+      "title": "Media Server Plugins & Real-Time Sync",
+      "subtitle": "Direct middleware plugins for Jellyfin and Emby that map local assets and listen for real-time WebSocket updates.",
+      "jellyfin": {
+        "title": "Posterizarr for Jellyfin",
+        "tag": "Jellyfin 10.11 / 12.0 (.NET 9 & 10)",
+        "badge": "Official Plugin",
+        "description": "Acts as a local asset proxy for Jellyfin. Automatically maps posters, backgrounds, season posters, and titlecards from your shared /assets folder to library items.",
+        "features": [
+          "Real-Time WebSocket event synchronization (/ws/events)",
+          "Maps local files directly to Jellyfin items without full library rescans",
+          "Dedicated repository manifest for automatic updates and version selection",
+          "Autonomous operation in shared UnionFS/assets environments"
+        ],
+        "button": "Jellyfin Plugin Docs"
+      },
+      "emby": {
+        "title": "Posterizarr for Emby",
+        "tag": "Emby Server (.NET 8)",
+        "badge": "Official Plugin",
+        "description": "Ported middleware for Emby Server. Provides local asset mapping, scheduled background sync tasks, and instantaneous artwork updates via WebSockets.",
+        "features": [
+          "Real-Time WebSocket event synchronization (/ws/events)",
+          "Scheduled background sync task (configurable daily/hourly schedule)",
+          "Automatic poster, background, and titlecard metadata provider",
+          "Autonomous operation in shared UnionFS/assets environments"
+        ],
+        "button": "Emby Plugin Docs"
+      },
+      "realtimeBridge": {
+        "title": "How Real-Time WebSocket Sync Works",
+        "badge": "Instant Push Bridge",
+        "description": "Posterizarr provides an active event stream so Jellyfin and Emby stay synchronized immediately without waiting for daily scheduled tasks or manual triggers:",
+        "step1": "Edit / Upload: Save or overlay-process any poster, background, season, or titlecard in Posterizarr WebUI.",
+        "step2": "Instant Broadcast: Posterizarr dispatches an asset_updated payload over WebSocket (/ws/events).",
+        "step3": "Secure Handshake & Validation: Connected plugins authenticate via X-API-Key HTTP header and validate paths against directory traversal (CWE-22).",
+        "step4": "Instant Refresh: The plugin updates the target Movie, Series, Season, or Episode immediately and caches its hash.",
+        "note": "Independent Operation: Even if Posterizarr is configured with Plex enabled and Jellyfin/Emby disabled, the plugins monitor the shared /assets folder via WebSocket and update artwork seamlessly."
+      }
+    },
     "technical": {
       "title": "Technical Highlights",
       "smartCaching": "<strong>Smart Caching:</strong> Only creates missing artwork, skipping existing assets",

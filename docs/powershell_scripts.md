@@ -182,8 +182,8 @@ These scripts represent the different "Modes" the application can run in. They d
 ## 5. Media Server Plugins & Automation Triggers (`modules/`)
 
 ### C# Media Server Plugins
-- **`Posterizarr.Plugin/`**: In-tree C# plugin for **Jellyfin**. Hooks into Jellyfin's item added and metadata refresh events to trigger Posterizarr processing automatically.
-- **`Posterizarr.Plugin.Emby/`**: In-tree C# plugin for **Emby**, providing native event hooks and seamless communication with the Posterizarr backend.
+- **`Posterizarr.Plugin/`**: In-tree C# plugin for **Jellyfin**. Serves as local asset middleware and maintains a real-time WebSocket connection to Posterizarr (`/ws/events`), instantly updating item artwork without library scans.
+- **`Posterizarr.Plugin.Emby/`**: In-tree C# plugin for **Emby**, providing native local asset lookup middleware, scheduled sync, and real-time WebSocket event synchronization (`/ws/events`).
 
 ### External Automation Scripts
 - **`ArrTrigger.sh`**: Lightweight shell script configured as a Custom Script in Radarr and Sonarr (`On File Import`). Writes `.posterizarr` trigger descriptor files into `/posterizarr/watcher` for file-based containerized triggers.

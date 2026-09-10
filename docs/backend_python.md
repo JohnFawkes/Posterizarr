@@ -44,7 +44,7 @@ The backend handles the following core responsibilities:
 
 ### Utilities & Helpers
 
-- **`logs_watcher.py`**: A utility that monitors Posterizarr log files in real-time, allowing the frontend to stream logs via WebSockets.
+- **`logs_watcher.py`**: A dual-purpose background watcher that monitors Posterizarr log files in real-time (allowing the frontend to stream logs via WebSockets) and tracks newly appended entries in `Logs/ImageChoices.csv` to broadcast real-time `asset_updated` WebSocket events to media server plugins (Jellyfin/Emby) without requiring polling or filesystem hooks on the assets folder.
 - **`improve_logging.py`**: Enhances standard Python logging for the backend application.
 - **`overlay_generator.py`**: A backend helper script used for generating quick preview overlays for the UI without invoking the full PowerShell stack.
 - **`studio_logos.py`**: Handles studio, network, and production company logo resolution, local caching, and transparent PNG delivery for collection designs and media badges.

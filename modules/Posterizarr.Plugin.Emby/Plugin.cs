@@ -12,7 +12,7 @@ namespace Posterizarr.Plugin
     {
         public override string Name => "Posterizarr Emby";
         public override Guid Id => Guid.Parse("e62d8560-6123-4567-89ab-cdef12345678");
-        public override string Description => "Maps local assets to library items as posters, backgrounds, or titlecards.";
+        public override string Description => "Local asset metadata provider and real-time WebSocket sync engine. Instantly maps and updates posters, backgrounds, seasons, and title cards.";
 
         public static Plugin? Instance { get; private set; }
 

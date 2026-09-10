@@ -23,6 +23,7 @@ import {
   ExternalLink,
   Webhook,
   FileCode,
+  Radio,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -288,6 +289,194 @@ function HowItWorks() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Media Server Plugins & Real-Time Sync */}
+      <div className="bg-theme-card border border-theme rounded-lg p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-2xl font-bold text-theme-text flex items-center gap-2">
+              <Server className="w-6 h-6 text-theme-primary" />
+              {t("howItWorks.plugins.title", "Media Server Plugins & Real-Time Sync")}
+            </h2>
+            <p className="text-sm text-theme-muted mt-1">
+              {t("howItWorks.plugins.subtitle", "Direct middleware plugins for Jellyfin and Emby that map local assets and listen for real-time WebSocket updates.")}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 w-fit">
+            <Radio className="w-3.5 h-3.5 animate-pulse" />
+            Live WebSocket
+          </span>
+        </div>
+
+        {/* Plugin Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Jellyfin Card */}
+          <div className="bg-theme-hover border border-theme rounded-xl p-6 flex flex-col justify-between hover:border-theme-primary/60 transition-all duration-300 group">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform duration-300">
+                    <Server className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-theme-text">
+                      {t("howItWorks.plugins.jellyfin.title", "Posterizarr for Jellyfin")}
+                    </h3>
+                    <span className="text-xs text-theme-muted font-mono">
+                      {t("howItWorks.plugins.jellyfin.tag", "Jellyfin 10.11 / 12.0 (.NET 9 & 10)")}
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-theme-primary/15 text-theme-primary border border-theme-primary/30">
+                  {t("howItWorks.plugins.jellyfin.badge", "Official Plugin")}
+                </span>
+              </div>
+
+              <p className="text-sm text-theme-muted leading-relaxed">
+                {t("howItWorks.plugins.jellyfin.description", "Acts as a local asset proxy for Jellyfin. Automatically maps posters, backgrounds, season posters, and titlecards from your shared /assets folder to library items.")}
+              </p>
+
+              <div className="space-y-2 pt-2 border-t border-theme">
+                {t("howItWorks.plugins.jellyfin.features", { returnObjects: true })?.map((feat, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs text-theme-text">
+                    <CheckCircle className="w-3.5 h-3.5 text-theme-primary flex-shrink-0 mt-0.5" />
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <a
+                href="https://fscorrupt.github.io/posterizarr/jellyfin_plugin/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-theme-primary hover:bg-theme-primary-hover text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+              >
+                <span>{t("howItWorks.plugins.jellyfin.button", "Jellyfin Plugin Docs")}</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          {/* Emby Card */}
+          <div className="bg-theme-hover border border-theme rounded-xl p-6 flex flex-col justify-between hover:border-theme-primary/60 transition-all duration-300 group">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 group-hover:scale-105 transition-transform duration-300">
+                    <Server className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-theme-text">
+                      {t("howItWorks.plugins.emby.title", "Posterizarr for Emby")}
+                    </h3>
+                    <span className="text-xs text-theme-muted font-mono">
+                      {t("howItWorks.plugins.emby.tag", "Emby Server (.NET 8)")}
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-theme-primary/15 text-theme-primary border border-theme-primary/30">
+                  {t("howItWorks.plugins.emby.badge", "Official Plugin")}
+                </span>
+              </div>
+
+              <p className="text-sm text-theme-muted leading-relaxed">
+                {t("howItWorks.plugins.emby.description", "Ported middleware for Emby Server. Provides local asset mapping, scheduled background sync tasks, and instantaneous artwork updates via WebSockets.")}
+              </p>
+
+              <div className="space-y-2 pt-2 border-t border-theme">
+                {t("howItWorks.plugins.emby.features", { returnObjects: true })?.map((feat, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs text-theme-text">
+                    <CheckCircle className="w-3.5 h-3.5 text-theme-primary flex-shrink-0 mt-0.5" />
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <a
+                href="https://fscorrupt.github.io/posterizarr/emby_plugin/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-theme-primary hover:bg-theme-primary-hover text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+              >
+                <span>{t("howItWorks.plugins.emby.button", "Emby Plugin Docs")}</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Real-Time WebSocket Architecture Callout */}
+        <div className="bg-theme-bg/60 border border-theme rounded-xl p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-theme pb-3">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-400" />
+              <h3 className="font-bold text-theme-text text-sm sm:text-base">
+                {t("howItWorks.plugins.realtimeBridge.title", "How Real-Time WebSocket Sync Works")}
+              </h3>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30 w-fit">
+              {t("howItWorks.plugins.realtimeBridge.badge", "Instant Push Bridge")}
+            </span>
+          </div>
+
+          <p className="text-xs sm:text-sm text-theme-muted">
+            {t("howItWorks.plugins.realtimeBridge.description", "Posterizarr provides an active event stream so Jellyfin and Emby stay synchronized immediately without waiting for daily scheduled tasks or manual triggers:")}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 rounded-lg bg-theme-hover border border-theme space-y-1">
+              <div className="font-semibold text-theme-primary flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-theme-primary/20 flex items-center justify-center text-[10px] font-bold">1</span>
+                Asset Action
+              </div>
+              <p className="text-theme-muted leading-relaxed">
+                {t("howItWorks.plugins.realtimeBridge.step1", "Save or overlay-process any poster, background, season, or titlecard in Posterizarr WebUI.")}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-theme-hover border border-theme space-y-1">
+              <div className="font-semibold text-theme-primary flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-theme-primary/20 flex items-center justify-center text-[10px] font-bold">2</span>
+                WebSocket Broadcast
+              </div>
+              <p className="text-theme-muted leading-relaxed">
+                {t("howItWorks.plugins.realtimeBridge.step2", "Posterizarr dispatches an asset_updated payload over WebSocket (/ws/events).")}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-theme-hover border border-theme space-y-1">
+              <div className="font-semibold text-theme-primary flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-theme-primary/20 flex items-center justify-center text-[10px] font-bold">3</span>
+                Security Validation
+              </div>
+              <p className="text-theme-muted leading-relaxed">
+                {t("howItWorks.plugins.realtimeBridge.step3", "Plugin authenticates via X-API-Key HTTP header and validates paths against directory traversal (CWE-22).")}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-theme-hover border border-theme space-y-1">
+              <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold">4</span>
+                Instant Media Refresh
+              </div>
+              <p className="text-theme-muted leading-relaxed">
+                {t("howItWorks.plugins.realtimeBridge.step4", "The plugin updates the target Movie, Series, Season, or Episode immediately and caches its hash.")}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 pt-2 text-xs text-theme-muted bg-theme-card/50 p-3 rounded-lg border border-theme">
+            <Shield className="w-4 h-4 text-theme-primary flex-shrink-0 mt-0.5" />
+            <span>
+              {t("howItWorks.plugins.realtimeBridge.note", "Independent Operation: Even if Posterizarr is configured with Plex enabled and Jellyfin/Emby disabled, the plugins monitor the shared /assets folder via WebSocket and update artwork seamlessly.")}
+            </span>
+          </div>
         </div>
       </div>
 

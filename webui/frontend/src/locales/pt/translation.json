@@ -973,6 +973,46 @@
       "setupTautulliDocker": "Config. Tautulli (Docker)",
       "setupTautulliWin": "Config. Tautulli (Win)"
     },
+    "plugins": {
+      "title": "Plugins de Servidor de Mídia e Sincronização em Tempo Real",
+      "subtitle": "Plugins de middleware direto para Jellyfin e Emby que mapeiam ativos locais e escutam atualizações em tempo real via WebSocket.",
+      "jellyfin": {
+        "title": "Posterizarr para Jellyfin",
+        "tag": "Jellyfin 10.11 / 12.0 (.NET 9 & 10)",
+        "badge": "Plugin Oficial",
+        "description": "Atua como um proxy de ativos locais para o Jellyfin. Mapeia automaticamente pôsteres, planos de fundo, pôsteres de temporadas e cartões de título da sua pasta compartilhada /assets para os itens da biblioteca.",
+        "features": [
+          "Sincronização de eventos em tempo real via WebSocket (/ws/events)",
+          "Mapeia arquivos locais diretamente para itens do Jellyfin sem novas verificações completas da biblioteca",
+          "Manifesto de repositório dedicado para atualizações automáticas e seleção de versão",
+          "Operação autônoma em ambientes compartilhados UnionFS/assets"
+        ],
+        "button": "Documentação do Plugin Jellyfin"
+      },
+      "emby": {
+        "title": "Posterizarr para Emby",
+        "tag": "Emby Server (.NET 8)",
+        "badge": "Plugin Oficial",
+        "description": "Middleware portado para o Emby Server. Fornece mapeamento de ativos locais, tarefas agendadas de sincronização em segundo plano e atualizações instantâneas de ilustrações via WebSockets.",
+        "features": [
+          "Sincronização de eventos em tempo real via WebSocket (/ws/events)",
+          "Tarefa de sincronização agendada em segundo plano (agendamento diário/horário configurável)",
+          "Provedor automático de metadados para pôsteres, planos de fundo e cartões de título",
+          "Operação autônoma em ambientes compartilhados UnionFS/assets"
+        ],
+        "button": "Documentação do Plugin Emby"
+      },
+      "realtimeBridge": {
+        "title": "Como funciona a sincronização em tempo real via WebSocket",
+        "badge": "Ponte de Envio Instantâneo",
+        "description": "O Posterizarr fornece um fluxo de eventos ativo para que o Jellyfin e o Emby permaneçam sincronizados imediatamente, sem esperar por tarefas diárias ou acionamentos manuais:",
+        "step1": "Editar / Enviar: Salve ou processe sobreposições em qualquer pôster, plano de fundo, temporada ou cartão de título na WebUI do Posterizarr.",
+        "step2": "Transmissão Instantânea: O Posterizarr envia uma carga de asset_updated via WebSocket (/ws/events).",
+        "step3": "Aperto de mão seguro e validação: Plugins conectados autenticam-se pelo cabeçalho HTTP X-API-Key e validam caminhos contra traversais de diretório (CWE-22).",
+        "step4": "Atualização Instantânea: O plugin atualiza o Filme, Série, Temporada ou Episódio de destino imediatamente e armazena o hash em cache.",
+        "note": "Operação Independente: Mesmo que o Posterizarr esteja configurado com o Plex ativado e o Jellyfin/Emby desativado, os plugins monitoram a pasta compartilhada /assets via WebSocket e atualizam as ilustrações perfeitamente."
+      }
+    },
     "technical": {
       "title": "Destaques técnicos",
       "smartCaching": "<strong>Cache inteligente:</strong> cria apenas arte ausente, pulando ativos existentes",

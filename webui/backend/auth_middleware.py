@@ -97,6 +97,15 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
                 logger.info(f"Blocked unauthenticated webhook request to {path}. Please ensure your webhook URL includes the ?api_key= parameter.")
                 return self._unauthorized_response()
 
+        # 2b. Internal Endpoints (Allowed from local loopback or with valid API key)
+        if path.startswith("/api/internal/"):
+            client_host = request.client.host if request.client else ""
+            if client_host in ("127.0.0.1", "::1", "localhost") or is_api_key_valid:
+                return await call_next(request)
+            else:
+                logger.info(f"Blocked unauthorized request to internal endpoint {path} from {client_host}")
+                return self._unauthorized_response()
+
         # If API key is valid for other endpoints, bypass Basic Auth
         if is_api_key_valid:
             return await call_next(request)

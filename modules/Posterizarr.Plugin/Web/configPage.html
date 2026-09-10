@@ -63,6 +63,34 @@
                     </label>
                 </div>
 
+                <h2 class="sectionTitle">Real-Time Sync (WebSocket)</h2>
+                <div class="inputContainer">
+                    <label class="checkboxContainerLabel">
+                        <input type="checkbox" id="chkEnableRealtimeSync" name="chkEnableRealtimeSync" is="emby-checkbox" />
+                        <span>Enable Real-Time Sync (WebSocket)</span>
+                    </label>
+                    <div class="fieldDescription">Connect directly to Posterizarr's event stream. Automatically refreshes media items immediately when an asset is created or edited, without waiting for scheduled tasks.</div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel" for="txtPosterizarrApiUrl">Posterizarr URL</label>
+                    <input type="text" id="txtPosterizarrApiUrl" name="txtPosterizarrApiUrl" is="emby-input" placeholder="http://192.168.1.50:8000" />
+                    <div class="fieldDescription">The base URL of your Posterizarr server (e.g., http://localhost:8000 or http://posterizarr:8000).</div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel" for="txtPosterizarrApiKey">Posterizarr API Key (Required for Real-Time Sync)</label>
+                    <input type="password" id="txtPosterizarrApiKey" name="txtPosterizarrApiKey" is="emby-input" />
+                    <div class="fieldDescription">Mandatory for real-time WebSocket connection. Sent securely via X-API-Key HTTP header (never in URL).</div>
+                </div>
+
+                <div class="inputContainer" style="margin-top: 1em; margin-bottom: 1.5em;">
+                    <button is="emby-button" type="button" id="btnTestPosterizarr" class="raised" style="margin-right: 1em;">
+                        <span>Test Connection</span>
+                    </button>
+                    <div id="testConnectionResult" style="margin-top: 8px; font-weight: 500; font-size: 0.95em; min-height: 1.2em;"></div>
+                </div>
+
                 <button is="emby-button" type="submit" class="raised button-submit block">Save Settings</button>
             </form>
         </div>
@@ -80,18 +108,23 @@
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                     page.querySelector('#txtAssetPath').value = config.AssetFolderPath || "";
                     page.querySelector('#chkDebugMode').checked = config.EnableDebugMode || false;
-                    
+
                     const chkUpdatePoster = page.querySelector('#chkUpdatePoster');
                     const chkUpdateSeason = page.querySelector('#chkUpdateSeason');
                     const chkUpdateTitlecard = page.querySelector('#chkUpdateTitlecard');
                     const chkUpdateBackdrop = page.querySelector('#chkUpdateBackdrop');
                     const chkUpdateThumbnail = page.querySelector('#chkUpdateThumbnail');
-                    
+
                     if (chkUpdatePoster) chkUpdatePoster.checked = config.UpdatePoster !== false;
                     if (chkUpdateSeason) chkUpdateSeason.checked = config.UpdateSeason !== false;
                     if (chkUpdateTitlecard) chkUpdateTitlecard.checked = config.UpdateTitlecard !== false;
                     if (chkUpdateBackdrop) chkUpdateBackdrop.checked = config.UpdateBackdrop !== false;
                     if (chkUpdateThumbnail) chkUpdateThumbnail.checked = config.UpdateThumbnail || false;
+
+                    const chkRealtime = page.querySelector('#chkEnableRealtimeSync');
+                    if (chkRealtime) chkRealtime.checked = config.EnableRealtimeSync || false;
+                    page.querySelector('#txtPosterizarrApiUrl').value = config.PosterizarrApiUrl || "";
+                    page.querySelector('#txtPosterizarrApiKey').value = config.PosterizarrApiKey || "";
 
                     configLoaded = true;
                     Dashboard.hideLoadingMsg();
@@ -105,6 +138,73 @@
                 view.addEventListener('viewshow', function () { configLoaded = false; loadConfig(this); });
                 view.addEventListener('pageshow', function () { configLoaded = false; loadConfig(this); });
 
+                const btnTest = view.querySelector('#btnTestPosterizarr');
+                const resultDiv = view.querySelector('#testConnectionResult');
+                if (btnTest) {
+                    btnTest.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const rawUrl = (view.querySelector('#txtPosterizarrApiUrl').value || '').trim();
+                        const apiKey = (view.querySelector('#txtPosterizarrApiKey').value || '').trim();
+
+                        if (!rawUrl) {
+                            if (resultDiv) {
+                                resultDiv.textContent = 'Please enter a Posterizarr URL first.';
+                                resultDiv.style.color = '#e5a00d';
+                            }
+                            return;
+                        }
+
+                        if (!apiKey) {
+                            if (resultDiv) {
+                                resultDiv.textContent = 'Please enter your Posterizarr API Key (required).';
+                                resultDiv.style.color = '#e5a00d';
+                            }
+                            return;
+                        }
+
+                        if (resultDiv) {
+                            resultDiv.textContent = 'Testing connection to Posterizarr...';
+                            resultDiv.style.color = '#aaa';
+                        }
+
+                        const probeUrl = rawUrl.replace(/\/+$/, '') + '/ws/events';
+                        const headers = { 'X-API-Key': apiKey };
+
+                        fetch(probeUrl, { method: 'GET', headers: headers })
+                            .then(function (res) {
+                                if (!resultDiv) return;
+                                if (res.ok || res.status === 200) {
+                                    resultDiv.textContent = 'Connected! Posterizarr WebSocket event stream is active.';
+                                    resultDiv.style.color = '#52b788';
+                                } else if (res.status === 404) {
+                                    resultDiv.textContent = 'Posterizarr is reachable, but /ws/events was not found (HTTP 404). Posterizarr may need to be updated to the latest dev build with WebSocket support.';
+                                    resultDiv.style.color = '#e5a00d';
+                                } else if (res.status === 401 || res.status === 403) {
+                                    resultDiv.textContent = 'Authentication failed (HTTP ' + res.status + '). Please verify your API Key.';
+                                    resultDiv.style.color = '#e63946';
+                                } else {
+                                    resultDiv.textContent = 'Posterizarr returned HTTP status ' + res.status;
+                                    resultDiv.style.color = '#e5a00d';
+                                }
+                            })
+                            .catch(function (err) {
+                                if (!resultDiv) return;
+                                if (window.location.protocol === 'https:' && rawUrl.toLowerCase().startsWith('http://')) {
+                                    resultDiv.innerHTML = '<span style="color: #e5a00d;">⚠️ Browser blocked direct test (Mixed Content: HTTPS to HTTP).</span><br/>' +
+                                        '<span style="color: #aaa; font-size: 0.9em;">However, the server connects directly in the background! Click <b>Save Settings</b> below and check the server log.</span>';
+                                    return;
+                                }
+                                if (!rawUrl.includes('.') && !rawUrl.includes('localhost') && !rawUrl.includes('127.0.0.1')) {
+                                    resultDiv.innerHTML = '<span style="color: #52b788;">ℹ️ Internal Docker hostname detected.</span><br/>' +
+                                        '<span style="color: #aaa; font-size: 0.9em;">Your browser cannot resolve Docker hostnames, but the server container can! Click <b>Save Settings</b> to connect.</span>';
+                                    return;
+                                }
+                                resultDiv.textContent = 'Cannot reach Posterizarr at ' + rawUrl + ' from browser. Click "Save Settings" if the server connects directly over LAN/Docker.';
+                                resultDiv.style.color = '#e63946';
+                            });
+                    });
+                }
+
                 view.querySelector('#PosterizarrConfigForm').addEventListener('submit', function (e) {
                     e.preventDefault();
                     Dashboard.showLoadingMsg();
@@ -113,7 +213,7 @@
                     ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         config.AssetFolderPath = view.querySelector('#txtAssetPath').value;
                         config.EnableDebugMode = view.querySelector('#chkDebugMode').checked;
-                        
+
                         const chkUpdatePoster = view.querySelector('#chkUpdatePoster');
                         const chkUpdateSeason = view.querySelector('#chkUpdateSeason');
                         const chkUpdateTitlecard = view.querySelector('#chkUpdateTitlecard');
@@ -125,6 +225,19 @@
                         if (chkUpdateTitlecard) config.UpdateTitlecard = chkUpdateTitlecard.checked;
                         if (chkUpdateBackdrop) config.UpdateBackdrop = chkUpdateBackdrop.checked;
                         if (chkUpdateThumbnail) config.UpdateThumbnail = chkUpdateThumbnail.checked;
+
+                        const chkRealtime = view.querySelector('#chkEnableRealtimeSync');
+                        config.EnableRealtimeSync = chkRealtime ? chkRealtime.checked : false;
+                        config.PosterizarrApiUrl = (view.querySelector('#txtPosterizarrApiUrl').value || "").trim();
+                        config.PosterizarrApiKey = (view.querySelector('#txtPosterizarrApiKey').value || "").trim();
+
+                        if (config.EnableRealtimeSync && (!config.PosterizarrApiUrl || !config.PosterizarrApiKey)) {
+                            Dashboard.hideLoadingMsg();
+                            Dashboard.alert({
+                                message: "Both Posterizarr URL and API Key are required when Real-Time Sync is enabled."
+                            });
+                            return;
+                        }
 
                         ApiClient.updatePluginConfiguration(pluginId, config).then(function(result) {
                             Dashboard.processPluginConfigurationUpdateResult(result);
