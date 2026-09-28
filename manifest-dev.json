@@ -9,18 +9,18 @@
     "imageUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/dev/docs/images/Plugin_logo.png",
     "versions": [
       {
-        "version": "99.0.0928.0931",
-        "changelog": "Dev build: 2026-09-28 09:31",
+        "version": "99.0.0928.0945",
+        "changelog": "Dev build: 2026-09-28 09:45",
         "targetAbi": "12.0.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0928.0931-jf12.zip",
-        "checksum": "5359D80265F01546AFF2BAB415A0B3E8"
+        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0928.0945-jf12.zip",
+        "checksum": "E971908AC77567819C54B672CF5DE369"
       },
       {
-        "version": "99.0.0928.0931",
-        "changelog": "Dev build: 2026-09-28 09:31",
+        "version": "99.0.0928.0945",
+        "changelog": "Dev build: 2026-09-28 09:45",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0928.0931.zip",
-        "checksum": "2342982F5ED8E90286ADF9B465E771EC"
+        "sourceUrl": "https://raw.githubusercontent.com/fscorrupt/posterizarr/builds/Posterizarr.Plugin_v99.0.0928.0945.zip",
+        "checksum": "12B447A56E4B6EE7836676098103D72F"
       }
     ]
   }
