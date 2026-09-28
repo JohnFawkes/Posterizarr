@@ -2051,8 +2051,12 @@
     "header": {
       "title": "Trigger automatici",
       "subtitle": "Crea e invia automaticamente le locandine al tuo server multimediale quando vengono aggiunti nuovi contenuti.",
+      "bullet1Title": "Come funziona:",
       "bullet1": "Elabora solo gli elementi appena aggiunti e carica immediatamente gli asset. I contenuti esistenti vengono ignorati.",
-      "bullet2": "Utenti Plex: Utilizza Tautulli per una corrispondenza esatta. I trigger Arr sono pensati principalmente per Jellyfin/Emby e richiedono una corrispondenza manuale."
+      "bullet2Title": "Raccomandazione Plex:",
+      "bullet2": "Utenti Plex: Utilizza Tautulli per una corrispondenza esatta. I trigger Arr sono pensati principalmente per Jellyfin/Emby e richiedono una corrispondenza manuale.",
+      "bullet3Title": "Caricamento diretto:",
+      "bullet3": "I trigger forzano sempre il caricamento immediato sul server multimediale (ignorando PlexUpload=false). Se usi Kometa e non desideri caricamenti da Posterizarr, usa le esecuzioni pianificate invece dei trigger."
     },
     "tabs": {
       "tautulli": {

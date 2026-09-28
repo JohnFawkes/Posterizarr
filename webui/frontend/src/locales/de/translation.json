@@ -2104,8 +2104,12 @@
     "header": {
       "title": "Automatische Trigger",
       "subtitle": "Erstelle und sende automatisch Poster an deinen Mediaserver, wenn neue Medien hinzugefügt werden.",
+      "bullet1Title": "Funktionsweise:",
       "bullet1": "Verarbeitet nur neu hinzugefügte Elemente und lädt Assets sofort hoch. Vorhandene Medien werden ignoriert.",
-      "bullet2": "Plex-Nutzer: Verwende Tautulli für exakte Übereinstimmungen. Arr-Trigger sind hauptsächlich für Jellyfin/Emby gedacht und erfordern einen manuellen Abgleich."
+      "bullet2Title": "Plex-Empfehlung:",
+      "bullet2": "Plex-Nutzer: Verwende Tautulli für exakte Übereinstimmungen. Arr-Trigger sind hauptsächlich für Jellyfin/Emby gedacht und erfordern einen manuellen Abgleich.",
+      "bullet3Title": "Direkter Upload:",
+      "bullet3": "Trigger-Läufe erzwingen immer den sofortigen Upload auf den Medienserver (ignoriert PlexUpload=false). Wenn du Kometa nutzt und keinerlei Uploads von Posterizarr wünschst, nutze zeitgesteuerte Batch-Läufe statt Trigger."
     },
     "tabs": {
       "tautulli": {

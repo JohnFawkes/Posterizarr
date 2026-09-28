@@ -2047,8 +2047,12 @@
     "header": {
       "title": "Triggers Automáticos",
       "subtitle": "Crie e envie pôsteres automaticamente para o seu servidor de mídia quando novas mídias forem adicionadas.",
+      "bullet1Title": "Como funciona:",
       "bullet1": "Processa apenas os itens recém-adicionados e faz o upload dos recursos imediatamente. As mídias existentes são ignoradas.",
-      "bullet2": "Usuários do Plex: Use o Tautulli para uma correspondência exata. Os triggers do Arr são principalmente para o Jellyfin/Emby e exigem correspondência manual."
+      "bullet2Title": "Recomendação do Plex:",
+      "bullet2": "Usuários do Plex: Use o Tautulli para uma correspondência exata. Os triggers do Arr são principalmente para o Jellyfin/Emby e exigem correspondência manual.",
+      "bullet3Title": "Envio direto:",
+      "bullet3": "Execuções via gatilho sempre forçam o envio imediato para seu servidor de mídia (ignorando PlexUpload=false). Se você usa o Kometa e não quer uploads diretos do Posterizarr, use execuções agendadas em vez de gatilhos."
     },
     "tabs": {
       "tautulli": {

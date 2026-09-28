@@ -35,3 +35,20 @@ Common reasons for alerts include:
 
 You can read more about how to manage these in the [Action Center Guide](action_center.md).
 
+## Plex & Automation: Why does Posterizarr upload artwork during Tautulli / *Arr runs even if `PlexUpload` is `false`?
+
+**Question:** I set `PlexUpload: "false"` in my configuration because I use Kometa to manage asset uploads and overlays. However, when new media is imported via Tautulli or Radarr/Sonarr triggers, Posterizarr still uploads the poster/background directly to Plex. Is this intended?
+
+**Answer:** 
+**Yes, this is completely intentional by design.**
+
+Here is why:
+* **`PlexUpload: "false"`** is designed specifically for **scheduled, batch, and normal library runs**. In this workflow, Posterizarr generates and stores stylized assets in your `/assets` directory. Kometa then runs subsequently on a schedule, applies its own overlays/metadata, and pushes the final combined artwork to Plex.
+* **Auto-triggers (Tautulli and Radarr/Sonarr webhooks)** are designed for **instant real-time fulfillment**. When a new movie, show, or episode is added, the trigger's sole purpose is to immediately supply custom Posterizarr artwork to your media server so the new media has a clean, styled poster immediately. If uploads were disabled in trigger mode, the trigger would have no visible effect in Plex until a subsequent Kometa cycle ran (which might be hours or days away).
+
+### Recommended Workflows
+
+1. **If you want immediate artwork upon media addition (Recommended):**
+   Leave Tautulli or *Arr triggers enabled. Newly added media receives styled Posterizarr artwork right away, and whenever Kometa runs later, Kometa will add its overlay flags on top.
+2. **If you want ONLY Kometa to ever touch Plex artwork:**
+   **Disable Tautulli and *Arr triggers entirely**. Instead, schedule Posterizarr to run periodically (e.g., daily at 02:00) before your scheduled Kometa run (e.g., daily at 03:00). With `PlexUpload: "false"`, Posterizarr will generate images exclusively into the `/assets` directory, and Kometa will perform 100% of the uploads to Plex.

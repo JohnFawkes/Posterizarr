@@ -57,6 +57,14 @@ libraries:
 - **`prioritize_assets`**: Ensures Kometa prioritizes found local image assets over downloading from metadata agents, preserving the textless images you generated.
 - **`assets_for_all`**: Instructs Kometa to apply these assets to all matches within the library during an operation run.
 
+## 3. Kometa and Real-Time Triggers (Tautulli / *Arr Webhooks)
+
+A common question is how Posterizarr's `PlexUpload` configuration behaves alongside Kometa when using real-time triggers:
+
+- **Scheduled & Normal Runs:** Setting `"PlexUpload": "false"` in `config.json` ensures Posterizarr does **not** upload to Plex during scheduled batch runs. Posterizarr will solely save generated assets to your `/assets` directory, allowing Kometa to pick them up, apply its overlays, and handle the final upload to Plex.
+- **Trigger Modes (Tautulli / *Arr Webhooks):** When triggered by newly added media events, Posterizarr **intentionally forces direct upload to Plex** (`Upload2Plex = true`), bypassing `PlexUpload: false`. This design ensures that newly imported movies or episodes immediately receive custom artwork in Plex rather than displaying default agent artwork or blank posters until your next scheduled Kometa run (which may only run once daily or every few days). Kometa will still process the asset and apply its overlays over the artwork during its next scheduled cycle.
+- **Pure Kometa-Only Upload Workflow:** If you want strictly zero uploads from Posterizarr so that *only* the finished poster with Kometa overlays is ever pushed to Plex, **do not configure Tautulli or *Arr triggers**. Instead, schedule Posterizarr regular batch runs to execute shortly before your Kometa scheduled run.
+
 ## Summary
 
 By doing these two simple steps: 

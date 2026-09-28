@@ -306,6 +306,9 @@ On [docker](platformandtools.md#docker) this way:
 !!! note
     If Discord is configured it will send a Notification on each trigger.
 
+!!! info "Direct Upload Enforced in Trigger Modes"
+    Tautulli Mode always forces direct upload to Plex (`Upload2Plex = true`), regardless of whether `PlexUpload` is set to `false` in your `config.json`. The purpose of real-time triggers is to immediately style newly added media in Plex the moment it is imported, without waiting for your next scheduled run. If you use Kometa and want zero uploads from Posterizarr before Kometa applies overlays, do not configure Tautulli triggers; schedule regular Posterizarr batch runs before your Kometa schedule instead.
+
 In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex, like a new show, movie or episode got added.
 
 To use it we need to configure a script in Tautulli, please follow these instructions.
@@ -426,6 +429,9 @@ In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex
 
 !!! note
     If Discord is configured it will send a Notification on each trigger.
+
+!!! info "Direct Upload Enforced in Trigger Modes"
+    Arr trigger runs always force direct upload to your media server (`Upload2Plex = true` / Jellyfin / Emby), regardless of whether `PlexUpload` is set to `false` in your `config.json`.
 
 In this mode we use Sonarr/Radarr to trigger Posterizarr for an specific item in Plex/Jellyfin, like a new show, movie or episode got added.
 

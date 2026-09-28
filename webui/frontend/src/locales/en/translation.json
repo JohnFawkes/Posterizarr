@@ -2054,8 +2054,12 @@
     "header": {
       "title": "Auto Triggers",
       "subtitle": "Automatically create and push posters to your media server when new media is added.",
+      "bullet1Title": "How it works:",
       "bullet1": "Processes only newly added items and uploads assets immediately. Existing media is ignored.",
-      "bullet2": "Plex Users: Use Tautulli for exact matching. Arr triggers are primarily for Jellyfin/Emby and require manual matching."
+      "bullet2Title": "Plex Recommendation:",
+      "bullet2": "Plex Users: Use Tautulli for exact matching. Arr triggers are primarily for Jellyfin/Emby and require manual matching.",
+      "bullet3Title": "Direct Upload:",
+      "bullet3": "Trigger runs always force immediate upload to your media server (bypassing PlexUpload=false). If you use Kometa and want zero uploads from Posterizarr, use scheduled batch runs instead of triggers."
     },
     "tabs": {
       "tautulli": {

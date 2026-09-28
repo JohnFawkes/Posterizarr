@@ -2052,8 +2052,12 @@
     "header": {
       "title": "Déclencheurs automatiques",
       "subtitle": "Créez et envoyez automatiquement des affiches à votre serveur multimédia lorsque de nouveaux médias sont ajoutés.",
+      "bullet1Title": "Fonctionnement :",
       "bullet1": "Traite uniquement les éléments nouvellement ajoutés et téléverse les ressources immédiatement. Les médias existants sont ignorés.",
-      "bullet2": "Utilisateurs de Plex : Utilisez Tautulli pour une correspondance exacte. Les déclencheurs Arr sont principalement destinés à Jellyfin/Emby et nécessitent une correspondance manuelle."
+      "bullet2Title": "Recommandation Plex :",
+      "bullet2": "Utilisateurs de Plex : Utilisez Tautulli pour une correspondance exacte. Les déclencheurs Arr sont principalement destinés à Jellyfin/Emby et nécessitent une correspondance manuelle.",
+      "bullet3Title": "Téléversement direct :",
+      "bullet3": "Les déclencheurs forcent toujours l'envoi immédiat vers votre serveur multimédia (ignorant PlexUpload=false). Si vous utilisez Kometa sans envoi direct par Posterizarr, utilisez des tâches planifiées plutôt que des déclencheurs."
     },
     "tabs": {
       "tautulli": {

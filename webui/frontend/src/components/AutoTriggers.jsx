@@ -604,11 +604,15 @@ function AutoTriggers() {
           <ul className="space-y-2 text-sm text-theme-text">
             <li className="flex items-start gap-2">
               <Zap className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-              <span><strong>How it works:</strong> {t("autoTriggers.header.bullet1")}</span>
+              <span><strong>{t("autoTriggers.header.bullet1Title") || "How it works:"}</strong> {t("autoTriggers.header.bullet1")}</span>
             </li>
             <li className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span><strong>Plex Recommendation:</strong> {t("autoTriggers.header.bullet2")}</span>
+              <span><strong>{t("autoTriggers.header.bullet2Title") || "Plex Recommendation:"}</strong> {t("autoTriggers.header.bullet2")}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Info className="w-4 h-4 text-cyan-500 flex-shrink-0 mt-0.5" />
+              <span><strong>{t("autoTriggers.header.bullet3Title") || "Direct Upload:"}</strong> {t("autoTriggers.header.bullet3")}</span>
             </li>
           </ul>
         </div>

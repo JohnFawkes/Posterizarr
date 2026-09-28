@@ -47,7 +47,7 @@ CONFIG_TOOLTIPS = {
     "PlexUrl": "Plex server URL (i.e. 'http://192.168.1.1:32400' or 'http://myplexserver.com:32400').",
     "UsePlex": "If set to true, you tell the script to use a Plex Server (Default value is: true). Do not enable more than one media server.",
     "PlexUploadExistingAssets": "If set to true, the script will check local assets and upload them to Plex, but only if Plex does not already have EXIF data from Posterizarr, Kometa, or TCM for the artwork being uploaded.",
-    "PlexUpload": "If set to true, Posterizarr will directly upload the artwork to Plex (handy if you do not use Kometa).",
+    "PlexUpload": "If set to true, Posterizarr will directly upload the artwork to Plex during scheduled and normal batch runs (handy if you do not use Kometa). Note: Real-time trigger modes (Tautulli and *Arr webhooks) always force direct upload to Plex so newly added media is styled immediately, regardless of this setting.",
 
     # JellyfinPart
     "JellyfinLibstoExclude": "Libraries, by local folder name, to exclude from processing on your Jellyfin server.",

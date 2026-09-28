@@ -158,12 +158,12 @@ pwsh ./Posterizarr.ps1 [-ModeSwitch] [Parameters]
 ### 2. Arr Mode (`ArrMode.ps1`)
 - **CLI**: `pwsh ./Posterizarr.ps1 -ArrTrigger -ExtraArgs ...`
 - **Trigger**: Invoked by Radarr/Sonarr via `ArrTrigger.sh` or the native webhook `/api/webhook/arr`.
-- **Description**: Targeted single-item run. Reads the TMDB/TVDB ID or media folder passed by the Arr application and processes *only* that specific movie, show, or episode. Dispatches a follow-up callback to **Agregarr** if enabled.
+- **Description**: Targeted single-item run. Reads the TMDB/TVDB ID or media folder passed by the Arr application and processes *only* that specific movie, show, or episode. Dispatches a follow-up callback to **Agregarr** if enabled. **Note**: Direct upload to the media server is enforced by design in trigger mode (overriding `PlexUpload: "false"`) to ensure immediate artwork availability upon media import.
 
 ### 3. Tautulli Mode (`TautulliMode.ps1`)
 - **CLI**: `pwsh ./Posterizarr.ps1 -Tautulli -RatingKey "12345" -mediatype "movie"`
 - **Trigger**: Invoked by Tautulli on 'Recently Added' notifications via `trigger.py` or `/api/webhook/tautulli`.
-- **Description**: Targeted single-item run for Plex. Resolves the rating key, queries Plex metadata, and processes the newly added item immediately without a full library scan.
+- **Description**: Targeted single-item run for Plex. Resolves the rating key, queries Plex metadata, and processes the newly added item immediately without a full library scan. **Note**: Direct upload to Plex is enforced by design in trigger mode (overriding `PlexUpload: "false"`) to push artwork to Plex as soon as new items are added.
 
 ### 4. Manual Mode (`ManualMode.ps1`)
 - **Interactive**: `pwsh ./Posterizarr.ps1 -Manual -MoviePosterCard` (prompts for paths, titles, libraries).
