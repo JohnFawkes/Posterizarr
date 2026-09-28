@@ -20,7 +20,7 @@ using MediaBrowser.Model.Querying;
 
 namespace Posterizarr.Plugin.Providers
 {
-    public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
+    public class PosterizarrImageProvider : IRemoteImageProvider, IHasItemChangeMonitor, IHasOrder
     {
         private readonly ILibraryManager _libraryManager;
         private readonly ILogger _logger;
@@ -72,16 +72,42 @@ namespace Posterizarr.Plugin.Providers
             return types;
         }
 
+        public bool HasChanged(BaseItem item, LibraryOptions libraryOptions, IDirectoryService directoryService)
+        {
+            var config = Plugin.Instance?.Configuration;
+            if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
+                return false;
+
+            try
+            {
+                foreach (var type in GetSupportedImages(item))
+                {
+                    var path = FindFile(item, config, type);
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        LogDebug("HasChanged: Local file match found for '{0}' ({1}): {2}", item.Name, type, path);
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("[Posterizarr] Error in HasChanged for '{0}'", ex, item.Name);
+            }
+
+            return false;
+        }
+
         public Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, LibraryOptions libraryOptions, CancellationToken cancellationToken)
         {
             var config = Plugin.Instance?.Configuration;
+            _logger.Info("[Posterizarr] Searching images for '{0}' ({1})", item.Name, item.GetType().Name);
+
             if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
             {
                 _logger.Warn("[Posterizarr] AssetFolderPath is not configured.");
                 return Task.FromResult(Enumerable.Empty<RemoteImageInfo>());
             }
-
-            LogDebug("Searching images for '{0}' ({1})", item.Name, item.GetType().Name);
 
             var results = new List<RemoteImageInfo>();
             foreach (var type in GetSupportedImages(item))
@@ -89,10 +115,15 @@ namespace Posterizarr.Plugin.Providers
                 var path = FindFile(item, config, type);
                 if (string.IsNullOrEmpty(path)) continue;
 
-                LogDebug("Found {0}: '{1}'", type, path);
+                _logger.Info("[Posterizarr] Found {0} for '{1}' at '{2}'", type, item.Name, path);
                 var mtime = new DateTimeOffset(File.GetLastWriteTimeUtc(path)).ToUnixTimeSeconds();
                 var url = $"http://127.0.0.1:{_appHost.HttpPort}/Posterizarr/Image?path={Uri.EscapeDataString(path)}&t={mtime}";
                 results.Add(new RemoteImageInfo { ProviderName = Name, Url = url, ThumbnailUrl = url, Type = type });
+            }
+
+            if (results.Count == 0)
+            {
+                _logger.Info("[Posterizarr] No matching images found for '{0}' in '{1}'", item.Name, config.AssetFolderPath);
             }
 
             return Task.FromResult<IEnumerable<RemoteImageInfo>>(results);
@@ -211,8 +242,8 @@ namespace Posterizarr.Plugin.Providers
             var checkedDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // 1. Check primary "Collections" directory
-            var collectionsDir = Path.Combine(assetRoot, "Collections");
-            if (Directory.Exists(collectionsDir) && checkedDirs.Add(collectionsDir))
+            var collectionsDir = ResolveCollectionsDirectory(assetRoot);
+            if (!string.IsNullOrEmpty(collectionsDir) && checkedDirs.Add(collectionsDir))
             {
                 var match = FindInDirectory(collectionsDir, candidateNames, supportedExtensions, type);
                 if (match != null)
@@ -281,6 +312,19 @@ namespace Posterizarr.Plugin.Providers
 
             try
             {
+                if (!string.IsNullOrEmpty(collectionsDir))
+                {
+                    foreach (var lib in libraryNames)
+                    {
+                        var collectionsSubLib = Path.Combine(collectionsDir, lib);
+                        if (checkedDirs.Add(collectionsSubLib))
+                        {
+                            var match = FindInDirectory(collectionsSubLib, candidateNames, supportedExtensions, type);
+                            if (match != null) return match;
+                        }
+                    }
+                }
+
                 var rootDirs = Directory.GetDirectories(assetRoot);
                 foreach (var lib in libraryNames)
                 {
@@ -454,6 +498,32 @@ namespace Posterizarr.Plugin.Providers
             return null;
         }
 
+        public static string? ResolveCollectionsDirectory(string assetRoot)
+        {
+            if (string.IsNullOrEmpty(assetRoot) || !Directory.Exists(assetRoot))
+                return null;
+
+            var trimmedRoot = assetRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var rootDirName = Path.GetFileName(trimmedRoot);
+            if (string.Equals(rootDirName, "Collections", StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmedRoot;
+            }
+
+            try
+            {
+                var dirs = Directory.GetDirectories(trimmedRoot);
+                var matched = dirs.FirstOrDefault(d => string.Equals(Path.GetFileName(d), "Collections", StringComparison.OrdinalIgnoreCase));
+                if (matched != null)
+                {
+                    return matched;
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
         public static List<string> GetCollectionCandidateNames(string? rawName, string? path = null)
         {
             var results = new List<string>();
@@ -470,6 +540,22 @@ namespace Posterizarr.Plugin.Providers
                 var stripped = Regex.Replace(trimmed, @"\s*[\[\(\{]boxset[\]\)\}]\s*", "", RegexOptions.IgnoreCase).Trim();
                 if (!string.IsNullOrEmpty(stripped) && !results.Contains(stripped, StringComparer.OrdinalIgnoreCase))
                     results.Add(stripped);
+
+                // Handle '&' vs 'and' variants (e.g. "Alien & Predator Timeline" <-> "Alien and Predator Timeline")
+                if (trimmed.Contains('&'))
+                {
+                    var withAnd = trimmed.Replace("&", "and");
+                    var cleanAnd = Regex.Replace(withAnd, @"\s+", " ").Trim();
+                    if (!results.Contains(cleanAnd, StringComparer.OrdinalIgnoreCase))
+                        results.Add(cleanAnd);
+                }
+                if (Regex.IsMatch(trimmed, @"\band\b", RegexOptions.IgnoreCase))
+                {
+                    var withAmp = Regex.Replace(trimmed, @"\band\b", "&", RegexOptions.IgnoreCase);
+                    var cleanAmp = Regex.Replace(withAmp, @"\s+", " ").Trim();
+                    if (!results.Contains(cleanAmp, StringComparer.OrdinalIgnoreCase))
+                        results.Add(cleanAmp);
+                }
 
                 var replacedPunct = trimmed.Replace(':', '-').Replace('/', '-').Replace('\\', '-');
                 var cleanPunct = Regex.Replace(replacedPunct, @"\s+", " ").Trim(' ', '-');
@@ -511,6 +597,7 @@ namespace Posterizarr.Plugin.Providers
         {
             if (string.IsNullOrWhiteSpace(s)) return string.Empty;
             var stripped = Regex.Replace(s, @"[\[\(\{][^\]\)\}]*[\]\)\}]", "");
+            stripped = stripped.Replace("&", "and");
             var cleaned = Regex.Replace(stripped, @"[^a-zA-Z0-9]", "");
             return cleaned.ToLowerInvariant();
         }

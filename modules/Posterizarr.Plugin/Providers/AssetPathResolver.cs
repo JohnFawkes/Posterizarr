@@ -352,8 +352,8 @@ public class AssetPathResolver
         var checkedDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 1. Check primary "Collections" directory
-        var collectionsDir = Path.Combine(assetRoot, "Collections");
-        if (checkedDirs.Add(collectionsDir))
+        var collectionsDir = ResolveCollectionsDirectory(assetRoot);
+        if (!string.IsNullOrEmpty(collectionsDir) && checkedDirs.Add(collectionsDir))
         {
             var match = FindInDirectory(collectionsDir, candidateNames, supportedExtensions, type);
             if (match != null)
@@ -362,7 +362,7 @@ public class AssetPathResolver
                 return match;
             }
 
-            // Check subfolders under Collections (e.g., Collections/Movies, Collections/Shows, etc.)
+            // Check subfolders under Collections (e.g., Collections/Movies, Collections/4K Movies, Collections/Shows, etc.)
             foreach (var sub in GetSubdirectories(collectionsDir))
             {
                 if (checkedDirs.Add(sub))
@@ -379,39 +379,81 @@ public class AssetPathResolver
 
         // 2. Discover potential library names associated with this collection
         var libraryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var displayLib = boxSet.GetAncestorIds()
-            .Select(id => _libraryManager.GetItemById(id))
-            .OfType<CollectionFolder>()
-            .FirstOrDefault()?.Name;
-        if (!string.IsNullOrEmpty(displayLib) && displayLib != "Unknown" && displayLib != "root" && !displayLib.Equals("Collections", StringComparison.OrdinalIgnoreCase))
-        {
-            libraryNames.Add(displayLib);
-        }
 
+        // A. Direct BoxSet library folder IDs
         try
         {
-            var child = _libraryManager.GetItemList(new InternalItemsQuery
+            var folderIds = boxSet.GetLibraryFolderIds();
+            if (folderIds != null)
             {
-                ParentId = boxSet.Id,
-                Limit = 1
-            }).FirstOrDefault();
-
-            if (child != null)
-            {
-                var childLib = child.GetAncestorIds()
-                    .Select(id => _libraryManager.GetItemById(id))
-                    .OfType<CollectionFolder>()
-                    .FirstOrDefault()?.Name;
-                if (!string.IsNullOrEmpty(childLib) && !childLib.Equals("Collections", StringComparison.OrdinalIgnoreCase))
+                foreach (var id in folderIds)
                 {
-                    libraryNames.Add(childLib);
+                    var folder = _libraryManager.GetItemById(id);
+                    if (folder != null && !string.IsNullOrEmpty(folder.Name) && !folder.Name.Equals("Collections", StringComparison.OrdinalIgnoreCase))
+                    {
+                        libraryNames.Add(folder.Name);
+                    }
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            LogDebug("Error getting library folder IDs for boxset: {0}", ex.Message);
+        }
+
+        // B. Linked children libraries (movies inside the collection)
+        try
+        {
+            var children = boxSet.GetChildren(null, true, new InternalItemsQuery { Limit = 5 });
+            if (children != null)
+            {
+                foreach (var child in children)
+                {
+                    var childLib = child.GetAncestorIds()
+                        .Select(id => _libraryManager.GetItemById(id))
+                        .OfType<CollectionFolder>()
+                        .FirstOrDefault()?.Name;
+                    if (!string.IsNullOrEmpty(childLib) && !childLib.Equals("Collections", StringComparison.OrdinalIgnoreCase))
+                    {
+                        libraryNames.Add(childLib);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogDebug("Error getting linked children for boxset: {0}", ex.Message);
+        }
+
+        // C. Direct display library if present
+        try
+        {
+            var displayLib = boxSet.GetAncestorIds()
+                .Select(id => _libraryManager?.GetItemById(id))
+                .OfType<CollectionFolder>()
+                .FirstOrDefault()?.Name;
+            if (!string.IsNullOrEmpty(displayLib) && displayLib != "Unknown" && displayLib != "root" && !displayLib.Equals("Collections", StringComparison.OrdinalIgnoreCase))
+            {
+                libraryNames.Add(displayLib);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogDebug("Error getting ancestor IDs for boxset: {0}", ex.Message);
+        }
 
         foreach (var lib in libraryNames)
         {
+            if (!string.IsNullOrEmpty(collectionsDir))
+            {
+                var collectionsSubLib = Path.Combine(collectionsDir, lib);
+                if (checkedDirs.Add(collectionsSubLib))
+                {
+                    var match = FindInDirectory(collectionsSubLib, candidateNames, supportedExtensions, type);
+                    if (match != null) return match;
+                }
+            }
+
             var resolvedLibDir = ResolveLibraryDirectory(assetRoot, lib, lib);
             if (!string.IsNullOrEmpty(resolvedLibDir))
             {
@@ -574,6 +616,36 @@ public class AssetPathResolver
         return null;
     }
 
+    /// <summary>
+    /// Resolves the Collections directory case-insensitively and handles
+    /// configurations where assetRoot itself already points to the Collections directory.
+    /// </summary>
+    public static string? ResolveCollectionsDirectory(string assetRoot)
+    {
+        if (string.IsNullOrEmpty(assetRoot) || !Directory.Exists(assetRoot))
+            return null;
+
+        var trimmedRoot = assetRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var rootDirName = Path.GetFileName(trimmedRoot);
+        if (string.Equals(rootDirName, "Collections", StringComparison.OrdinalIgnoreCase))
+        {
+            return trimmedRoot;
+        }
+
+        try
+        {
+            var dirs = Directory.GetDirectories(trimmedRoot);
+            var matched = dirs.FirstOrDefault(d => string.Equals(Path.GetFileName(d), "Collections", StringComparison.OrdinalIgnoreCase));
+            if (matched != null)
+            {
+                return matched;
+            }
+        }
+        catch { }
+
+        return null;
+    }
+
     private string[] GetSubdirectories(string path)
     {
         if (string.IsNullOrEmpty(path)) return Array.Empty<string>();
@@ -618,6 +690,22 @@ public class AssetPathResolver
             if (!string.IsNullOrEmpty(stripped) && !results.Contains(stripped, StringComparer.OrdinalIgnoreCase))
                 results.Add(stripped);
 
+            // Handle '&' vs 'and' variants (e.g. "Alien & Predator Timeline" <-> "Alien and Predator Timeline")
+            if (trimmed.Contains('&'))
+            {
+                var withAnd = trimmed.Replace("&", "and");
+                var cleanAnd = System.Text.RegularExpressions.Regex.Replace(withAnd, @"\s+", " ").Trim();
+                if (!results.Contains(cleanAnd, StringComparer.OrdinalIgnoreCase))
+                    results.Add(cleanAnd);
+            }
+            if (System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"\band\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                var withAmp = System.Text.RegularExpressions.Regex.Replace(trimmed, @"\band\b", "&", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                var cleanAmp = System.Text.RegularExpressions.Regex.Replace(withAmp, @"\s+", " ").Trim();
+                if (!results.Contains(cleanAmp, StringComparer.OrdinalIgnoreCase))
+                    results.Add(cleanAmp);
+            }
+
             // Sanitize invalid chars: replace ':' and '/' with ' - '
             var replacedPunct = trimmed.Replace(':', '-').Replace('/', '-').Replace('\\', '-');
             var cleanPunct = System.Text.RegularExpressions.Regex.Replace(replacedPunct, @"\s+", " ").Trim(' ', '-');
@@ -661,6 +749,7 @@ public class AssetPathResolver
     {
         if (string.IsNullOrWhiteSpace(s)) return string.Empty;
         var stripped = System.Text.RegularExpressions.Regex.Replace(s, @"[\[\(\{][^\]\)\}]*[\]\)\}]", "");
+        stripped = stripped.Replace("&", "and");
         var cleaned = System.Text.RegularExpressions.Regex.Replace(stripped, @"[^a-zA-Z0-9]", "");
         return cleaned.ToLowerInvariant();
     }
