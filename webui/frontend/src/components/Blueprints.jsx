@@ -1462,6 +1462,7 @@ export default function Blueprints() {
     const canvasH = (previewType === 'Background' || previewType === 'TitleCard') ? 2160 : 3000;
     const offsetRaw = layer.text_offset || "+400";
     const offset = parseInt(String(offsetRaw).replace('+', '').replace('-', '')) || 400;
+    const offsetPercent = (offset / canvasH) * 100;
     const gravity = layer.TextGravity?.toLowerCase() || "south";
     const maxWidth = layer.MaxWidth === "" || layer.MaxWidth === undefined ? 1900 : (Number(layer.MaxWidth) || 0);
     const maxHeight = layer.MaxHeight === "" || layer.MaxHeight === undefined ? 500 : (Number(layer.MaxHeight) || 0);
