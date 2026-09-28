@@ -215,6 +215,7 @@
         - `Example:` https://artworks.thetvdb.com/banners/v4/movie/165/clearart/61249caa0924f.png
         - `What the setting does:` When set to `true`, the system will use the Clearart image instead of the standard title text.
     - `LogoTextFallback` : Set to `true` to fallback to `Text` if no logos are found.
+    - `LogoExifCheck` : Set to `true` to only force replace existing logos in Logo Updater mode if they lack Posterizarr EXIF metadata (e.g. default/unwanted logos selected by Plex). Logos already created/uploaded by Posterizarr are skipped. (Default value is: `false`).
     - `TextlessPosterBypass` : Set to `true` to bypass 'Prefer Textless' and download a standard Text Poster if no logos are found.
     - `ConvertLogoColor` : Set to `true` to transform the fetched logo into a monochrome solid silhouette/flat color.
     - `LogoFlatColor` : The target solid color when `ConvertLogoColor` is enabled (e.g. `"white"` or `"#FFFFFF"`). Default is `"white"`.

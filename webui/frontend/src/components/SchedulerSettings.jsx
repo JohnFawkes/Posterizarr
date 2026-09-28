@@ -91,6 +91,7 @@ const SchedulerSettings = () => {
   // --- LOGO UPDATER OPTIONS ---
   const [logoLibrary, setLogoLibrary] = useState("all");
   const [logoForceReplace, setLogoForceReplace] = useState(false);
+  const [logoExifCheck, setLogoExifCheck] = useState(false);
   const [logoRevert, setLogoRevert] = useState(false);
 
   const frequencies = [
@@ -314,6 +315,7 @@ const SchedulerSettings = () => {
       if (newMode === "logoupdater") {
         payload.library = logoLibrary;
         payload.force_replace = logoForceReplace;
+        payload.exif_check = logoExifCheck;
         payload.revert = logoRevert;
       }
 
@@ -773,6 +775,16 @@ const SchedulerSettings = () => {
                 <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
+                    checked={logoExifCheck}
+                    onChange={(e) => setLogoExifCheck(e.target.checked)}
+                    disabled={logoRevert}
+                    className="w-4 h-4 rounded border-theme bg-theme-bg text-purple-500 focus:ring-purple-500"
+                  />
+                  <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-theme-text group-hover:text-purple-300'} transition-colors`}>EXIF Check</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
                     checked={logoRevert}
                     onChange={(e) => setLogoRevert(e.target.checked)}
                     className="w-4 h-4 rounded border-theme bg-theme-bg text-purple-500 focus:ring-purple-500"
@@ -849,6 +861,7 @@ const SchedulerSettings = () => {
                         <div className="flex gap-3 mt-1 text-[10px] text-purple-300/70 font-medium">
                           <span>Library: {schedule.library || "all"}</span>
                           {schedule.force_replace && <span>• Force Replace</span>}
+                          {schedule.exif_check && <span>• EXIF Check</span>}
                           {schedule.revert && <span className="text-red-400">•• REVERT MODE</span>}
                         </div>
                       )}

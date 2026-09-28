@@ -213,6 +213,7 @@
     "UseClearlogo": "false",
     "UseClearart": "false",
     "LogoTextFallback": "false",
+    "LogoExifCheck": "false",
     "TextlessPosterBypass": "false",
     "ConvertLogoColor": "false",
     "LogoFlatColor": "white",

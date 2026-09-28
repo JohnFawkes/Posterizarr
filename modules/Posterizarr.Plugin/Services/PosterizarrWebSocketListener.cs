@@ -483,6 +483,78 @@ public class PosterizarrWebSocketListener : IHostedService, IDisposable
         // =========================================================================
         try
         {
+            bool isCollection = string.Equals(payload.AssetType, "collection", StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(payload.RelativePath) &&
+                 (payload.RelativePath.StartsWith("Collections/", StringComparison.OrdinalIgnoreCase) ||
+                  payload.RelativePath.StartsWith("Collections\\", StringComparison.OrdinalIgnoreCase)));
+
+            if (isCollection)
+            {
+                var boxSetQuery = new InternalItemsQuery
+                {
+                    IncludeItemTypes = new[] { BaseItemKind.BoxSet },
+                    Recursive = true,
+                    IsVirtualItem = false
+                };
+
+                var boxSets = _libraryManager.GetItemList(boxSetQuery);
+                var matchingBoxSets = boxSets.Where(b =>
+                    string.Equals(b.Name, payload.Title, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(b.Name, payload.FolderName, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(b.Path) && string.Equals(Path.GetFileName(b.Path), payload.FolderName, StringComparison.OrdinalIgnoreCase)) ||
+                    Providers.AssetPathResolver.IsCollectionNameMatch(b.Name, payload.FolderName ?? "") ||
+                    (!string.IsNullOrEmpty(payload.Title) && Providers.AssetPathResolver.IsCollectionNameMatch(b.Name, payload.Title))
+                ).ToList();
+
+                if (matchingBoxSets.Count == 0)
+                {
+                    _logger.LogInformation("[Posterizarr WS] No matching Collection (BoxSet) found in Jellyfin for '{0}'.", payload.Title ?? payload.FolderName);
+                    return;
+                }
+
+                // Determine mime type
+                var collExt = sourceFileInfo.Extension.ToLowerInvariant();
+                string collMimeType = collExt switch
+                {
+                    ".png" => "image/png",
+                    ".webp" => "image/webp",
+                    ".bmp" => "image/bmp",
+                    _ => "image/jpeg"
+                };
+
+                var collAssetTypeLower = (payload.AssetType ?? "poster").ToLowerInvariant();
+                ImageType collImageType = (collAssetTypeLower.Contains("background") || collAssetTypeLower.Contains("backdrop") || collAssetTypeLower.Contains("fanart"))
+                    ? ImageType.Backdrop
+                    : ImageType.Primary;
+
+                var dataFolderColl = Plugin.Instance?.DataFolderPath ?? Path.Combine(AppContext.BaseDirectory, "data");
+                var syncCacheColl = new SyncCacheManager(dataFolderColl, _loggerFactory.CreateLogger<SyncCacheManager>());
+                syncCacheColl.Load();
+
+                foreach (var boxSet in matchingBoxSets)
+                {
+                    _logger.LogInformation("[Posterizarr WS] Applying real-time collection update for '{0}' ({1}) from '{2}'",
+                        boxSet.Name, collImageType, sourceFileInfo.FullName);
+
+                    using (var stream = new FileStream(sourceFileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, FileOptions.SequentialScan))
+                    {
+                        await _providerManager.SaveImage(boxSet, stream, collMimeType, collImageType, 0, ct).ConfigureAwait(false);
+                    }
+
+                    var updatedImage = boxSet.GetImageInfo(collImageType, 0);
+                    if (updatedImage != null)
+                    {
+                        syncCacheColl.Update(boxSet.Id, collImageType, sourceFileInfo, updatedImage);
+                    }
+
+                    var parent = boxSet.ParentId != Guid.Empty ? _libraryManager.GetItemById(boxSet.ParentId) : null;
+                    await _libraryManager.UpdateItemAsync(boxSet, parent ?? boxSet, ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
+                }
+
+                syncCacheColl.Save();
+                return;
+            }
+
             var query = new InternalItemsQuery
             {
                 IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series },

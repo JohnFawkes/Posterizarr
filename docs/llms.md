@@ -196,9 +196,9 @@ pwsh ./Posterizarr.ps1 [-ModeSwitch] [Parameters]
 - **Description**: Removes custom uploaded posters in the specified Plex library and resets items to Plex's default scraped artwork.
 
 ### 9. Logo Updater Mode (`LogoUpdaterMode.ps1`)
-- **Update**: `pwsh ./Posterizarr.ps1 -LogoUpdater -LibraryName "Movies" [-ForceReplace]`
+- **Update**: `pwsh ./Posterizarr.ps1 -LogoUpdater -LibraryName "Movies" [-ForceReplace] [-LogoExifCheck]`
 - **Revert**: `pwsh ./Posterizarr.ps1 -LogoRevert -LibraryName "Movies"`
-- **Description**: Dedicated ClearLogo manager. Scans libraries, downloads transparent logos from TMDB/TVDB/Fanart, and uploads them to media servers. In Revert mode, checks embedded EXIF fingerprints to safely remove only Posterizarr-added logos without touching manual user uploads.
+- **Description**: Dedicated ClearLogo manager. Scans libraries, downloads transparent logos from TMDB/TVDB/Fanart, and uploads them to media servers. In Revert mode, checks embedded EXIF fingerprints to safely remove only Posterizarr-added logos without touching manual user uploads. With `-LogoExifCheck`, replaces default server-scraped logos while skipping already-tagged Posterizarr assets.
 
 ### 10. Emby / Jellyfin Mode (`EmbyJellyMode.ps1`)
 - **Trigger**: Automatic fallback when `UseOtherMediaServer = "true"` and Plex is disabled.
@@ -511,6 +511,7 @@ The configuration file `config.json` (modeled by `config.example.json`) contains
 - `UseLogo` / `UseBGLogo`: Apply clearlogo instead of title text to posters or backgrounds.
 - `UseClearlogo` / `UseClearart`: Scrape transparent clearlogo or clearart PNGs.
 - `LogoTextFallback` (bool): Fall back to typography if no logo is available.
+- `LogoExifCheck` (bool): In Logo Updater mode, replace existing logos only if they lack Posterizarr EXIF metadata (skips previously tagged Posterizarr logos).
 - `TextlessPosterBypass` (bool): Bypass textless preference if no logo is found.
 - `ConvertLogoColor` (bool) & `LogoFlatColor` (str): Convert logos to solid color silhouettes.
 - `PreserveMultiColorLogos` (bool): When converting logo color, preserve multi-colored logos in original hues.

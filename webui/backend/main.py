@@ -2398,6 +2398,7 @@ class ResetPostersRequest(BaseModel):
 class LogoUpdaterRequest(BaseModel):
     library: str
     force_replace: bool = False
+    exif_check: bool = False
     revert: bool = False
 
 class RestoreModeRequest(BaseModel):
@@ -8130,6 +8131,9 @@ async def run_logoupdater(request: LogoUpdaterRequest):
 
         if request.force_replace:
             command.append("-ForceReplace")
+
+        if request.exif_check:
+            command.append("-LogoExifCheck")
 
         try:
             logger.info(f"Running LogoUpdater for library: {request.library}")
@@ -17571,6 +17575,19 @@ async def api_save_collection_poster(request: CollectionSaveRequest):
         save_path = save_dir / "poster.png"
         with open(save_path, "wb") as f:
             f.write(data)
+
+        # Broadcast real-time asset update to connected media servers (Jellyfin/Emby)
+        try:
+            rel_path = f"Collections/{safe_library_name}/{safe_collection_name}/poster.png"
+            asyncio.create_task(broadcast_asset_event(
+                library_name=safe_library_name,
+                folder_name=safe_collection_name,
+                asset_type="collection",
+                relative_path=rel_path,
+                title=request.collection_name
+            ))
+        except Exception as e:
+            logger.debug(f"[WS-Events] Could not broadcast collection asset event: {e}")
 
         return {"success": True, "message": "Saved successfully", "path": str(save_path)}
     except Exception as e:

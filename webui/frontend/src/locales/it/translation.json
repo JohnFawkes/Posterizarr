@@ -23,7 +23,7 @@
       "stopFirst": "Lo script deve essere fermato prima di reimpostare le locandine!",
       "success": "Locandine reimpostate con successo!",
       "confirmTitle": "Reimposta locandine",
-      "confirmMessage": "Sei sicuro di voler reimpostare TUTTE le locandine in \"{{library}}\"? Questa azione NON PUÒ essere annullata!\\n\\nSei assolutamente sicuro?",
+      "confirmMessage": "Sei sicuro di voler reimpostare TUTTE le locandine in \"{{library}}\"? Questa azione NON PUÒ essere annullata!\n\nSei assolutamente sicuro?",
       "title": "Reimposta locandine",
       "description": "Reimposta tutte le locandine in una libreria Plex ai valori predefiniti",
       "warning": "Attenzione:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Seleziona Libreria",
       "forceReplace": "Forza sostituzione",
       "forceReplaceDesc": "Sovrascrivi i logo anche se sono già presenti sul server",
+      "exifCheck": "Sostituisci solo loghi non di Posterizarr",
+      "exifCheckDesc": "Sostituisce i loghi predefiniti di Plex, ma salta quelli creati in precedenza da Posterizarr (controllo EXIF)",
       "start": "Avvia Aggiornatore Logo",
       "browse": "Sfoglia"
     },

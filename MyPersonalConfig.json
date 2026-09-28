@@ -195,6 +195,7 @@
     "UseClearlogo": "false",
     "UseClearart": "false",
     "LogoTextFallback": "false",
+    "LogoExifCheck": "false",
     "UseBGLogo": "false",
     "ConvertLogoColor": "false",
     "LogoFlatColor": "white",

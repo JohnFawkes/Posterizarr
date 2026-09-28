@@ -127,6 +127,7 @@ const runModes = [
   const [newTime, setNewTime] = useState("03:00");
   const [logoLibrary, setLogoLibrary] = useState("all");
   const [logoForceReplace, setLogoForceReplace] = useState(false);
+  const [logoExifCheck, setLogoExifCheck] = useState(false);
   const [logoRevert, setLogoRevert] = useState(false);
   const [notificationType, setNotificationType] = useState('none'); // 'none', 'discord', 'apprise'
 
@@ -294,6 +295,7 @@ const runModes = [
           if (newMode === "logoupdater") {
             payload.library = logoLibrary;
             payload.force_replace = logoForceReplace;
+            payload.exif_check = logoExifCheck;
             payload.revert = logoRevert;
           }
 
@@ -875,6 +877,10 @@ const runModes = [
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input type="checkbox" checked={logoForceReplace} onChange={(e) => setLogoForceReplace(e.target.checked)} disabled={logoRevert} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
                           <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-white group-hover:text-[#c4b5fd]'} transition-colors`}>{t("onboarding.forceReplace")}</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" checked={logoExifCheck} onChange={(e) => setLogoExifCheck(e.target.checked)} disabled={logoRevert} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />
+                          <span className={`text-sm ${logoRevert ? 'text-theme-muted' : 'text-white group-hover:text-[#c4b5fd]'} transition-colors`}>EXIF Check</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input type="checkbox" checked={logoRevert} onChange={(e) => setLogoRevert(e.target.checked)} className="w-4 h-4 rounded border-theme-border bg-theme-bg-dark text-[#8b5cf6] focus:ring-[#8b5cf6]" />

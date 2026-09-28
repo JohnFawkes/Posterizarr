@@ -43,7 +43,7 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         }
     }
 
-    public bool Supports(BaseItem item) => item is Movie || item is Series || item is Season || item is Episode;
+    public bool Supports(BaseItem item) => item is Movie || item is Series || item is Season || item is Episode || item is BoxSet;
 
     public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
     {
@@ -63,6 +63,12 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasOrder
         else if (item is Episode)
         {
             if (config?.UpdateTitlecard == true) types.Add(ImageType.Primary);
+        }
+        else if (item is BoxSet)
+        {
+            if (config?.UpdateCollection != false) types.Add(ImageType.Primary);
+            if (config?.UpdateBackdrop == true) types.Add(ImageType.Backdrop);
+            if (config?.UpdateThumbnail == true) types.Add(ImageType.Thumb);
         }
 
         return types;

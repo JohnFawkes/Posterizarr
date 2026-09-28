@@ -23,7 +23,7 @@
       "stopFirst": "O script deve ser parado antes de redefinir os cartazes!",
       "success": "Cartazes redefinidos com sucesso!",
       "confirmTitle": "Redefinir cartazes",
-      "confirmMessage": "Tem certeza de que deseja redefinir TODOS os cartazes em \"{{library}}\"? Esta ação NÃO PODE ser desfeita!\\n\\nTem certeza absoluta?",
+      "confirmMessage": "Tem certeza de que deseja redefinir TODOS os cartazes em \"{{library}}\"? Esta ação NÃO PODE ser desfeita!\n\nTem certeza absoluta?",
       "title": "Redefinir cartazes",
       "description": "Redefinir todos os cartazes em uma biblioteca Plex para o padrão",
       "warning": "Aviso:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Selecionar Biblioteca",
       "forceReplace": "Forçar substituição",
       "forceReplaceDesc": "Substituir logos mesmo que já existam no servidor",
+      "exifCheck": "Substituir apenas logotipos não-Posterizarr",
+      "exifCheckDesc": "Substitui os logotipos padrão do Plex, mas ignora os criados anteriormente pelo Posterizarr (verificação EXIF)",
       "start": "Iniciar Atualizador de Logos",
       "browse": "Procurar"
     },

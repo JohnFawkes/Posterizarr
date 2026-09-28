@@ -23,7 +23,7 @@
       "stopFirst": "Das Skript muss vor dem Zurücksetzen der Poster gestoppt werden!",
       "success": "Poster erfolgreich zurückgesetzt!",
       "confirmTitle": "Poster zurücksetzen",
-      "confirmMessage": "Bist du sicher, dass du ALLE Poster in \"{{library}}\" zurücksetzen möchtest? Diese Aktion kann NICHT rückgängig gemacht werden!\\n\\nBist du absolut sicher?",
+      "confirmMessage": "Bist du sicher, dass du ALLE Poster in \"{{library}}\" zurücksetzen möchtest? Diese Aktion kann NICHT rückgängig gemacht werden!\n\nBist du absolut sicher?",
       "title": "Poster zurücksetzen",
       "description": "Setze alle Poster in einer Plex-Bibliothek auf Standard zurück",
       "warning": "Warnung:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Bibliothek auswählen",
       "forceReplace": "Vorhandene ersetzen erzwingen",
       "forceReplaceDesc": "Logos überschreiben, auch wenn sie bereits auf dem Server vorhanden sind",
+      "exifCheck": "Nur Nicht-Posterizarr-Logos ersetzen",
+      "exifCheckDesc": "Ersetzt Plex-Standardlogos, überspringt jedoch zuvor von Posterizarr erstellte Logos (EXIF-Prüfung)",
       "start": "Logo-Updater starten",
       "browse": "Durchsuchen"
     },

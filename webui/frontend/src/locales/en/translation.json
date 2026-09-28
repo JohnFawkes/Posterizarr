@@ -23,7 +23,7 @@
       "stopFirst": "The script must be stopped before resetting posters!",
       "success": "Posters reset successfully!",
       "confirmTitle": "Reset Posters",
-      "confirmMessage": "Are you sure you want to reset ALL posters in \"{{library}}\"? This action CANNOT be undone!\\n\\nAre you absolutely sure?",
+      "confirmMessage": "Are you sure you want to reset ALL posters in \"{{library}}\"? This action CANNOT be undone!\n\nAre you absolutely sure?",
       "title": "Reset Posters",
       "description": "Reset all posters in a Plex library to default",
       "warning": "Warning:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Select Library",
       "forceReplace": "Force Replace Existing",
       "forceReplaceDesc": "Overwrite logos even if they already exist on the server",
+      "exifCheck": "Only Replace Non-Posterizarr Logos",
+      "exifCheckDesc": "Replace Plex default logos, but skip logos previously created by Posterizarr (EXIF check)",
       "start": "Start Logo Updater",
       "browse": "Browse"
     },

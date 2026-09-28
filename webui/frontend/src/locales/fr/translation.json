@@ -23,7 +23,7 @@
       "stopFirst": "Le script doit être arrêté avant de réinitialiser les affiches !",
       "success": "Affiches réinitialisées avec succès !",
       "confirmTitle": "Réinitialiser les affiches",
-      "confirmMessage": "Êtes-vous sûr de vouloir réinitialiser TOUTES les affiches dans \"{{library}}\" ? Cette action NE PEUT PAS être annulée !\\n\\nÊtes-vous absolument sûr ?",
+      "confirmMessage": "Êtes-vous sûr de vouloir réinitialiser TOUTES les affiches dans \"{{library}}\" ? Cette action NE PEUT PAS être annulée !\n\nÊtes-vous absolument sûr ?",
       "title": "Réinitialiser les affiches",
       "description": "Réinitialiser toutes les affiches d'une bibliothèque Plex par défaut",
       "warning": "Avertissement :",
@@ -114,6 +114,8 @@
       "selectLibrary": "Sélectionner la bibliothèque",
       "forceReplace": "Forcer le remplacement",
       "forceReplaceDesc": "Remplacer les logos même s'ils sont déjà présents sur le serveur",
+      "exifCheck": "Remplacer uniquement les logos non créés par Posterizarr",
+      "exifCheckDesc": "Remplace les logos par défaut de Plex, mais ignore ceux créés précédemment par Posterizarr (vérification EXIF)",
       "start": "Lancer la mise à jour des logos",
       "browse": "Parcourir"
     },

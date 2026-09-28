@@ -141,6 +141,7 @@ CONFIG_TOOLTIPS = {
     "UseClearlogo": "Set to true to use Clearlogo. A Clearlogo is a transparent PNG image that contains only the title text (logo) of a movie or show - no characters, no background, no extra artwork.",
     "UseClearart": "Set to true to use Clearart. Clearart is a transparent PNG image that contains the logo plus additional artwork (e.g., characters or promotional art) - still fully transparent with no background.",
     "LogoTextFallback": "Set to true to fallback to Text if no logos are found.",
+    "LogoExifCheck": "When enabled, Logo Updater will replace existing logos only if they do not contain Posterizarr EXIF metadata (e.g. default/unwanted logos set by Plex). Existing logos already tagged by Posterizarr will be skipped.",
     "TextlessPosterBypass": "Set to true to bypass 'Prefer Textless' and download a standard Text Poster if no logos are found.",
     "ConvertLogoColor": "Set to true to convert the logo image to a solid color (monochrome).",
     "LogoFlatColor": "The specific color to use when Convert Logo Color is enabled (e.g., 'white', '#FFFFFF').",

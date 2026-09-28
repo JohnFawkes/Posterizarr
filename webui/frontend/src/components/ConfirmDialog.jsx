@@ -57,7 +57,9 @@ const ConfirmDialog = ({
               {title || t("confirmDialog.title")}
             </h3>
             {message && (
-              <p className="text-theme-muted text-sm mb-1">{message}</p>
+              <p className="text-theme-muted text-sm mb-1 whitespace-pre-line">
+                {typeof message === "string" ? message.replace(/\\n/g, "\n") : message}
+              </p>
             )}
             {itemName && (
               <p className="text-theme-text font-medium text-sm mt-2 break-words">

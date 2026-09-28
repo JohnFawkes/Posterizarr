@@ -461,25 +461,77 @@ namespace Posterizarr.Plugin.Services
             // =========================================================================
             try
             {
-                var query = new InternalItemsQuery
+            bool isCollection = string.Equals(payload.AssetType, "collection", StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(payload.RelativePath) &&
+                 (payload.RelativePath.StartsWith("Collections/", StringComparison.OrdinalIgnoreCase) ||
+                  payload.RelativePath.StartsWith("Collections\\", StringComparison.OrdinalIgnoreCase)));
+
+            if (isCollection)
+            {
+                var boxSetQuery = new InternalItemsQuery
                 {
-                    IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Series).Name },
+                    IncludeItemTypes = new[] { typeof(BoxSet).Name },
                     Recursive = true,
                     IsVirtualItem = false
                 };
 
-                var items = _libraryManager.GetItemList(query);
-                var candidates = items.Where(i =>
-                    !string.IsNullOrEmpty(i.Path) &&
-                    (string.Equals(Path.GetFileName(i.Path), payload.FolderName, StringComparison.OrdinalIgnoreCase) ||
-                     string.Equals(Path.GetFileName(Path.GetDirectoryName(i.Path)), payload.FolderName, StringComparison.OrdinalIgnoreCase)))
-                    .ToList();
+                var boxSets = _libraryManager.GetItemList(boxSetQuery);
+                var matchingBoxSets = boxSets.Where(b =>
+                    string.Equals(b.Name, payload.Title, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(b.Name, payload.FolderName, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(b.Path) && string.Equals(Path.GetFileName(b.Path), payload.FolderName, StringComparison.OrdinalIgnoreCase)) ||
+                    Providers.PosterizarrImageProvider.IsCollectionNameMatch(b.Name, payload.FolderName ?? "") ||
+                    (!string.IsNullOrEmpty(payload.Title) && Providers.PosterizarrImageProvider.IsCollectionNameMatch(b.Name, payload.Title))
+                ).ToList();
 
-                if (candidates.Count == 0)
+                if (matchingBoxSets.Count == 0)
                 {
-                    _logger.Info("[Posterizarr WS] No matching Movie or Series found in Emby for folder '{0}'.", payload.FolderName);
+                    _logger.Info("[Posterizarr WS] No matching Collection (BoxSet) found in Emby for '{0}'.", payload.Title ?? payload.FolderName);
                     return;
                 }
+
+                var collAssetTypeLower = (payload.AssetType ?? "poster").ToLowerInvariant();
+                ImageType collImageType = (collAssetTypeLower.Contains("background") || collAssetTypeLower.Contains("backdrop") || collAssetTypeLower.Contains("fanart"))
+                    ? ImageType.Backdrop
+                    : ImageType.Primary;
+
+                foreach (var boxSet in matchingBoxSets)
+                {
+                    _logger.Info("[Posterizarr WS] Applying real-time collection update for '{0}' ({1}) from '{2}'",
+                        boxSet.Name, collImageType, fullTargetFile);
+
+                    boxSet.SetImage(new ItemImageInfo
+                    {
+                        Path = fullTargetFile,
+                        Type = collImageType,
+                        DateModified = File.GetLastWriteTimeUtc(fullTargetFile)
+                    }, 0);
+
+                    _libraryManager.UpdateItem(boxSet, boxSet.GetParent(), ItemUpdateType.ImageUpdate);
+                }
+
+                return;
+            }
+
+            var query = new InternalItemsQuery
+            {
+                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Series).Name },
+                Recursive = true,
+                IsVirtualItem = false
+            };
+
+            var items = _libraryManager.GetItemList(query);
+            var candidates = items.Where(i =>
+                !string.IsNullOrEmpty(i.Path) &&
+                (string.Equals(Path.GetFileName(i.Path), payload.FolderName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(Path.GetFileName(Path.GetDirectoryName(i.Path)), payload.FolderName, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            if (candidates.Count == 0)
+            {
+                _logger.Info("[Posterizarr WS] No matching Movie or Series found in Emby for folder '{0}'.", payload.FolderName);
+                return;
+            }
 
                 // Disambiguate by LibraryName if provided in the event payload
                 var targetCandidates = candidates;

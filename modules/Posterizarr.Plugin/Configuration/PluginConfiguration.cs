@@ -12,6 +12,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool UpdateTitlecard { get; set; }
     public bool UpdateBackdrop { get; set; }
     public bool UpdateThumbnail { get; set; }
+    public bool UpdateCollection { get; set; }
     public string PosterizarrApiUrl { get; set; }
     public string PosterizarrApiKey { get; set; }
     public bool EnableRealtimeSync { get; set; }
@@ -26,6 +27,7 @@ public class PluginConfiguration : BasePluginConfiguration
         UpdateTitlecard = true;
         UpdateBackdrop = true;
         UpdateThumbnail = false;
+        UpdateCollection = true;
         PosterizarrApiUrl = string.Empty;
         PosterizarrApiKey = string.Empty;
         EnableRealtimeSync = false;

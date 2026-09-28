@@ -197,7 +197,7 @@ function ConfigEditor() {
     // General Settings
     if (["assetpath", "backuppath", "manualassetpath", "libraryfolders"].some(s => k === s)) return "Paths & Storage";
     if (["posters", "seasonposters", "backgroundposters", "titlecards"].some(s => k === s)) return "Generators";
-    if (["assetcleanup", "followsymlink", "disablehashvalidation", "disableonlineassetfetch", "force_running_deletion"].some(s => k.includes(s))) return "Logic & System";
+    if (["assetcleanup", "followsymlink", "disablehashvalidation", "disableonlineassetfetch", "force_running_deletion", "logoexifcheck"].some(s => k.includes(s))) return "Logic & System";
     if (k.startsWith("skip") || k === "titlecardskipwords") return "Skipping Logic";
 
     // WebUI

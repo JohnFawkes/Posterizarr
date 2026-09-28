@@ -77,7 +77,7 @@ public class PosterizarrSyncTask : IScheduledTask
 
         var query = new InternalItemsQuery
         {
-            IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode },
+            IncludeItemTypes = new[] { BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode, BaseItemKind.BoxSet },
             Recursive = true,
             IsVirtualItem = false
         };

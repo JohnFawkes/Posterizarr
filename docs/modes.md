@@ -508,12 +508,13 @@ The **Logo Updater Mode** automatically scans your Plex libraries for missing Cl
 - `-LogoUpdater`: Enable the logo search and upload process.
 - `-LogoRevert`: Search for logos previously added by Posterizarr (verified via fingerprinting) and unlinks them from Plex.
 - `-ForceReplace`: Overwrite existing logos even if they already exist in Plex.
+- `-LogoExifCheck`: Only replace existing logos if they lack Posterizarr EXIF metadata (e.g. default logos auto-selected by Plex). Existing logos created or uploaded by Posterizarr are skipped.
 - `-LibraryName`: Specify a single library name or use `"all"` to process all suitable Movie and TV libraries.
 
 !!! tip
-    **Fingerprinting**: When running in **Revert** mode, Posterizarr checks the current logo for a hidden "fingerprint" added during upload. This ensures it only unlinks images it originally provided, leaving your manual uploads untouched.
+    **Fingerprinting & EXIF Checks**: When running with `-LogoExifCheck` or in **Revert** mode, Posterizarr inspects the current logo for a metadata comment (`created with posterizarr`). Using `-LogoExifCheck` allows you to replace unwanted or wrong-language logos chosen by Plex's default agents while skipping logos Posterizarr already customized in prior runs.
 
-    In the WebUI, you can access this mode via the **"Run Modes"** tab. It provides a user-friendly interface to select libraries and toggle "Force Replace" or "Revert" settings.
+    In the WebUI, you can access this mode via the **"Run Modes"** tab. It provides a user-friendly interface to select libraries and toggle "Force Replace", "Only Replace Non-Posterizarr Logos (EXIF Check)", or "Revert" settings.
 
 
 ### Manual Mode Logo Search

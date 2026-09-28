@@ -172,6 +172,7 @@ These scripts represent the different "Modes" the application can run in. They d
   - `-LogoUpdater`: Scans libraries for missing clearlogos and pushes found assets to Plex.
   - `-LogoRevert`: Uses embedded fingerprints to detect and delete only Posterizarr-uploaded logos, leaving user-uploaded logos intact.
   - `-ForceReplace`: Overwrites existing logos on the server.
+  - `-LogoExifCheck`: Replaces existing logos only if they lack Posterizarr EXIF metadata (e.g. default Plex logos), skipping already-tagged Posterizarr assets.
   - `-LibraryName`: Targets a specific library or `"all"`.
 - **`PosterresetMode.ps1`**: Resets posters in a specified library back to the media server's default scraped art:
   - `-LibraryToReset "Movies"`: Specifies the target library.

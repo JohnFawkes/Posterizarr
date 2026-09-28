@@ -8,6 +8,7 @@ using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
 using Posterizarr.Plugin.Configuration;
 
@@ -24,6 +25,7 @@ public class AssetPathResolver
 
     // Cache of library folder names in AssetFolderPath (e.g. "TV Shows", "Movies")
     private static readonly ConcurrentDictionary<string, string?> LibraryFolderCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, (string[] Dirs, DateTime Expiry)> SubdirectoriesCache = new(StringComparer.OrdinalIgnoreCase);
     private static string[]? _cachedRootDirectories;
     private static DateTime _rootDirectoriesExpiry = DateTime.MinValue;
     private static readonly object RootDirLock = new();
@@ -86,6 +88,7 @@ public class AssetPathResolver
     {
         FolderFilesCache.Clear();
         LibraryFolderCache.Clear();
+        SubdirectoriesCache.Clear();
         lock (RootDirLock)
         {
             _cachedRootDirectories = null;
@@ -101,6 +104,11 @@ public class AssetPathResolver
         if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
         {
             return null;
+        }
+
+        if (item is BoxSet boxSet)
+        {
+            return FindCollectionFileInfo(boxSet, config, type);
         }
 
         // 1. Resolve Library Names
@@ -317,5 +325,354 @@ public class AssetPathResolver
             FolderFilesCache[folderPath] = new FolderCacheEntry(null, TimeSpan.FromSeconds(5));
             return null;
         }
+    }
+
+    /// <summary>
+    /// Resolves the matching FileInfo for a BoxSet (Collection) and image type.
+    /// Supports both folder-based (Collections/CollectionName/poster.png) and
+    /// flat-based (Collections/CollectionName.png) assets created manually or by Posterizarr/Kometa.
+    /// </summary>
+    public FileInfo? FindCollectionFileInfo(BoxSet boxSet, PluginConfiguration config, ImageType type)
+    {
+        if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
+        {
+            return null;
+        }
+
+        var candidateNames = GetCollectionCandidateNames(boxSet.Name, boxSet.Path);
+        if (candidateNames.Count == 0)
+        {
+            return null;
+        }
+
+        var supportedExtensions = config.SupportedExtensions ?? new[] { ".jpg", ".jpeg", ".png", ".webp", ".bmp" };
+        LogDebug("Finding collection asset for '{0}' (candidates: {1})", boxSet.Name, string.Join(", ", candidateNames));
+
+        var assetRoot = config.AssetFolderPath;
+        var checkedDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // 1. Check primary "Collections" directory
+        var collectionsDir = Path.Combine(assetRoot, "Collections");
+        if (checkedDirs.Add(collectionsDir))
+        {
+            var match = FindInDirectory(collectionsDir, candidateNames, supportedExtensions, type);
+            if (match != null)
+            {
+                LogDebug("SUCCESS: Found collection asset for '{0}' at '{1}'", boxSet.Name, match.FullName);
+                return match;
+            }
+
+            // Check subfolders under Collections (e.g., Collections/Movies, Collections/Shows, etc.)
+            foreach (var sub in GetSubdirectories(collectionsDir))
+            {
+                if (checkedDirs.Add(sub))
+                {
+                    match = FindInDirectory(sub, candidateNames, supportedExtensions, type);
+                    if (match != null)
+                    {
+                        LogDebug("SUCCESS: Found collection asset for '{0}' in Collections subfolder at '{1}'", boxSet.Name, match.FullName);
+                        return match;
+                    }
+                }
+            }
+        }
+
+        // 2. Discover potential library names associated with this collection
+        var libraryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var displayLib = boxSet.GetAncestorIds()
+            .Select(id => _libraryManager.GetItemById(id))
+            .OfType<CollectionFolder>()
+            .FirstOrDefault()?.Name;
+        if (!string.IsNullOrEmpty(displayLib) && displayLib != "Unknown" && displayLib != "root" && !displayLib.Equals("Collections", StringComparison.OrdinalIgnoreCase))
+        {
+            libraryNames.Add(displayLib);
+        }
+
+        try
+        {
+            var child = _libraryManager.GetItemList(new InternalItemsQuery
+            {
+                ParentId = boxSet.Id,
+                Limit = 1
+            }).FirstOrDefault();
+
+            if (child != null)
+            {
+                var childLib = child.GetAncestorIds()
+                    .Select(id => _libraryManager.GetItemById(id))
+                    .OfType<CollectionFolder>()
+                    .FirstOrDefault()?.Name;
+                if (!string.IsNullOrEmpty(childLib) && !childLib.Equals("Collections", StringComparison.OrdinalIgnoreCase))
+                {
+                    libraryNames.Add(childLib);
+                }
+            }
+        }
+        catch { }
+
+        foreach (var lib in libraryNames)
+        {
+            var resolvedLibDir = ResolveLibraryDirectory(assetRoot, lib, lib);
+            if (!string.IsNullOrEmpty(resolvedLibDir))
+            {
+                var libCollections = Path.Combine(resolvedLibDir, "Collections");
+                if (checkedDirs.Add(libCollections))
+                {
+                    var match = FindInDirectory(libCollections, candidateNames, supportedExtensions, type);
+                    if (match != null) return match;
+                }
+
+                if (checkedDirs.Add(resolvedLibDir))
+                {
+                    var match = FindInDirectory(resolvedLibDir, candidateNames, supportedExtensions, type);
+                    if (match != null) return match;
+                }
+            }
+        }
+
+        // 3. Check any other root libraries (e.g. Movies/Collections or Shows/Collections)
+        var rootDirs = GetRootDirectories(assetRoot);
+        foreach (var rootDir in rootDirs)
+        {
+            var rootCollections = Path.Combine(rootDir, "Collections");
+            if (checkedDirs.Add(rootCollections))
+            {
+                var match = FindInDirectory(rootCollections, candidateNames, supportedExtensions, type);
+                if (match != null) return match;
+            }
+
+            if (checkedDirs.Add(rootDir))
+            {
+                var match = FindInDirectory(rootDir, candidateNames, supportedExtensions, type);
+                if (match != null) return match;
+            }
+        }
+
+        // 4. Check root asset folder itself
+        if (checkedDirs.Add(assetRoot))
+        {
+            var match = FindInDirectory(assetRoot, candidateNames, supportedExtensions, type);
+            if (match != null) return match;
+        }
+
+        LogDebug("RESULT: No collection asset found for '{0}'", boxSet.Name);
+        return null;
+    }
+
+    private FileInfo? FindInDirectory(string dir, List<string> candidateNames, string[] supportedExtensions, ImageType type)
+    {
+        if (!Directory.Exists(dir)) return null;
+
+        // A. Check subfolders in dir for matching collection name
+        // 1. Direct subfolder name lookup first
+        foreach (var name in candidateNames)
+        {
+            var subfolderPath = Path.Combine(dir, name);
+            if (Directory.Exists(subfolderPath))
+            {
+                var folderFiles = GetFolderFiles(subfolderPath);
+                if (folderFiles != null && folderFiles.Count > 0)
+                {
+                    var fileMatch = MatchCollectionFolderFile(folderFiles, name, supportedExtensions, type);
+                    if (fileMatch != null) return fileMatch;
+                }
+            }
+        }
+
+        // 2. Normalized / fuzzy subfolder lookup if exact folder not found
+        var subdirs = GetSubdirectories(dir);
+        if (subdirs.Length > 0)
+        {
+            foreach (var sub in subdirs)
+            {
+                var subName = Path.GetFileName(sub);
+                if (candidateNames.Any(c => IsCollectionNameMatch(subName, c)))
+                {
+                    var folderFiles = GetFolderFiles(sub);
+                    if (folderFiles != null && folderFiles.Count > 0)
+                    {
+                        var fileMatch = MatchCollectionFolderFile(folderFiles, subName, supportedExtensions, type);
+                        if (fileMatch != null) return fileMatch;
+                    }
+                }
+            }
+        }
+
+        // B. Check flat files directly in dir (e.g. Collections/Marvel Cinematic Universe.png)
+        var dirFiles = GetFolderFiles(dir);
+        if (dirFiles != null && dirFiles.Count > 0)
+        {
+            foreach (var name in candidateNames)
+            {
+                var flatMatch = MatchCollectionFlatFile(dirFiles, name, supportedExtensions, type);
+                if (flatMatch != null) return flatMatch;
+            }
+        }
+
+        return null;
+    }
+
+    private static FileInfo? MatchCollectionFolderFile(IReadOnlyDictionary<string, FileInfo> folderFiles, string candidateName, string[] supportedExtensions, ImageType type)
+    {
+        var targetBaseNames = new List<string>();
+        if (type == ImageType.Primary)
+        {
+            targetBaseNames.AddRange(new[] { "poster", "folder", "cover", "default" });
+            targetBaseNames.Add(candidateName);
+            targetBaseNames.Add($"{candidateName} - poster");
+            targetBaseNames.Add($"{candidateName} - cover");
+            targetBaseNames.Add($"{candidateName}.poster");
+        }
+        else
+        {
+            targetBaseNames.AddRange(new[] { "background", "fanart", "backdrop", "art" });
+            targetBaseNames.Add($"{candidateName}-fanart");
+            targetBaseNames.Add($"{candidateName}-background");
+            targetBaseNames.Add($"{candidateName}-backdrop");
+            targetBaseNames.Add($"{candidateName} - fanart");
+            targetBaseNames.Add($"{candidateName} - background");
+            targetBaseNames.Add($"{candidateName} - backdrop");
+        }
+
+        foreach (var baseName in targetBaseNames)
+        {
+            var match = MatchFile(folderFiles, baseName, supportedExtensions, type);
+            if (match != null) return match;
+        }
+
+        return null;
+    }
+
+    private static FileInfo? MatchCollectionFlatFile(IReadOnlyDictionary<string, FileInfo> dirFiles, string candidateName, string[] supportedExtensions, ImageType type)
+    {
+        var targetBaseNames = new List<string>();
+        if (type == ImageType.Primary)
+        {
+            targetBaseNames.Add(candidateName);
+            targetBaseNames.Add($"{candidateName} - poster");
+            targetBaseNames.Add($"{candidateName}.poster");
+            targetBaseNames.Add($"{candidateName} - cover");
+        }
+        else
+        {
+            targetBaseNames.Add($"{candidateName}-fanart");
+            targetBaseNames.Add($"{candidateName}-background");
+            targetBaseNames.Add($"{candidateName}-backdrop");
+            targetBaseNames.Add($"{candidateName} - fanart");
+            targetBaseNames.Add($"{candidateName} - background");
+            targetBaseNames.Add($"{candidateName} - backdrop");
+            targetBaseNames.Add($"{candidateName}.fanart");
+            targetBaseNames.Add($"{candidateName}.background");
+        }
+
+        foreach (var baseName in targetBaseNames)
+        {
+            var match = MatchFile(dirFiles, baseName, supportedExtensions, type);
+            if (match != null) return match;
+        }
+
+        return null;
+    }
+
+    private string[] GetSubdirectories(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return Array.Empty<string>();
+        if (SubdirectoriesCache.TryGetValue(path, out var entry) && DateTime.UtcNow < entry.Expiry)
+        {
+            return entry.Dirs;
+        }
+
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                var dirs = Directory.GetDirectories(path);
+                SubdirectoriesCache[path] = (dirs, DateTime.UtcNow.AddMinutes(10));
+                return dirs;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "[Posterizarr] Failed to enumerate subdirectories in: {0}", path);
+        }
+
+        SubdirectoriesCache[path] = (Array.Empty<string>(), DateTime.UtcNow.AddSeconds(30));
+        return Array.Empty<string>();
+    }
+
+    public static List<string> GetCollectionCandidateNames(string? rawName, string? path = null)
+    {
+        var results = new List<string>();
+        if (string.IsNullOrWhiteSpace(rawName) && string.IsNullOrWhiteSpace(path))
+            return results;
+
+        void AddCandidate(string? val)
+        {
+            if (string.IsNullOrWhiteSpace(val)) return;
+            var trimmed = val.Trim();
+            if (!results.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
+                results.Add(trimmed);
+
+            // Strip [boxset], (boxset), {boxset}
+            var stripped = System.Text.RegularExpressions.Regex.Replace(trimmed, @"\s*[\[\(\{]boxset[\]\)\}]\s*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            if (!string.IsNullOrEmpty(stripped) && !results.Contains(stripped, StringComparer.OrdinalIgnoreCase))
+                results.Add(stripped);
+
+            // Sanitize invalid chars: replace ':' and '/' with ' - '
+            var replacedPunct = trimmed.Replace(':', '-').Replace('/', '-').Replace('\\', '-');
+            var cleanPunct = System.Text.RegularExpressions.Regex.Replace(replacedPunct, @"\s+", " ").Trim(' ', '-');
+            if (!string.IsNullOrEmpty(cleanPunct) && !results.Contains(cleanPunct, StringComparer.OrdinalIgnoreCase))
+                results.Add(cleanPunct);
+
+            // Sanitize invalid chars: remove ':' and illegal filename chars entirely
+            var illegal = Path.GetInvalidFileNameChars().Concat(new[] { ':', '*', '?', '"', '<', '>', '|' }).Distinct();
+            var strippedIllegal = new string(trimmed.Where(c => !illegal.Contains(c)).ToArray()).Trim();
+            strippedIllegal = System.Text.RegularExpressions.Regex.Replace(strippedIllegal, @"\s+", " ").Trim();
+            if (!string.IsNullOrEmpty(strippedIllegal) && !results.Contains(strippedIllegal, StringComparer.OrdinalIgnoreCase))
+                results.Add(strippedIllegal);
+
+            // Collection suffix variants
+            var target = !string.IsNullOrEmpty(stripped) ? stripped : trimmed;
+            if (target.EndsWith(" Collection", StringComparison.OrdinalIgnoreCase))
+            {
+                var withoutCollection = target.Substring(0, target.Length - " Collection".Length).Trim();
+                if (!string.IsNullOrEmpty(withoutCollection) && !results.Contains(withoutCollection, StringComparer.OrdinalIgnoreCase))
+                    results.Add(withoutCollection);
+            }
+            else
+            {
+                var withCollection = target + " Collection";
+                if (!results.Contains(withCollection, StringComparer.OrdinalIgnoreCase))
+                    results.Add(withCollection);
+            }
+        }
+
+        AddCandidate(rawName);
+        if (!string.IsNullOrEmpty(path))
+        {
+            var folderName = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            AddCandidate(folderName);
+        }
+
+        return results;
+    }
+
+    public static string NormalizeCollectionName(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+        var stripped = System.Text.RegularExpressions.Regex.Replace(s, @"[\[\(\{][^\]\)\}]*[\]\)\}]", "");
+        var cleaned = System.Text.RegularExpressions.Regex.Replace(stripped, @"[^a-zA-Z0-9]", "");
+        return cleaned.ToLowerInvariant();
+    }
+
+    public static bool IsCollectionNameMatch(string name1, string name2)
+    {
+        if (string.Equals(name1, name2, StringComparison.OrdinalIgnoreCase)) return true;
+        var norm1 = NormalizeCollectionName(name1);
+        var norm2 = NormalizeCollectionName(name2);
+        if (string.IsNullOrEmpty(norm1) || string.IsNullOrEmpty(norm2)) return false;
+        if (norm1 == norm2) return true;
+        if (norm1.Replace("collection", "") == norm2.Replace("collection", "")) return true;
+        return false;
     }
 }

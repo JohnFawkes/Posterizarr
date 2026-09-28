@@ -244,12 +244,34 @@ const ColorInput = ({ value, onChange, label }) => (
   </div>
 );
 
-const NumberInput = ({ label, value, onChange, min = 0, max = 5000 }) => (
-  <div className="flex flex-col gap-1 mt-3 w-full">
-    <span className="text-xs text-theme-muted uppercase tracking-wider">{label}</span>
-    <input type="number" min={min} max={max} value={value || 0} onChange={(e) => onChange(e.target.value)} className="bg-theme-bg border border-theme rounded-md px-3 py-1.5 text-sm w-full focus:border-theme-primary outline-none transition-colors text-theme-text" />
-  </div>
-);
+const NumberInput = ({ label, value, onChange, min = 0, max = 5000, placeholder = "" }) => {
+  const handleChange = (e) => {
+    const raw = e.target.value;
+    if (raw === "") {
+      onChange("");
+    } else {
+      const parsed = parseInt(raw, 10);
+      onChange(Number.isNaN(parsed) ? "" : parsed);
+    }
+  };
+
+  const displayVal = (value === null || value === undefined || Number.isNaN(value) || value === "") ? "" : value;
+
+  return (
+    <div className="flex flex-col gap-1 mt-3 w-full">
+      <span className="text-xs text-theme-muted uppercase tracking-wider">{label}</span>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        placeholder={placeholder}
+        value={displayVal}
+        onChange={handleChange}
+        className="bg-theme-bg border border-theme rounded-md px-3 py-1.5 text-sm w-full focus:border-theme-primary outline-none transition-colors text-theme-text"
+      />
+    </div>
+  );
+};
 
 const SelectInput = ({ label, value, onChange, options }) => (
   <div className="flex flex-col gap-1 mt-3 w-full">
@@ -1074,6 +1096,7 @@ export default function Blueprints() {
 
 
   const generateBlueprintUpdates = (state = builderState) => {
+    const toNumStr = (val, fallback = "0") => (val === "" || val === undefined || val === null || Number.isNaN(val) ? fallback.toString() : val.toString());
     return {
       OverlayPart: {
         ImageProcessing: state.ImageProcessing ? "true" : "false",
@@ -1117,17 +1140,17 @@ export default function Blueprints() {
         AddTextStroke: state.Poster.AddTextStroke ? "true" : "false",
         AddOverlay: state.Poster.AddOverlay ? "true" : "false",
         bordercolor: state.Poster.bordercolor,
-        borderwidth: state.Poster.borderwidth.toString(),
+        borderwidth: toNumStr(state.Poster.borderwidth, 30),
         fontcolor: state.Poster.fontcolor,
         strokecolor: state.Poster.strokecolor,
-        strokewidth: state.Poster.strokewidth.toString(),
+        strokewidth: toNumStr(state.Poster.strokewidth, 6),
         text_offset: state.Poster.text_offset,
         fontAllCaps: state.Poster.fontAllCaps ? "true" : "false",
-        minPointSize: state.Poster.minPointSize.toString(),
-        maxPointSize: state.Poster.maxPointSize.toString(),
-        lineSpacing: state.Poster.lineSpacing.toString(),
-        MaxWidth: state.Poster.MaxWidth.toString(),
-        MaxHeight: state.Poster.MaxHeight.toString(),
+        minPointSize: toNumStr(state.Poster.minPointSize, 45),
+        maxPointSize: toNumStr(state.Poster.maxPointSize, 300),
+        lineSpacing: toNumStr(state.Poster.lineSpacing, 0),
+        MaxWidth: toNumStr(state.Poster.MaxWidth, 1900),
+        MaxHeight: toNumStr(state.Poster.MaxHeight, 500),
         TextGravity: state.Poster.TextGravity
       },
       SeasonPosterOverlayPart: {
@@ -1136,17 +1159,17 @@ export default function Blueprints() {
         AddTextStroke: state.Season.AddTextStroke ? "true" : "false",
         AddOverlay: state.Season.AddOverlay ? "true" : "false",
         bordercolor: state.Season.bordercolor,
-        borderwidth: state.Season.borderwidth.toString(),
+        borderwidth: toNumStr(state.Season.borderwidth, 30),
         fontcolor: state.Season.fontcolor,
         strokecolor: state.Season.strokecolor,
-        strokewidth: state.Season.strokewidth.toString(),
+        strokewidth: toNumStr(state.Season.strokewidth, 6),
         text_offset: state.Season.text_offset,
         fontAllCaps: state.Season.fontAllCaps ? "true" : "false",
-        minPointSize: state.Season.minPointSize.toString(),
-        maxPointSize: state.Season.maxPointSize.toString(),
-        lineSpacing: state.Season.lineSpacing.toString(),
-        MaxWidth: state.Season.MaxWidth.toString(),
-        MaxHeight: state.Season.MaxHeight.toString(),
+        minPointSize: toNumStr(state.Season.minPointSize, 95),
+        maxPointSize: toNumStr(state.Season.maxPointSize, 250),
+        lineSpacing: toNumStr(state.Season.lineSpacing, 0),
+        MaxWidth: toNumStr(state.Season.MaxWidth, 1900),
+        MaxHeight: toNumStr(state.Season.MaxHeight, 500),
         TextGravity: state.Season.TextGravity,
         ShowFallback: state.Season.ShowFallback ? "true" : "false",
         OverrideSeasonName: state.Season.OverrideSeasonName ? "true" : "false",
@@ -1158,14 +1181,14 @@ export default function Blueprints() {
         fontAllCaps: state.SeasonTitle.fontAllCaps ? "true" : "false",
         AddTextStroke: state.SeasonTitle.AddTextStroke ? "true" : "false",
         strokecolor: state.SeasonTitle.strokecolor,
-        strokewidth: state.SeasonTitle.strokewidth.toString(),
+        strokewidth: toNumStr(state.SeasonTitle.strokewidth, 6),
         fontcolor: state.SeasonTitle.fontcolor,
-        minPointSize: state.SeasonTitle.minPointSize.toString(),
-        maxPointSize: state.SeasonTitle.maxPointSize.toString(),
-        MaxWidth: state.SeasonTitle.MaxWidth.toString(),
-        MaxHeight: state.SeasonTitle.MaxHeight.toString(),
+        minPointSize: toNumStr(state.SeasonTitle.minPointSize, 45),
+        maxPointSize: toNumStr(state.SeasonTitle.maxPointSize, 300),
+        MaxWidth: toNumStr(state.SeasonTitle.MaxWidth, 1900),
+        MaxHeight: toNumStr(state.SeasonTitle.MaxHeight, 500),
         text_offset: state.SeasonTitle.text_offset,
-        lineSpacing: state.SeasonTitle.lineSpacing.toString(),
+        lineSpacing: toNumStr(state.SeasonTitle.lineSpacing, 0),
         TextGravity: state.SeasonTitle.TextGravity
       },
       BackgroundOverlayPart: {
@@ -1174,24 +1197,24 @@ export default function Blueprints() {
         AddTextStroke: state.Background.AddTextStroke ? "true" : "false",
         AddOverlay: state.Background.AddOverlay ? "true" : "false",
         bordercolor: state.Background.bordercolor,
-        borderwidth: state.Background.borderwidth.toString(),
+        borderwidth: toNumStr(state.Background.borderwidth, 30),
         fontcolor: state.Background.fontcolor,
         strokecolor: state.Background.strokecolor,
-        strokewidth: state.Background.strokewidth.toString(),
+        strokewidth: toNumStr(state.Background.strokewidth, 6),
         text_offset: state.Background.text_offset,
         fontAllCaps: state.Background.fontAllCaps ? "true" : "false",
-        minPointSize: state.Background.minPointSize.toString(),
-        maxPointSize: state.Background.maxPointSize.toString(),
-        lineSpacing: state.Background.lineSpacing.toString(),
-        MaxWidth: state.Background.MaxWidth.toString(),
-        MaxHeight: state.Background.MaxHeight.toString(),
+        minPointSize: toNumStr(state.Background.minPointSize, 100),
+        maxPointSize: toNumStr(state.Background.maxPointSize, 300),
+        lineSpacing: toNumStr(state.Background.lineSpacing, 0),
+        MaxWidth: toNumStr(state.Background.MaxWidth, 3640),
+        MaxHeight: toNumStr(state.Background.MaxHeight, 500),
         TextGravity: state.Background.TextGravity
       },
       TitleCardOverlayPart: {
         AddBorder: state.TitleCard.AddBorder ? "true" : "false",
         AddOverlay: state.TitleCard.AddOverlay ? "true" : "false",
         bordercolor: state.TitleCard.bordercolor,
-        borderwidth: state.TitleCard.borderwidth.toString(),
+        borderwidth: toNumStr(state.TitleCard.borderwidth, 30),
         UseBackgroundAsTitleCard: state.TitleCard.UseBackgroundAsTitleCard ? "true" : "false",
         BackgroundFallback: state.TitleCard.BackgroundFallback ? "true" : "false"
       },
@@ -1200,14 +1223,14 @@ export default function Blueprints() {
         AddTextStroke: state.TitleCardEPTitle.AddTextStroke ? "true" : "false",
         fontcolor: state.TitleCardEPTitle.fontcolor,
         strokecolor: state.TitleCardEPTitle.strokecolor,
-        strokewidth: state.TitleCardEPTitle.strokewidth.toString(),
+        strokewidth: toNumStr(state.TitleCardEPTitle.strokewidth, 6),
         text_offset: state.TitleCardEPTitle.text_offset,
         fontAllCaps: state.TitleCardEPTitle.fontAllCaps ? "true" : "false",
-        minPointSize: state.TitleCardEPTitle.minPointSize.toString(),
-        maxPointSize: state.TitleCardEPTitle.maxPointSize.toString(),
-        lineSpacing: state.TitleCardEPTitle.lineSpacing.toString(),
-        MaxWidth: state.TitleCardEPTitle.MaxWidth.toString(),
-        MaxHeight: state.TitleCardEPTitle.MaxHeight.toString(),
+        minPointSize: toNumStr(state.TitleCardEPTitle.minPointSize, 50),
+        maxPointSize: toNumStr(state.TitleCardEPTitle.maxPointSize, 150),
+        lineSpacing: toNumStr(state.TitleCardEPTitle.lineSpacing, 0),
+        MaxWidth: toNumStr(state.TitleCardEPTitle.MaxWidth, 3640),
+        MaxHeight: toNumStr(state.TitleCardEPTitle.MaxHeight, 280),
         TextGravity: state.TitleCardEPTitle.TextGravity
       },
       TitleCardEPTextPart: {
@@ -1215,14 +1238,14 @@ export default function Blueprints() {
         AddTextStroke: state.TitleCardEPText.AddTextStroke ? "true" : "false",
         fontcolor: state.TitleCardEPText.fontcolor,
         strokecolor: state.TitleCardEPText.strokecolor,
-        strokewidth: state.TitleCardEPText.strokewidth.toString(),
+        strokewidth: toNumStr(state.TitleCardEPText.strokewidth, 6),
         text_offset: state.TitleCardEPText.text_offset,
         fontAllCaps: state.TitleCardEPText.fontAllCaps ? "true" : "false",
-        minPointSize: state.TitleCardEPText.minPointSize.toString(),
-        maxPointSize: state.TitleCardEPText.maxPointSize.toString(),
-        lineSpacing: state.TitleCardEPText.lineSpacing.toString(),
-        MaxWidth: state.TitleCardEPText.MaxWidth.toString(),
-        MaxHeight: state.TitleCardEPText.MaxHeight.toString(),
+        minPointSize: toNumStr(state.TitleCardEPText.minPointSize, 50),
+        maxPointSize: toNumStr(state.TitleCardEPText.maxPointSize, 150),
+        lineSpacing: toNumStr(state.TitleCardEPText.lineSpacing, 0),
+        MaxWidth: toNumStr(state.TitleCardEPText.MaxWidth, 3640),
+        MaxHeight: toNumStr(state.TitleCardEPText.MaxHeight, 280),
         TextGravity: state.TitleCardEPText.TextGravity,
         SeasonTCText: state.TitleCardEPText.SeasonTCText,
         EpisodeTCText: state.TitleCardEPText.EpisodeTCText
@@ -1440,9 +1463,10 @@ export default function Blueprints() {
     const offsetRaw = layer.text_offset || "+400";
     const offset = parseInt(String(offsetRaw).replace('+', '').replace('-', '')) || 400;
     const gravity = layer.TextGravity?.toLowerCase() || "south";
-    const offsetPercent = (offset / canvasH) * 100;
-    const w = Math.min(100, (layer.MaxWidth / canvasW) * 100);
-    const h = Math.min(100, (layer.MaxHeight / canvasH) * 100);
+    const maxWidth = layer.MaxWidth === "" || layer.MaxWidth === undefined ? 1900 : (Number(layer.MaxWidth) || 0);
+    const maxHeight = layer.MaxHeight === "" || layer.MaxHeight === undefined ? 500 : (Number(layer.MaxHeight) || 0);
+    const w = Math.min(100, (maxWidth / canvasW) * 100);
+    const h = Math.min(100, (maxHeight / canvasH) * 100);
 
     let justifyContent = 'center';
     let alignItems = 'center';
@@ -1972,16 +1996,16 @@ export default function Blueprints() {
                         )}
 
                         <div className="grid grid-cols-2 gap-4">
-                          <NumberInput label="Min Point Size" value={builderState[selectedLayer.split('.')[0]].minPointSize} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "minPointSize", parseInt(v))} />
-                          <NumberInput label="Max Point Size" value={builderState[selectedLayer.split('.')[0]].maxPointSize} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "maxPointSize", parseInt(v))} />
+                          <NumberInput label="Min Point Size" value={builderState[selectedLayer.split('.')[0]].minPointSize} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "minPointSize", v)} />
+                          <NumberInput label="Max Point Size" value={builderState[selectedLayer.split('.')[0]].maxPointSize} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "maxPointSize", v)} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                          <NumberInput label="Max Width" value={builderState[selectedLayer.split('.')[0]].MaxWidth} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "MaxWidth", parseInt(v))} />
-                          <NumberInput label="Max Height" value={builderState[selectedLayer.split('.')[0]].MaxHeight} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "MaxHeight", parseInt(v))} />
+                          <NumberInput label="Max Width" value={builderState[selectedLayer.split('.')[0]].MaxWidth} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "MaxWidth", v)} />
+                          <NumberInput label="Max Height" value={builderState[selectedLayer.split('.')[0]].MaxHeight} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "MaxHeight", v)} />
                         </div>
 
-                        <NumberInput label="Line Spacing" value={builderState[selectedLayer.split('.')[0]].lineSpacing} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "lineSpacing", parseInt(v))} />
+                        <NumberInput label="Line Spacing" value={builderState[selectedLayer.split('.')[0]].lineSpacing} onChange={(v) => updateBuilder(selectedLayer.split('.')[0], "lineSpacing", v)} />
 
                         <SelectInput
                           label="Text Gravity"
