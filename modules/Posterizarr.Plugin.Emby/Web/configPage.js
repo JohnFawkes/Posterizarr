@@ -22,7 +22,7 @@ define(['loading', 'emby-input', 'emby-button', 'emby-checkbox'], function (load
             if (chkUpdateTitlecard) chkUpdateTitlecard.checked = config.UpdateTitlecard !== false;
             if (chkUpdateBackdrop) chkUpdateBackdrop.checked = config.UpdateBackdrop !== false;
             if (chkUpdateThumbnail) chkUpdateThumbnail.checked = config.UpdateThumbnail || false;
-            if (chkUpdateCollection) chkUpdateCollection.checked = config.UpdateCollection !== false;
+            if (chkUpdateCollection) chkUpdateCollection.checked = config.UpdateCollection || false;
 
             var chkRealtime = view.querySelector('#chkEnableRealtimeSync');
             if (chkRealtime) chkRealtime.checked = config.EnableRealtimeSync || false;

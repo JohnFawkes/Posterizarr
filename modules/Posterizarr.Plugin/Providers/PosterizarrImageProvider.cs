@@ -66,9 +66,12 @@ public class PosterizarrImageProvider : IRemoteImageProvider, IHasItemChangeMoni
         }
         else if (item is BoxSet)
         {
-            if (config?.UpdateCollection != false) types.Add(ImageType.Primary);
-            if (config?.UpdateBackdrop == true) types.Add(ImageType.Backdrop);
-            if (config?.UpdateThumbnail == true) types.Add(ImageType.Thumb);
+            if (config?.UpdateCollection == true)
+            {
+                types.Add(ImageType.Primary);
+                if (config?.UpdateBackdrop == true) types.Add(ImageType.Backdrop);
+                if (config?.UpdateThumbnail == true) types.Add(ImageType.Thumb);
+            }
         }
 
         return types;

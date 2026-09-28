@@ -27,7 +27,7 @@ public class PluginConfiguration : BasePluginConfiguration
         UpdateTitlecard = true;
         UpdateBackdrop = true;
         UpdateThumbnail = false;
-        UpdateCollection = true;
+        UpdateCollection = false;
         PosterizarrApiUrl = string.Empty;
         PosterizarrApiKey = string.Empty;
         EnableRealtimeSync = false;

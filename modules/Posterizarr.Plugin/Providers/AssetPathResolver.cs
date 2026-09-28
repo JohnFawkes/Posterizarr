@@ -334,7 +334,7 @@ public class AssetPathResolver
     /// </summary>
     public FileInfo? FindCollectionFileInfo(BoxSet boxSet, PluginConfiguration config, ImageType type)
     {
-        if (config == null || string.IsNullOrEmpty(config.AssetFolderPath))
+        if (config == null || string.IsNullOrEmpty(config.AssetFolderPath) || !config.UpdateCollection)
         {
             return null;
         }

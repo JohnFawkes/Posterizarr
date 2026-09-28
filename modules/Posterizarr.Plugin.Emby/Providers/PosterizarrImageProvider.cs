@@ -64,9 +64,12 @@ namespace Posterizarr.Plugin.Providers
             }
             else if (item is BoxSet)
             {
-                if (config?.UpdateCollection != false) types.Add(ImageType.Primary);
-                if (config?.UpdateBackdrop == true) types.Add(ImageType.Backdrop);
-                if (config?.UpdateThumbnail == true) types.Add(ImageType.Thumb);
+                if (config?.UpdateCollection == true)
+                {
+                    types.Add(ImageType.Primary);
+                    if (config?.UpdateBackdrop == true) types.Add(ImageType.Backdrop);
+                    if (config?.UpdateThumbnail == true) types.Add(ImageType.Thumb);
+                }
             }
 
             return types;
@@ -227,7 +230,7 @@ namespace Posterizarr.Plugin.Providers
 
         internal string? FindCollectionFile(BoxSet boxSet, Configuration.PluginConfiguration config, ImageType type)
         {
-            if (config == null || string.IsNullOrEmpty(config.AssetFolderPath) || !Directory.Exists(config.AssetFolderPath))
+            if (config == null || string.IsNullOrEmpty(config.AssetFolderPath) || !config.UpdateCollection || !Directory.Exists(config.AssetFolderPath))
             {
                 return null;
             }
