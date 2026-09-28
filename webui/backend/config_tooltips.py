@@ -47,7 +47,7 @@ CONFIG_TOOLTIPS = {
     "PlexUrl": "Plex server URL (i.e. 'http://192.168.1.1:32400' or 'http://myplexserver.com:32400').",
     "UsePlex": "If set to true, you tell the script to use a Plex Server (Default value is: true). Do not enable more than one media server.",
     "PlexUploadExistingAssets": "If set to true, the script will check local assets and upload them to Plex, but only if Plex does not already have EXIF data from Posterizarr, Kometa, or TCM for the artwork being uploaded.",
-    "PlexUpload": "If set to true, Posterizarr will directly upload the artwork to Plex (handy if you do not use Kometa).",
+    "PlexUpload": "If set to true, Posterizarr will directly upload the artwork to Plex during scheduled and normal batch runs (handy if you do not use Kometa). Note: Real-time trigger modes (Tautulli and *Arr webhooks) always force direct upload to Plex so newly added media is styled immediately, regardless of this setting.",
 
     # JellyfinPart
     "JellyfinLibstoExclude": "Libraries, by local folder name, to exclude from processing on your Jellyfin server.",
@@ -141,6 +141,7 @@ CONFIG_TOOLTIPS = {
     "UseClearlogo": "Set to true to use Clearlogo. A Clearlogo is a transparent PNG image that contains only the title text (logo) of a movie or show - no characters, no background, no extra artwork.",
     "UseClearart": "Set to true to use Clearart. Clearart is a transparent PNG image that contains the logo plus additional artwork (e.g., characters or promotional art) - still fully transparent with no background.",
     "LogoTextFallback": "Set to true to fallback to Text if no logos are found.",
+    "LogoExifCheck": "When enabled, Logo Updater will replace existing logos only if they do not contain Posterizarr EXIF metadata (e.g. default/unwanted logos set by Plex). Existing logos already tagged by Posterizarr will be skipped.",
     "TextlessPosterBypass": "Set to true to bypass 'Prefer Textless' and download a standard Text Poster if no logos are found.",
     "ConvertLogoColor": "Set to true to convert the logo image to a solid color (monochrome).",
     "LogoFlatColor": "The specific color to use when Convert Logo Color is enabled (e.g., 'white', '#FFFFFF').",

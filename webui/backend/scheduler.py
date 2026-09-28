@@ -301,6 +301,9 @@ class PosterizarrScheduler:
                 
                 if schedule_config.get("force_replace"):
                     switches.append("-ForceReplace")
+
+                if schedule_config.get("exif_check"):
+                    switches.append("-LogoExifCheck")
                 
                 if schedule_config.get("revert"):
                     # Swap LogoUpdater for LogoRevert if revert is requested

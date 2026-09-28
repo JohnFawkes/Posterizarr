@@ -24,6 +24,7 @@ import {
   Download,
   Search, // <--- Added Search Icon
   Upload,
+  FileCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "./ConfirmDialog";
@@ -555,6 +556,7 @@ function RunModes() {
   const [showLogoUpdaterModal, setShowLogoUpdaterModal] = useState(false);
   const [logoUpdaterLibrary, setLogoUpdaterLibrary] = useState("");
   const [forceLogoReplace, setForceLogoReplace] = useState(false);
+  const [logoExifCheck, setLogoExifCheck] = useState(false);
   const [logoRevert, setLogoRevert] = useState(false);
   const [processAllLibraries, setProcessAllLibraries] = useState(false);
 
@@ -1856,6 +1858,8 @@ const LogoUpdaterModal = React.memo(({
   setLibrary,
   forceReplace,
   setForceReplace,
+  exifCheck,
+  setExifCheck,
   revert,
   setRevert,
   processAll,
@@ -1944,6 +1948,24 @@ const LogoUpdaterModal = React.memo(({
               <span className={`${revert ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
             </button>
           </div>
+
+          {/* EXIF Check Toggle (only if not revert) */}
+          {!revert && (
+            <div className="flex items-center justify-between p-3 bg-theme-bg/50 border border-theme rounded-lg group hover:border-theme-primary/50 transition-all cursor-pointer" onClick={() => setExifCheck(!exifCheck)}>
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg transition-colors ${exifCheck ? 'bg-purple-500/10 text-purple-400' : 'bg-theme-primary/10 text-theme-muted'}`}>
+                  <FileCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-theme-text">{t("runModes.logoUpdater.exifCheck", "Only Replace Non-Posterizarr Logos")}</p>
+                  <p className="text-xs text-theme-muted">{t("runModes.logoUpdater.exifCheckDesc", "Replace Plex default logos, but skip logos previously created by Posterizarr (EXIF check)")}</p>
+                </div>
+              </div>
+              <button type="button" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${exifCheck ? 'bg-purple-600' : 'bg-gray-700'}`}>
+                <span className={`${exifCheck ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
+              </button>
+            </div>
+          )}
 
           {/* Force Replace Toggle (only if not revert) */}
           {!revert && (
@@ -2060,6 +2082,7 @@ const LogoUpdaterModal = React.memo(({
               body: JSON.stringify({
                 library: processAllLibraries ? "all" : logoUpdaterLibrary,
                 force_replace: forceLogoReplace,
+                exif_check: logoExifCheck,
                 revert: logoRevert
               }),
             });
@@ -2087,6 +2110,8 @@ const LogoUpdaterModal = React.memo(({
         setLibrary={setLogoUpdaterLibrary}
         forceReplace={forceLogoReplace}
         setForceReplace={setForceLogoReplace}
+        exifCheck={logoExifCheck}
+        setExifCheck={setLogoExifCheck}
         revert={logoRevert}
         setRevert={setLogoRevert}
         processAll={processAllLibraries}

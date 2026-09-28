@@ -306,6 +306,9 @@ On [docker](platformandtools.md#docker) this way:
 !!! note
     If Discord is configured it will send a Notification on each trigger.
 
+!!! info "Direct Upload Enforced in Trigger Modes"
+    Tautulli Mode always forces direct upload to Plex (`Upload2Plex = true`), regardless of whether `PlexUpload` is set to `false` in your `config.json`. The purpose of real-time triggers is to immediately style newly added media in Plex the moment it is imported, without waiting for your next scheduled run. If you use Kometa and want zero uploads from Posterizarr before Kometa applies overlays, do not configure Tautulli triggers; schedule regular Posterizarr batch runs before your Kometa schedule instead.
+
 In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex, like a new show, movie or episode got added.
 
 To use it we need to configure a script in Tautulli, please follow these instructions.
@@ -427,6 +430,9 @@ In this mode we use Tautulli to trigger Posterizarr for an specific item in Plex
 !!! note
     If Discord is configured it will send a Notification on each trigger.
 
+!!! info "Direct Upload Enforced in Trigger Modes"
+    Arr trigger runs always force direct upload to your media server (`Upload2Plex = true` / Jellyfin / Emby), regardless of whether `PlexUpload` is set to `false` in your `config.json`.
+
 In this mode we use Sonarr/Radarr to trigger Posterizarr for an specific item in Plex/Jellyfin, like a new show, movie or episode got added.
 
 To use it we need to configure a script in Sonarr/Radarr, please follow these instructions.
@@ -508,12 +514,13 @@ The **Logo Updater Mode** automatically scans your Plex libraries for missing Cl
 - `-LogoUpdater`: Enable the logo search and upload process.
 - `-LogoRevert`: Search for logos previously added by Posterizarr (verified via fingerprinting) and unlinks them from Plex.
 - `-ForceReplace`: Overwrite existing logos even if they already exist in Plex.
+- `-LogoExifCheck`: Only replace existing logos if they lack Posterizarr EXIF metadata (e.g. default logos auto-selected by Plex). Existing logos created or uploaded by Posterizarr are skipped.
 - `-LibraryName`: Specify a single library name or use `"all"` to process all suitable Movie and TV libraries.
 
 !!! tip
-    **Fingerprinting**: When running in **Revert** mode, Posterizarr checks the current logo for a hidden "fingerprint" added during upload. This ensures it only unlinks images it originally provided, leaving your manual uploads untouched.
+    **Fingerprinting & EXIF Checks**: When running with `-LogoExifCheck` or in **Revert** mode, Posterizarr inspects the current logo for a metadata comment (`created with posterizarr`). Using `-LogoExifCheck` allows you to replace unwanted or wrong-language logos chosen by Plex's default agents while skipping logos Posterizarr already customized in prior runs.
 
-    In the WebUI, you can access this mode via the **"Run Modes"** tab. It provides a user-friendly interface to select libraries and toggle "Force Replace" or "Revert" settings.
+    In the WebUI, you can access this mode via the **"Run Modes"** tab. It provides a user-friendly interface to select libraries and toggle "Force Replace", "Only Replace Non-Posterizarr Logos (EXIF Check)", or "Revert" settings.
 
 
 ### Manual Mode Logo Search

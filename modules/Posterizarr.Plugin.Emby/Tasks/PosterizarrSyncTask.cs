@@ -62,7 +62,7 @@ namespace Posterizarr.Plugin.Tasks
 
             var items = _libraryManager.GetItemList(new InternalItemsQuery
             {
-                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Series).Name, typeof(Season).Name, typeof(Episode).Name },
+                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Series).Name, typeof(Season).Name, typeof(Episode).Name, typeof(BoxSet).Name },
                 Recursive = true,
                 IsVirtualItem = false
             });

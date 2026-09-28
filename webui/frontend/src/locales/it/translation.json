@@ -23,7 +23,7 @@
       "stopFirst": "Lo script deve essere fermato prima di reimpostare le locandine!",
       "success": "Locandine reimpostate con successo!",
       "confirmTitle": "Reimposta locandine",
-      "confirmMessage": "Sei sicuro di voler reimpostare TUTTE le locandine in \"{{library}}\"? Questa azione NON PUÒ essere annullata!\\n\\nSei assolutamente sicuro?",
+      "confirmMessage": "Sei sicuro di voler reimpostare TUTTE le locandine in \"{{library}}\"? Questa azione NON PUÒ essere annullata!\n\nSei assolutamente sicuro?",
       "title": "Reimposta locandine",
       "description": "Reimposta tutte le locandine in una libreria Plex ai valori predefiniti",
       "warning": "Attenzione:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Seleziona Libreria",
       "forceReplace": "Forza sostituzione",
       "forceReplaceDesc": "Sovrascrivi i logo anche se sono già presenti sul server",
+      "exifCheck": "Sostituisci solo loghi non di Posterizarr",
+      "exifCheckDesc": "Sostituisce i loghi predefiniti di Plex, ma salta quelli creati in precedenza da Posterizarr (controllo EXIF)",
       "start": "Avvia Aggiornatore Logo",
       "browse": "Sfoglia"
     },
@@ -2049,8 +2051,12 @@
     "header": {
       "title": "Trigger automatici",
       "subtitle": "Crea e invia automaticamente le locandine al tuo server multimediale quando vengono aggiunti nuovi contenuti.",
+      "bullet1Title": "Come funziona:",
       "bullet1": "Elabora solo gli elementi appena aggiunti e carica immediatamente gli asset. I contenuti esistenti vengono ignorati.",
-      "bullet2": "Utenti Plex: Utilizza Tautulli per una corrispondenza esatta. I trigger Arr sono pensati principalmente per Jellyfin/Emby e richiedono una corrispondenza manuale."
+      "bullet2Title": "Raccomandazione Plex:",
+      "bullet2": "Utenti Plex: Utilizza Tautulli per una corrispondenza esatta. I trigger Arr sono pensati principalmente per Jellyfin/Emby e richiedono una corrispondenza manuale.",
+      "bullet3Title": "Caricamento diretto:",
+      "bullet3": "I trigger forzano sempre il caricamento immediato sul server multimediale (ignorando PlexUpload=false). Se usi Kometa e non desideri caricamenti da Posterizarr, usa le esecuzioni pianificate invece dei trigger."
     },
     "tabs": {
       "tautulli": {

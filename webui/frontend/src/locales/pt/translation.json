@@ -23,7 +23,7 @@
       "stopFirst": "O script deve ser parado antes de redefinir os cartazes!",
       "success": "Cartazes redefinidos com sucesso!",
       "confirmTitle": "Redefinir cartazes",
-      "confirmMessage": "Tem certeza de que deseja redefinir TODOS os cartazes em \"{{library}}\"? Esta ação NÃO PODE ser desfeita!\\n\\nTem certeza absoluta?",
+      "confirmMessage": "Tem certeza de que deseja redefinir TODOS os cartazes em \"{{library}}\"? Esta ação NÃO PODE ser desfeita!\n\nTem certeza absoluta?",
       "title": "Redefinir cartazes",
       "description": "Redefinir todos os cartazes em uma biblioteca Plex para o padrão",
       "warning": "Aviso:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Selecionar Biblioteca",
       "forceReplace": "Forçar substituição",
       "forceReplaceDesc": "Substituir logos mesmo que já existam no servidor",
+      "exifCheck": "Substituir apenas logotipos não-Posterizarr",
+      "exifCheckDesc": "Substitui os logotipos padrão do Plex, mas ignora os criados anteriormente pelo Posterizarr (verificação EXIF)",
       "start": "Iniciar Atualizador de Logos",
       "browse": "Procurar"
     },
@@ -2045,8 +2047,12 @@
     "header": {
       "title": "Triggers Automáticos",
       "subtitle": "Crie e envie pôsteres automaticamente para o seu servidor de mídia quando novas mídias forem adicionadas.",
+      "bullet1Title": "Como funciona:",
       "bullet1": "Processa apenas os itens recém-adicionados e faz o upload dos recursos imediatamente. As mídias existentes são ignoradas.",
-      "bullet2": "Usuários do Plex: Use o Tautulli para uma correspondência exata. Os triggers do Arr são principalmente para o Jellyfin/Emby e exigem correspondência manual."
+      "bullet2Title": "Recomendação do Plex:",
+      "bullet2": "Usuários do Plex: Use o Tautulli para uma correspondência exata. Os triggers do Arr são principalmente para o Jellyfin/Emby e exigem correspondência manual.",
+      "bullet3Title": "Envio direto:",
+      "bullet3": "Execuções via gatilho sempre forçam o envio imediato para seu servidor de mídia (ignorando PlexUpload=false). Se você usa o Kometa e não quer uploads diretos do Posterizarr, use execuções agendadas em vez de gatilhos."
     },
     "tabs": {
       "tautulli": {

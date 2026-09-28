@@ -18,6 +18,7 @@ param (
     [switch]$LogoUpdater, # Required for LogoUpdater Mode
     [switch]$LogoRevert, # Required for LogoRevert Mode
     [switch]$ForceReplace, # Force replace existing logos
+    [switch]$LogoExifCheck, # Only replace logos if missing or not created by Posterizarr (EXIF check)
     [switch]$UISchedule, # Required for UI Schedule trigger
     [switch]$ContainerSchedule, # Required for Container Schedule trigger
     [string]$ConfigOverride, # Override config.json path
@@ -75,7 +76,7 @@ for ($i = 0; $i -lt $ExtraArgs.Count; $i++) {
     }
 }
 
-$CurrentScriptVersion = "3.3.5"
+$CurrentScriptVersion = "3.3.6"
 $global:HeaderWritten = $false
 $ProgressPreference = 'SilentlyContinue'
 

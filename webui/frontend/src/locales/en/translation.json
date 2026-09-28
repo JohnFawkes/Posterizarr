@@ -23,7 +23,7 @@
       "stopFirst": "The script must be stopped before resetting posters!",
       "success": "Posters reset successfully!",
       "confirmTitle": "Reset Posters",
-      "confirmMessage": "Are you sure you want to reset ALL posters in \"{{library}}\"? This action CANNOT be undone!\\n\\nAre you absolutely sure?",
+      "confirmMessage": "Are you sure you want to reset ALL posters in \"{{library}}\"? This action CANNOT be undone!\n\nAre you absolutely sure?",
       "title": "Reset Posters",
       "description": "Reset all posters in a Plex library to default",
       "warning": "Warning:",
@@ -114,6 +114,8 @@
       "selectLibrary": "Select Library",
       "forceReplace": "Force Replace Existing",
       "forceReplaceDesc": "Overwrite logos even if they already exist on the server",
+      "exifCheck": "Only Replace Non-Posterizarr Logos",
+      "exifCheckDesc": "Replace Plex default logos, but skip logos previously created by Posterizarr (EXIF check)",
       "start": "Start Logo Updater",
       "browse": "Browse"
     },
@@ -2052,8 +2054,12 @@
     "header": {
       "title": "Auto Triggers",
       "subtitle": "Automatically create and push posters to your media server when new media is added.",
+      "bullet1Title": "How it works:",
       "bullet1": "Processes only newly added items and uploads assets immediately. Existing media is ignored.",
-      "bullet2": "Plex Users: Use Tautulli for exact matching. Arr triggers are primarily for Jellyfin/Emby and require manual matching."
+      "bullet2Title": "Plex Recommendation:",
+      "bullet2": "Plex Users: Use Tautulli for exact matching. Arr triggers are primarily for Jellyfin/Emby and require manual matching.",
+      "bullet3Title": "Direct Upload:",
+      "bullet3": "Trigger runs always force immediate upload to your media server (bypassing PlexUpload=false). If you use Kometa and want zero uploads from Posterizarr, use scheduled batch runs instead of triggers."
     },
     "tabs": {
       "tautulli": {

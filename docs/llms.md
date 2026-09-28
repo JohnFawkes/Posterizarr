@@ -158,12 +158,12 @@ pwsh ./Posterizarr.ps1 [-ModeSwitch] [Parameters]
 ### 2. Arr Mode (`ArrMode.ps1`)
 - **CLI**: `pwsh ./Posterizarr.ps1 -ArrTrigger -ExtraArgs ...`
 - **Trigger**: Invoked by Radarr/Sonarr via `ArrTrigger.sh` or the native webhook `/api/webhook/arr`.
-- **Description**: Targeted single-item run. Reads the TMDB/TVDB ID or media folder passed by the Arr application and processes *only* that specific movie, show, or episode. Dispatches a follow-up callback to **Agregarr** if enabled.
+- **Description**: Targeted single-item run. Reads the TMDB/TVDB ID or media folder passed by the Arr application and processes *only* that specific movie, show, or episode. Dispatches a follow-up callback to **Agregarr** if enabled. **Note**: Direct upload to the media server is enforced by design in trigger mode (overriding `PlexUpload: "false"`) to ensure immediate artwork availability upon media import.
 
 ### 3. Tautulli Mode (`TautulliMode.ps1`)
 - **CLI**: `pwsh ./Posterizarr.ps1 -Tautulli -RatingKey "12345" -mediatype "movie"`
 - **Trigger**: Invoked by Tautulli on 'Recently Added' notifications via `trigger.py` or `/api/webhook/tautulli`.
-- **Description**: Targeted single-item run for Plex. Resolves the rating key, queries Plex metadata, and processes the newly added item immediately without a full library scan.
+- **Description**: Targeted single-item run for Plex. Resolves the rating key, queries Plex metadata, and processes the newly added item immediately without a full library scan. **Note**: Direct upload to Plex is enforced by design in trigger mode (overriding `PlexUpload: "false"`) to push artwork to Plex as soon as new items are added.
 
 ### 4. Manual Mode (`ManualMode.ps1`)
 - **Interactive**: `pwsh ./Posterizarr.ps1 -Manual -MoviePosterCard` (prompts for paths, titles, libraries).
@@ -196,9 +196,9 @@ pwsh ./Posterizarr.ps1 [-ModeSwitch] [Parameters]
 - **Description**: Removes custom uploaded posters in the specified Plex library and resets items to Plex's default scraped artwork.
 
 ### 9. Logo Updater Mode (`LogoUpdaterMode.ps1`)
-- **Update**: `pwsh ./Posterizarr.ps1 -LogoUpdater -LibraryName "Movies" [-ForceReplace]`
+- **Update**: `pwsh ./Posterizarr.ps1 -LogoUpdater -LibraryName "Movies" [-ForceReplace] [-LogoExifCheck]`
 - **Revert**: `pwsh ./Posterizarr.ps1 -LogoRevert -LibraryName "Movies"`
-- **Description**: Dedicated ClearLogo manager. Scans libraries, downloads transparent logos from TMDB/TVDB/Fanart, and uploads them to media servers. In Revert mode, checks embedded EXIF fingerprints to safely remove only Posterizarr-added logos without touching manual user uploads.
+- **Description**: Dedicated ClearLogo manager. Scans libraries, downloads transparent logos from TMDB/TVDB/Fanart, and uploads them to media servers. In Revert mode, checks embedded EXIF fingerprints to safely remove only Posterizarr-added logos without touching manual user uploads. With `-LogoExifCheck`, replaces default server-scraped logos while skipping already-tagged Posterizarr assets.
 
 ### 10. Emby / Jellyfin Mode (`EmbyJellyMode.ps1`)
 - **Trigger**: Automatic fallback when `UseOtherMediaServer = "true"` and Plex is disabled.
@@ -511,6 +511,7 @@ The configuration file `config.json` (modeled by `config.example.json`) contains
 - `UseLogo` / `UseBGLogo`: Apply clearlogo instead of title text to posters or backgrounds.
 - `UseClearlogo` / `UseClearart`: Scrape transparent clearlogo or clearart PNGs.
 - `LogoTextFallback` (bool): Fall back to typography if no logo is available.
+- `LogoExifCheck` (bool): In Logo Updater mode, replace existing logos only if they lack Posterizarr EXIF metadata (skips previously tagged Posterizarr logos).
 - `TextlessPosterBypass` (bool): Bypass textless preference if no logo is found.
 - `ConvertLogoColor` (bool) & `LogoFlatColor` (str): Convert logos to solid color silhouettes.
 - `PreserveMultiColorLogos` (bool): When converting logo color, preserve multi-colored logos in original hues.

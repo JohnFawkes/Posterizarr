@@ -156,6 +156,35 @@
                     if ($ForceReplace) {
                         Write-Entry -Message "[$title] Logo exists but ForceReplace is enabled. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
                     }
+                    elseif ($LogoExifCheck -or $global:LogoExifCheck -eq 'true') {
+                        $existingLogoUrl = "$OtherMediaServerUrl/Items/$ratingKey/Images/Logo"
+                        $safeFileName = $ratingKey -replace '[^a-zA-Z0-9]', '_'
+                        $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
+                        $hasPosterizarrExif = $false
+                        try {
+                            $tempDir = Join-Path $global:ScriptRoot -ChildPath "temp"
+                            if (-not (Test-Path $tempDir)) { New-Item -ItemType Directory -Path $tempDir -Force | Out-Null }
+
+                            Invoke-WebRequest -Uri $existingLogoUrl -Headers $global:OtherMediaServerHeaders -OutFile $checkLogoPath -TimeoutSec 15 -ErrorAction Stop
+                            if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
+                                $hasPosterizarrExif = $true
+                            }
+                        }
+                        catch {
+                            Write-Entry -Subtext "[$title] Error checking existing logo EXIF: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+                        }
+                        finally {
+                            if (Test-Path $checkLogoPath) { Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue }
+                        }
+
+                        if ($hasPosterizarrExif) {
+                            Write-Entry -Subtext "[$title] Existing logo has Posterizarr EXIF data. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+                            continue
+                        }
+                        else {
+                            Write-Entry -Message "[$title] Existing logo is not from Posterizarr (missing EXIF). Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
+                        }
+                    }
                     else {
                         Write-Entry -Subtext "[$title] Logo already exists. Skipping." -Path $global:configLogging -Color Cyan -log Debug
                         continue
@@ -367,6 +396,77 @@
 
                 if ($ForceReplace) {
                     Write-Entry -Message "[$title] Logo exists but ForceReplace is enabled. Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
+                }
+                elseif ($LogoExifCheck -or $global:LogoExifCheck -eq 'true') {
+                    $logosUrl = "$PlexUrl/library/metadata/$ratingKey/clearLogos"
+                    $hasPosterizarrLogo = $false
+                    try {
+                        $logosResponse = Invoke-RestMethod -Uri $logosUrl -Headers $PlexHeaders
+
+                        if ($logosResponse.MediaContainer.Photo) {
+                            # Determine which logo is the active/selected one
+                            $selectedLogo = $null
+                            foreach ($logo in $logosResponse.MediaContainer.Photo) {
+                                if ($logo.selected -eq "1" -or $logo.selected -eq 1) {
+                                    $selectedLogo = $logo
+                                    break
+                                }
+                            }
+                            # If none has selected="1", check the first logo
+                            if (-not $selectedLogo) {
+                                $selectedLogo = $logosResponse.MediaContainer.Photo[0]
+                            }
+
+                            if ($selectedLogo) {
+                                if ($selectedLogo.ratingKey -match "^metadata://" -or $selectedLogo.ratingKey -match "^https?://") {
+                                    # Default Plex metadata agent logo, NOT created by Posterizarr
+                                    $hasPosterizarrLogo = $false
+                                    Write-Entry -Subtext "[$title] Active logo is Plex default metadata ($($selectedLogo.ratingKey))." -Path $global:configLogging -Color Cyan -log Debug
+                                }
+                                elseif ($selectedLogo.ratingKey -match "^upload://") {
+                                    # Uploaded logo - check if it has Posterizarr EXIF tag
+                                    $safeFileName = $selectedLogo.ratingKey -replace '[^a-zA-Z0-9]', '_'
+                                    $checkLogoPath = Join-Path $global:ScriptRoot -ChildPath "temp\check_logo_$safeFileName.png"
+
+                                    $logoKey = $selectedLogo.key
+                                    if ($logoKey -match "^https?://") {
+                                        $logoDownloadUrl = $logoKey
+                                    }
+                                    else {
+                                        $logoKey = "/" + $logoKey.TrimStart("/")
+                                        $logoDownloadUrl = "$PlexUrl$logoKey"
+                                    }
+
+                                    try {
+                                        $tempDir = Join-Path $global:ScriptRoot -ChildPath "temp"
+                                        if (-not (Test-Path $tempDir)) { New-Item -ItemType Directory -Path $tempDir -Force | Out-Null }
+
+                                        Invoke-PlexWebRequest -Uri $logoDownloadUrl -Headers $PlexHeaders -OutFile $checkLogoPath
+                                        if (Test-IsPosterizarrAsset -Path $checkLogoPath) {
+                                            $hasPosterizarrLogo = $true
+                                        }
+                                    }
+                                    catch {
+                                        Write-Entry -Subtext "[$title] Error checking logo $($selectedLogo.ratingKey): $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+                                    }
+                                    finally {
+                                        if (Test-Path $checkLogoPath) { Remove-Item $checkLogoPath -Force -ErrorAction SilentlyContinue }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        Write-Entry -Subtext "[$title] Error querying clearLogos for EXIF check: $($_.Exception.Message)" -Path $global:configLogging -Color Yellow -log Warning
+                    }
+
+                    if ($hasPosterizarrLogo) {
+                        Write-Entry -Subtext "[$title] Existing logo has Posterizarr EXIF tag. Skipping." -Path $global:configLogging -Color Cyan -log Debug
+                        continue
+                    }
+                    else {
+                        Write-Entry -Message "[$title] Logo exists but is not from Posterizarr (Plex default / no EXIF). Attempting to fetch..." -Path $global:configLogging -Color Yellow -log Info
+                    }
                 }
                 else {
                     Write-Entry -Subtext "[$title] Logo already exists. Skipping." -Path $global:configLogging -Color Cyan -log Debug
